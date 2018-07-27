@@ -1,0 +1,184 @@
+
+Protocol Stack initializinmuxMain.c, line 159
+Initializing LwIP...
+
+################## 1: configure ethernet interface
+Configure ethernet...
+Add netif...
+netif: IP address of interface  set to 0.0.0.0
+netif: netmask of interface  set to 0.0.0.0
+netif: GW address of interface  set to 0.0.0.0
+gmac_rx_populate_queue: new pbuf allocated: 0x204241dc [idx=0]
+gmac_rx_populate_queue: new pbuf allocated: 0x20423b80 [idx=1]
+gmac_rx_populate_queue: new pbuf allocated: 0x20423524 [idx=2]
+Initializing PHY_INIT
+100M    FULL_DUPLEX     LINK_DOWN       NWAY=0
+100M    FULL_DUPLEX     LINK_DOWN       NWAY=0
+100M    FULL_DUPLEX     LINK_DOWN       NWAY=0
+100M    FULL_DUPLEX     LINK_DOWN       NWAY=0
+1000M   FULL_DUPLEX     LINK_DOWN       NWAY=1
+1000M   FULL_DUPLEX     LINK_UP NWAY=0
+100M    FULL_DUPLEX     LINK_UP NWAY=0
+Initializing PHY_AUTO_NEGOTIATE
+Link:100Mb; Duplex:Full
+Initializing PHY_SET_LINK
+
+
+################## 2: make default interface up for DHCP
+netif: added interface en IP addr 0.0.0.0 netmask 0.0.0.0 gw 0.0.0.0
+Setup default netif...
+netif: setting default interface en
+
+
+################## 3: Start DHCP client and send DHCP request
+[bsp/muxBspNetStacks.c-225] DEBUG: DHCP Starting...
+
+ip4_output_if: en0
+IP header:
++-------------------------------+
+| 4 | 5 |  0x00 |       336     | (v, hl, tos, len)
++-------------------------------+
+|        0      |000|       0   | (id, flags, offset)
++-------------------------------+
+|  255  |   17  |    0xba9d     | (ttl, proto, chksum)
++-------------------------------+
+|    0  |    0  |    0  |    0  | (src)
++-------------------------------+
+|  255  |  255  |  255  |  255  | (dest)
++-------------------------------+
+ip4_output_if: call netif->output()
+
+[bsp/muxBspNetStacks.c-231] DEBUG: DHCP Started
+
+
+################## 4: Continue to other service and OS functions
+
+Initializing timer...
+Initializing httpd2...
+lwip/ports/sam/sys_arch.c, line 451
+Console...
+
+OS Scheduler beginning...
+MuxLab command server.
+Type Help to view a list of registered commands.
+################## OS startup now ###############################
+
+
+
+################## 5: another DHCP request
+>ip4_output_if: en0
+IP header:
++-------------------------------+
+| 4 | 5 |  0x00 |       336     | (v, hl, tos, len)
++-------------------------------+
+|        1      |000|       0   | (id, flags, offset)
++-------------------------------+
+|  255  |   17  |    0xba9c     | (ttl, proto, chksum)
++-------------------------------+
+|    0  |    0  |    0  |    0  | (src)
++-------------------------------+
+|  255  |  255  |  255  |  255  | (dest)
++-------------------------------+
+ip4_output_if: call netif->output()
+
+
+################## 6: one DHCP response in port 7437
+ip4_input: UDP packet to DHCP client port 7437
+ip4_input: packet not for us.
+
+
+################## 7: another DHCP request
+ip4_output_if: en0
+IP header:
++-------------------------------+
+| 4 | 5 |  0x00 |       336     | (v, hl, tos, len)
++-------------------------------+
+|        2      |000|       0   | (id, flags, offset)
++-------------------------------+
+|  255  |   17  |    0xba9b     | (ttl, proto, chksum)
++-------------------------------+
+|    0  |    0  |    0  |    0  | (src)
++-------------------------------+
+|  255  |  255  |  255  |  255  | (dest)
++-------------------------------+
+ip4_output_if: call netif->output()
+gmac_low_level_output: DMA buffer sent, size=350 [idx=2]
+netif: IP address gmac_low_levf interfacevel_input:  en set to 0DMA buffer .0.0.0
+neti0x20423b80 rf: netmask eceived, sizof interface=594 [idx=1e en set to]
+gmac_rx_p 0.0.0.0
+neopulate_quetif: GW addrue: new pbuess of interf allocatedface en set : 0x204241dcto 0.0.0.0
+[idx=1]
+
+
+################## 8: DHCP response on port 68
+
+ip4_input: UDP packet to DHCP client port 68
+ip4_input: DHCP packet accepted.
+ip4_input: 
+IP header:
++-------------------------------+
+| 4 | 5 |  0x00 |       576     | (v, hl, tos, len)
++-------------------------------+
+|    24318      |000|       0   | (id, flags, offset)
++-------------------------------+
+|   64  |   17  |    0x47f7     | (ttl, proto, chksum)
++-------------------------------+
+|  192  |  168  |  168  |    1  | (src)
++-------------------------------+
+|  192  |  168  |  168  |  101  | (dest)
++-------------------------------+
+ip4_input: p->len 576 p->tot_len 576
+
+
+ip4_output_if: en0
+IP header:
++-------------------------------+
+| 4 | 5 |  0x00 |       336     | (v, hl, tos, len)
++-------------------------------+
+|        3      |000|       0   | (id, flags, offset)
++-------------------------------+
+|  255  |   17  |    0xba9a     | (ttl, proto, chksum)
++-------------------------------+
+|    0  |    0  |    0  |    0  | (src)
++-------------------------------+
+|  255  |  255  |  255  |  255  | (dest)
++-------------------------------+
+ip4_output_if: call netif->output()
+
+
+################## 9: DHCP response on port 68
+ip_input: iphdr->dest 0x65a8a8c0 netif->ip_addr 0x0 (0x0, 0x0, 0x65a8a8c0)
+ip4_input: UDP packet to DHCP client port 68
+ip4_input: DHCP packet accepted.
+ip4_input: 
+IP header:
++-------------------------------+
+| 4 | 5 |  0x00 |       576     | (v, hl, tos, len)
++-------------------------------+
+|    24318      |000|       0   | (id, flags, offset)
++-------------------------------+
+|   64  |   17  |    0x47f7     | (ttl, proto, chksum)
++-------------------------------+
+|  192  |  168  |  168  |    1  | (src)
++-------------------------------+
+|  192  |  168  |  168  |  101  | (dest)
++-------------------------------+
+
+
+ip4_input: p->len 576 p->tot_len 576
+
+################## 10: DHCP Configure network interface
+
+ip4_input: UDP packet to DHCP client port 7437
+ip4_input: packet not for us.
+gmac_low_level_output: DMA buffer sent, size=42 [idx=2]
+gmac_low_level_output: DMA buffer sent, size=42 [idx=0]
+gmac_low_level_output: DMA buffer sent, size=42 [idx=1]
+[lwip/src/core/ipv4/dhcp.c-1138] INFO : DHCP Configure: IP: 0x65a8a8c0 SN: 0x00ffffff GW: 0x01a8a8c0
+
+netif: netmask of interface en set to 255.255.255.0
+netif: GW address of interface en set to 192.168.168.1
+netif_set_ipaddr: netif address being changed
+gmac_low_level_output: DMA buffer sent, size=42 [idx=2]
+Network up IP=192.168.168.101
+netif: IP address of interface en set to 192.168.168.101

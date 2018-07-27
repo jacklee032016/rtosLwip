@@ -1,0 +1,36 @@
+
+				Todo List of AN767
+											 January, 2018	Jack Lee
+
+Feb.2nd,2018
+	1. Runtime configuration
+	
+	2. Command line:
+		Options: FreeRTOS params; shell; MCU;
+	
+	3. Configuration read/write to EEPROM:
+		DHCP;
+		MAC Address;
+		IP/netmask/gateway
+	
+	4. Commands: cmd, output
+		exec
+		output
+	
+	5. Controller Task <-- QueueSet <-- UART/telnet/HTTP(JSON) Tasks
+						--> output routines to different tasks
+
+		Producer --> Queue --> Consumer
+			L Prio                 H Prio: response at once;
+			H Prio									L Prio: response only when queue is full;
+
+	6. Network services
+	
+
+Jan.30,2018
+		Update LwIP to 2.0.3 from 1.4.1;
+		Command line integrated with UART and telnet;
+		Exit of 'ping' command;
+		Difference from log, output of command line(UART and telnet);
+		E2PROM and MAC address;
+		New commands;

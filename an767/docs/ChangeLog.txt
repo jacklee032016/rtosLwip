@@ -1,0 +1,300 @@
+
+				ChangeLog of AN767
+											 January, 2018	Jack Lee
+
+
+July 5th, 2018, Thursday
+	Release version for 767 kit: DIP switch enabled multicast, automatically connect;
+	Debug resouce remove after ping command;
+	Remerge 3 build environments: simhost, supports, an767;
+	IP Commands integration;
+	NMOS integration: current implemented functions;
+	Release build for all and console output;
+	
+
+June,8th, 2018, Friday
+	Code for NMOS and REST API;
+	Code for mDNS-SD;
+	Code for PTP;
+	Code for RS232;
+	Integration of all of these;
+
+May.8th, 2018, Tuesday
+	All program works stablely, performance reaches to 35Mbps;
+		Bug of memory aligning;
+		Bug of pbuf in MAC layer;
+		Optmize configuration params for libc, RTOS memory;
+	No NetConn and Socket supports now, only raw PCB for optmizing memory usage;
+		Re-implement telnet service with TCP PCB;
+		Re-implement UDP service with UDP PCB (IP Commands);
+	Support following services stablely:
+		lwipperf;
+		mDNS;
+		mHTTP service;
+		tftp service: update firmwares of RTOS and FPGA;
+		telnet service: more commands in command line support telnet; timeout of telnet;
+		UDP IP command services;
+
+Flash: 0x420000 -- 0x447328;	Length:157 KB (1024 KB)
+	Code Section :	Start: 0x420000;	Length: 160552 bytes
+
+RAM:	0x20400000 -- 0x2045fffc;	Length: 384 KB
+	Data Section:	Start:0x20400000;	Length: 54768 bytes
+	BSS Section:	Start:0x2040d5f0;	Length: 94948 bytes
+	Stack Section:	Start:0x204248d8;	Length: 32768 bytes
+	Heap Section:	Start:0x2042c8d8;	Length: 47104 bytes
+
+Free RAM:0x204380d8--0x2045fffc;	Length: 163620 bytes (160 KB)
+
+
+April,26th, Thursday
+	Rewrite SPI Flash read/write interface, support flexiable data interface and addressing automatically;
+	tftp update RTOS and FPGA firmware;
+	RTOS firmware through SPI Flash;
+	Remove 
+				asf/flash_efc.c|h/
+				asf/efc.c|h
+	
+
+April,26th, Thursday
+	Debugging the startup of RTL when FPGA does not reset it;
+
+April,17th, Tuesday
+	Debug and optimize code of SPI flash read/write/erase operations;
+	Add and debug command of 'sfr', 'sfe', 'bist';
+	Update FPGA firmware through XModem; 
+
+April,16th, Monday
+	add 'update' command to configure the boot mode;
+	add 'cfs' command to enable/disable FPGA reconfiguration when MCU reboot;
+	optimize the code of command line interface;
+
+April,13, Friday
+	Modifying EFC Flash Memory Mapping to make programming tool can burn bootloader and OS;
+	Debugging printf in Bootloader, and modify Bootloader to use printf in libc;
+	Remove odd files in bootloader, includes stdio.c and string.c;
+	
+
+April,11th, Wednesday
+	Debugging the PIN and FPGA PROGRAM/DONE and INIT of Clock generator;
+	Begin to work on EFC flash and SPI flash;
+	
+April,10th, Tuesday
+	Debugging the accessing problem of LMH1983:
+		When FPGA has been working, FPGA consume a lot of power;
+		So PCA9544A must be disabled: make the channel no of PCA9544A is 0, then the power is saved to make LMH1983 works;
+		LMH1983 works in following conditions:
+			400 KHZ I2C Clock;
+			Rising edge just 1 ms; After 10 ms for low level, accessing is OK;
+			pin PA1 configured as OUTPUT|HIGH|PULLDOWN;
+		
+
+April,9th, Monday
+	Check FPGA status and initialize Ethernet chip;
+	'rgr/rgw' command;
+	debug IP command;
+	
+
+April,5th, Thursday
+	Release for demo project;
+	Exchange 2 videos and communicate with 811;
+	test script for demo;
+
+April,4th, Wednesday
+	Configure MCU and FPGA with same MAC/IP;
+	Exchange 2 videos dynamically;
+
+April,2nd, Monday
+	Httpd Svr with static file can be run in simhost;
+
+03.30 version
+	version without bootloader 
+	Support FPGA Configuration of 'getParams|setParams|transfer';
+	Support unicast/multicast;
+	Support 811 configuration;
+	PC tool: apiClient to test APIs with 811;
+
+March,22nd
+	A version submit to test with 811;
+
+March,20th
+	Add new commands:
+			show current configuration;
+			group(IGMP) join/leave;
+			debug: enable/disable, IP, IGMP and Command;
+	Flow of configuring between 811 and 767:
+			Refers to doc;		
+
+March,19th, Monday
+	Debugging the 'out of memory';
+	Debugging UDP Connect broadcast and unicast;
+	Debugging HTTP server of RAW API;
+	Both simulation environment in Linux and FreeRTOS/LwIP can be work correctly.
+
+March,1st, 2018
+	Divided into 2 parts of AN767 and supports;
+	Bootloader and RTOS work fine;
+	BIST testing for SPI Flash, EEPROM, Sensor, etc;
+
+
+Feb.13th, Tuesday
+	SPI master works to access device ID;
+
+Feb.12th, Monday
+	telnet access command line;
+
+Feb.7th
+	Add 'reboot' command and response for SW2 button;
+	Add basic code for FPGA, LMH1983,
+
+Feb.7th
+	Add script to debug/show result of build, eg. ELF;
+	
+Feb.6th
+	Add 'net' command to display network configuration;
+
+Feb.5th, 2018
+	Add and modify command line interface framework;
+	Support commands: tasks, heap, help;
+	Port LwIP from 1.4.1 to 2.0.3;
+	Debug all warns from third party: LwIP, RTOS, RTK SDK;
+	Optimize the build environment;
+	I2C bus and its devices:
+		PCA9554
+		EEPROM: AT24C04BN, 24AA02E48T and AT24MAC402
+		Sensor: LM95245;
+		Realtek switch chip;
+	DHCP/Static IP address;
+	Write runtime configuration to EEPROM;
+		
+
+Jan.31st, 2018
+	Update 2.0.3 and debugging some problem in porting to SAM E70;
+	
+Jan.30th, 2018
+	Remove LwIP-1.4.1 version, only 2.0.3: package-02;
+	Add and support LwIP-2.0.3 version: package-02;
+	Debugging all warns when building: package01;
+	
+
+Jan.20th
+	Reconstruct the build environment for all components:
+		Add Rule.mak, remove Makefile.pre;
+		ASF, Thirdparty and other sources are built independently;
+	
+Jan.17~19
+	Add I2C support; 
+	Access PCA9445 chip with I2C;
+	Access RTL8355 chip and make it link with I2C services;
+
+Jan.16th, Tuesday
+	add UART0 support and port to SAM E70Q20, MuxLab board;
+	add source for RTL8305H_SDK_V3_5_2011_8_10;
+
+Jan.15th, Monday
+	Add netconn for LwIP application:
+		netconn_accept: invalid acceptmbox: memory is not enough, only suitable for one application;
+		
+Jan,12th, Friday
+	Implement FreeRTOS CLI plus with normal commands;
+	
+
+Jan.11th, Thursday
+	Add 'apps' for different applications based on RTOP and SAM E70 board;
+		3 items must be defined for every app:
+			Directories of object files;
+			Header file flags for preprocess;
+			Source files to build;
+			
+
+	LwIP + Ethernet KSZ8081RNA:
+		thirdparty/lwIP/		: IP protocol stack;
+		sam/drivers/gmac/		: GMAC driver;
+		sam/drivers/tc/ 		: timer used by LwIP;
+		sam/components/ethernet_phy/kzs8081rna/: ksz8081 PHY;
+		network/						: initial ethernet and timer for protocol stack;
+		network/httpd/			: HTTP server
+		
+	Note:
+		sam/components: directory for external components onboard, eg. component only onboard, not in chipset;
+		
+
+	Running FreeRTOS 10.0.0 on SAM E70Q21 Evaluation Board, port from newly release of FreeRTOS;
+		
+		Minimal requirement for LED and USART: 115200 bps, 8 data bits, 1 stop bit, no parity, no flow control;
+			1. common
+			common/utils/stdio/read.o
+			common/utils/stdio/write.o
+			common/services/serial/usart_serial.o
+			common/services/clock/same70/sysclk.o
+			common/utils/interrupt/interrupt_sam_nvic.o
+			
+			2. sam
+			sam/boards/same70_xplained/init.o
+			sam/utils/cmsis/same70/source/templates/gcc/startup_same70.o
+			sam/utils/cmsis/same70/source/templates/system_same70.o
+			sam/utils/syscalls/gcc/syscalls.o
+			sam/drivers/mpu/mpu.o
+			sam/drivers/pio/pio.o
+			sam/drivers/pio/pio_handler.o
+			sam/drivers/pmc/pmc.o
+			sam/drivers/pmc/sleep.o
+			sam/drivers/uart/uart.o
+			sam/drivers/usart/usart.o
+			sam/drivers/tc/tc.o
+			sam/drivers/matrix/matrix.o
+			
+			3. 
+			thirdparty/freertos/portable/gcc/ARM_CM7/r0p1/port.o
+			thirdparty/freertos/portable/memmang/heap_4.o
+			thirdparty/freertos/list.o
+			thirdparty/freertos/queue.o
+			thirdparty/freertos/tasks.o
+			thirdparty/freertos/timers.o
+			thirdparty/freertos/croutine.o
+			thirdparty/freertos/event_groups.o
+			
+			main.o
+			
+
+Jan.10th,Wedneday, 2018
+
+rtosLwIP:
+		ASP+RTOS+LwIP(kzs8081)+HTTP Server;
+		ASF:
+			sam/components/ethernet_phy/: kzs8081
+			sam/drivers/gmac/: MAC control;
+			sam/drivers/tc/: timer counter;
+			
+			Thirdpartiy/:
+				freeRtos:7.3.0
+				lwip:1.4.1
+			config:	
+				NO ICache and DCache
+				config_th.h
+				lwiptops.h
+
+
+rtos:
+		based on ASF:
+			common, thirdparty, sam are from ASP;
+		FreeRTOS task + LED + USART(115200);
+		Print 'Iteration number is: xxx';
+
+uartHello
+		'Hello world!' in USART(USB) port, baudrate 38400;
+		Baudrate : config/hpl_usart_config.h
+		
+		Debug the problem of 'sam.h' is not found in hal/utils/include/parts.h:
+			Add include directory in IDE:
+				CFLAGS += -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\arm\cmsis\5.0.1\CMSIS\Include" 
+				CFLAGS += -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\SAME70_DFP\2.2.91\same70a\include" 
+			The project file contains old directory for the development environments;	
+
+
+Flash size: 2M,   start: 0x0040,0000, length: 0x0020,0000
+SRAM  size: 384K, start: 0x2040,0000, length: 0x0006,0000
+
+simulator       No serialnumber found
+edbg            ATML2637010000000000
+
