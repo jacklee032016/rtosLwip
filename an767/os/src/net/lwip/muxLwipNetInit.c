@@ -20,7 +20,7 @@
 #define NET_MTU               1500
 
 
-struct netif		muxNetIf;
+struct netif		guNetIf;		/* global unique netIf */
 
 
 static void _muxNetStatusCallback(struct netif *netif)
@@ -208,7 +208,7 @@ static void timers_update(void)
 void ethernet_task(void)
 {
 	/* Poll the network interface driver for incoming ethernet frames. */
-	ethernetif_input(&muxNetIf);
+	ethernetif_input(&guNetIf);
 
 	/* Update the periodic timer. */
 	timers_update();
@@ -230,7 +230,7 @@ static void _ethernetTask(void *param)
  */
 void muxBspNetStackInit(MUX_RUNTIME_CFG *runCfg)
 {
-	struct netif *netif = &muxNetIf;
+	struct netif *netif = &guNetIf;
 	/* Initialize lwIP. */
 	netif->hwaddr_len = 6;
 
@@ -272,10 +272,5 @@ void muxBspNetStackInit(MUX_RUNTIME_CFG *runCfg)
 	xTaskCreate(_ethernetTask, "ethTask", MUX_TASK_ETHERNET_STACK_SIZE/* 1024*2*/, NULL, MUX_TASK_ETHERNET_PRIORITY, NULL);
 #endif
 
-}
-
-char *muxLwipIpAddress(void)
-{
-	return inet_ntoa(*(struct in_addr *)&(muxNetIf.ip_addr));
 }
 

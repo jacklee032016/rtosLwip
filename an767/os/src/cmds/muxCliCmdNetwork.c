@@ -118,7 +118,7 @@ char	muxCmdNetInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t buff
 {
 	unsigned int index = 0;
 	unsigned int address;
-	struct netif *netif = &muxNetIf;
+	struct netif *netif = &guNetIf;
 
 	if(argc==1)
 	{
@@ -195,7 +195,7 @@ char	muxCmdNetInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t buff
 char	muxCmdMacInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
 {
 	unsigned int index = 0;
-	struct netif *netif = &muxNetIf;
+	struct netif *netif = &guNetIf;
 	MUX_MAC_ADDRESS macAddress;
 
 	if(argc==1)

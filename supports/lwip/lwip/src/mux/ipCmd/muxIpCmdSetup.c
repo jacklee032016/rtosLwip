@@ -500,7 +500,7 @@ void muxVideoConfigCopy(MUX_VIDEO_CONFIG *dest, MUX_VIDEO_CONFIG *src)
 	}
 }
 
-extern	struct netif			muxNetIf;
+extern	struct netif			guNetIf;
 
 char muxCmdConnect(MUX_RUNTIME_CFG  *runCfg)
 {
@@ -522,7 +522,7 @@ char muxCmdConnect(MUX_RUNTIME_CFG  *runCfg)
 		if(IP_ADDR_IS_MULTICAST(runCfg->dest.ip))
 		{
 #ifdef	ARM
-			ret = muxLwipGroupMgr(&muxNetIf, runCfg->dest.ip, newStatus);
+			ret = muxLwipGroupMgr(&guNetIf, runCfg->dest.ip, newStatus);
 #endif
 			MUX_DEBUGF(MUX_IPCMD_DEBUG, ("IGMP group %s %s: %s"LWIP_NEW_LINE, (newStatus==0)?"leave":"join", MUX_LWIP_IPADD_TO_STR(&runCfg->dest.ip), (ret==EXIT_SUCCESS)?"OK":"Fail" ));
 		}
@@ -531,6 +531,11 @@ char muxCmdConnect(MUX_RUNTIME_CFG  *runCfg)
 	runCfg->runtime.isConnect = newStatus;
 
 	return EXIT_SUCCESS;
+}
+
+char *muxLwipIpAddress(void)
+{
+	return inet_ntoa(*(struct in_addr *)&(guNetIf.ip_addr));
 }
 
 

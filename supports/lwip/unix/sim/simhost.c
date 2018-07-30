@@ -117,7 +117,7 @@ static const struct snmp_mib *mibs[] = {
 static ip_addr_t ipaddr, netmask, gw;
 #endif /* LWIP_IPV4 */
 
-struct netif netif;
+struct netif guNetIf;
 
 /* ping out destination cmd option */
 static unsigned char ping_flag;
@@ -210,7 +210,7 @@ static void simhost_tcpip_init_done(void *arg)
 	sntp_servermode_dhcp(1); /* get SNTP server via DHCP */
 #else /* LWIP_DHCP */
 #if LWIP_IPV4
-	sntp_setserver(0, netif_ip_gw4(&netif));
+	sntp_setserver(0, netif_ip_gw4(&guNetIf));
 #endif /* LWIP_IPV4 */
 #endif /* LWIP_DHCP */
 	sntp_init();
@@ -231,7 +231,7 @@ static void simhost_tcpip_init_done(void *arg)
 #endif /* LWIP_SNMP */
 
 
-	muxLwipStartup(&netif, &muxRun);
+	muxLwipStartup(&guNetIf, &muxRun);
 
 	sys_sem_signal(sem);
 }
@@ -454,29 +454,29 @@ static void init_netifs(MUX_RUNTIME_CFG *runCfg)
 	IP_ADDR4(&ipaddr,  0,0,0,0);
 	IP_ADDR4(&netmask, 0,0,0,0);
 #endif /* LWIP_DHCP */
-	netif_add(&netif, ip_2_ip4(&ipaddr), ip_2_ip4(&netmask), ip_2_ip4(&gw), runCfg, tapif_init, tcpip_input);
+	netif_add(&guNetIf, ip_2_ip4(&ipaddr), ip_2_ip4(&netmask), ip_2_ip4(&gw), runCfg, tapif_init, tcpip_input);
 #else /* LWIP_IPV4 */
-	netif_add(&netif, runCfg, tapif_init, tcpip_input);
+	netif_add(&guNetIf, runCfg, tapif_init, tcpip_input);
 #endif /* LWIP_IPV4 */
 
 
 #if LWIP_IPV6
-	netif_create_ip6_linklocal_address(&netif, 1);
-	netif.ip6_autoconfig_enabled = 1;
+	netif_create_ip6_linklocal_address(&guNetIf, 1);
+	guNetIf.ip6_autoconfig_enabled = 1;
 #endif
 
 #if LWIP_NETIF_STATUS_CALLBACK
-	netif_set_status_callback(&netif, netif_status_callback);
+	netif_set_status_callback(&guNetIf, netif_status_callback);
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
 	/* start multicast and IGMP */
-	netif.flags |= NETIF_FLAG_IGMP;
+	guNetIf.flags |= NETIF_FLAG_IGMP;
 
-	netif_set_default(&netif);
-	netif_set_up(&netif);
+	netif_set_default(&guNetIf);
+	netif_set_up(&guNetIf);
 
 #if LWIP_DHCP
-	dhcp_start(&netif);
+	dhcp_start(&guNetIf);
 #endif /* LWIP_DHCP */
 
 #if 0

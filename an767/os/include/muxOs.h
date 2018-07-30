@@ -139,14 +139,14 @@ void muxEtherDebug(void);
 int	cmnParseGetHexIntValue(char *hexString);
 
 /* output for used in OS */
-extern	struct netif			muxNetIf;
+extern	struct netif			guNetIf;
 
 #define	MUX_NET_IGMP_JOIN(groupAddress)	\
-			muxLwipGroupMgr(&muxNetIf, (groupAddress), 1)
+			muxLwipGroupMgr(&guNetIf, (groupAddress), 1)
 
 
 #define	MUX_NET_IGMP_LEAVE(groupAddress)	\
-			muxLwipGroupMgr(&muxNetIf, (groupAddress), 0)
+			muxLwipGroupMgr(&guNetIf, (groupAddress), 0)
 
 
 void muxJobPeriod(MUX_RUNTIME_CFG *runCfg);
