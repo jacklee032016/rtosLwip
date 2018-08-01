@@ -1,19 +1,19 @@
-#!python
+#!/usr/bin/env python
+#
 
-###!/usr/bin/env python
 
 import json
 from time import sleep
 
 import sys,getopt
 
-from cmds.http.HttpClient import WebClient, RestApiClient
+from cmds.http.client import WebClient, RestApiClient
 
 from utils import ColorMsg
 
 def testReboot():
     #testHost = "192.168.166.2"
-    testHost = "192.168.168.120"
+    testHost = "192.168.168.101"
     webClient = WebClient(debug=True )
     response = webClient.get(ip=testHost, uri="/reboot")
 
@@ -37,7 +37,7 @@ def testUploadFpga2():
 
 def testUploadMcu():
     #testHost = "192.168.166.2"
-    testHost = "192.168.168.120"
+    testHost = "192.168.168.101"
     webClient = WebClient(debug=True )
 
     #files = {'file': ('top_Angelica_N_767_tx.bin', open('../../top_Angelica_N_767_tx.bin', 'rb'), 'application/vnd.ms-excel', {'Expires': '0'})}

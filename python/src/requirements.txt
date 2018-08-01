@@ -10,4 +10,5 @@ public==1.0.3
 query-string==1.0.2
 requests==2.19.1
 termcolor==1.1.0
+tftpy==0.7.0
 urllib3==1.23

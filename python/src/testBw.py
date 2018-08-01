@@ -1,4 +1,5 @@
-# test bandwitdh
+#!/usr/bin/env python
+#  test bandwitdh
 
 from cmds.misc.iperf import Iperf
 

@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
 # 
 
 import json
@@ -8,10 +7,12 @@ import sys,getopt
 
 from time import sleep
 
+from cmds import TftpUpload, TftpFpgaUpload
+
 from cmds.ipCmd.IpCmd import IpCommand
 
-def testFind(*arg, **kwargs):
-    agent = IpCommand(port=kwargs.get("port", 3600), gateway=kwargs.get("gateway",None), debug=kwargs.get("debug", False) )
+def testFind(*args, **kwargs):
+    agent = IpCommand(*args, **kwargs )
     result = agent.run()
     return (agent, result)
 
@@ -67,6 +68,13 @@ def testOther(*arg, **kwargs):
     agent.run(command="set_param", data=setupSystemCmd, target=result["targ"])
 
 
+def testTftp():
+    tftpmcu = TftpUpload(simGateway="192.168.166.1", debug=True)
+    tftpmcu.run()
+
+    tftpFpga = TftpFpgaUpload(simGateway="192.168.166.1", debug=True)
+    tftpFpga.run()
+
 def usage():
     print("Usage: %s: -f --find -s --sysCfg -g gateway GATEWAY -r reboot -t reboot -d debug -h help"%(sys.argv[0]))
 
@@ -77,7 +85,7 @@ if __name__ == "__main__":
     debug = False
     cmd = "find"
 
-    options, remainder = getopt.getopt(sys.argv[1:], 'fs:g:rdh', ['find', 'sysCfg', "gateway=", 'reboot', 'debug', "help'"])
+    options, remainder = getopt.getopt(sys.argv[1:], 'fs:g:rdht', ['find', 'sysCfg', 'gateway=', 'reboot', 'debug', 'help', 'tftp'])
     if len(options) == 0 or options is None:
         usage()
         sys.exit(1)
@@ -98,12 +106,16 @@ if __name__ == "__main__":
             testOther()
         elif opt in ('-d', '--debug'):
             debug = True
+        elif opt in ('-t', '--debug'):
+            cmd = "tftp"
         else:
             usage()
 
 
     if cmd == 'find':
-        testFind(gateway=gateway, debug=debug)
+        testFind(simGateway=gateway, debug=debug)
+    elif cmd == 'tftp':
+        testTftp(debug=debug)
     elif cmd == 'sysCfg':
         testSysCfg(gateway=gateway, debug=debug)
     else:

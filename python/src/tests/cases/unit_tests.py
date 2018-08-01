@@ -3,7 +3,7 @@ import os
 from tests import settings
 from tests import An767TestCase
 
-from cmds.http.HttpClient import WebClient, RestApiClient
+from cmds.http.client import WebClient, RestApiClient
 
 
 class An767UnitTestCases(An767TestCase):

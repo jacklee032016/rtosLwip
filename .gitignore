@@ -4,8 +4,8 @@
 .ideal/
 
 # ignore file type
-*.__pycache__
-*.__pyc__
+*.__pycache__/
+*.pyc
 
 # nagates pattern
 # !spec/*.__pyc__

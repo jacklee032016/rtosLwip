@@ -1,16 +1,19 @@
 import json
 
+from cmds import DeviceCtrl
 from . import IpCmdIf
+
 
 from utils import ColorMsg
 
-class IpCommand(object):
+class IpCommand(DeviceCtrl):
     """demonstration class only
       - coded for clarity, not efficiency
     """
 
     def __init__(self, *args,  **kwargs):
-        self.cmdSocket = IpCmdIf.IpCmdSocket(*args, **kwargs )
+        super().__init__(self, *args, **kwargs)
+        self.cmdSocket = IpCmdIf.IpCmdSocket(self, *args, **kwargs )
 
         self.sendCmds = {
             "targ": kwargs.get("target", "FF:FF:FF:FF:FF:FF"),
@@ -19,10 +22,9 @@ class IpCommand(object):
             "pwd-msg": kwargs.get("password", "admin"),
             "data": kwargs.get("data", None)
         }
-        self.debug = kwargs.get("debug", False)
 
 
-    def run(self, command="get_param", data=None, **kwargs ):
+    def _run(self, command="get_param", data=None, **kwargs ):
         self.sendCmds['cmd'] = command
 
         if data is not None:

@@ -4,6 +4,7 @@ import socket
 import logging
 import struct
 
+from cmds import DeviceCtrl
 from . import CommandCodec
 from . import MSGLEN
 
@@ -24,24 +25,26 @@ class IpCmdSocket(object):
         """
         return
 
-    def __init__(self, *args, **kwargs):
-        self.server = kwargs.get("server", "<broadcast>")
+    def __init__(self, devCtrl, *args, **kwargs):
+        self.dev = devCtrl
+        self.server = kwargs.get("ip", "<broadcast>")
         self.port = kwargs.get("port", 3600)
         self.debug = kwargs.get("debug", False)
-        self.gateway = kwargs.get("gateway", None)
+        #self.simGateway = kwargs.get("simGateway", None)
 
         self.peer = (self.server, self.port)
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # Set a timeout so the socket does not block indefinitely when trying to receive data.
         self.sock.settimeout(2.2)
+
+        ColorMsg.debug_msg( '%s, %s:%s, gateway:%s'%(self.__class__.__name__, self.server, self.port, self.dev.simGateway), self.debug)
+
         if self.server == "<broadcast>":
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        if self.gateway is not None:
-            self.sock.bind((self.gateway, 3600))
-
-        LOGGER.debug('%s, %s:%s, Debug:%s', self.__class__.__name__, self.server, self.port, self.debug)
+        if self.dev.simGateway is not None:
+            self.sock.bind((self.dev.simGateway, 3600))
 
     def send(self, cmd):
         self.sendPacket(CommandCodec.encode(cmd, debug=self.debug))

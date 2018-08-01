@@ -199,7 +199,7 @@ static void _tftpTmr(void* arg)
 	LWIP_UNUSED_ARG(arg);
 
 	tftp_state.timer++;
-		TRACE();
+//		TRACE();
 
 	if (tftp_state.handle == NULL)
 	{
