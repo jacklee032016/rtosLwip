@@ -1,0 +1,12 @@
+# for rtosLwip
+
+# ignore folder
+.ideal/
+
+# ignore file type
+*.__pycache__
+*.__pyc__
+
+# nagates pattern
+# !spec/*.__pyc__
+
