@@ -8,14 +8,11 @@ import json
 
 from utils import ColorMsg
 
+
 LOGGER = logging.getLogger(__name__)
 
 MSGLEN = 4096
 
-IP_CMD_FIND="get_param"
-IP_CMD_SET_PARAM = "set_param"
-IP_CMD_RS232_DATA= "send_data_rs232"
-IP_CMD_SECURE="security_check"
 
 class CommandCodec(object):
     def __init__(self):
@@ -62,7 +59,9 @@ class CommandCodec(object):
                 ColorMsg.debug_msg('Received JSON object: "%s":' % (replyJson))
                 return replyJson
             except (TypeError, ValueError):
-                raise Exception('Data received was not in JSON format')
+                #raise Exception('Data received was not in JSON format %s'%(jsonBytes))
+                ColorMsg.error_msg('Data received was not in JSON format %s'%(jsonBytes))
+                return None
             #return json.loads(msg)
 
             # print(self.replyMsg)

@@ -7,6 +7,7 @@ from . import IpCmdIf
 
 
 from utils import ColorMsg
+from utils import settings
 
 class IpCommand(DeviceCtrl):
     """demonstration class only
@@ -42,11 +43,12 @@ class IpCommand(DeviceCtrl):
         result = self.cmdSocket.receive()
         ColorMsg.debug_msg('JSON result type %s: "%s"\n' %(type(result), result), self.debug )
 
-        res = result
-        if result['login-ack'] != "OK":
-            ColorMsg.error_msg("\tIP Command '%s' failed %s\n" %(self.sendCmds["cmd"], res['pwd-msg']))
-        else:
-            ColorMsg.success_msg("\tIP Command '%s' success\n" %(self.sendCmds["cmd"]))
+        for res in result:
+            if res['login-ack'] != "OK":
+                ColorMsg.error_msg("\tIP Command '%s' failed %s\n" %(self.sendCmds["cmd"], res['pwd-msg']))
+            else:
+                ColorMsg.success_msg("\tIP Command '%s' success\n" %(self.sendCmds["cmd"]))
+
         return result
         
 
@@ -54,13 +56,15 @@ class DeviceIpCmd(IpCommand):
 
     def __init__(self, *args, **kwargs):
         super(DeviceIpCmd, self).__init__(*args, **kwargs)
+        self.nodes = None
 
     def find(self):
         self.nodes = self.run()
+        return self.nodes
 
-    def runOneNode(self, command, data, targId):
-        ColorMsg.debug_msg('IP Command "%s" on target "%s"'%(command, targId), self.debug)
-        return self.run(command=command, data=data, target=targId)
+    def runOneNode(self, command, data, target):
+        ColorMsg.debug_msg('IP Command "%s" on target "%s"'%(command, target), True)
+        return self.run(command=command, data=data, target=target)
 
     def secureSetKey(self, *args, **kwargs):
         data = kwargs.get('data', "1122334455")
@@ -72,11 +76,12 @@ class DeviceIpCmd(IpCommand):
 
         node = kwargs.get('targ', None)
         if node is not None:
-            return self.runOneNode(command=IP_CMD_SECURE, data=secureSetKeyCmd, target=node)
+            return self.runOneNode(command=settings.IP_CMD_SECURE, data=secureSetKeyCmd, target=node)
+        if self.nodes is None:
+            self.find()
 
-        self.find()
         for node in self.nodes:
-            self.runOneNode(command=IP_CMD_SECURE, data=secureSetKeyCmd, target=node["targ"])
+            self.runOneNode(command=settings.IP_CMD_SECURE, data=secureSetKeyCmd, target=node["targ"])
 
 
     def secureGetId(self, *args, **kwrgs):
@@ -103,8 +108,30 @@ class DeviceIpCmd(IpCommand):
 
         node = kwargs.get('targ', None)
         if node is not None:
-            return self.runOneNode(command=IP_CMD_RS232_DATA, data=rs232Cmd, target=node)
+            return self.runOneNode(command=settings.IP_CMD_RS232_DATA, data=rs232Cmd, target=node)
 
-        self.find()
+        ColorMsg.debug_msg("node", True)
+        if self.nodes is None:
+            self.find()
+
+        ColorMsg.debug_msg("node3", True)
+
         for node in self.nodes:
-            self.runOneNode(command=IP_CMD_RS232_DATA, data=rs232Cmd, target=node["targ"])
+            ColorMsg.debug_msg("Rs232:"+ node["targ"], True)
+            self.runOneNode(command=settings.IP_CMD_RS232_DATA, data=rs232Cmd, target=node["targ"])
+
+    def sysConfig(self, *args, **kwargs):
+        data = kwargs.get('data', None)
+        if data is None:
+            ColorMsg.error_msg("No data is defined for \"%s\""%(settings.IP_CMD_SET_PARAM) )
+            return
+
+        node = kwargs.get('targ', None)
+        if node is not None:
+            return self.runOneNode(command=settings.IP_CMD_RS232_DATA, data=data, target=node)
+
+        if self.nodes is None:
+            self.find()
+
+        for node in self.nodes:
+            self.runOneNode(command=settings.IP_CMD_SET_PARAM, data=data, target=node["targ"])

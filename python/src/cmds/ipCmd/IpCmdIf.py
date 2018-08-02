@@ -13,7 +13,11 @@ from utils import ColorMsg
 LOGGER = logging.getLogger(__name__)
 
 class IpCmdSocket(object):
-    """ Abstract basic class for JSON API socket"""
+    """
+    JSON API socket
+    Open one socket for multiple commands
+
+    """
 
     __metaclass__ = abc.ABCMeta
 
@@ -57,6 +61,10 @@ class IpCmdSocket(object):
         return sent
 
     def receive(self):
+        """
+        receive from socket
+        :return: node dict list
+        """
         nodes = [];
         chunks = b''  # bytearray()#[]
         bytes_recd = 0
@@ -79,10 +87,11 @@ class IpCmdSocket(object):
 
         #ColorMsg.debug_msg("receive data:%s" % (chunks), self.debug)
         replyJson = CommandCodec.decode(chunks, debug=self.debug)
-        nodes.append(replyJson)
+        if replyJson is not None:
+            nodes.append(replyJson)
 
         #self.sock.close()
-        return replyJson
+        return nodes
 
     def receiveRaw(self):
         """

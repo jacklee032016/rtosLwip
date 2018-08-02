@@ -7,7 +7,7 @@ from utils import ColorMsg
 
 time = 3
 conns = 5
-opts = "-t %s -P %s" % (time, conns)
+cmdOpts = "-t %s -P %s" % (time, conns)
 
 class Iperf(pexpect.spawn):
 
@@ -20,12 +20,12 @@ class Iperf(pexpect.spawn):
         else:
             return None
 
-    def __init__(self, ip, connections=conns, timeout=time):
+    def __init__(self, connections=conns, timeout=time, **kwargs):
         #   'grep -v message': ignore the message
         # cmd = 'iperf -c %s %s | grep -v SUM' % ('192.168.166.2', opts)
-
-        cmd = 'iperf -c %s %s' % (ip, opts)
-        print('cmd=%s' % (cmd))
+        self.ip = kwargs.get("ip", "192.168.168.120")
+        cmd = 'iperf -c %s %s' % (self.ip, cmdOpts)
+        ColorMsg.debug_msg('%s connection:%d time:%d' % (self.ip, connections, timeout), True)
         super().__init__(cmd)
 
     def getRate(self):
@@ -45,7 +45,7 @@ class Iperf(pexpect.spawn):
 
         # child.expect(prompt)
         print("bandwidth %d Mbps" % (rate))
-        return rate
+        return self.ip, rate
 
 # iperf -c 192.168.166.2 -t 60 -P 5 | grep -v SUM
 # child = pexpect.spawn(cmd)

@@ -224,7 +224,9 @@ void bspHwInit(boot_mode bMode)
 	/* First output of UART initialized must be platform info */
 	if(bMode == BOOT_MODE_RTOS)
 	{
+#ifdef __MUX_RELEASE__
 		bspConsoleReset(versionString);
+#endif
 	}
 	else
 	{
