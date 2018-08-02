@@ -22,8 +22,8 @@ class DeviceCtrl(object):
         self.debug = kwargs.get("debug", False)
 
         self.ip = kwargs.get("ip", None)
-        if self.ip is None:
-            self.ip = self.find()
+        #if self.ip is None:
+        #    self.ip = self.find()
 
 
     @abc.abstractmethod

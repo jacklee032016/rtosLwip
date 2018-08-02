@@ -12,6 +12,11 @@ LOGGER = logging.getLogger(__name__)
 
 MSGLEN = 4096
 
+IP_CMD_FIND="get_param"
+IP_CMD_SET_PARAM = "set_param"
+IP_CMD_RS232_DATA= "send_data_rs232"
+IP_CMD_SECURE="security_check"
+
 class CommandCodec(object):
     def __init__(self):
         pass

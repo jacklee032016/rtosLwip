@@ -9,15 +9,14 @@ from time import sleep
 
 from cmds import TftpUpload, TftpFpgaUpload
 
-from cmds.ipCmd.IpCmd import IpCommand
+from cmds.ipCmd.IpCmd import DeviceIpCmd
 
 def testFind(*args, **kwargs):
-    agent = IpCommand(*args, **kwargs )
-    result = agent.run()
-    return (agent, result)
+    agent = DeviceIpCmd(*args, **kwargs )
+    result = agent.find()
 
 def testSysCfg(*arg, **kwargs):
-    agent, result = testFind(*arg, **kwargs)
+    agent = DeviceIpCmd(*arg, **kwargs)
 
     setupSystemCmd = [
         {
@@ -31,14 +30,9 @@ def testSysCfg(*arg, **kwargs):
 
     agent.run(command="set_param", data=setupSystemCmd, target=result["targ"])
 
-def testOther(*arg, **kwargs):
-    agent = IpCommand(port=3600, gateway="192.168.166.1", debug=True )
-
-    secureSetKeyCmd = [
-        {
-            "set_key": "1122334455"
-        }
-    ]
+def testOther(*args, **kwargs):
+    agent = DeviceIpCmd(*args, **kwargs )
+    agent.rs232Data(data="1122334455")
 
     secureGetIdCmd = [
         {
