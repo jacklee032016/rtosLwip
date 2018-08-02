@@ -22,3 +22,4 @@ Unit Tests
 `nosetests -vv --exe -w tests/cases -s`
 
 
+`nosetests tests.cases.unit_tests:HttpUnitTestCases.testAllStatic -s': use to test performance, especially on TPC_PCB OOM;

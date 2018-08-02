@@ -72,6 +72,9 @@ class IpCmdSocket(object):
 
         while bytes_recd < MSGLEN:
             chunk = self.receiveRaw()  # min(MSGLEN - bytes_recd, 2048))
+            if chunk is None:
+                return nodes
+
             if chunk == b'':
                 raise RuntimeError("socket connection broken")
             if bytes_recd == 0 and ( (chunk is not None) and (len(chunk) > 4) ):
@@ -105,6 +108,7 @@ class IpCmdSocket(object):
         except socket.timeout as e:
             ColorMsg.error_msg("Read timeout on socket ")
             self.sock.close()
+            return None
             # sys.exit(1)
             # logging.error("Read timeout on socket '{}': {}".format(e))
 
