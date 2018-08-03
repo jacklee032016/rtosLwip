@@ -1,82 +1,19 @@
 #!/usr/bin/env python
 
-"""Helper script to run all IP commands.
-
-usage: ipCmds.py [options]
-
-options:
-    -f, --find     Find all nodes in LAN
-    -t, --tftp firmOs|firmFpga :    tftp firmware update
-    -r, --reboot   reboot all nodes
-    -s, --syscfg   system configuration, DHCP, IP, pName, etc.
-    -d, --debug    enable debug
-    -g, --gateway   gateway address, used only simulation environment
-    -h, --help      Show help
-"""
-
-# import getopt
 import sys
+# import getopt
+# optParser has been decrecated from 3.2
 import argparse
 
 from cmds.http.web import WebClient
 from cmds.ipCmd.IpCmdCtrl import DeviceIpCmd
 from cmds.misc.TftpCtrl import TftpUpload
 from cmds.misc.iperf import Iperf
+
 from utils import ColorMsg
-
-
-def bandwidth(*args, **kwargs):
-    client = Iperf(connections=5, timeout=3, **kwargs)
-    ip, rate = client.getRate()
-    print("Bandwidth of %s is %d Mbps" % (ip, rate))
-
-def findAll(*args, **kwargs):
-    agent = DeviceIpCmd(*args, **kwargs )
-    nodes = agent.find()
-    for node in nodes:
-        data = node["data"][0]
-        ColorMsg.test_msg("%s: %s %s, %s"%(data["pName"], data["ip"], data["mac"], data["model"]))
-
-def testSysCfg(*arg, **kwargs):
-    agent = DeviceIpCmd(*arg, **kwargs)
-    nodes = agent.find()
-
-    if len(nodes) == 0:
-        ColorMsg.error_msg("No node is found in LAN")
-        return
-
-    setupSystemCmd = [
-        {
-            "cName": "SimTx",
-            "mac": "00:04:25:1c:10:03",
-            "ip": "192.168.168.120",
-            "isDhcp": 0,
-            "isDipOn": 0
-        }
-    ]
-
-    for node in nodes:
-        data = node["data"][0]
-        agent.sysConfig(data=setupSystemCmd, ip=data["ip"], target=node["targ"])
-
+from utils import settings
 
 def testOther(*args, **kwargs):
-    agent = DeviceIpCmd(*args, **kwargs )
-    agent.rs232Data(data="1122334455")
-
-    secureGetIdCmd = [
-        {
-            "get_id": ""
-        }
-    ]
-
-    secureGetStatusCmd = [
-        {
-            "get_status": ""
-        }
-    ]
-
-
     setupSystemCmd = [
         {
             "cName": "SimTx",
@@ -92,69 +29,32 @@ def testOther(*args, **kwargs):
     agent.run(command="set_param", data=setupSystemCmd, target=result["targ"])
 
 
-def tftpUpdate(fmType, debug):
-    #tftpmcu = TftpUpload(simGateway="192.168.166.1", debug=True)
-    tftpmcu = TftpUpload(debug=True)
-    tftpmcu.run(fmType)
-
-
-def httpUpdate(*args, **kwargs):
-    webClient = WebClient(*args, **kwargs)
-    webClient.uploadFile(*args, **kwargs)
-
-    reboot()
-
-def reboot(*args, **kwargs):
-    webClient = WebClient(*args, **kwargs)
-    webClient.reboot()
-
-def accessPage(*args, **kwargs):
-    uri = kwargs.get("uri", None)
-    if uri is None:
-        ColorMsg.error_msg("No URI is defined")
-        return
-    webClient = WebClient(*args, **kwargs)
-    webClient.accessUri(*args, **kwargs)
-
-def parse_args(argv):
-    try:
-        options, remainder = getopt.getopt(sys.argv[1:], 'fct:r:g:bu:p:w:dh', ['find', 'cfg', 'tftp', 'rs232', 'gateway','update', 'boot', 'debug', 'help'])
-        #if remainder:
-        #    raise getopt.error('no argument accepted, got %s'%list(remainder) )
-
-        #print('OPTIONS   :',options )
-        #print('REMAINDER   :',remainder  )
-
-    except getopt.error as err:
-        usage_exit(err)
-
-    if len(options) == 0 or options is None:
-        usage_exit("no argument")
-        sys.exit(1)
-
-    return options
-
-
-def usage_exit(msg=None):
-    print(__doc__)
-    if msg is None:
-        rc = 251
-    else:
-        print('\nError:', msg)
-        rc = 252
-    sys.exit(rc)
-
 class Run(object):
+    """
+
+    """
 
     def __init__(self):
-        parser = argparse.ArgumentParser(
-            description='Pretends to be git',
-            usage='''git <command> [<args>]
+        parser = argparse.ArgumentParser(description='Helper script to run all device control commands.',
+            usage='''%(prog)s <command> [<args>]
 
-The most commonly used git commands are:
-   commit     Record changes to the repository
-   fetch      Download objects and refs from another repository
+The most commonly used commands are:
+   search       Find all nodes in LAN through IP Command
+   find         Find one node with IP address
+   setParams    Set any parameters in JSON format 
+   rs232        Send hexadecimal data to RS322 port
+   setKey       Set Security Key
+   getId        Get ID of security chip
+   getSecSta    Get Status of security chip
+   httpOs       Update OS firmware through HTTP
+   httpFpga     Update FPGA firmware through HTTP
+   page         Access one web page
+   tftpOs       Update OS firmware through TFTP
+   tftpFpga     Update FPGA firmware through TFTP
+   bandwidth    Test bandwidth to one node
+   reboot       Reboot one node
 ''')
+
         parser.add_argument('command', help='Subcommand to run')
         # parse_args defaults to [1:] for args, but you need to
         # exclude the rest of the args too, or validation will fail
@@ -166,91 +66,229 @@ The most commonly used git commands are:
         # use dispatch pattern to invoke method with same name
         getattr(self, args.command)()
 
-    def commit(self):
-        parser = argparse.ArgumentParser(
-            description='Record changes to the repository')
-        # prefixing the argument with -- means it's optional
-        parser.add_argument('--amend', action='store_true')
-        # now that we're inside a subcommand, ignore the first
-        # TWO argvs, ie the command (git) and the subcommand (commit)
-        args = parser.parse_args(sys.argv[2:])
-        print('Running git commit, amend=%s' % args.amend)
+    def _addDefaultOptions(self, parser, name="http"):
+        parser.add_argument("-d", "--debug", action="store_true", help="debug option")
+        # comment default, so gateway is must be input to enable it in simulation
+        parser.add_argument("-g", '--gateway', action="store", help="used in simulation")#, nargs='?', default=settings.SIMULATOR_GATEWAT)
 
-    def fetch(self):
-        parser = argparse.ArgumentParser(
-            description='Download objects and refs from another repository')
-        # NOT prefixing the argument with -- means it's not optional
-        parser.add_argument('repository')
+    def _addDefaultIp(self, parser, name="http"):
+        self._addDefaultOptions(parser=parser, name=name)
+        # position parameter must be input at the end of command line and activate by position
+        # default for position param, nargs="?" must be used
+        parser.add_argument('ip', help='IP address of node', nargs='?', default="192.168.168.120")
+
+    """
+    1. Following are commands based on IP Command 
+    """
+    def search(self):
+        parser = argparse.ArgumentParser(description='Find all nodes in LAN')
+
+        self._addDefaultOptions(parser=parser, name="FIND")
+
         args = parser.parse_args(sys.argv[2:])
-        print('Running git fetch, repository=%s' % args.repository)
+        print('Running %s %s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.debug, args.gateway))
+        agent = DeviceIpCmd(simGateway=args.gateway, debug=args.debug)
+        nodes = agent.find()
+        for node in nodes:
+            data = node["data"][0]
+            ColorMsg.test_msg("%s: %s %s, %s" % (data["pName"], data["ip"], data["mac"], data["model"]))
+
+    def find(self):
+        parser = argparse.ArgumentParser( description='Find one node with IP')
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.debug, args.gateway), args.debug )
+
+        cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        node = cmdCtrl.findOneNode(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        if node is not None:
+            data = node["data"][0]
+            ColorMsg.test_msg("%s: %s %s, %s" % (data["pName"], data["ip"], data["mac"], data["model"]))
+
+    def setParams(self):
+        parser = argparse.ArgumentParser( description='Send parameters in JSON format')
+
+        # this is first position parameter, must be the first and mandatory one in command line
+        parser.add_argument("data", action="store", help="JSON data")
+
+        # ip is second position parameter, the second and optional one in command line
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, data=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.data, args.debug, args.gateway), args.debug )
+
+        cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        cmdCtrl.setParams(data=args.data, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+
+
+    def rs232(self):
+        parser = argparse.ArgumentParser( description='Send data through RS232')
+
+        # this is first position parameter, must be the first and mandatory one in command line
+        parser.add_argument("data", action="store", help="Hexadecimal data")
+
+        # ip is second position parameter, the second and optional one in command line
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, data=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.data, args.debug, args.gateway), args.debug )
+
+        cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        cmdCtrl.rs232Data(data=args.data, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+
+    def setKey(self):
+        parser = argparse.ArgumentParser( description='Send Key to security chip')
+
+        # this is first position parameter, must be the first and mandatory one in command line
+        parser.add_argument("data", action="store", help="Hexadecimal data")
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, data=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.data, args.debug, args.gateway), args.debug )
+
+        cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        cmdCtrl.secureSetKey(data=args.data, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+    def getId(self):
+        parser = argparse.ArgumentParser( description='Get ID from security chip')
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.debug, args.gateway), args.debug )
+
+        cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        cmdCtrl.secureGetId(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+    def getSecSta(self):
+        parser = argparse.ArgumentParser( description='Get Status of security chip')
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.debug, args.gateway), args.debug )
+
+        cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        cmdCtrl.secureGetStatus(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+    """
+    2 Following are commands based on HTTP service
+    """
+    def httpOs(self):
+        parser = argparse.ArgumentParser( description='Upload and update OS firmware through HTTP')
+        # NOT prefixing the argument with -- means it's not optional, positional
+        # parser.add_argument('--file', action='store_true')type="string",
+        parser.add_argument("--file", action="store", dest="file", help="OS firmware file", default=settings.FIRMWARE_BIN_OS)
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, file=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.file, args.debug, args.gateway), args.debug )
+
+        webClient = WebClient(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        webClient.uploadFirmwareOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+
+    def httpFpga(self):
+        parser = argparse.ArgumentParser( description='Upload and update FPGA firmware through HTTP')
+        # NOT prefixing the argument with -- means it's not optional, positional
+        # parser.add_argument('--file', action='store_true')type="string",
+        parser.add_argument("--file", action="store", dest="file", help="FPGA firmware file, TX or RX")#, default=settings.FIRMWARE_BIN_OS)
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, file=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.file, args.debug, args.gateway), args.debug )
+
+        webClient = WebClient(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        webClient.uploadFirmwareFpga(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+
+    def reboot(self):
+        parser = argparse.ArgumentParser( description='Reboot one node')
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg('Running %s %s on ip=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.debug, args.gateway), args.debug)
+
+        webClient = WebClient(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+    def page(self):
+        parser = argparse.ArgumentParser( description='Access one web page')
+
+        # this is first position parameter, must be the first and mandatary one in command line
+        parser.add_argument("uri", action="store", help="URI of the page")
+
+        # ip is second position parameter, the second and optional one in command line
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, uri=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.uri, args.debug, args.gateway), args.debug )
+
+        webClient = WebClient(uri=args.uri, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        webClient.accessUri(uri=args.uri, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+
+    """
+    3. Following are commands from other protocol: TFTP, iperf
+    """
+
+    def tftpOs(self):
+        parser = argparse.ArgumentParser(
+            description='Upload and update OS firmware throught TFTP')
+        # NOT prefixing the argument with -- means it's not optional
+        parser.add_argument("--file", action="store", dest="file", help="OS firmware file", default=settings.FIRMWARE_BIN_OS)
+
+        self._addDefaultIp(parser=parser, name="TFTP")
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s, ip=%s, file=%s, gateway=%s, debug=%s'%(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.file, args.gateway, args.debug), args.debug )
+
+        tftpmcu = TftpUpload(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        tftpmcu.uploadOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+    def tftpFpga(self):
+        parser = argparse.ArgumentParser(
+            description='Upload and update FPGA firmware throught TFTP')
+
+        parser.add_argument("--file", action="store", dest="file", help="FPGA firmware file") #, default=settings.FIRMWARE_BIN_OS)
+
+        self._addDefaultIp(parser=parser, name="TFTP")
+        args = parser.parse_args(sys.argv[2:])
+        if args.file is None:
+            ColorMsg.error_msg("use --file define FPGA firmware file")
+            return
+        ColorMsg.debug_msg(
+            'Running %s %s, ip=%s, file=%s, gateway=%s, debug=%s'%(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.file, args.gateway, args.debug), args.debug )
+
+        tftpmcu = TftpUpload(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        tftpmcu.uploadFpga(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+    def bandwidth(self ):
+        parser = argparse.ArgumentParser( description='Test bandwidth bench mark of one noe')
+
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg('Running %s %s on ip=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.debug, args.gateway), args.debug)
+
+        client = Iperf(connections=5, timeout=3, ip=args.ip)
+        ip, rate = client.getRate()
+        ColorMsg.test_msg("Bandwidth of %s is %d Mbps" % (ip, rate))
 
 
 if __name__ == "__main__":
-    print(sys.argv[0] )
-    print(sys.argv[1:] )
-    gateway = None
-    debug = False
-    cmd = "find"
+    #print(sys.argv[0] )
+    #print(sys.argv[1:] )
 
     Run()
 
-#    parser = argparse.ArgumentParser(description='Helper script to run all device control commands.')
+#    sys.exit(1)
 
-    sys.exit(1)
-
-    # options = parse_args(sys.argv[1:])
-
-    if len(options) == 0 or options is None:
-        usage_exit()
-        sys.exit(1)
-
-    for opt, arg in options:
-        print(opt, arg)
-        if opt in ('-f', '--find'):
-            cmd = "find"
-        elif opt in ('-c', '--cfg'):
-            cmd = "cfg"
-        elif opt in ('-t', '--tftp'):
-            cmd = "tftp"
-            data = arg
-        elif opt in ('-r', '--rs232'):
-            cmd = "rs232"
-            data = arg
-        ## command from http service
-        elif opt in ('-b', '--boot'):
-            cmd = "reboot"
-        elif opt in ('-u', '--update'):
-            cmd = "update"
-            data = arg
-        elif opt in ('-p', '--page'):
-            cmd = "page"
-            data = arg
-        elif opt in ('-w', '--width'):
-            cmd = "bandwidth"
-            data = arg
-        elif opt in ('-g', '--gateway'):
-            gateway = arg
-        elif opt in ('-o', '--others'):
-            testOpt = arg
-        elif opt in ('-d', '--debug'):
-            debug = True
-        else:
-            usage_exit()
-
-
-    if cmd == 'find':
-        findAll(simGateway=gateway, debug=debug)
-    elif cmd == 'cfg':
-        testSysCfg(gateway=gateway, debug=debug)
-    elif cmd == 'tftp':
-        tftpUpdate(data, debug=debug)
-    elif cmd == 'reboot':
-        reboot(debug=debug)
-    elif cmd == 'update':
-        httpUpdate(data, debug=debug)
-    elif cmd == 'bandwidth':
-        bandwidth(ip=data, debug=debug)
-    elif cmd == 'page':
-        accessPage(uri=data, debug=debug)
-    else:
-        testOther(gateway=gateway, debug=debug)

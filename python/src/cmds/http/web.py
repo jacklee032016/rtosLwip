@@ -40,21 +40,38 @@ class WebClient(HttpClient):
 
 
     def uploadFile(self, *args, **kwargs):
-        uri = kwargs.get("uri", None)
+        uri = kwargs.get("type", None)
         if uri is None or uri == settings.FIRMWARE_URL_OS:
             uri = settings.FIRMWARE_URL_OS
-            file = settings.FIRMWARE_BIN_OS
+            fmfile = settings.FIRMWARE_BIN_OS
         elif uri == settings.FIRMWARE_URL_FPGA:
-            file = settings.FIRMWARE_BIN_FPGA_RX
+            fmfile = settings.FIRMWARE_BIN_FPGA_RX
         else:
             ColorMsg.error_msg("\"%\" is not validate URI"%(uri))
             return
-        ColorMsg.test_msg('"%s" is uploading to %s.....'%(file, uri))
-        files = {'file': open(kwargs.get("file", file), 'rb')}
+
+        try:
+            _filename = kwargs.get("file", None) # client assign it to None
+            if _filename is None:
+                _filename = fmfile
+
+            fileObj = open(_filename, 'rb')
+        except Exception as e:
+            ColorMsg.error_msg("Open firmware file \"%s\" failed: %s:%s"%(_filename, str(e), repr(e)) )
+            return
+
+        ColorMsg.debug_msg('"%s" is uploading to %s.....'%(_filename, uri), self.debug)
+        files = {'file': fileObj}
         res = self.post(*args, uri=uri, files=files, **kwargs)
 
+    def uploadFirmwareOs(self, *args, **kwargs):
+        self.uploadFile(*args, type=settings.FIRMWARE_URL_OS, **kwargs)
+
+    def uploadFirmwareFpga(self, *args, **kwargs):
+        self.uploadFile(*args, type=settings.FIRMWARE_URL_FPGA, **kwargs)
+
+
     def reboot(self, *args, **kwargs):
-        #testHost = "192.168.166.2"
         self.get(*args, uri="/reboot", **kwargs)
 
     def accessUri(self, *args, **kwargs):
