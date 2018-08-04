@@ -13,7 +13,7 @@ Usage
 build and enter virtual environment of python3;
 ::
 
-      pip install -f requirements.txt:
+      pip install -r requirements.txt:
 
 run 
 
@@ -27,7 +27,8 @@ Unit Tests
 
 ::
 
-      `nosetests tests.cases.unit_tests:HttpUnitTestCases.testAllStatic -s': use to test performance, especially on TPC_PCB OOM;
+      `nosetests tests.cases.unit_tests:HttpUnitTestCases.testAllStatic -s'
+: use to test performance, especially on TPC_PCB OOM;
 
 ::
 
