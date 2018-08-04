@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import json
 # import getopt
 # optParser has been decrecated from 3.2
 import argparse
@@ -9,6 +10,8 @@ from cmds.http.web import WebClient
 from cmds.ipCmd.IpCmdCtrl import DeviceIpCmd
 from cmds.misc.TftpCtrl import TftpUpload
 from cmds.misc.iperf import Iperf
+
+from cmds.node import createNode, Node
 
 from utils import ColorMsg
 from utils import settings
@@ -106,6 +109,11 @@ The most commonly used commands are:
         if node is not None:
             data = node["data"][0]
             ColorMsg.test_msg("%s: %s %s, %s" % (data["pName"], data["ip"], data["mac"], data["model"]))
+            node = createNode(data)
+            node2 = Node(data)
+            print(node)
+            print(node2)
+
 
     def setParams(self):
         parser = argparse.ArgumentParser( description='Send parameters in JSON format')
@@ -119,8 +127,14 @@ The most commonly used commands are:
         ColorMsg.debug_msg(
             'Running %s %s,ip=%s, data=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.data, args.debug, args.gateway), args.debug )
 
+        """
+       param must be set in form of list which hold a dict
+       """
+        dataDict = json.loads(args.data)
+        dataArray = []
+        dataArray.append(dataDict)
         cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
-        cmdCtrl.setParams(data=args.data, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        cmdCtrl.setParams(data=dataArray, ip=args.ip, simGateway=args.gateway, debug=args.debug)
 
 
 
@@ -286,7 +300,7 @@ The most commonly used commands are:
 
 if __name__ == "__main__":
     #print(sys.argv[0] )
-    #print(sys.argv[1:] )
+    print(sys.argv[1:] )
 
     Run()
 
