@@ -45,6 +45,10 @@
 	#include <sys/ioctl.h>
 	#include <linux/if.h>
 	#include <linux/if_tun.h>
+	#include <errno.h>
+	#include <signal.h>
+
+	
 	/*
 	 * Creating a tap interface requires special privileges. If the interfaces
 	 * is created in advance with `tunctl -u <user>` it can be opened as a regular
@@ -224,6 +228,13 @@ int tapif_select(struct netif *netif)
 }
 
 #else /* NO_SYS */
+static void _handler(int sig)
+{
+ /* do nothing */ 
+	LWIP_DEBUGF(NETIF_DEBUG, ("SIGINT handed"));
+}
+
+
 static void tapif_thread(void *arg)
 {
 	struct netif *netif;
@@ -240,15 +251,43 @@ static void tapif_thread(void *arg)
 		FD_ZERO(&fdset);
 		FD_SET(tapif->fd, &fdset);
 
+#if 1
+
 		/* Wait for a packet to arrive. */
 		ret = select(tapif->fd + 1, &fdset, NULL, NULL, NULL);
+#else
+		sigset_t emptyset, blockset;
+		struct sigaction sa;
+		
+		sigemptyset(&blockset);         /* Block SIGINT */
+		sigaddset(&blockset, SIGINT);
+		sigprocmask(SIG_BLOCK, &blockset, NULL);
 
+		sa.sa_handler = _handler;        /* Establish signal handler */
+		sa.sa_flags = 0;
+		sigemptyset(&sa.sa_mask);
+		sigaction(SIGINT, &sa, NULL);
+
+		/* Initialize nfds and readfds, and perhaps do other work here */
+		/* Unblock signal, then wait for signal or ready file descriptor */
+		sigemptyset(&emptyset);
+		ret = pselect(tapif->fd + 1, &fdset, NULL, NULL, NULL, &blockset);
+#endif
 		if(ret == 1)
 		{/* Handle incoming packet. */
 			tapif_input(netif);
 		}
 		else if(ret == -1)
 		{
+			if(errno ==  EINTR)
+			{
+#if 1
+				continue;
+#else
+				printf("Intrrrupted by system call"LWIP_NEW_LINE);
+				exit(1);
+#endif			
+			}
 			perror("Error: tapif_thread: select");
 		}
 	}
@@ -332,7 +371,7 @@ static void low_level_init(struct netif *netif)
 
 		printf("Init network interface '%s'\r\n", ifr.ifr_name);
 
-		ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
+		ifr.ifr_flags = IFF_TAP|IFF_NO_PI; /* TAP device; NO_PI: not provide packet information */
 		if (ioctl(tapif->fd, TUNSETIFF, (void *) &ifr) < 0)
 		{
 			perror("tapif_init: "DEVTAP" ioctl TUNSETIFF");

@@ -142,6 +142,8 @@ char	muxSysParamsInit(MUX_RUNTIME_CFG *runCfg)
 	unsigned int debugOption;
 	muxJsonInit(&muxParser, NULL, 0); /* eg. as RX */
 
+	/* init in simhost */
+	runCfg->isTx = 1; /* TX */
 	muxCfgFromFactory(runCfg);
 	runCfg->bootMode = BOOT_MODE_RTOS;
 
@@ -159,8 +161,6 @@ char	muxSysParamsInit(MUX_RUNTIME_CFG *runCfg)
 	runCfg->runtime.vIsInterlaced = 1;
 	runCfg->runtime.vIsSegmented = 1;
 
-	/* init in simhost */
-	runCfg->isTx = 1; /* TX */
 	muxCfgInitAfterReadFromFlash(runCfg);
 
 #if 1

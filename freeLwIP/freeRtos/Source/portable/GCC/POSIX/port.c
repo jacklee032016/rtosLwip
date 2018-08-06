@@ -69,6 +69,12 @@
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
+
+#include "lwipMux.h"
+
+
+#define	FREE_RTOS_PORT_DEBUG			MUX_DBG_ON
+
 /*-----------------------------------------------------------*/
 #ifndef MAX_NUMBER_OF_TASKS
 #define MAX_NUMBER_OF_TASKS 		( _POSIX_THREAD_THREADS_MAX )
@@ -626,15 +632,16 @@ portLONG lIndex;
 		pxThreads[ lIndex ].uxCriticalNesting = 0;
 	}
 
-	sigsuspendself.sa_flags = 0;
+#if 1
+	sigsuspendself.sa_flags = SA_RESTART;
 	sigsuspendself.sa_handler = prvSuspendSignalHandler;
 	sigfillset( &sigsuspendself.sa_mask );
 
-	sigresume.sa_flags = 0;
+	sigresume.sa_flags = SA_RESTART;
 	sigresume.sa_handler = prvResumeSignalHandler;
 	sigfillset( &sigresume.sa_mask );
 
-	sigtick.sa_flags = 0;
+	sigtick.sa_flags = SA_RESTART;
 	sigtick.sa_handler = vPortSystemTickHandler;
 	sigfillset( &sigtick.sa_mask );
 
@@ -650,7 +657,9 @@ portLONG lIndex;
 	{
 		printf( "Problem installing SIG_TICK\n" );
 	}
-	printf( "Running as PID: %d\n", getpid() );
+#endif
+
+	MUX_DEBUGF(FREE_RTOS_PORT_DEBUG,(  "Running as PID: %d\n", getpid() ));
 }
 /*-----------------------------------------------------------*/
 

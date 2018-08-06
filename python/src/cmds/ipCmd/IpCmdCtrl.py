@@ -158,6 +158,7 @@ class DeviceIpCmd(IpCommand):
         node = self.findOneNode(*args, **kwargs)
         if node is None:
             ColorMsg.error_msg("Node with IP %s is not found"%self.ip)
+            return
 
-        ColorMsg.debug_msg("data is \"%s\""%(data), self.debug)
+        ColorMsg.debug_msg("data is \"%s\" to node %s"%(data, node), self.debug)
         self.runOneNode(command=settings.IP_CMD_SET_PARAM, data=data, target=node["targ"])
