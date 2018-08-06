@@ -1,0 +1,497 @@
+a, img {
+	border: 0;
+	outline: 0
+}
+
+body {
+	margin: 0px;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 16px;
+}
+
+#body {
+	width: 1000px;
+	margin: 0 auto;
+	position: relative;
+}
+
+#header {
+	background: url(header_bg.png) repeat-x;
+	width: 100%;
+	height: 128px;
+	position: relative;
+}
+
+#blink {
+	visibility: hidden;
+	display: none;
+
+	position: absolute;
+	top: 90px;
+	left: 910px;
+	z-index: 1;
+}
+
+#blink input{
+	width:75px;
+}
+
+#logo {
+	position: absolute;
+	top: 0px;
+	left: -3px;
+}
+
+#nav {
+	background: #353E46;
+	position: relative;
+	height: 75px;
+	width: 100%;
+}
+
+#nav a {
+	color: #FFF;
+	float: left;
+	margin: 25px 0 0 0;
+	padding: 0 40px 0 40px;
+	font-size: 18px;
+	text-decoration: none;
+	border-right: 1px solid #ffffff;
+}
+
+#nav a:last-child {
+	padding: 0 0 0 40px;
+	border-right: none;
+}
+
+#nav .sep {
+	float: left;
+	margin: 25px 40px 0 0;
+	background: #FFF;
+	height: 20px;
+	width: 1px
+}
+
+#message {
+	text-align: center;
+	text-transform: uppercase;
+	font-size: 22px;
+	display: none;
+	padding: 10px 0 10px 0;
+	background: #E6E6E6;
+	font-weight: bold;
+}
+
+#loading-image {
+
+	display: block;
+	margin:0;
+	z-index: 1;	
+
+	position:absolute;
+	top:167px;
+	right:0;
+  	/* bring your own prefixes */
+  	transform: translate(-50%, -50%);
+}
+
+#content, #content_center {
+	min-height: 600px;
+	width: 100%;
+	margin: 0 0 0 0;
+	padding-bottom: 10px;
+	position: relative;
+	background: #E6E6E6;
+}
+
+#content h1, #content_center h1 {
+	margin: 0 0 0 0;
+	padding: 20px 0 5px 20px;
+	text-transform: uppercase;
+	font-size: 22px
+}
+
+#content h2, #content_center h2 {
+	margin: 0 0 0 0;
+	padding: 20px 0 5px 20px;
+	text-transform: uppercase;
+	font-size: 20px
+}
+
+.center {
+	width: 500px;
+	position: relative;
+	margin: 0 auto;
+	padding: 5px
+}
+
+.bg_white {
+	background: #FFF;
+	color: #000
+}
+
+.bg_green {
+	background: #44ee44;
+	color: #000
+}
+
+.bg_red {
+	background: #FF3300;
+	color: #000
+}
+
+.txt_center {
+	text-align: center
+}
+
+.gray {
+	color: #525252
+}
+
+.green {
+	color: #1DA41D
+}
+
+.red {
+	color: #DF0404
+}
+
+.small {
+	font-size: 12px
+}
+
+.medium {
+	font-size: 14px
+}
+
+.large {
+	font-size: 16px
+}
+
+.highlight {
+	font-weight: bolder;
+}
+
+.bolder {
+	font-weight: bolder;
+	color: #F5812F;
+}
+
+.text_submit {
+	color: #00E;
+	font-size: 14px
+}
+
+.clear {
+	clear: both
+}
+
+#id_mainProductName {
+	position: absolute;
+	top: 90px;
+	left: 29px;
+	font-size: 16px;
+	text-align: center;
+	padding: 2px 5px;
+}
+
+#language {
+	position: absolute;
+	top: 10px;
+	right: 4px;
+	font-size: 12px;
+}
+
+#logout {
+	position: absolute;
+	top: 33px;
+	right: 4px;
+}
+
+#loginUP {
+	position: absolute;
+	top: 33px;
+	right: 4px;
+}
+
+#id_productStatusWrapper {
+	position: absolute;
+	top: 108px;
+	right: 4px;
+}
+
+#id_displayMessageWrapper {
+	width: 500px;
+	height: 18px;
+	position: absolute;
+	top: 10px;
+	right: 245px;
+	border-radius: 4px;
+	padding: 8px 5px;
+}
+
+#footer {
+	font-size: 11px;
+	color: #888;
+	text-align: center;
+	margin: 16px 0 0 0;
+}
+
+#id_mainProductStatus {
+	width: 15px;
+	height: 15px;
+	display: inline-block;
+	border: solid 1px #FFF;
+	text-decoration: none
+}
+
+.product_status_green {
+	background: #28BE28
+}
+
+.product_status_orange {
+	background: #EB9800
+}
+
+.product_status_red {
+	background: #DF0404
+}
+
+#config_content {
+	margin: 0 0 0 30px;
+}
+
+#presets {
+	position: absolute;
+	padding: 10px;
+	background-color: #fff;
+	display: none;
+}
+
+.error-message {
+	padding: 0 0 0 10px;
+	display: none;
+	color: #e42121;
+}
+
+div.fields {
+	margin: 0 0 0 30px;
+	padding: 0px;
+	overflow: hidden;
+	clear: both;
+}
+
+div.fields-info {
+	margin: 0 0 0 30px;
+	padding: 0px;
+	overflow: hidden;
+	clear: both;
+	width: 700px;
+}
+
+div.field {
+	margin: 0px;
+	padding: 2px 0 2px 0;
+	overflow: hidden;
+	clear: both;
+}
+
+div.field-right {
+	margin:0;
+	padding:0;
+	float: right;
+}
+
+div.field-right label{
+	text-align: right;
+	width:auto;
+	margin: 0 5px 0 0;
+}
+
+div.field-right select{
+	width: 100px;
+}
+
+div.field-right input{
+	width: 100px;
+}
+
+
+input {
+	width: 213px;
+	display: inline-block;
+	vertical-align: baseline;
+	margin: 0px;
+	padding: 0px;
+}
+
+label {
+	width: 200px;
+	display: inline-block;
+	vertical-align: baseline;
+	margin: 0px;
+	padding: 0px;
+
+}
+
+label.input_fpsgop {
+	width: 70px;
+	float:none;
+	text-align:right;
+	vertical-align: baseline;
+	margin: 0 5px 0 0;
+	padding: 0px;
+}
+
+input.input_fpsgop {
+	width: 100px;
+}
+
+label.input_port {
+	width: 37px;
+	float:none;
+	text-align:right;
+	vertical-align: baseline;
+	margin: 0 5px 0 0;
+	padding: 0px;
+}
+
+input.input_text {
+	width: 395px;
+}
+
+input.input_port {
+	width: 68px;
+}
+
+select.input_enabled {
+	float:right;
+	width:100px;
+}
+
+select.disabled_enabled
+{
+	width:100px;
+}
+
+label.input_audio {
+	width: 150px;
+	float:none;
+	text-align:right;
+	vertical-align: baseline;
+	margin: 0 0 0 39px;
+	padding: 0px;
+}
+
+input.input_audio {
+	width: 100px;
+}
+
+select.input_audio {
+	width: auto;
+	float:none;
+}
+
+label {
+	margin: 0;
+	padding: 0 0 0 0;
+	float: left;
+}
+
+input {
+	background: rgb(255, 255, 255);
+	margin: 0px;
+	padding: 5px 5px 4px;
+
+}
+
+input[type="text"]:disabled{
+	background: #dddddd;
+	
+}
+
+input[type="file"]{
+	background: #E6E6E6;
+	
+}
+
+select {
+	margin: 0px;
+	padding: 4px 5px 3px;
+}
+
+#formEncoder {
+	width:730px;
+}
+
+#formDecoder {
+	width:730px;
+}
+
+form, input {
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+
+.input_label_right {
+	font-size: 14px
+}
+
+.btnSubmit {
+    align-items: flex-start;
+    text-align: center;
+    cursor: default;
+    color: buttontext;
+    background-color: buttonface;
+    box-sizing: border-box;
+    padding: 2px 6px 3px;
+    border-width: 2px;
+    border-style: outset;
+    border-color: buttonface;
+    border-image: initial;
+	width:98px;
+	margin: 20px 0 0 200px;
+}
+
+.btnReset {
+    align-items: flex-start;
+    text-align: center;
+    cursor: default;
+    color: buttontext;
+    background-color: buttonface;
+    box-sizing: border-box;
+    padding: 2px 6px 3px;
+    border-width: 2px;
+    border-style: outset;
+    border-color: buttonface;
+    border-image: initial;
+	width:98px;
+	margin: 20px 0 0 0;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: none;
+}
+
+.tooltip .tooltiptext {
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 90%;
+    visibility: hidden;
+    width: auto;
+    background-color: black;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+
+    /* Position the tooltip */
+    position: absolute;
+	z-index: 2;	
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}

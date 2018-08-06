@@ -1,0 +1,104 @@
+#
+
+ARCH=linux
+
+ifeq ($(strip $(RASPPI)),1)
+# both -mtune=arm1176jzf-s or -mcpu=arm1176jzf-s can be used
+	#RASP_FLAGS := -mtune=arm1176jzf-s
+	RASP_FLAGS := -mcpu=arm1176jzf-s  
+else
+	RASP_FLAGS := -mcpu=cortex-a7
+	#RASP_FLAGS := -mtune=cortex-a7, some asm file will fail with this option
+endif
+# -march=armv6j , Pi-1
+# -march=armv7-a  -mtune=cortex-a7: for Pi-2
+# -mfloat-abi=hard 
+
+ifeq ($(QEMU),YES)
+	CFLAGS +=-DQEMU_PLATFORM=1 
+else
+	CFLAGS +=-DQEMU_PLATFORM=0 
+endif
+
+
+ifeq ($(ARCH),arm)
+#	C_FLAGS += -D__ARM_CMN__=1 -DARCH_ARM=1  -DARCH_X86=0 -DARCH_X86_32=0 
+#	CXXFLAGS = -D__ARM_CMN__=1 -DARCH_ARM=1  -DARCH_X86=0 -DARCH_X86_32=0 
+	CROSS_COMPILER=arm-gcc49-linux-gnueabi-
+	CROSS_COMPILER=arm-none-eabi-
+	LDFLAGS+=  
+	flag=
+#	C_FLAGS +=-DARM
+	
+else
+	ARCH=X86
+	C_FLAGS +=-D$(ARCH) -DARCH_X86=1 -DARCH_X86_32=1 -DARCH_ARM=0 
+	EXTENSION=
+endif
+
+
+CC	= $(CROSS_COMPILER)gcc
+CXX 	= $(CROSS_COMPILER)g++ 
+STRIP	= $(CROSS_COMPILER)strip
+LD	= $(CROSS_COMPILER)ld
+RANLIB 	= $(CROSS_COMPILER)ranlib
+STRIP 	= $(CROSS_COMPILER)strip
+AR 	= $(CROSS_COMPILER)ar
+OBJCOPY 	= $(CROSS_COMPILER)objcopy
+
+ASM 	= $(CROSS_COMPILER)as
+#ASM = yasm
+
+RM	= rm -r -f
+MKDIR	= mkdir -p
+MODE	= 700
+OWNER	= root
+CHOWN	= chown
+CHMOD	= chmod
+COPY	= cp
+MOVE	= mv
+
+LN		= ln -sf
+
+
+BIN_DIR=$(ROOT_DIR)/Linux.bin.$(ARCH)
+OBJ_DIR=Linux.obj.$(ARCH)
+
+OS		= linux
+
+# 
+TYPE=
+
+ifeq ($(EDITION),release)
+	C_FLAGS += -D__SNX_RELEASE__
+endif 
+
+# C_FLAGS += -O2 -Wall -I. -I$(ROOT_DIR)/include \
+
+# CXXFLAGS += -Wall  -Werror -D__DOXYGEN__-LWIP_RAND=rand
+
+
+CFLAGS=-g -Wall -DIPv4 -DLWIP_DEBUG -D$(ARCH) -Dlinux 
+
+CFLAGS_0=-g -Wall -DIPv4 -DLWIP_DEBUG -pedantic \
+	-Wparentheses -Wsequence-point -Wswitch-default \
+	-Wextra -Wundef -Wshadow -Wpointer-arith -Wbad-function-cast \
+	-Wc++-compat -Wwrite-strings -Wold-style-definition \
+	-Wmissing-prototypes -Wredundant-decls -Wnested-externs  -std=c89
+
+
+BSP_HEAD_HOME=$(ROOT_DIR)/../../an767/bsp/include
+
+BSP_HEADER= \
+	-I$(BSP_HEAD_HOME) \
+	-I$(BSP_HEAD_HOME)/clock \
+	-I$(BSP_HEAD_HOME)/cmsis \
+	-I$(BSP_HEAD_HOME)/drivers \
+	-I$(BSP_HEAD_HOME)/same70 \
+
+
+CFLAGS:=$(CFLAGS) -DROOT_DIR='"$(ROOT_DIR)"' \
+	-I$(ROOT_DIR)/unix/port/include -I$(ROOT_DIR)/lwip/src/include -I$(ROOT_DIR)/lwip/src/include/ipv4 -I. \
+	$(BSP_HEADER) \
+ 
+
