@@ -64,10 +64,14 @@ void mHttpSvrMain(void *data);
 char muxLwipStartup(struct netif *netif, MUX_RUNTIME_CFG *runCfg);
 void muxNetRawTelnetInit(MUX_RUNTIME_CFG *runCfg);
 
-
+#if LWIP_MDNS_RESPONDER
+void extLwipMdsnDestroy(struct netif *netif);
+#endif
 
 char	 muxLwipGroupMgr(struct netif *netif, unsigned int gAddress, unsigned char isAdd);
 
+
+void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, ip4_addr_t *gw);
 
 void muxLwipIp4DebugPrint(struct pbuf *p, const char *prompt);
 void muxLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin);
@@ -171,6 +175,13 @@ char muxCmdConnect(MUX_RUNTIME_CFG  *runCfg);
 char *muxLwipIpAddress(void);
 
 //void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address);
+
+
+/* clear updateInfo, so it will not be wrotten to flash */
+#define	CANCEL_UPDATE(runCfg) \
+	do{		memset(&(runCfg)->firmUpdateInfo, 0, sizeof(MUX_FM_UPDATE) );	\
+	}while(0)
+
 
 
 #endif

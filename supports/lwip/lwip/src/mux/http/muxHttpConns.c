@@ -75,6 +75,12 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 #endif
 			)
 		{
+			/* or move to recv function. J.L. */
+			if(HTTPREQ_IS_UPLOAD(mhc) )
+			{
+				CANCEL_UPDATE(mhc->nodeInfo->runCfg);
+			}
+
 			/* make sure the post code knows that the connection is closed */
 			muxHttpPostDataFinished(mhc);
 		}

@@ -89,7 +89,6 @@ static int _mHttpParseMethod(MuxHttpConn *mhc, unsigned char *data, u16_t data_l
 		/* received GET request */
 		mhc->method = HTTP_METHOD_GET;
 		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received GET request"));
-TRACE();		
 		ret = 4;
 	}
 	else if (!strncmp((char *)data, "PUT ", 4)) 
@@ -129,7 +128,6 @@ TRACE();
 //		return 0;
 	}
 	
-TRACE();		
 	/* if we come here, method is OK, parse URI */
 //	left_len = (u16_t)(data_len - ((sp1 +1) - data));
 			
@@ -157,7 +155,6 @@ static char _mHttpParseRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data
 		return muxHttpPostRequest(mhc, data, data_len);
 	}
 
-TRACE();	
 	if(muxHttpHandleRequest(mhc) == EXIT_FAILURE)
 	{
 //		err = ERR_ARG;

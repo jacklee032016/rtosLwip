@@ -1168,9 +1168,11 @@ static void dhcp_bind(struct netif *netif)
 	}
 #endif /* LWIP_DHCP_AUTOIP_COOP */
 
-//	LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_bind(): IP: 0x%08"X32_F" SN: 0x%08"X32_F" GW: 0x%08"X32_F""LWIP_NEW_LINE,ip4_addr_get_u32(&dhcp->offered_ip_addr), ip4_addr_get_u32(&sn_mask), ip4_addr_get_u32(&gw_addr)));
+	extLwipDhcpDebug(&dhcp->offered_ip_addr, &sn_mask, &gw_addr);
 
-	printf("DHCP Configure: IP: 0x%08"X32_F" SN: 0x%08"X32_F" GW: 0x%08"X32_F""LWIP_NEW_LINE, ip4_addr_get_u32(&dhcp->offered_ip_addr), ip4_addr_get_u32(&sn_mask), ip4_addr_get_u32(&gw_addr));
+//	LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_bind(): IP: 0x%08"X32_F" SN: 0x%08"X32_F" GW: 0x%08"X32_F""LWIP_NEW_LINE,ip4_addr_get_u32(&dhcp->offered_ip_addr), ip4_addr_get_u32(&sn_mask), ip4_addr_get_u32(&gw_addr)));
+//	printf("DHCP Configure: IP: 0x%08"X32_F" SN: 0x%08"X32_F" GW: 0x%08"X32_F""LWIP_NEW_LINE, ip4_addr_get_u32(), ip4_addr_get_u32(&sn_mask), ip4_addr_get_u32(&gw_addr));
+
 	/* netif is now bound to DHCP leased address - set this before assigning the address
 	to ensure the callback can use dhcp_supplied_address() */
 	dhcp_set_state(dhcp, DHCP_STATE_BOUND);

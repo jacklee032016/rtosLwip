@@ -1,15 +1,15 @@
 # /bin/bash
 
-IP=192.168.166.2
+# IP=192.168.166.2
 #IP=192.168.168.130
-#IP=192.168.168.120
+IP=192.168.168.120
 #IP=192.168.168.121
 PORT=69
 #MODE=ascii
 MODE=binary
 
-#DEST=muxFpga
-DEST=muxOs
+#DEST=firmFpga
+DEST=firmOs
 
 
 #if [ $# -le 1 ]; then

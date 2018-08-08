@@ -816,6 +816,7 @@ extern	MUX_RUNTIME_CFG			muxRun;
 #define	MUX_DEBUG_FLAG_UDP_OUT				(1<<3)
 #define	MUX_DEBUG_FLAG_TCP_IN				(1<<4)
 #define	MUX_DEBUG_FLAG_TCP_OUT				(1<<5)
+#define	MUX_DEBUG_FLAG_DHCP					(1<<6)
 
 
 #define	MUX_DEBUG_FLAG_IGMP					(1<<8)		

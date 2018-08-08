@@ -75,7 +75,7 @@ a lot of data that needs to be copied, this should be set high. */
  * per active UDP "connection".
  * (requires the LWIP_UDP option)
  */
-#define MEMP_NUM_UDP_PCB				12 /* 6*/
+#define MEMP_NUM_UDP_PCB				12*2 /* 6*/
 
 /**
  * MEMP_NUM_TCP_PCB: the number of simulatenously active TCP connections.
@@ -118,7 +118,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool */
-#define PBUF_POOL_SIZE				16// 200	/* 15 */
+#define PBUF_POOL_SIZE				16*4// 200	/* 15 */
 
 
 /**

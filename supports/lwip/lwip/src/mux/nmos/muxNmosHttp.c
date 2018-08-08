@@ -209,6 +209,7 @@ static char muxHttpNmosParseApiRequest(MuxHttpConn *mhc, NMOS_API_TYPE type)
 	return EXIT_SUCCESS;
 }
 
+#if MUX_HTTPD_DEBUG
 static void _muxApiApdebug(const ApiAccessPoint *apRoot)
 {
 	int i = 0;
@@ -219,7 +220,7 @@ static void _muxApiApdebug(const ApiAccessPoint *apRoot)
 	}
 	
 }
-
+#endif
 
 static char _muxRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot, NMOS_API_TYPE type)
 {
@@ -284,7 +285,9 @@ char muxHttpHandleRequest(MuxHttpConn *mhc)
 {
 //	char ret = EXIT_FAILURE;
 
+#if MUX_HTTPD_DEBUG
 	_muxApiApdebug(&apNodeRoot);
+#endif
 
 	if(HTTP_IS_ERROR(mhc) )
 	{

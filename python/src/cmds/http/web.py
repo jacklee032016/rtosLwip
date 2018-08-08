@@ -63,12 +63,13 @@ class WebClient(HttpClient):
         ColorMsg.debug_msg('"%s" is uploading to %s.....'%(_filename, uri), self.debug)
         files = {'file': fileObj}
         res = self.post(*args, uri=uri, files=files, **kwargs)
+        return res
 
     def uploadFirmwareOs(self, *args, **kwargs):
-        self.uploadFile(*args, type=settings.FIRMWARE_URL_OS, **kwargs)
+        return self.uploadFile(*args, type=settings.FIRMWARE_URL_OS, **kwargs)
 
     def uploadFirmwareFpga(self, *args, **kwargs):
-        self.uploadFile(*args, type=settings.FIRMWARE_URL_FPGA, **kwargs)
+        return self.uploadFile(*args, type=settings.FIRMWARE_URL_FPGA, **kwargs)
 
 
     def reboot(self, *args, **kwargs):

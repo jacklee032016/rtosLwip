@@ -183,6 +183,8 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 		{/* this should not happen, only to be robust */
 			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Error, http_recv: mhc is NULL, close"));
 		}
+		
+		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("HTTP Connection is broken by peer"));
 		mhttpConnClose(mhc, pcb);
 		return ERR_OK;
 	}
@@ -300,8 +302,8 @@ static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	
 	LWIP_UNUSED_ARG(err);
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
-	MUX_ERRORF(("_mhttpAccept %p / total Connection %d", (void*)pcb, runCfg->currentHttpConns ));
+//	MUX_DEBUGF(MUX_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
+//	MUX_ERRORF(("_mhttpAccept %p / total Connection %d", (void*)pcb, runCfg->currentHttpConns ));
 
 	if ((err != ERR_OK) || (pcb == NULL))
 	{

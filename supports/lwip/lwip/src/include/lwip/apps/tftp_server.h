@@ -61,6 +61,8 @@ struct tftp_context
 	int (*write)(void* handle, struct pbuf* p);
 
   	void		*priv;
+	
+	unsigned short			dataIndex;	/* index in buffer of RunCfg->bufWrite */
 };
 
 err_t tftp_init(const struct tftp_context* ctx);

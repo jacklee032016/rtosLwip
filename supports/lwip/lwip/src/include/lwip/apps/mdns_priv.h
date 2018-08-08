@@ -10,11 +10,11 @@
 #include "lwip/apps/mdns_opts.h"
 #include "lwip/pbuf.h"
 
+#define	MDNS_DOMAIN_MAXLEN		256
 #if LWIP_MDNS_RESPONDER
 
 /* Domain struct and methods - visible for unit tests */
 
-#define	MDNS_DOMAIN_MAXLEN		256
 #define	MDNS_READNAME_ERROR		0xFFFF
 
 #define	MDNS_PORT					5353

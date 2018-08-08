@@ -24,6 +24,8 @@
 
 #include "lwipMux.h"
 
+#if LWIP_MDNS_RESPONDER
+
 typedef	struct
 {
 	u16_t		priority;
@@ -591,4 +593,6 @@ char mdnsClientInit(mdns_client_t *client, MUX_RUNTIME_CFG *runCfg)
 	
 	return EXIT_SUCCESS;
 }
+
+#endif
 

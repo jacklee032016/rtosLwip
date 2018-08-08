@@ -3,7 +3,7 @@
 
 
 #include "compact.h"
-#include "lwipMux.h"
+//#include "lwipMux.h"
 #include "muxHttp.h"
 
 //#include "muxOs.h"
@@ -11,6 +11,10 @@
 #include "lwip/apps/tftp_server.h"
 
 #include "bspHwSpiFlash.h"
+
+extern	struct netif			guNetIf;
+
+
 
 static char _firmwareUpdateInit(MUX_RUNTIME_CFG *runCfg, MUX_FM_T fmT, const char	*fname, char isWrite)
 {
@@ -47,6 +51,12 @@ static char _firmwareUpdateInit(MUX_RUNTIME_CFG *runCfg, MUX_FM_T fmT, const cha
 		return EXIT_FAILURE;
 	}
 #endif
+
+#if 0// LWIP_MDNS_RESPONDER
+	extLwipMdsnDestroy(&guNetIf);
+#endif
+
+
 	return EXIT_SUCCESS;
 }
 
@@ -67,7 +77,7 @@ static void _firmwareUpdateEnd(MUX_RUNTIME_CFG	*runCfg)
 	fclose(runCfg->firmUpdateInfo.fp);
 #endif
 
-	MUX_DEBUGF(MUX_DBG_ON, ("Received %d bytes %s firmware and save to Flash"MUX_NEW_LINE, runCfg->firmUpdateInfo.size, (runCfg->firmUpdateInfo.type == MUX_FM_TYPE_RTOS)?"RTOS":"FPGA"));
+	MUX_DEBUGF(TFTP_DEBUG|MUX_HTTPD_DATA_DEBUG, ("Received %d bytes %s firmware and save to Flash"MUX_NEW_LINE, runCfg->firmUpdateInfo.size, (runCfg->firmUpdateInfo.type == MUX_FM_TYPE_RTOS)?"RTOS":"FPGA"));
 }
 
 
@@ -132,12 +142,35 @@ const struct _MuxUploadContext muxUpload =
 };
 
 
+static unsigned short __muxTftpWriteData(MUX_RUNTIME_CFG	*runCfg, void *data, unsigned short len)
+{
+#ifdef	ARM	
+	if(bspSpiFlashWrite((unsigned char *) data, (unsigned int) len) != (int)len )	
+	{
+		return -1;
+	}
+#else		
+	if (fwrite(data, 1, len, runCfg->firmUpdateInfo.fp) != (len) )
+	{
+		return -1;
+	}
+#endif
+
+	runCfg->firmUpdateInfo.size += len;
+//	MUX_DEBUGF(TFTP_DEBUG, ("TFTP Write: %d bytes, total %d bytes", len, runCfg->firmUpdateInfo.size) );
+
+	return len;
+}
+
 static void *_muxTftpOpen(void *handle, const char* fname, const char* mode, char isWrite)
 {
 	struct tftp_context	*ctx = (struct tftp_context *)handle;
 	MUX_RUNTIME_CFG	*runCfg = ctx->priv;
 	MUX_FM_T	fmT = MUX_FM_TYPE_FPGA;
-	
+
+	MUX_ASSERT("RunCf is null", (runCfg!= NULL));
+
+	TRACE();
 	LWIP_UNUSED_ARG(mode);
 
 	if( IS_STRING_EQUAL(fname, MUX_TFTP_IMAGE_OS_NAME) )
@@ -149,9 +182,16 @@ static void *_muxTftpOpen(void *handle, const char* fname, const char* mode, cha
 		fmT = MUX_FM_TYPE_FPGA;
 	}
 
+	TRACE();
 	if(_firmwareUpdateInit(runCfg, fmT, fname, isWrite) == EXIT_FAILURE)
+	{
+	TRACE();
 		return NULL;
+	}
 
+	TRACE();
+	ctx->dataIndex = 0;
+	TRACE();
 	return ctx;
 }
 
@@ -161,8 +201,16 @@ static void  _muxTftpClose(void* handle)
 {
 	struct tftp_context	*ctx = (struct tftp_context *)handle;
 	MUX_RUNTIME_CFG	*runCfg = ctx->priv;
+
+	if(ctx->dataIndex> 0)
+	{
+		MUX_DEBUGF(TFTP_DEBUG, ("TFTP Write last packet, %d bytes", ctx->dataIndex) );
+		__muxTftpWriteData(runCfg, runCfg->bufWrite, ctx->dataIndex);
+	}
 	
 	_firmwareUpdateEnd(runCfg);
+
+	MUX_DEBUGF(TFTP_DEBUG, ("Closed, total %d bytes", runCfg->firmUpdateInfo.size) );
 }
 
 
@@ -192,44 +240,57 @@ static int _muxTftpRead(void* handle, void* buf, int bytes)
 #endif
 }
 
+
 static int _muxTftpWrite(void* handle, struct pbuf* p)
 {
 	struct tftp_context	*ctx = (struct tftp_context *)handle;
 	MUX_RUNTIME_CFG	*runCfg = ctx->priv;
+	unsigned short copied = 0;
+	unsigned short len;
 
-	while (p != NULL)
+	while(copied != p->tot_len)
 	{
-#ifdef	ARM	
-		//if (fwrite(p->payload, 1, p->len, (FILE*)handle) != (size_t)p->len)
-		if(bspSpiFlashWrite((unsigned char *) p->payload, (unsigned int) p->len) != (int)p->len )	
-		{
-			return -1;
-		}
-		
-#else		
-		if (fwrite(p->payload, 1, p->len, runCfg->firmUpdateInfo.fp) != (size_t)p->len)
-		{
-			return -1;
-		}
-#endif
+		len = LWIP_MIN(p->tot_len - copied, ((unsigned short)runCfg->bufLength - ctx->dataIndex) );
+	
+		len = pbuf_copy_partial(p, runCfg->bufWrite+ctx->dataIndex, len, copied );
+		ctx->dataIndex += len;
+		copied += len;
 
-		runCfg->firmUpdateInfo.size += p->len;
-		MUX_DEBUGF(MUX_DBG_ON, ("RX: %d bytes, total %d bytes", p->len, runCfg->firmUpdateInfo.size) );
-		p = p->next;
+
+		if(ctx->dataIndex == runCfg->bufLength )
+		{
+//			MUX_DEBUGF(TFTP_DEBUG, ("write to flash: packet %d bytes, copied %d len %d byte data", p->tot_len, copied, len) );
+			len = __muxTftpWriteData(runCfg, runCfg->bufWrite, ctx->dataIndex);
+			if( len != ctx->dataIndex)
+			{
+				MUX_ERRORF(("TFTP Write %d bytes of %d bytes", len, ctx->dataIndex) );
+				return EXIT_FAILURE;
+			}
+
+			ctx->dataIndex = 0;
+		}
+
+//		MUX_DEBUGF(TFTP_DEBUG, ("packet %d bytes, copied %d (total %d)byte data", p->tot_len, copied, ctx->dataIndex) );
 	}
+	
 
+	if(copied != p->tot_len)
+	{
+		MUX_ERRORF(("copied %d bytes from %d byte data", copied, p->tot_len) );
+	}
 
 	return 0;
 }
 
-const struct tftp_context muxTftp =
+struct tftp_context muxTftp =
 {
 	_muxTftpOpen,
 	_muxTftpClose,
 	_muxTftpRead,
 	_muxTftpWrite,
 	
-	&muxRun
+	&muxRun,
+	0
 };
 
 

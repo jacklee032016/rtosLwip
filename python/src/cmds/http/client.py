@@ -88,6 +88,10 @@ class HttpClient(object):
                 key = re.findall("\'(\w+)\'", format(err))[0]
                 ColorMsg.debug_msg("Method \"%s\" removing \"%s\"" % (method.__name__, str(key)), self.debug )
                 del kwargs2[key]  # Remove offending key
+            except requests.exceptions.ConnectionError as err:
+                ColorMsg.error_msg("ConnectionError output:{0}".format(err))
+                ColorMsg.error_msg("Can't connect to %s"%(self.url))
+                return
 
         #response = method(self.url, *args, **kwargs)
         if response is None:

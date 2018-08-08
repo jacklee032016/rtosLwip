@@ -83,6 +83,16 @@ static char	_muxLwipMdnsResponder(struct netif *netif, MUX_RUNTIME_CFG *runCfg)
 
 	return 0;
 }
+
+void extLwipMdsnDestroy(struct netif *netif)
+{
+	mdns_resp_remove_netif(netif);
+
+	udp_remove(_mdnsClient.udpPcb);
+
+	LWIP_DEBUGF(MUX_DBG_ON| MDNS_DEBUG, ("Destroy MSDN Responder"LWIP_NEW_LINE) );
+}
+
 #endif
 
 
@@ -93,10 +103,12 @@ char muxLwipStartup(struct netif *netif, MUX_RUNTIME_CFG *runCfg)
 	muxParser.runCfg = runCfg;
 	muxNetRawTelnetInit(runCfg);
 
+#if LWIP_MDNS_RESPONDER
 	_muxLwipMdnsResponder(netif, runCfg);
 
 
 	mdnsClientInit(&_mdnsClient, runCfg);
+#endif
 #if 0
 
 //	shell_init();

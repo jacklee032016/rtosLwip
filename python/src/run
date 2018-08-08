@@ -16,6 +16,17 @@ from cmds.node import createNode, Node
 from utils import ColorMsg
 from utils import settings
 
+
+import logging
+import logging.config
+
+#logging.config.fileConfig('logging.conf')
+# create logger
+#logger = logging.getLogger('simpleExample')
+
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s %(filename)s.%(funcName)s--%(lineno)d - %(levelname)s - %(message)s')
+
 def testOther(*args, **kwargs):
     setupSystemCmd = [
         {
@@ -205,8 +216,11 @@ The most commonly used commands are:
             'Running %s %s,ip=%s, file=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.file, args.debug, args.gateway), args.debug )
 
         webClient = WebClient(ip=args.ip, simGateway=args.gateway, debug=args.debug)
-        webClient.uploadFirmwareOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
-        webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        res = webClient.uploadFirmwareOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        if res is not None and res.status_code == 200:
+            webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        else:
+            ColorMsg.error_msg("uploading %s failed"%(args.file) )
 
 
     def httpFpga(self):
@@ -221,8 +235,11 @@ The most commonly used commands are:
             'Running %s %s,ip=%s, file=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.file, args.debug, args.gateway), args.debug )
 
         webClient = WebClient(ip=args.ip, simGateway=args.gateway, debug=args.debug)
-        webClient.uploadFirmwareFpga(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
-        webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        res = webClient.uploadFirmwareFpga(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        if res is not None and res.status_code == 200:
+            webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        else:
+            ColorMsg.error_msg("uploading %s failed"%(args.file) )
 
 
     def reboot(self):
@@ -269,6 +286,8 @@ The most commonly used commands are:
         tftpmcu = TftpUpload(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
         tftpmcu.uploadOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
 
+        self.reboot()
+
     def tftpFpga(self):
         parser = argparse.ArgumentParser(
             description='Upload and update FPGA firmware throught TFTP')
@@ -283,7 +302,7 @@ The most commonly used commands are:
         ColorMsg.debug_msg(
             'Running %s %s, ip=%s, file=%s, gateway=%s, debug=%s'%(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.file, args.gateway, args.debug), args.debug )
 
-        tftpmcu = TftpUpload(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+        tftpmcu = TftpUpload(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug, fmTye= settings.FIRMWARE_TYPE_TFTP_FPGA)
         tftpmcu.uploadFpga(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
 
     def bandwidth(self ):

@@ -217,6 +217,7 @@ char muxJsonRequestParse(MUX_JSON_PARSER *parser, MUX_RUNTIME_CFG	*tmpCfg)
 {
 	unsigned int intValue;
 	short type;
+	int count = 0;
 
 #if 0
 	if(muxJsonParseString(parser, MUX_JSON_KEY_USER, runCfg->user, MUX_USER_SIZE) != EXIT_SUCCESS)
@@ -230,158 +231,229 @@ char muxJsonRequestParse(MUX_JSON_PARSER *parser, MUX_RUNTIME_CFG	*tmpCfg)
 #endif
 
 
-	muxJsonParseString(parser, MUX_IPCMD_DATA_C_NAME, tmpCfg->name, sizeof(tmpCfg->name) );
+	if( muxJsonParseString(parser, MUX_IPCMD_DATA_C_NAME, tmpCfg->name, sizeof(tmpCfg->name) ) == EXIT_SUCCESS )
+	{
+		count++;
+	}
 
-	muxJsonParseMacAddress(parser, MUX_IPCMD_DATA_MAC, &tmpCfg->local.mac);
+	if(muxJsonParseMacAddress(parser, MUX_IPCMD_DATA_MAC, &tmpCfg->local.mac) == EXIT_SUCCESS)
+	{
+		count++;
+	}
 
-	muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_IP, &tmpCfg->local.ip );
-	muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_MASK, &tmpCfg->ipMask);
-	muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_GATEWAY, &tmpCfg->ipGateway);
+	if(muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_IP, &tmpCfg->local.ip ) == EXIT_SUCCESS)
+		{
+		count++;
+		}
+	
+	if(muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_MASK, &tmpCfg->ipMask) == EXIT_SUCCESS)
+		{
+		count ++;
+		}
+	if(muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_GATEWAY, &tmpCfg->ipGateway) == EXIT_SUCCESS)
+	{
+		count++;
+	}
 
 
 	if(muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_DHCP, &intValue)== EXIT_SUCCESS)
 	{
 		tmpCfg->netMode = intValue+1;
+		count++;
 	}
 	
 	if(muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_IS_DIP, &intValue)== EXIT_SUCCESS)
 	{
 		tmpCfg->isDipOn = intValue+1;
+		count++;
 	}
 
 	/* RS232 */
-	muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_RS_BAUDRATE, &tmpCfg->rs232Cfg.baudRate );
-	if(tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_9600 && tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_19200 &&
-		tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_38400 && tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_57600 &&
-		tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_115200 && tmpCfg->rs232Cfg.baudRate != 0 )
+	if(muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_RS_BAUDRATE, &tmpCfg->rs232Cfg.baudRate ) == EXIT_SUCCESS)
 	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.baudRate, MUX_IPCMD_DATA_RS_BAUDRATE);
-		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-		return EXIT_FAILURE;
-	}
-
-	
-	muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_RS_DATABITS, &tmpCfg->rs232Cfg.charLength );
-	if(tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_5 && tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_6 &&
-		tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_7 && tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_8 && 
-		tmpCfg->rs232Cfg.charLength != 0 )
-	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.charLength, MUX_IPCMD_DATA_RS_DATABITS);
-		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-		return EXIT_FAILURE;
-	}
-	
-	muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_RS_STOPBITS, &tmpCfg->rs232Cfg.stopbits );
-	if(tmpCfg->rs232Cfg.stopbits != MUX_RS232_STOP_BITS_1 && tmpCfg->rs232Cfg.stopbits != MUX_RS232_STOP_BITS_2 &&
-		tmpCfg->rs232Cfg.stopbits != 0 )
-	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.stopbits, MUX_IPCMD_DATA_RS_STOPBITS);
-		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-		return EXIT_FAILURE;
-	}
-
-	memset(tmpCfg->model, 0, sizeof(tmpCfg->model));	
-	muxJsonParseString(parser, MUX_IPCMD_DATA_RS_PARITY, tmpCfg->model, sizeof(tmpCfg->model) );
-	if(strlen(tmpCfg->model) )
-	{
-		type = CMN_FIND_STR_RS_PARITY(tmpCfg->model);
-		if(type< 0)
+		count++;
+		
+		if(tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_9600 && tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_19200 &&
+			tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_38400 && tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_57600 &&
+			tmpCfg->rs232Cfg.baudRate != MUX_BAUDRATE_115200 && tmpCfg->rs232Cfg.baudRate != 0 )
 		{
-			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%s' for '%s' object", tmpCfg->model, MUX_IPCMD_DATA_RS_PARITY);
+			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.baudRate, MUX_IPCMD_DATA_RS_BAUDRATE);
 			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 			return EXIT_FAILURE;
 		}
-		tmpCfg->rs232Cfg.parityType = type +1;
+	}
+	
+	
+
+	if(muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_RS_DATABITS, &tmpCfg->rs232Cfg.charLength ) == EXIT_SUCCESS)
+	{
+		count++;
+		if(tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_5 && tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_6 &&
+			tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_7 && tmpCfg->rs232Cfg.charLength != MUX_RS232_CHAR_LENGTH_8 && 
+			tmpCfg->rs232Cfg.charLength != 0 )
+		{
+			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.charLength, MUX_IPCMD_DATA_RS_DATABITS);
+			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+			return EXIT_FAILURE;
+		}
+	}
+	
+	if(muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_RS_STOPBITS, &tmpCfg->rs232Cfg.stopbits ) == EXIT_SUCCESS)
+	{
+		count++;
+		if(tmpCfg->rs232Cfg.stopbits != MUX_RS232_STOP_BITS_1 && tmpCfg->rs232Cfg.stopbits != MUX_RS232_STOP_BITS_2 &&
+			tmpCfg->rs232Cfg.stopbits != 0 )
+		{
+			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.stopbits, MUX_IPCMD_DATA_RS_STOPBITS);
+			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+			return EXIT_FAILURE;
+		}
+	}
+
+	memset(tmpCfg->model, 0, sizeof(tmpCfg->model));	
+	if(muxJsonParseString(parser, MUX_IPCMD_DATA_RS_PARITY, tmpCfg->model, sizeof(tmpCfg->model) ) == EXIT_SUCCESS)
+	{
+		count++;
+		if(strlen(tmpCfg->model) )
+		{
+			type = CMN_FIND_STR_RS_PARITY(tmpCfg->model);
+			if(type< 0)
+			{
+				snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%s' for '%s' object", tmpCfg->model, MUX_IPCMD_DATA_RS_PARITY);
+				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+				return EXIT_FAILURE;
+			}
+			tmpCfg->rs232Cfg.parityType = type +1;
+		}
 	}
 	
 
 	/* media ip and ports */
 	if(muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_IS_MCAST, &intValue)== EXIT_SUCCESS)
 	{
+		count++;
 		tmpCfg->isMCast = intValue+1;
 	}
-	muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_MCAST_IP, &tmpCfg->dest.ip);
-	if(tmpCfg->isMCast > 1 && !IP_ADDR_IS_MULTICAST(tmpCfg->dest.ip) && tmpCfg->dest.ip != 0 )
+	
+	if(muxJsonParseIpAddress(parser, MUX_IPCMD_DATA_MCAST_IP, &tmpCfg->dest.ip) == EXIT_SUCCESS)
 	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR: ''%s' of '%s' object is not multicast address", MUX_LWIP_IPADD_TO_STR(&(tmpCfg->dest.ip)) , MUX_IPCMD_DATA_MCAST_IP);
-		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-		return EXIT_FAILURE;
+		count++;
+		if(tmpCfg->isMCast > 1 && !IP_ADDR_IS_MULTICAST(tmpCfg->dest.ip) && tmpCfg->dest.ip != 0 )
+		{
+			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR: ''%s' of '%s' object is not multicast address", MUX_LWIP_IPADD_TO_STR(&(tmpCfg->dest.ip)) , MUX_IPCMD_DATA_MCAST_IP);
+			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+			return EXIT_FAILURE;
+		}
 	}
 
-	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_VIDEO_PORT, &tmpCfg->dest.vport);
-	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_AUDIO_PORT, &tmpCfg->dest.aport);
+	if(muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_VIDEO_PORT, &tmpCfg->dest.vport) == EXIT_SUCCESS)
+		count++;
+	if(muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_AUDIO_PORT, &tmpCfg->dest.aport) == EXIT_SUCCESS)
+		count++;
 	
-	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_AD_PORT, &tmpCfg->dest.dport);
-	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_ST_PORT, &tmpCfg->dest.sport);
+	
+	if(muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_AD_PORT, &tmpCfg->dest.dport) == EXIT_SUCCESS)
+		count++;
+	
+	if(muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_ST_PORT, &tmpCfg->dest.sport) == EXIT_SUCCESS)
+		count++;
 
 	/* params for AV */
-	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_VIDEO_WIDTH, &tmpCfg->runtime.vWidth );
-	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_VIDEO_HEIGHT, &tmpCfg->runtime.vHeight);
-	muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_VIDEO_FRAMERATE, &tmpCfg->runtime.vFrameRate);
-	muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_VIDEO_DEPTH, &tmpCfg->runtime.vDepth);
+	if(muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_VIDEO_WIDTH, &tmpCfg->runtime.vWidth ) == EXIT_SUCCESS)
+		count++;
+	if(muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_VIDEO_HEIGHT, &tmpCfg->runtime.vHeight) == EXIT_SUCCESS)
+		count++;
+	
+	if(muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_VIDEO_FRAMERATE, &tmpCfg->runtime.vFrameRate) == EXIT_SUCCESS)
+		count++;
+	
+	if(muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_VIDEO_DEPTH, &tmpCfg->runtime.vDepth) == EXIT_SUCCESS)
+		count++;
 
 	if(muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_VIDEO_INTERLACED, &intValue)== EXIT_SUCCESS)
 	{
+		count++;
 		tmpCfg->runtime.vIsInterlaced = intValue+1;
 	}
 	if(muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_VIDEO_SEGMENTED, &intValue)== EXIT_SUCCESS)
 	{
+		count++;
 		tmpCfg->runtime.vIsSegmented = intValue+1;
 	}
 
 //	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_VIDEO_COLORSPACE, CMN_FIND_V_COLORSPACE(tmpCfg->runtime.vColorSpace) );
 
 	memset(tmpCfg->model, 0, sizeof(tmpCfg->model));	
-	muxJsonParseString(parser, MUX_IPCMD_DATA_VIDEO_COLORSPACE, tmpCfg->model, sizeof(tmpCfg->model) );
-	if(strlen(tmpCfg->model) )
+
+	if(muxJsonParseString(parser, MUX_IPCMD_DATA_VIDEO_COLORSPACE, tmpCfg->model, sizeof(tmpCfg->model) ) == EXIT_SUCCESS)
 	{
-		type = CMN_FIND_STR_V_COLORSPACE(tmpCfg->model);
-		if(type< 0)
+		count++;
+		if(strlen(tmpCfg->model) )
 		{
-			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%s' for '%s' object", tmpCfg->model, MUX_IPCMD_DATA_VIDEO_COLORSPACE);
+			type = CMN_FIND_STR_V_COLORSPACE(tmpCfg->model);
+			if(type< 0)
+			{
+				snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%s' for '%s' object", tmpCfg->model, MUX_IPCMD_DATA_VIDEO_COLORSPACE);
+				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+				return EXIT_FAILURE;
+			}
+			tmpCfg->runtime.vColorSpace = type +1;
+		}
+	}
+
+	if(muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_AUDIO_SAMPE_RATE, &tmpCfg->runtime.aSampleRate ) == EXIT_SUCCESS)
+	{
+		count++;
+		if(tmpCfg->runtime.aSampleRate != 44100 && tmpCfg->runtime.aSampleRate != 48000 &&
+			tmpCfg->runtime.aSampleRate != 0 )
+		{
+			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aSampleRate, MUX_IPCMD_DATA_AUDIO_SAMPE_RATE);
 			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 			return EXIT_FAILURE;
 		}
-		tmpCfg->runtime.vColorSpace = type +1;
-	}
-
-	muxJsonParseUnsignedShort(parser, MUX_IPCMD_DATA_AUDIO_SAMPE_RATE, &tmpCfg->runtime.aSampleRate );
-	if(tmpCfg->runtime.aSampleRate != 44100 && tmpCfg->runtime.aSampleRate != 48000 &&
-		tmpCfg->runtime.aSampleRate != 0 )
-	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aSampleRate, MUX_IPCMD_DATA_AUDIO_SAMPE_RATE);
-		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-		return EXIT_FAILURE;
 	}
 	
-	muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_AUDIO_DEPTH, &tmpCfg->runtime.aDepth );
-	if(tmpCfg->runtime.aDepth != 16 && tmpCfg->runtime.aDepth != 24 &&
-		tmpCfg->runtime.aDepth != 0 )
+	if(muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_AUDIO_DEPTH, &tmpCfg->runtime.aDepth ) == EXIT_SUCCESS)
 	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aDepth, MUX_IPCMD_DATA_AUDIO_DEPTH);
-		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-		return EXIT_FAILURE;
+		count++;
+		if(tmpCfg->runtime.aDepth != 16 && tmpCfg->runtime.aDepth != 24 &&
+			tmpCfg->runtime.aDepth != 0 )
+		{
+			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aDepth, MUX_IPCMD_DATA_AUDIO_DEPTH);
+			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+			return EXIT_FAILURE;
+		}
 	}
 	
-	muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_AUDIO_CHANNELS, &tmpCfg->runtime.aChannels );
-	if(tmpCfg->runtime.aChannels != 1 && tmpCfg->runtime.aChannels != 2 &&
-		tmpCfg->runtime.aChannels != 0 )
+	if(muxJsonParseUnsignedChar(parser, MUX_IPCMD_DATA_AUDIO_CHANNELS, &tmpCfg->runtime.aChannels ) == EXIT_SUCCESS)
 	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aChannels, MUX_IPCMD_DATA_AUDIO_CHANNELS);
-		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-		return EXIT_FAILURE;
+		count++;
+		if(tmpCfg->runtime.aChannels != 1 && tmpCfg->runtime.aChannels != 2 &&
+			tmpCfg->runtime.aChannels != 0 )
+		{
+			snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aChannels, MUX_IPCMD_DATA_AUDIO_CHANNELS);
+			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+			return EXIT_FAILURE;
+		}
 	}
 
 	if(muxJsonParseUnsignedInteger(parser, MUX_IPCMD_DATA_IS_CONNECT, &intValue)== EXIT_SUCCESS)
 	{
+		count++;
 		tmpCfg->runtime.isConnect = intValue+1;
 	}
 
+	
 #if 0//def	X86
 	printf("tx:%d;\tMcIpPort:%d\n\r", runCfg->isTx, runCfg->mcPort);
 
 	muxDebugCfg(runCfg, LWIP_NEW_LINE"PARSED Cfg:");
 #endif
+	if(count == 0)
+	{
+		snprintf(parser->msg, sizeof(parser->msg), "No validate parameter in this command");
+		return EXIT_FAILURE;
+	}
 	return EXIT_SUCCESS;
 }
 

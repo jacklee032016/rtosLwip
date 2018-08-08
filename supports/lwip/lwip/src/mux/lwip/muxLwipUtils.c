@@ -3,6 +3,21 @@
 #include "lwip/inet.h"
 //#include "lwip/prot/ethernet.h"
 
+void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, 	ip4_addr_t *gw)
+{
+	if(!MUX_DEBUG_IS_ENABLE(MUX_DEBUG_FLAG_DHCP) )
+	{
+		return;
+	}
+	
+	printf( "DHCP Configure: IP:%3"U16_F".%3"U16_F".%3"U16_F"%3"U16_F"; MASK:%3"U16_F".%3"U16_F".%3"U16_F"%3"U16_F"; GATEWAY %3"U16_F".%3"U16_F".%3"U16_F"%3"U16_F"; "LWIP_NEW_LINE, 
+		ip4_addr1_16(ip),ip4_addr2_16(ip), ip4_addr3_16(ip), ip4_addr4_16(ip), 
+		ip4_addr1_16(mask),ip4_addr2_16(mask), ip4_addr3_16(mask), ip4_addr4_16(mask), 
+		ip4_addr1_16(gw),ip4_addr2_16(gw), ip4_addr3_16(gw), ip4_addr4_16(gw) 
+		);
+}
+
+
 void muxLwipIp4DebugPrint(struct pbuf *p, const char *prompt)
 {
 	struct ip_hdr *iphdr = (struct ip_hdr *)p->payload;

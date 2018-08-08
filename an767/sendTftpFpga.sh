@@ -8,8 +8,8 @@ PORT=69
 #MODE=ascii
 MODE=binary
 
-DEST=muxFpga
-#DEST=muxOs
+DEST=firmFpga
+#DEST=firmOs
 
 
 #if [ $# -le 1 ]; then
