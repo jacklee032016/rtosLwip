@@ -22,6 +22,9 @@
 
 struct netif		guNetIf;		/* global unique netIf */
 
+#ifdef	ARM
+void gmacEnableWakeOnLan(unsigned int ipAddr);
+#endif
 
 static void _muxNetStatusCallback(struct netif *netif)
 {
@@ -38,6 +41,10 @@ static void _muxNetStatusCallback(struct netif *netif)
 		muxNetPingInit();
 		muxNetPingSendNow(netif->ip_addr.addr );
 #endif
+
+#ifdef	ARM
+		gmacEnableWakeOnLan(netif->ip_addr.addr);
+#endif		
 
 	}
 	else

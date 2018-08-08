@@ -710,3 +710,10 @@ err_t ethernetif_init(struct netif *netif)
 	return ERR_OK;
 }
 
+
+void gmacEnableWakeOnLan(unsigned int ipAddr)
+{
+	Gmac* _pgmac = GMAC;
+	_pgmac->GMAC_WOL = GMAC_WOL_MAG|GMAC_WOL_ARP|GMAC_WOL_SA1|GMAC_WOL_MTI|(GMAC_WOL_IP_Msk & ipAddr);
+}
+

@@ -27,21 +27,6 @@ import logging.config
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s %(filename)s.%(funcName)s--%(lineno)d - %(levelname)s - %(message)s')
 
-def testOther(*args, **kwargs):
-    setupSystemCmd = [
-        {
-            "cName": "SimTx",
-            "mac": "00:04:25:1c:10:02",
-            "ip": "192.168.166.3",
-            "isDhcp": 1,
-            "isDipOn": 0
-        }
-    ]
-
-    result = agent.run()
-
-    agent.run(command="set_param", data=setupSystemCmd, target=result["targ"])
-
 
 class Run(object):
     """

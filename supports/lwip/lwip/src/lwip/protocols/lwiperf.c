@@ -63,6 +63,7 @@
 #ifndef LWIPERF_TCP_MAX_IDLE_SEC
 #define LWIPERF_TCP_MAX_IDLE_SEC    10U
 #endif
+
 #if LWIPERF_TCP_MAX_IDLE_SEC > 255
 #error LWIPERF_TCP_MAX_IDLE_SEC must fit into an u8_t
 #endif
@@ -80,33 +81,39 @@
 #endif
 
 /** This is the Iperf settings struct sent from the client */
-typedef struct _lwiperf_settings {
+typedef struct _lwiperf_settings
+{
 #define LWIPERF_FLAGS_ANSWER_TEST 0x80000000
 #define LWIPERF_FLAGS_ANSWER_NOW  0x00000001
-  u32_t flags;
-  u32_t num_threads; /* unused for now */
-  u32_t remote_port;
-  u32_t buffer_len; /* unused for now */
-  u32_t win_band; /* TCP window / UDP rate: unused for now */
-  u32_t amount; /* pos. value: bytes?; neg. values: time (unit is 10ms: 1/100 second) */
+
+	u32_t	flags;
+	u32_t	num_threads; /* unused for now */
+	u32_t	remote_port;
+	u32_t	buffer_len; /* unused for now */
+	u32_t	win_band; /* TCP window / UDP rate: unused for now */
+	u32_t	amount; /* pos. value: bytes?; neg. values: time (unit is 10ms: 1/100 second) */
 } lwiperf_settings_t;
+
 
 /** Basic connection handle */
 struct _lwiperf_state_base;
 typedef struct _lwiperf_state_base lwiperf_state_base_t;
-struct _lwiperf_state_base {
-  /* 1=tcp, 0=udp */
-  u8_t tcp;
-  /* 1=server, 0=client */
-  u8_t server;
-  lwiperf_state_base_t* next;
-  lwiperf_state_base_t* related_server_state;
+
+struct _lwiperf_state_base
+{
+	/* 1=tcp, 0=udp */
+	u8_t					tcp;
+	/* 1=server, 0=client */
+	u8_t					server;
+	lwiperf_state_base_t	*next;
+	lwiperf_state_base_t	*related_server_state;
 };
 
 /** Connection handle for a TCP iperf session */
 typedef struct _lwiperf_state_tcp
 {
 	lwiperf_state_base_t	base;
+	
 	struct tcp_pcb		*server_pcb;
 	struct tcp_pcb		*conn_pcb;
 	
@@ -124,6 +131,7 @@ typedef struct _lwiperf_state_tcp
 
 /** List of active iperf sessions */
 static lwiperf_state_base_t* lwiperf_all_connections;
+
 /** A const buffer to send from: we want to measure sending, not copying! */
 static const u8_t lwiperf_txbuf_const[1600] = {
   '0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9',
@@ -187,43 +195,54 @@ static void lwiperf_list_add(lwiperf_state_base_t* item)
 /** Remove an iperf session from the 'active' list */
 static void lwiperf_list_remove(lwiperf_state_base_t* item)
 {
-  lwiperf_state_base_t* prev = NULL;
-  lwiperf_state_base_t* iter;
-  for (iter = lwiperf_all_connections; iter != NULL; prev = iter, iter = iter->next) {
-    if (iter == item) {
-      if (prev == NULL) {
-        lwiperf_all_connections = iter->next;
-      } else {
-        prev->next = item;
-      }
-      /* @debug: ensure this item is listed only once */
-      for (iter = iter->next; iter != NULL; iter = iter->next) {
-        LWIP_ASSERT("duplicate entry", iter != item);
-      }
-      break;
-    }
-  }
+	lwiperf_state_base_t* prev = NULL;
+	lwiperf_state_base_t* iter;
+	
+	for (iter = lwiperf_all_connections; iter != NULL; prev = iter, iter = iter->next)
+	{
+		if (iter == item)
+		{
+			if (prev == NULL)
+			{
+				lwiperf_all_connections = iter->next;
+			}
+			else
+			{
+				prev->next = item;
+			}
+
+			/* @debug: ensure this item is listed only once */
+			for (iter = iter->next; iter != NULL; iter = iter->next)
+			{
+				LWIP_ASSERT("duplicate entry", iter != item);
+			}
+			break;
+		}
+	}
 }
 
 /** Call the report function of an iperf tcp session */
-static void
-lwip_tcp_conn_report(lwiperf_state_tcp_t* conn, enum lwiperf_report_type report_type)
+static void lwip_tcp_conn_report(lwiperf_state_tcp_t* conn, enum lwiperf_report_type report_type)
 {
-  if ((conn != NULL) && (conn->report_fn != NULL)) {
-    u32_t now, duration_ms, bandwidth_kbitpsec;
-    now = sys_now();
-    duration_ms = now - conn->time_started;
-    if (duration_ms == 0) {
-      bandwidth_kbitpsec = 0;
-    } else {
-      bandwidth_kbitpsec = (conn->bytes_transferred / duration_ms) * 8U;
-    }
-    conn->report_fn(conn->report_arg, report_type,
-      &conn->conn_pcb->local_ip, conn->conn_pcb->local_port,
-      &conn->conn_pcb->remote_ip, conn->conn_pcb->remote_port,
-      conn->bytes_transferred, duration_ms, bandwidth_kbitpsec);
-  }
+	if ((conn != NULL) && (conn->report_fn != NULL))
+	{
+		u32_t now, duration_ms, bandwidth_kbitpsec;
+		now = sys_now();
+		duration_ms = now - conn->time_started;
+		if (duration_ms == 0)
+		{
+			bandwidth_kbitpsec = 0;
+		}
+		else
+		{
+			bandwidth_kbitpsec = (conn->bytes_transferred / duration_ms) * 8U;
+		}
+
+		conn->report_fn(conn->report_arg, report_type,  &conn->conn_pcb->local_ip, conn->conn_pcb->local_port, 
+			&conn->conn_pcb->remote_ip, conn->conn_pcb->remote_port,conn->bytes_transferred, duration_ms, bandwidth_kbitpsec);
+	}
 }
+
 
 /** Close an iperf tcp session */
 static void lwiperf_tcp_close(lwiperf_state_tcp_t* conn, enum lwiperf_report_type report_type)
@@ -382,8 +401,7 @@ static err_t lwiperf_tcp_client_connected(void *arg, struct tcp_pcb *tpcb, err_t
 	return lwiperf_tcp_client_send_more(conn);
 }
 
-/** Start TCP connection back to the client (either parallel or after the
- * receive test has finished.
+/** Start TCP connection back to the client (either parallel or after the receive test has finished.
  */
 static err_t lwiperf_tx_start(lwiperf_state_tcp_t* conn)
 {
@@ -400,7 +418,8 @@ static err_t lwiperf_tx_start(lwiperf_state_tcp_t* conn)
 	}
 	
 	newpcb = tcp_new();
-	if (newpcb == NULL) {
+	if (newpcb == NULL)
+	{
 		LWIPERF_FREE(lwiperf_state_tcp_t, client_conn);
 		return ERR_MEM;
 	}
@@ -634,18 +653,6 @@ static err_t lwiperf_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	return ERR_OK;
 }
 
-/** 
- * @ingroup iperf
- * Start a TCP iperf server on the default TCP port (5001) and listen for
- * incoming connections from iperf clients.
- *
- * @returns a connection handle that can be used to abort the server
- *          by calling @ref lwiperf_abort()
- */
-void *lwiperf_start_tcp_server_default(lwiperf_report_fn report_fn, void* report_arg)
-{
-	return lwiperf_start_tcp_server(IP_ADDR_ANY, LWIPERF_TCP_PORT_DEFAULT, report_fn, report_arg);
-}
 
 /**
  * @ingroup iperf
@@ -735,6 +742,19 @@ void lwiperf_abort(void* lwiperf_session)
 			i = i->next;
 		}
 	}
+}
+
+/** 
+ * @ingroup iperf
+ * Start a TCP iperf server on the default TCP port (5001) and listen for
+ * incoming connections from iperf clients.
+ *
+ * @returns a connection handle that can be used to abort the server
+ *          by calling @ref lwiperf_abort()
+ */
+void *lwiperf_start_tcp_server_default(lwiperf_report_fn report_fn, void* report_arg)
+{
+	return lwiperf_start_tcp_server(IP_ADDR_ANY, LWIPERF_TCP_PORT_DEFAULT, report_fn, report_arg);
 }
 
 #endif /* LWIP_IPV4 && LWIP_TCP && LWIP_CALLBACK_API */

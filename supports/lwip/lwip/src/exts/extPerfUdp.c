@@ -1,29 +1,100 @@
 /*
- * Copyright (c) 2007 Xilinx, Inc.  All rights reserved.
- *
- * Xilinx, Inc.
- * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
- * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
- * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
- * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
- * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
- * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
- * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
- * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
- * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
- * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * 
  */
+
+#include "lwip/apps/lwiperf.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include "lwip/err.h"
 #include "lwip/udp.h"
-#ifndef __PPC__
-#include "xil_printf.h"
+
+#include "lwipMux.h"
+
+#if LWIP_EXT_UDP_RX_PERF
+
+static unsigned rxperf_server_running = 0;
+
+#if 0
+int transfer_urxperf_data()
+{
+	return 0;
+}
 #endif
+
+static void _udpRxPerfRecv(void *arg, struct udp_pcb *tpcb, struct pbuf *p, struct ip_addr *addr, u16_t port)
+{
+	static int first = 1;
+	static int expected_id = 0;
+	static int n_dropped = 0;
+	int recv_id;
+
+	/* first, see if the datagram is received in order */
+	recv_id =  *((int *)(p->payload));
+
+	if (first)
+	{
+		expected_id = recv_id;
+		first = 0;
+	}
+	else if (expected_id != recv_id)
+	{
+		n_dropped += (recv_id - expected_id);
+		expected_id = recv_id;
+	}
+	print(".");
+
+	expected_id++;
+	
+	pbuf_free(p);
+
+	first = 0;
+}
+
+char extUdpRxPerfStart(void)
+{
+	struct udp_pcb *pcb;
+	err_t err;
+
+	/* create new TCP PCB structure */
+	pcb = udp_new();
+	if (!pcb)
+	{
+		MUX_ERRORF("OOM when creating PCB for UDP RX Perf"MUX_NEW_LINE);
+		return EXIT_FAILURE;
+	}
+
+	/* bind to iperf @port */
+	err = udp_bind(pcb, IP_ADDR_ANY, LWIPERF_TCP_PORT_DEFAULT);
+	if (err != ERR_OK)
+	{
+		MUX_ERRORF(("Unable to bind to UDP Perf port: err = %d"MUX_NEW_LINE, err));
+		return EXIT_FAILURE;
+	}
+
+	udp_recv(pcb, _udpRxPerfRecv, NULL);
+
+ //     rxperf_server_running = 1;
+
+	return EXIT_SUCCESS;
+}
+
+#if 0
+void print_urxperf_app_header()
+{
+    xil_printf("%20s %6d %10s %s\r\n", "rxperf server",
+                        rxperf_port,
+                        rxperf_server_running ? "RUNNING" : "INACTIVE",
+                        "$ iperf -c <board ip> -i 5 -t 100 -u -b <bandwidth>");
+}
+#endif
+
+
+#endif
+
+#if LWIP_EXT_UDP_TX_PERF
+
 
 static unsigned utxperf_port = 5001;
 static unsigned txperf_client_connected = 0;
@@ -104,11 +175,13 @@ start_utxperf_application()
 	return 0;
 }
 
-void
-print_utxperf_app_header()
+void print_utxperf_app_header()
 {
         xil_printf("%20s %6s %10s %s\r\n", "utxperf client",
                         "N/A",
                         txperf_client_connected ? "CONNECTED" : "CONNECTING",
                         "$ iperf -u -s -i 5 (on host with IP 192.168.1.9)");
 }
+
+#endif
+

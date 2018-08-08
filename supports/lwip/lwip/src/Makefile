@@ -24,6 +24,7 @@ CODE_SUBDIRS = \
 	mux/mdns	\
 	mux/nmos	\
 	mux/ipCmd	\
+	exts/ptp/dep \
 
 
 # 
@@ -142,6 +143,9 @@ IPCMD_SRC += \
 	mux/ipCmd/muxIpCmdSetup.c \
 	mux/ipCmd/muxIpCmdMain.c \
 	
+EXTS_SRC += \
+	exts/extPerfUdp.c \
+	
 
 MUX_SRC += \
 	$(MUX_LWIP_SRC) \
@@ -150,6 +154,7 @@ MUX_SRC += \
 	$(NMOS_SRC) \
 	$(CMN_SRC) \
 	$(IPCMD_SRC) \
+	$(EXTS_SRC) \
 	mux/base64.c \
 
 #	lwip/frozen.c \

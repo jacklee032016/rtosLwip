@@ -443,5 +443,10 @@ a lot of data that needs to be copied, this should be set high. */
 //#define	TCPIP_THREAD_STACKSIZE		10240
 //#define	TCPIP_THREAD_PRIO				2
 
+
+#define LWIP_EXT_UDP_RX_PERF			1
+#define LWIP_EXT_UDP_TX_PERF			1
+
+
 #endif
 

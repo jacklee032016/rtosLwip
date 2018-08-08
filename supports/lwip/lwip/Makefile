@@ -15,6 +15,8 @@ CODE_SUBDIRS = \
 	src/mux/mdns	\
 	src/mux/nmos	\
 	src/mux/ipCmd	\
+	src/exts/ptp/dep	\
+
 
 #	src/core/ipv6 \
 #	src/core/snmp \
@@ -132,6 +134,8 @@ IPCMD_SRC += \
 	src/mux/ipCmd/muxIpCmdSetup.c \
 	src/mux/ipCmd/muxIpCmdMain.c \
 	
+EXTS_SRC += \
+	src/exts/extPerfUdp.c \
 
 MUX_SRC += \
 	$(MUX_LWIP_SRC) \
@@ -140,7 +144,10 @@ MUX_SRC += \
 	$(NMOS_SRC) \
 	$(CMN_SRC) \
 	$(IPCMD_SRC) \
+	$(EXTS_SRC) \
 	src/mux/base64.c \
+
+
 
 #	src/lwip/frozen.c \
 

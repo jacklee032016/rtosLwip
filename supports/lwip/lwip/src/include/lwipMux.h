@@ -171,6 +171,8 @@ struct ptptime_t
 
 char muxCmdConnect(MUX_RUNTIME_CFG  *runCfg);
 
+int extUdpRxPerfStart(void);
+
 
 char *muxLwipIpAddress(void);
 

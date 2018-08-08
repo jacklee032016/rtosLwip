@@ -115,6 +115,11 @@ char muxLwipStartup(struct netif *netif, MUX_RUNTIME_CFG *runCfg)
 #endif
 //	muxLwipGroupMgr(netif, runCfg->mcIp, 1);
 
+
+#if LWIP_EXT_UDP_RX_PERF
+	extUdpRxPerfStart();
+#endif
+
 	if(!MUX_IS_TX(runCfg))
 	{
 //		MUX_DEBUGF(IGMP_DEBUG,("Send IGMP JOIN"LWIP_NEW_LINE));
