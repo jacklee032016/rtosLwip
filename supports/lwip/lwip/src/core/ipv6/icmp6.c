@@ -287,7 +287,7 @@ icmp6_send_response(struct pbuf *p, u8_t code, u32_t data, u8_t type)
     ICMP6_STATS_INC(icmp6.memerr);
     return;
   }
-  LWIP_ASSERT("check that first pbuf can hold icmp 6message",
+  LWIP_ASSERT(("check that first pbuf can hold icmp 6message"),
              (q->len >= (sizeof(struct icmp6_hdr) + IP6_HLEN + LWIP_ICMP6_DATASIZE)));
 
   icmp6hdr = (struct icmp6_hdr *)q->payload;

@@ -310,9 +310,9 @@ dns_init(void)
   dns_setserver(0, &dnsserver);
 #endif /* DNS_SERVER_ADDRESS */
 
-  LWIP_ASSERT("sanity check SIZEOF_DNS_QUERY",
+  LWIP_ASSERT(("sanity check SIZEOF_DNS_QUERY"),
     sizeof(struct dns_query) == SIZEOF_DNS_QUERY);
-  LWIP_ASSERT("sanity check SIZEOF_DNS_ANSWER",
+  LWIP_ASSERT(("sanity check SIZEOF_DNS_ANSWER"),
     sizeof(struct dns_answer) <= SIZEOF_DNS_ANSWER_ASSERT);
 
   LWIP_DEBUGF(DNS_DEBUG, ("dns_init: initializing\n"));
@@ -321,11 +321,11 @@ dns_init(void)
 #if ((LWIP_DNS_SECURE & LWIP_DNS_SECURE_RAND_SRC_PORT) == 0)
   if (dns_pcbs[0] == NULL) {
     dns_pcbs[0] = udp_new_ip_type(IPADDR_TYPE_ANY);
-    LWIP_ASSERT("dns_pcbs[0] != NULL", dns_pcbs[0] != NULL);
+    LWIP_ASSERT(("dns_pcbs[0] != NULL"), dns_pcbs[0] != NULL);
 
     /* initialize DNS table not needed (initialized to zero since it is a
      * global variable) */
-    LWIP_ASSERT("For implicit initialization to work, DNS_STATE_UNUSED needs to be 0",
+    LWIP_ASSERT(("For implicit initialization to work, DNS_STATE_UNUSED needs to be 0"),
       DNS_STATE_UNUSED == 0);
 
     /* initialize DNS client */
@@ -399,11 +399,11 @@ dns_init_local(void)
   size_t namelen;
   for (i = 0; i < LWIP_ARRAYSIZE(local_hostlist_init); i++) {
     struct local_hostlist_entry *init_entry = &local_hostlist_init[i];
-    LWIP_ASSERT("invalid host name (NULL)", init_entry->name != NULL);
+    LWIP_ASSERT(("invalid host name (NULL)"), init_entry->name != NULL);
     namelen = strlen(init_entry->name);
-    LWIP_ASSERT("namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN", namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN);
+    LWIP_ASSERT(("namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN"), namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN);
     entry = (struct local_hostlist_entry *)memp_malloc(MEMP_LOCALHOSTLIST);
-    LWIP_ASSERT("mem-error in dns_init_local", entry != NULL);
+    LWIP_ASSERT(("mem-error in dns_init_local"), entry != NULL);
     if (entry != NULL) {
       char* entry_name = (char*)entry + sizeof(struct local_hostlist_entry);
       MEMCPY(entry_name, init_entry->name, namelen);
@@ -553,9 +553,9 @@ dns_local_addhost(const char *hostname, const ip_addr_t *addr)
   struct local_hostlist_entry *entry;
   size_t namelen;
   char* entry_name;
-  LWIP_ASSERT("invalid host name (NULL)", hostname != NULL);
+  LWIP_ASSERT(("invalid host name (NULL)"), hostname != NULL);
   namelen = strlen(hostname);
-  LWIP_ASSERT("namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN", namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN);
+  LWIP_ASSERT(("namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN"), namelen <= DNS_LOCAL_HOSTLIST_MAX_NAMELEN);
   entry = (struct local_hostlist_entry *)memp_malloc(MEMP_LOCALHOSTLIST);
   if (entry == NULL) {
     return ERR_MEM;
@@ -730,7 +730,7 @@ static err_t dns_send(u8_t idx)
 	struct dns_table_entry* entry = &dns_table[idx];
 
 	LWIP_DEBUGF(DNS_DEBUG, ("dns_send: dns_servers[%"U16_F"] \"%s\": request"LWIP_NEW_LINE, (u16_t)(entry->server_idx), entry->name));
-	LWIP_ASSERT("dns server out of array", entry->server_idx < DNS_MAX_SERVERS);
+	LWIP_ASSERT(("dns server out of array"), entry->server_idx < DNS_MAX_SERVERS);
 	if (ip_addr_isany_val(dns_servers[entry->server_idx])
 #if LWIP_DNS_SUPPORT_MDNS_QUERIES
 		&& !entry->is_mdns
@@ -925,10 +925,10 @@ dns_call_found(u8_t idx, ip_addr_t* addr)
   if (addr != NULL) {
     /* check that address type matches the request and adapt the table entry */
     if (IP_IS_V6_VAL(*addr)) {
-      LWIP_ASSERT("invalid response", LWIP_DNS_ADDRTYPE_IS_IPV6(dns_table[idx].reqaddrtype));
+      LWIP_ASSERT(("invalid response"), LWIP_DNS_ADDRTYPE_IS_IPV6(dns_table[idx].reqaddrtype));
       dns_table[idx].reqaddrtype = LWIP_DNS_ADDRTYPE_IPV6;
     } else {
-      LWIP_ASSERT("invalid response", !LWIP_DNS_ADDRTYPE_IS_IPV6(dns_table[idx].reqaddrtype));
+      LWIP_ASSERT(("invalid response"), !LWIP_DNS_ADDRTYPE_IS_IPV6(dns_table[idx].reqaddrtype));
       dns_table[idx].reqaddrtype = LWIP_DNS_ADDRTYPE_IPV4;
     }
   }
@@ -1008,7 +1008,7 @@ dns_check_entry(u8_t i)
   err_t err;
   struct dns_table_entry *entry = &dns_table[i];
 
-  LWIP_ASSERT("array index out of bounds", i < DNS_TABLE_SIZE);
+  LWIP_ASSERT(("array index out of bounds"), i < DNS_TABLE_SIZE);
 
   switch (entry->state) {
     case DNS_STATE_NEW:
@@ -1070,7 +1070,7 @@ dns_check_entry(u8_t i)
       /* nothing to do */
       break;
     default:
-      LWIP_ASSERT("unknown dns_table entry state:", 0);
+      LWIP_ASSERT(("unknown dns_table entry state:"), 0);
       break;
   }
 }

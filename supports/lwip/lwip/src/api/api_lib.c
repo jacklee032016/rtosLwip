@@ -138,13 +138,13 @@ struct netconn *netconn_new_with_proto_and_callback(enum netconn_type t, u8_t pr
 		err = netconn_apimsg(lwip_netconn_do_newconn, &API_MSG_VAR_REF(msg));
 		if (err != ERR_OK)
 		{
-			LWIP_ASSERT("freeing conn without freeing pcb", conn->pcb.tcp == NULL);
-			LWIP_ASSERT("conn has no recvmbox", sys_mbox_valid(&conn->recvmbox));
+			LWIP_ASSERT(("freeing conn without freeing pcb"), conn->pcb.tcp == NULL);
+			LWIP_ASSERT(("conn has no recvmbox"), sys_mbox_valid(&conn->recvmbox));
 #if LWIP_TCP
-			LWIP_ASSERT("conn->acceptmbox shouldn't exist", !sys_mbox_valid(&conn->acceptmbox));
+			LWIP_ASSERT(("conn->acceptmbox shouldn't exist"), !sys_mbox_valid(&conn->acceptmbox));
 #endif /* LWIP_TCP */
 #if !LWIP_NETCONN_SEM_PER_THREAD
-			LWIP_ASSERT("conn has no op_completed", sys_sem_valid(&conn->op_completed));
+			LWIP_ASSERT(("conn has no op_completed"), sys_sem_valid(&conn->op_completed));
 			sys_sem_free(&conn->op_completed);
 #endif /* !LWIP_NETCONN_SEM_PER_THREAD */
 			sys_mbox_free(&conn->recvmbox);

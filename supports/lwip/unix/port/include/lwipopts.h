@@ -150,7 +150,11 @@ a lot of data that needs to be copied, this should be set high. */
 #define PBUF_POOL_SIZE          200
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
+#if 0
 #define PBUF_POOL_BUFSIZE       128
+#else
+#define PBUF_POOL_BUFSIZE       1536
+#endif
 
 /* PBUF_LINK_HLEN: the number of bytes that should be allocated for a
    link level header. */

@@ -135,7 +135,7 @@ static void _tftpSendAck(u16_t blknum)
 	payload[1] = lwip_htons(blknum);
 
 	udp_sendto(_tftpState.upcb, p, &_tftpState.addr, _tftpState.port);
-	LWIP_DEBUGF(TFTP_DEBUG | LWIP_DBG_STATE, ("tftp: send ACK for block# %d"LWIP_NEW_LINE, blknum));
+	LWIP_DEBUGF(TFTP_DEBUG, ("tftp: send ACK for block# %d"LWIP_NEW_LINE, blknum));
 	pbuf_free(p);
 }
 
@@ -370,7 +370,7 @@ static void _tftpRecv(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_
 			}
 			
 			_tftpState.blknum = blknum;
-			LWIP_DEBUGF(TFTP_DEBUG | LWIP_DBG_STATE, ("tftp: recv block#%d"LWIP_NEW_LINE, blknum));
+			LWIP_DEBUGF(TFTP_DEBUG, ("tftp: recv block#%d"LWIP_NEW_LINE, blknum));
 
 			ret = _tftpState.ctx->write(_tftpState.handle, p);
 			if (ret < 0)
@@ -431,13 +431,11 @@ static void _tftpRecv(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_
 			{
 				_tftpCloseHandle();
 			}
-		TRACE();
 
 			break;
 		}
 
 		default:
-		TRACE();
 			_tftpSendError(addr, port, TFTP_ERROR_ILLEGAL_OPERATION, "Unknown operation");
 			break;
 	}

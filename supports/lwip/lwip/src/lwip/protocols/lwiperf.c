@@ -214,7 +214,7 @@ static void lwiperf_list_remove(lwiperf_state_base_t* item)
 			/* @debug: ensure this item is listed only once */
 			for (iter = iter->next; iter != NULL; iter = iter->next)
 			{
-				LWIP_ASSERT("duplicate entry", iter != item);
+				LWIP_ASSERT(("duplicate entry"), iter != item);
 			}
 			break;
 		}
@@ -270,7 +270,7 @@ static void lwiperf_tcp_close(lwiperf_state_tcp_t* conn, enum lwiperf_report_typ
 	{
 		/* no conn pcb, this is the server pcb */
 		err = tcp_close(conn->server_pcb);
-		LWIP_ASSERT("error", err != ERR_OK);
+		LWIP_ASSERT(("error"), err != ERR_OK);
 	}
 	LWIPERF_FREE(lwiperf_state_tcp_t, conn);
 }
@@ -285,7 +285,7 @@ static err_t lwiperf_tcp_client_send_more(lwiperf_state_tcp_t* conn)
 	void* txptr;
 	u8_t apiflags;
 
-	LWIP_ASSERT("conn invalid", (conn != NULL) && conn->base.tcp && (conn->base.server == 0));
+	LWIP_ASSERT(("conn invalid"), (conn != NULL) && conn->base.tcp && (conn->base.server == 0));
 
 	do
 	{
@@ -376,7 +376,7 @@ static err_t lwiperf_tcp_client_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
 {
 	lwiperf_state_tcp_t* conn = (lwiperf_state_tcp_t*)arg;
 	/* @todo: check 'len' (e.g. to time ACK of all data)? for now, we just send more... */
-	LWIP_ASSERT("invalid conn", conn->conn_pcb == tpcb);
+	LWIP_ASSERT(("invalid conn"), conn->conn_pcb == tpcb);
 	LWIP_UNUSED_ARG(tpcb);
 	LWIP_UNUSED_ARG(len);
 
@@ -389,7 +389,7 @@ static err_t lwiperf_tcp_client_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
 static err_t lwiperf_tcp_client_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
 	lwiperf_state_tcp_t* conn = (lwiperf_state_tcp_t*)arg;
-	LWIP_ASSERT("invalid conn", conn->conn_pcb == tpcb);
+	LWIP_ASSERT(("invalid conn"), conn->conn_pcb == tpcb);
 	LWIP_UNUSED_ARG(tpcb);
 	if (err != ERR_OK)
 	{
@@ -462,7 +462,7 @@ static err_t lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, e
 	struct pbuf* q;
 	lwiperf_state_tcp_t* conn = (lwiperf_state_tcp_t*)arg;
 
-	LWIP_ASSERT("pcb mismatch", conn->conn_pcb == tpcb);
+	LWIP_ASSERT(("pcb mismatch"), conn->conn_pcb == tpcb);
 	LWIP_UNUSED_ARG(tpcb);
 
 	if (err != ERR_OK)
@@ -549,7 +549,7 @@ static err_t lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, e
 
 		conn->next_num = 4; /* 24 bytes received... */
 		tmp = pbuf_header(p, -24);
-		LWIP_ASSERT("pbuf_header failed", tmp == 0);
+		LWIP_ASSERT(("pbuf_header failed"), tmp == 0);
 	}
 
 	packet_idx = 0;
@@ -581,7 +581,7 @@ static err_t lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, e
 		packet_idx += q->len;
 	}
 
-	LWIP_ASSERT("count mismatch", packet_idx == p->tot_len);
+	LWIP_ASSERT(("count mismatch"), packet_idx == p->tot_len);
 	conn->bytes_transferred += packet_idx;
 	tcp_recved(tpcb, tot_len);
 	pbuf_free(p);
@@ -600,7 +600,7 @@ static void lwiperf_tcp_err(void *arg, err_t err)
 static err_t lwiperf_tcp_poll(void *arg, struct tcp_pcb *tpcb)
 {
 	lwiperf_state_tcp_t* conn = (lwiperf_state_tcp_t*)arg;
-	LWIP_ASSERT("pcb mismatch", conn->conn_pcb == tpcb);
+	LWIP_ASSERT(("pcb mismatch"), conn->conn_pcb == tpcb);
 	LWIP_UNUSED_ARG(tpcb);
 	
 	if (++conn->poll_count >= LWIPERF_TCP_MAX_IDLE_SEC)

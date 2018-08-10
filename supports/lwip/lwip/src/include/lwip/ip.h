@@ -60,7 +60,7 @@ extern "C" {
 /** pbufs passed to IP must have a ref-count of 1 as their payload pointer
     gets altered as the packet is passed down the stack */
 #ifndef LWIP_IP_CHECK_PBUF_REF_COUNT_FOR_TX
-#define LWIP_IP_CHECK_PBUF_REF_COUNT_FOR_TX(p) LWIP_ASSERT("p->ref == 1", (p)->ref == 1)
+#define LWIP_IP_CHECK_PBUF_REF_COUNT_FOR_TX(p) LWIP_ASSERT(("p->ref == 1"), (p)->ref == 1)
 #endif
 
 #if LWIP_NETIF_HWADDRHINT

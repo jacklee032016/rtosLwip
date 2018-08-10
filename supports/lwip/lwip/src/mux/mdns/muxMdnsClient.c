@@ -424,7 +424,7 @@ static char _mdnsClientDnsParseSRV(mdns_client_t *client, NMOS_API_INTERFACE *ap
 		sprintf((char *)client->domainName, "%s", apiIf->hostname );
 		res = mdnsClientSendQuery(client, apiIf->type);
 	
-		LWIP_ASSERT("MdnsC: Send MDNS domain QUERY"LWIP_NEW_LINE, (res == ERR_OK) );
+		MUX_ASSERT(("MdnsC: Send MDNS domain QUERY"LWIP_NEW_LINE), (res == ERR_OK) );
 		if(res == !ERR_OK)
 			return EXIT_FAILURE;
 	}
@@ -571,7 +571,7 @@ static char	_mdnsClientInitQueryForInterface(mdns_client_t *client, NMOS_API_INT
 	sprintf((char *)client->domainName, "%s", apiIf->service );
 	
 	res = mdnsClientSendQuery(client, apiIf->type);
-	LWIP_ASSERT("Send MDNS QUERY", (res == ERR_OK) );
+	MUX_ASSERT(("Send MDNS QUERY"), (res == ERR_OK) );
 	if(res == !ERR_OK)
 		return EXIT_FAILURE;
 

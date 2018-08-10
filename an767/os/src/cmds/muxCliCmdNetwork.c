@@ -430,5 +430,35 @@ char	muxCmdChangeName(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t b
 	return MUX_FALSE;
 }
 
+#if LWIP_EXT_UDP_TX_PERF
+char	muxCmdUdpTxPerf(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
+{
+	unsigned int index = 0;
+	unsigned int address;
+	char ret;
+
+	TRACE();
+	if(argc==1)
+	{
+		index += snprintf(outBuffer+index, bufferLen-index, MUX_CMD_UDP_PERF" <ipaddress of UDP Perf server>:"MUX_NEW_LINE" for example, 192.168.168.102"MUX_NEW_LINE );
+		return MUX_FALSE;
+	}
+
+	TRACE();
+	address = ipaddr_addr(argv[1]);
+	if(address == IPADDR_NONE)
+	{
+		index += snprintf(outBuffer+index, bufferLen-index, "\tArgument '%s' is not IP address"MUX_NEW_LINE, argv[1] );
+		return MUX_FALSE;
+	}
+
+	TRACE();
+	ret = extUdpTxPerfStart(address);
+		
+	index += snprintf(outBuffer+index, bufferLen-index, "\tUDP Perf to %s has started %s"MUX_NEW_LINE, argv[1], (ret==EXIT_SUCCESS)?"OK":"Fail" );
+
+	return MUX_FALSE;
+}
+#endif
 
 

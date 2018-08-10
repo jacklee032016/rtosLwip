@@ -171,7 +171,7 @@ struct ptptime_t
 
 char muxCmdConnect(MUX_RUNTIME_CFG  *runCfg);
 
-int extUdpRxPerfStart(void);
+char extUdpRxPerfStart(void);
 
 
 char *muxLwipIpAddress(void);
@@ -185,6 +185,16 @@ char *muxLwipIpAddress(void);
 	}while(0)
 
 
+#if LWIP_EXT_UDP_TX_PERF
+char extUdpTxPerfTask(void);
+
+char extUdpTxPerfStart(unsigned int svrIpAddress);
+#endif
+
+#ifdef	ARM
+void gmacBMCastEnable(unsigned char enable);
+void gmacEnableWakeOnLan(unsigned int ipAddr);
+#endif
 
 #endif
 

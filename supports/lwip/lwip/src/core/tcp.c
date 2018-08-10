@@ -189,8 +189,8 @@ tcp_listen_closed(struct tcp_pcb *pcb)
 {
 #if LWIP_CALLBACK_API || TCP_LISTEN_BACKLOG
   size_t i;
-  LWIP_ASSERT("pcb != NULL", pcb != NULL);
-  LWIP_ASSERT("pcb->state == LISTEN", pcb->state == LISTEN);
+  LWIP_ASSERT(("pcb != NULL"), pcb != NULL);
+  LWIP_ASSERT(("pcb->state == LISTEN"), pcb->state == LISTEN);
   for (i = 1; i < LWIP_ARRAYSIZE(tcp_pcb_lists); i++) {
     tcp_remove_listener(*tcp_pcb_lists[i], (struct tcp_pcb_listen*)pcb);
   }
@@ -212,11 +212,11 @@ tcp_listen_closed(struct tcp_pcb *pcb)
 void
 tcp_backlog_delayed(struct tcp_pcb* pcb)
 {
-  LWIP_ASSERT("pcb != NULL", pcb != NULL);
+  LWIP_ASSERT(("pcb != NULL"), pcb != NULL);
   if ((pcb->flags & TF_BACKLOGPEND) == 0) {
     if (pcb->listener != NULL) {
       pcb->listener->accepts_pending++;
-      LWIP_ASSERT("accepts_pending != 0", pcb->listener->accepts_pending != 0);
+      LWIP_ASSERT(("accepts_pending != 0"), pcb->listener->accepts_pending != 0);
       pcb->flags |= TF_BACKLOGPEND;
     }
   }
@@ -234,10 +234,10 @@ tcp_backlog_delayed(struct tcp_pcb* pcb)
 void
 tcp_backlog_accepted(struct tcp_pcb* pcb)
 {
-  LWIP_ASSERT("pcb != NULL", pcb != NULL);
+  LWIP_ASSERT(("pcb != NULL"), pcb != NULL);
   if ((pcb->flags & TF_BACKLOGPEND) != 0) {
     if (pcb->listener != NULL) {
-      LWIP_ASSERT("accepts_pending != 0", pcb->listener->accepts_pending != 0);
+      LWIP_ASSERT(("accepts_pending != 0"), pcb->listener->accepts_pending != 0);
       pcb->listener->accepts_pending--;
       pcb->flags &= ~TF_BACKLOGPEND;
     }
@@ -269,7 +269,7 @@ static err_t tcp_close_shutdown(struct tcp_pcb *pcb, u8_t rst_on_unacked_data)
 		{
 			/* Not all data received by application, send RST to tell the remote
 			side about this. */
-			LWIP_ASSERT("pcb->flags & TF_RXCLOSED", pcb->flags & TF_RXCLOSED);
+			LWIP_ASSERT(("pcb->flags & TF_RXCLOSED"), pcb->flags & TF_RXCLOSED);
 
 			/* don't call tcp_abort here: we must not deallocate the pcb since
 			that might not be expected when calling tcp_close */
@@ -340,7 +340,7 @@ static err_t tcp_close_shutdown(struct tcp_pcb *pcb, u8_t rst_on_unacked_data)
 static err_t tcp_close_shutdown_fin(struct tcp_pcb *pcb)
 {
 	err_t err;
-	LWIP_ASSERT("pcb != NULL", pcb != NULL);
+	LWIP_ASSERT(("pcb != NULL"), pcb != NULL);
 
 	switch (pcb->state)
 	{
@@ -497,7 +497,7 @@ tcp_abandon(struct tcp_pcb *pcb, int reset)
   void *errf_arg;
 
   /* pcb->state LISTEN not allowed here */
-  LWIP_ASSERT("don't call tcp_abort/tcp_abandon for listen-pcbs",
+  LWIP_ASSERT(("don't call tcp_abort/tcp_abandon for listen-pcbs"),
     pcb->state != LISTEN);
   /* Figure out on which TCP PCB list we are, and remove us. If we
      are in an active state, call the receive function associated with
@@ -598,7 +598,7 @@ tcp_bind(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
     return ERR_VAL;
   }
 
-  LWIP_ERROR("tcp_bind: can only bind in state CLOSED", pcb->state == CLOSED, return ERR_VAL);
+  LWIP_ERROR(("tcp_bind: can only bind in state CLOSED"), pcb->state == CLOSED, return ERR_VAL);
 
 #if SO_REUSE
   /* Unless the REUSEADDR flag is set,
@@ -710,7 +710,7 @@ tcp_listen_with_backlog_and_err(struct tcp_pcb *pcb, u8_t backlog, err_t *err)
   err_t res;
 
   LWIP_UNUSED_ARG(backlog);
-  LWIP_ERROR("tcp_listen: pcb already connected", pcb->state == CLOSED, res = ERR_CLSD; goto done);
+  LWIP_ERROR(("tcp_listen: pcb already connected"), pcb->state == CLOSED, res = ERR_CLSD; goto done);
 
   /* already listening? */
   if (pcb->state == LISTEN) {
@@ -794,7 +794,7 @@ tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb)
       /* keep the right edge of window constant */
       u32_t new_rcv_ann_wnd = pcb->rcv_ann_right_edge - pcb->rcv_nxt;
 #if !LWIP_WND_SCALE
-      LWIP_ASSERT("new_rcv_ann_wnd <= 0xffff", new_rcv_ann_wnd <= 0xffff);
+      LWIP_ASSERT(("new_rcv_ann_wnd <= 0xffff"), new_rcv_ann_wnd <= 0xffff);
 #endif
       pcb->rcv_ann_wnd = (tcpwnd_size_t)new_rcv_ann_wnd;
     }
@@ -817,7 +817,7 @@ tcp_recved(struct tcp_pcb *pcb, u16_t len)
   int wnd_inflation;
 
   /* pcb->state LISTEN not allowed here */
-  LWIP_ASSERT("don't call tcp_recved for listen-pcbs",
+  LWIP_ASSERT(("don't call tcp_recved for listen-pcbs"),
     pcb->state != LISTEN);
 
   pcb->rcv_wnd += len;
@@ -831,7 +831,7 @@ tcp_recved(struct tcp_pcb *pcb, u16_t len)
          to call tcp_recved() for the FIN bit, but e.g. the netconn API does so. */
       pcb->rcv_wnd = TCP_WND_MAX(pcb);
     } else {
-      LWIP_ASSERT("tcp_recved: len wrapped rcv_wnd\n", 0);
+      LWIP_ASSERT(("tcp_recved: len wrapped rcv_wnd\n"), 0);
     }
   }
 
@@ -906,7 +906,7 @@ tcp_connect(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port,
     return ERR_VAL;
   }
 
-  LWIP_ERROR("tcp_connect: can only connect from state CLOSED", pcb->state == CLOSED, return ERR_ISCONN);
+  LWIP_ERROR(("tcp_connect: can only connect from state CLOSED"), pcb->state == CLOSED, return ERR_ISCONN);
 
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_connect to port %"U16_F"\n", port));
   ip_addr_set(&pcb->remote_ip, ipaddr);
@@ -1026,9 +1026,9 @@ tcp_slowtmr_start:
   }
   while (pcb != NULL) {
     LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: processing active pcb\n"));
-    LWIP_ASSERT("tcp_slowtmr: active pcb->state != CLOSED\n", pcb->state != CLOSED);
-    LWIP_ASSERT("tcp_slowtmr: active pcb->state != LISTEN\n", pcb->state != LISTEN);
-    LWIP_ASSERT("tcp_slowtmr: active pcb->state != TIME-WAIT\n", pcb->state != TIME_WAIT);
+    LWIP_ASSERT(("tcp_slowtmr: active pcb->state != CLOSED\n"), pcb->state != CLOSED);
+    LWIP_ASSERT(("tcp_slowtmr: active pcb->state != LISTEN\n"), pcb->state != LISTEN);
+    LWIP_ASSERT(("tcp_slowtmr: active pcb->state != TIME-WAIT\n"), pcb->state != TIME_WAIT);
     if (pcb->last_timer == tcp_timer_ctr) {
       /* skip this pcb, we have already processed it */
       pcb = pcb->next;
@@ -1179,11 +1179,11 @@ tcp_slowtmr_start:
       tcp_pcb_purge(pcb);
       /* Remove PCB from tcp_active_pcbs list. */
       if (prev != NULL) {
-        LWIP_ASSERT("tcp_slowtmr: middle tcp != tcp_active_pcbs", pcb != tcp_active_pcbs);
+        LWIP_ASSERT(("tcp_slowtmr: middle tcp != tcp_active_pcbs"), pcb != tcp_active_pcbs);
         prev->next = pcb->next;
       } else {
         /* This PCB was the first. */
-        LWIP_ASSERT("tcp_slowtmr: first pcb == tcp_active_pcbs", tcp_active_pcbs == pcb);
+        LWIP_ASSERT(("tcp_slowtmr: first pcb == tcp_active_pcbs"), tcp_active_pcbs == pcb);
         tcp_active_pcbs = pcb->next;
       }
 
@@ -1231,7 +1231,7 @@ tcp_slowtmr_start:
   prev = NULL;
   pcb = tcp_tw_pcbs;
   while (pcb != NULL) {
-    LWIP_ASSERT("tcp_slowtmr: TIME-WAIT pcb->state == TIME-WAIT", pcb->state == TIME_WAIT);
+    LWIP_ASSERT(("tcp_slowtmr: TIME-WAIT pcb->state == TIME-WAIT"), pcb->state == TIME_WAIT);
     pcb_remove = 0;
 
     /* Check if this PCB has stayed long enough in TIME-WAIT */
@@ -1245,11 +1245,11 @@ tcp_slowtmr_start:
       tcp_pcb_purge(pcb);
       /* Remove PCB from tcp_tw_pcbs list. */
       if (prev != NULL) {
-        LWIP_ASSERT("tcp_slowtmr: middle tcp != tcp_tw_pcbs", pcb != tcp_tw_pcbs);
+        LWIP_ASSERT(("tcp_slowtmr: middle tcp != tcp_tw_pcbs"), pcb != tcp_tw_pcbs);
         prev->next = pcb->next;
       } else {
         /* This PCB was the first. */
-        LWIP_ASSERT("tcp_slowtmr: first pcb == tcp_tw_pcbs", tcp_tw_pcbs == pcb);
+        LWIP_ASSERT(("tcp_slowtmr: first pcb == tcp_tw_pcbs"), tcp_tw_pcbs == pcb);
         tcp_tw_pcbs = pcb->next;
       }
       pcb2 = pcb;
@@ -1518,7 +1518,7 @@ tcp_kill_state(enum tcp_state state)
   struct tcp_pcb *pcb, *inactive;
   u32_t inactivity;
 
-  LWIP_ASSERT("invalid state", (state == CLOSING) || (state == LAST_ACK));
+  LWIP_ASSERT(("invalid state"), (state == CLOSING) || (state == LAST_ACK));
 
   inactivity = 0;
   inactive = NULL;
@@ -1741,7 +1741,7 @@ void
 tcp_recv(struct tcp_pcb *pcb, tcp_recv_fn recv)
 {
   if (pcb != NULL) {
-    LWIP_ASSERT("invalid socket state for recv callback", pcb->state != LISTEN);
+    LWIP_ASSERT(("invalid socket state for recv callback"), pcb->state != LISTEN);
     pcb->recv = recv;
   }
 }
@@ -1758,7 +1758,7 @@ void
 tcp_sent(struct tcp_pcb *pcb, tcp_sent_fn sent)
 {
   if (pcb != NULL) {
-    LWIP_ASSERT("invalid socket state for sent callback", pcb->state != LISTEN);
+    LWIP_ASSERT(("invalid socket state for sent callback"), pcb->state != LISTEN);
     pcb->sent = sent;
   }
 }
@@ -1778,7 +1778,7 @@ void
 tcp_err(struct tcp_pcb *pcb, tcp_err_fn err)
 {
   if (pcb != NULL) {
-    LWIP_ASSERT("invalid socket state for err callback", pcb->state != LISTEN);
+    LWIP_ASSERT(("invalid socket state for err callback"), pcb->state != LISTEN);
     pcb->errf = err;
   }
 }
@@ -1812,7 +1812,7 @@ tcp_accept(struct tcp_pcb *pcb, tcp_accept_fn accept)
  */
 void tcp_poll(struct tcp_pcb *pcb, tcp_poll_fn poll, u8_t interval)
 {
-	LWIP_ASSERT("invalid socket state for poll", pcb->state != LISTEN);
+	LWIP_ASSERT(("invalid socket state for poll"), pcb->state != LISTEN);
 #if LWIP_CALLBACK_API
 	pcb->poll = poll;
 #else /* LWIP_CALLBACK_API */
@@ -1892,10 +1892,10 @@ tcp_pcb_remove(struct tcp_pcb **pcblist, struct tcp_pcb *pcb)
   }
 
   if (pcb->state != LISTEN) {
-    LWIP_ASSERT("unsent segments leaking", pcb->unsent == NULL);
-    LWIP_ASSERT("unacked segments leaking", pcb->unacked == NULL);
+    LWIP_ASSERT(("unsent segments leaking"), pcb->unsent == NULL);
+    LWIP_ASSERT(("unacked segments leaking"), pcb->unacked == NULL);
 #if TCP_QUEUE_OOSEQ
-    LWIP_ASSERT("ooseq segments leaking", pcb->ooseq == NULL);
+    LWIP_ASSERT(("ooseq segments leaking"), pcb->ooseq == NULL);
 #endif /* TCP_QUEUE_OOSEQ */
   }
 
@@ -1903,7 +1903,7 @@ tcp_pcb_remove(struct tcp_pcb **pcblist, struct tcp_pcb *pcb)
   /* reset the local port to prevent the pcb from being 'bound' */
   pcb->local_port = 0;
 
-  LWIP_ASSERT("tcp_pcb_remove: tcp_pcbs_sane()", tcp_pcbs_sane());
+  LWIP_ASSERT(("tcp_pcb_remove: tcp_pcbs_sane()"), tcp_pcbs_sane());
 }
 
 /**
@@ -2175,12 +2175,12 @@ tcp_pcbs_sane(void)
 {
   struct tcp_pcb *pcb;
   for (pcb = tcp_active_pcbs; pcb != NULL; pcb = pcb->next) {
-    LWIP_ASSERT("tcp_pcbs_sane: active pcb->state != CLOSED", pcb->state != CLOSED);
-    LWIP_ASSERT("tcp_pcbs_sane: active pcb->state != LISTEN", pcb->state != LISTEN);
-    LWIP_ASSERT("tcp_pcbs_sane: active pcb->state != TIME-WAIT", pcb->state != TIME_WAIT);
+    LWIP_ASSERT(("tcp_pcbs_sane: active pcb->state != CLOSED"), pcb->state != CLOSED);
+    LWIP_ASSERT(("tcp_pcbs_sane: active pcb->state != LISTEN"), pcb->state != LISTEN);
+    LWIP_ASSERT(("tcp_pcbs_sane: active pcb->state != TIME-WAIT"), pcb->state != TIME_WAIT);
   }
   for (pcb = tcp_tw_pcbs; pcb != NULL; pcb = pcb->next) {
-    LWIP_ASSERT("tcp_pcbs_sane: tw pcb->state == TIME-WAIT", pcb->state == TIME_WAIT);
+    LWIP_ASSERT(("tcp_pcbs_sane: tw pcb->state == TIME-WAIT"), pcb->state == TIME_WAIT);
   }
   return 1;
 }

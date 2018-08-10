@@ -305,7 +305,7 @@
 	#define	MUX_ERRORF(message)		{MUX_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); MUX_PRINTF((ERROR_TEXT_END));}
 
 //	#define	MUX_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	MUX_ASSERT(msg, x)			{if((x)==0) {MUX_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));printf (msg) ;MUX_PRINTF((ERROR_TEXT_END MUX_NEW_LINE)); while(0){};}}
+	#define	MUX_ASSERT(msg, x)			{if((x)==0) {MUX_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));printf msg ;MUX_PRINTF((ERROR_TEXT_END MUX_NEW_LINE)); while(0){};}}
 	#define	MUX_ABORT(fmt, args... )		printf("ERROR in " __FILE__ ", line %u:" fmt MUX_NEW_LINE, __LINE__, ##args );while(1){}
 #else
 	#define	MUX_PRINTF(x)						{;}

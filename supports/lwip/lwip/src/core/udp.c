@@ -357,7 +357,7 @@ void udp_input(struct pbuf *p, struct netif *inp)
 		if (pbuf_header(p, -UDP_HLEN))
 		{
 			/* Can we cope with this failing? Just assert for now */
-			LWIP_ASSERT("pbuf_header failed"LWIP_NEW_LINE, 0);
+			LWIP_ASSERT(("pbuf_header failed"LWIP_NEW_LINE), 0);
 			UDP_STATS_INC(udp.drop);
 			MIB2_STATS_INC(mib2.udpinerrors);
 			pbuf_free(p);
@@ -774,7 +774,7 @@ udp_sendto_if_src_chksum(struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *d
     q = p;
     LWIP_DEBUGF(UDP_DEBUG, ("udp_send: added header in given pbuf %p"LWIP_NEW_LINE, (void *)p));
   }
-  LWIP_ASSERT("check that first pbuf can hold struct udp_hdr", (q->len >= sizeof(struct udp_hdr)));
+  LWIP_ASSERT(("check that first pbuf can hold struct udp_hdr"), (q->len >= sizeof(struct udp_hdr)));
   /* q now represents the packet to be sent */
   udphdr = (struct udp_hdr *)q->payload;
   udphdr->src = lwip_htons(pcb->local_port);

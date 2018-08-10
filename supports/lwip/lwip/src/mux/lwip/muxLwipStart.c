@@ -23,7 +23,7 @@ char	 muxLwipGroupMgr(struct netif *netif, unsigned int gAddress, unsigned char 
 //	IP4_ADDR( &ipgroup, 239,  200,   1,   111 );
 	MUX_LWIP_INT_TO_IP(&ipgroup, gAddress);
 
-	LWIP_ERROR("IGMP is not enabled in interface", ( (netif->flags & NETIF_FLAG_IGMP)!=0), return ERR_VAL;);
+	LWIP_ERROR(("IGMP is not enabled in interface"), ( (netif->flags & NETIF_FLAG_IGMP)!=0), return ERR_VAL;);
 
 	LWIP_DEBUGF(IGMP_DEBUG, ("Register IGMP group '%s'"LWIP_NEW_LINE, MUX_LWIP_IPADD_TO_STR(&ipgroup)) );
 
@@ -118,6 +118,10 @@ char muxLwipStartup(struct netif *netif, MUX_RUNTIME_CFG *runCfg)
 
 #if LWIP_EXT_UDP_RX_PERF
 	extUdpRxPerfStart();
+#endif
+
+#if LWIP_EXT_UDP_TX_PERF
+	extUdpTxPerfTask();
 #endif
 
 	if(!MUX_IS_TX(runCfg))

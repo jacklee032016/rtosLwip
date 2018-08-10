@@ -168,7 +168,7 @@ static err_t _mhttpFileInit(MuxHttpConn *mhc, struct mfs_file *file, u8_t tag_ch
 
 		mhc->handle = file;
 		mhc->file = file->data;
-		LWIP_ASSERT("File length must be positive!", (file->len >= 0));
+		MUX_ASSERT(("File length must be positive!"), (file->len >= 0));
 #if	MHTTPD_CUSTOM_FILES
 		if (file->is_custom_file && (file->data == NULL))
 		{
@@ -187,7 +187,7 @@ static err_t _mhttpFileInit(MuxHttpConn *mhc, struct mfs_file *file, u8_t tag_ch
 		mhc->time_started = sys_now();
 #endif
 
-		LWIP_ASSERT("HTTP headers not included in file system", (mhc->handle->flags & MFS_FILE_FLAGS_HEADER_INCLUDED) != 0);
+		MUX_ASSERT(("HTTP headers not included in file system"), (mhc->handle->flags & MFS_FILE_FLAGS_HEADER_INCLUDED) != 0);
 
 #if	MHTTPD_SUPPORT_V09
 		if ( mhc->isV09 && ((mhc->handle->flags & MFS_FILE_FLAGS_HEADER_INCLUDED) != 0))

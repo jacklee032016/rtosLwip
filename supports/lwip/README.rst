@@ -27,4 +27,21 @@ Tests on board:
 ::
  iperf --client 192.168.168.120 ---interval 5 -t 10 -u -b 100M 
 
-  
+
+^^^^^^^^^^^^^^^^^^^^
+Test UDP Perf in PX
+^^^^^^^^^^^^^^^^^^^^
+ UDP Perf server:
+::
+ iperf -s -i 10 5 -t 100 -u
+
+::
+ iperf --client localhost ---interval 5 -t 10 -u -b 1G
+
+
+tcpdump
+
+:: 
+ tcpdump -D : list add devices which can be captured;
+ tcpdump -n host localhost -v udp -i lo
+ 

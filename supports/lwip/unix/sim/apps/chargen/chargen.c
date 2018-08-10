@@ -130,17 +130,17 @@ static void chargen_thread(void *arg)
 	chargen_saddr.sin_port = lwip_htons(19); /* Chargen server port */
 #endif /* LWIP_IPV6 */
 
-	LWIP_ASSERT("chargen_thread(): Socket create failed.", listenfd >= 0);
+	LWIP_ASSERT(("chargen_thread(): Socket create failed."), listenfd >= 0);
 
 	if (bind(listenfd, (struct sockaddr *) &chargen_saddr, sizeof (chargen_saddr)) == -1)
 	{
-		LWIP_ASSERT("chargen_thread(): Socket bind failed.", 0);
+		LWIP_ASSERT(("chargen_thread(): Socket bind failed."), 0);
 	}
 
 	/* Put socket into listening mode */
 	if (listen(listenfd, MAX_SERV) == -1)
 	{
-		LWIP_ASSERT("chargen_thread(): Listen failed.", 0);
+		LWIP_ASSERT(("chargen_thread(): Listen failed."), 0);
 	}
 
 	/* Wait forever for network input: This could be connections or data */

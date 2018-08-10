@@ -49,7 +49,7 @@ static void mhttpContinue(void *connection)
 	MuxHttpConn *mhc = (MuxHttpConn*)connection;
 	if (mhc && (mhc->pcb) && (mhc->handle))
 	{
-		LWIP_ASSERT("mhc->pcb != NULL", mhc->pcb != NULL);
+		MUX_ASSERT(("mhc->pcb != NULL"), mhc->pcb != NULL);
 		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("httpd_continue: try to send more data"LWIP_NEW_LINE));
 		if (muxHttpSend(mhc))
 		{
@@ -254,7 +254,7 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 		if (mhc->handle == NULL)
 		{
 			err_t parsed = muxHttpRequestParse(mhc, p );
-			LWIP_ASSERT("parse request: unexpected return value", parsed == ERR_OK|| parsed == ERR_INPROGRESS ||parsed == ERR_ARG || parsed == ERR_USE);
+			MUX_ASSERT(("parse request: unexpected return value"), parsed == ERR_OK|| parsed == ERR_INPROGRESS ||parsed == ERR_ARG || parsed == ERR_USE);
 
 			if (parsed != ERR_INPROGRESS)
 			{
@@ -355,17 +355,17 @@ void mHttpSvrMain(void *data)
 	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("mHttpSvrMain"));
 
 	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	LWIP_ASSERT("mHttpSvrMain: tcp_new failed", pcb != NULL);
+	MUX_ASSERT(("mHttpSvrMain: tcp_new failed"), pcb != NULL);
 	
 	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
 	/* set SOF_REUSEADDR here to explicitly bind httpd to multiple interfaces */
 	err = tcp_bind(pcb, IP_ANY_TYPE, runCfg->httpPort);
 	
 	LWIP_UNUSED_ARG(err); /* in case of LWIP_NOASSERT */
-	LWIP_ASSERT("mHttpSvrMain: tcp_bind failed", err == ERR_OK);
+	MUX_ASSERT(("mHttpSvrMain: tcp_bind failed"), err == ERR_OK);
 	
 	pcb = tcp_listen(pcb);
-	LWIP_ASSERT("mHttpSvrMain: tcp_listen failed", pcb != NULL);
+	MUX_ASSERT(("mHttpSvrMain: tcp_listen failed"), pcb != NULL);
 
 	tcp_arg(pcb, runCfg);
 
@@ -384,15 +384,15 @@ void mhttpSetSsiHandler(tSSIHandler ssi_handler, const char **tags, int num_tags
 {
 	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_set_ssi_handler"));
 
-	LWIP_ASSERT("no ssi_handler given", ssi_handler != NULL);
+	MUX_ASSERT(("no ssi_handler given"), ssi_handler != NULL);
 	g_pfnSSIHandler = ssi_handler;
 
 #if	MHTTPD_SSI_RAW
 	LWIP_UNUSED_ARG(tags);
 	LWIP_UNUSED_ARG(num_tags);
 #else
-	LWIP_ASSERT("no tags given", tags != NULL);
-	LWIP_ASSERT("invalid number of tags", num_tags > 0);
+	MUX_ASSERT(("no tags given"), tags != NULL);
+	MUX_ASSERT(("invalid number of tags"), num_tags > 0);
 
 	g_ppcTags = tags;
 	g_iNumTags = num_tags;
@@ -410,8 +410,8 @@ void mhttpSetSsiHandler(tSSIHandler ssi_handler, const char **tags, int num_tags
  */
 void mhttpSetCgiHandlers(const tCGI *cgis, int num_handlers)
 {
-	LWIP_ASSERT("no cgis given", cgis != NULL);
-	LWIP_ASSERT("invalid number of handlers", num_handlers > 0);
+	MUX_ASSERT(("no cgis given"), cgis != NULL);
+	MUX_ASSERT(("invalid number of handlers"), num_handlers > 0);
 
 	g_pCGIs = cgis;
 	g_iNumCGIs = num_handlers;

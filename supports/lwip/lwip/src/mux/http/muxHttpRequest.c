@@ -179,8 +179,8 @@ err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 	u16_t clen;
 //	err_t err;
 
-	LWIP_ASSERT("p != NULL", p != NULL);
-	LWIP_ASSERT("mhc != NULL", mhc != NULL);
+	MUX_ASSERT(("p != NULL"), p != NULL);
+	MUX_ASSERT(("mhc != NULL"), mhc != NULL);
 
 	if ((mhc->handle != NULL) || (mhc->file != NULL))
 	{

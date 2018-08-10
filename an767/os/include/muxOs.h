@@ -73,7 +73,9 @@ char *muxBspCLIGetOutputBuffer( void );
 
 
 /* commands */
-
+#if LWIP_EXT_UDP_TX_PERF
+char	muxCmdUdpTxPerf(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+#endif
 char muxCmdNetPing(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 char muxCmdIgmp(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 char	muxCmdNetInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);

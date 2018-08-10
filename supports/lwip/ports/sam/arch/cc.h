@@ -23,8 +23,8 @@ typedef int8_t             s8_t;
 typedef uint16_t           u16_t;
 typedef int16_t            s16_t;
 	/* to comment the warn in debug output. J.L. */
-//typedef uint32_t           u32_t;
-typedef unsigned int           u32_t;
+typedef uint32_t           u32_t;
+//typedef unsigned int           u32_t;
 
 typedef int32_t            s32_t;
 typedef uintptr_t          mem_ptr_t;
@@ -76,7 +76,7 @@ typedef uintptr_t          mem_ptr_t;
 /* Debug facilities. LWIP_DEBUG must be defined to read output */
 #ifdef LWIP_DEBUG
 #define LWIP_PLATFORM_DIAG(x)		{printf("[%s-%u]: ", __FILE__, __LINE__); printf x ;}
-#define LWIP_PLATFORM_ASSERT(x)	{printf (ANSI_COLOR_RED"Assertion \"%s\" failed at line %d in %s" LWIP_NEW_LINE ERROR_TEXT_END, x, __LINE__, __FILE__); while(0);}
+#define LWIP_PLATFORM_ASSERT(x)	{printf (ANSI_COLOR_RED"Assertion "); printf x; printf(" failed at line %d in %s" LWIP_NEW_LINE ERROR_TEXT_END, __LINE__, __FILE__); while(0);}
 #else
 #define LWIP_PLATFORM_DIAG(x)   {;}
 #define LWIP_PLATFORM_ASSERT(x) {while (1);}

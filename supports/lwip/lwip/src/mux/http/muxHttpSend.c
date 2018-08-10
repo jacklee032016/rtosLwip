@@ -116,7 +116,7 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 	}
 #endif
 #else
-	LWIP_ASSERT("SSI and DYNAMIC_HEADERS turned off but eof not reached", 0);
+	MUX_ASSERT(("SSI and DYNAMIC_HEADERS turned off but eof not reached"), 0);
 #endif
 
 	return 1;
@@ -227,7 +227,7 @@ static char	_mHttpSendRest(MuxHttpConn *mhc)
 	err_t err;
 	u16_t len, sndBufSize;
 
-	MUX_ASSERT("HMC is not REST conn", HTTPREQ_IS_REST(mhc) );
+	MUX_ASSERT(("HMC is not REST conn"), HTTPREQ_IS_REST(mhc) );
 
 	sndBufSize = tcp_sndbuf(mhc->pcb);
 

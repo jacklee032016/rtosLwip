@@ -15,7 +15,6 @@
 extern	struct netif			guNetIf;
 
 
-
 static char _firmwareUpdateInit(MUX_RUNTIME_CFG *runCfg, MUX_FM_T fmT, const char	*fname, char isWrite)
 {
 	memset(&runCfg->firmUpdateInfo, 0, sizeof(MUX_FM_UPDATE) );
@@ -31,6 +30,8 @@ static char _firmwareUpdateInit(MUX_RUNTIME_CFG *runCfg, MUX_FM_T fmT, const cha
 	{
 		startSector = SFLASH_START_SECTOR_TEMP_FPGA;
 	}
+
+	gmacBMCastEnable(MUX_FALSE);
 
 	runCfg->firmUpdateInfo.isWrite = 1;
 
@@ -65,6 +66,8 @@ static void _firmwareUpdateEnd(MUX_RUNTIME_CFG	*runCfg)
 #ifdef	ARM
 	/* write the left data in last page into flash*/
 	bspSpiFlashFlush();
+
+	gmacBMCastEnable(MUX_TRUE);
 
 	/* only RTOS updating need saving configuration*/
 	if(runCfg->firmUpdateInfo.type == MUX_FM_TYPE_RTOS || runCfg->firmUpdateInfo.type == MUX_FM_TYPE_FPGA)
@@ -168,9 +171,8 @@ static void *_muxTftpOpen(void *handle, const char* fname, const char* mode, cha
 	MUX_RUNTIME_CFG	*runCfg = ctx->priv;
 	MUX_FM_T	fmT = MUX_FM_TYPE_FPGA;
 
-	MUX_ASSERT("RunCf is null", (runCfg!= NULL));
+	MUX_ASSERT(("RunCf is null"), (runCfg!= NULL));
 
-	TRACE();
 	LWIP_UNUSED_ARG(mode);
 
 	if( IS_STRING_EQUAL(fname, MUX_TFTP_IMAGE_OS_NAME) )
@@ -182,16 +184,12 @@ static void *_muxTftpOpen(void *handle, const char* fname, const char* mode, cha
 		fmT = MUX_FM_TYPE_FPGA;
 	}
 
-	TRACE();
 	if(_firmwareUpdateInit(runCfg, fmT, fname, isWrite) == EXIT_FAILURE)
 	{
-	TRACE();
 		return NULL;
 	}
 
-	TRACE();
 	ctx->dataIndex = 0;
-	TRACE();
 	return ctx;
 }
 

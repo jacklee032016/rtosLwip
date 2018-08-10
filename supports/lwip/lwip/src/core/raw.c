@@ -178,7 +178,7 @@ raw_input(struct pbuf *p, struct netif *inp)
           }
         } else {
           /* sanity-check that the receive callback did not alter the pbuf */
-          LWIP_ASSERT("raw pcb recv callback altered pbuf payload pointer without eating packet",
+          LWIP_ASSERT(("raw pcb recv callback altered pbuf payload pointer without eating packet"),
             p->payload == old_payload);
         }
       }
@@ -315,7 +315,7 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
     /* first pbuf q equals given pbuf */
     q = p;
     if (pbuf_header(q, -header_size)) {
-      LWIP_ASSERT("Can't restore header we just removed!", 0);
+      LWIP_ASSERT(("Can't restore header we just removed!"), 0);
       return ERR_MEM;
     }
   }
@@ -373,7 +373,7 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
      compute the checksum and update the checksum in the payload. */
   if (IP_IS_V6(ipaddr) && pcb->chksum_reqd) {
     u16_t chksum = ip6_chksum_pseudo(p, pcb->protocol, p->tot_len, ip_2_ip6(src_ip), ip_2_ip6(ipaddr));
-    LWIP_ASSERT("Checksum must fit into first pbuf", p->len >= (pcb->chksum_offset + 2));
+    LWIP_ASSERT(("Checksum must fit into first pbuf"), p->len >= (pcb->chksum_offset + 2));
     SMEMCPY(((u8_t *)p->payload) + pcb->chksum_offset, &chksum, sizeof(u16_t));
   }
 #endif

@@ -256,7 +256,7 @@ ip4addr_aton(const char *cp, ip4_addr_t *addr)
     val |= (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8);
     break;
   default:
-    LWIP_ASSERT("unhandled", 0);
+    LWIP_ASSERT(("unhandled"), 0);
     break;
   }
   if (addr) {

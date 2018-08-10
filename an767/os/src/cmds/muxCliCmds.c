@@ -442,6 +442,15 @@ _CODE MUX_CLI_CMD_T muxCmds[] =
 	},
 #endif /* configGENERATE_RUN_TIME_STATS */
 	
+
+#if LWIP_EXT_UDP_TX_PERF
+	{
+		name	: MUX_CMD_UDP_PERF,
+		helpString: MUX_NEW_LINE MUX_CMD_UDP_PERF" <ipaddress of UDP Perf server>:"MUX_NEW_LINE" for example, 192.168.168.102"MUX_NEW_LINE,
+		callback: muxCmdUdpTxPerf,
+	},
+
+#endif
 	{
 		name	: MUX_CMD_PING,
 		helpString: MUX_NEW_LINE MUX_CMD_PING" <ipaddress>:"MUX_NEW_LINE" for example, ping 192.168.168.1"MUX_NEW_LINE,

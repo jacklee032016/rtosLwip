@@ -22,9 +22,6 @@
 
 struct netif		guNetIf;		/* global unique netIf */
 
-#ifdef	ARM
-void gmacEnableWakeOnLan(unsigned int ipAddr);
-#endif
 
 static void _muxNetStatusCallback(struct netif *netif)
 {
@@ -95,7 +92,7 @@ static void _muxEthernetInterfaceConfigure(struct netif *netif, MUX_RUNTIME_CFG 
 #if 0
 	if (NULL == netif_add(netif, &x_ip_addr, &x_net_mask, &x_gateway, NULL, ethernetif_init, ethernet_input))
 	{
-		LWIP_ASSERT("NULL == netif_add", 0);
+		MUX_ASSERT(("NULL == netif_add"), 0);
 	}
 #else
 
@@ -107,7 +104,7 @@ static void _muxEthernetInterfaceConfigure(struct netif *netif, MUX_RUNTIME_CFG 
 
 	if (NULL == netif_add(netif, &x_ip_addr, &x_net_mask, &x_gateway, runCfg, ethernetif_init, tcpip_input))
 	{
-		LWIP_ASSERT("NULL == netif_add", 0);
+		MUX_ASSERT(("NULL == netif_add"), 0);
 	}
 #endif
 
@@ -126,7 +123,7 @@ static void _muxEthernetInterfaceConfigure(struct netif *netif, MUX_RUNTIME_CFG 
 		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
 		if (ERR_OK != dhcp_start(netif))
 		{
-			LWIP_ASSERT("ERR_OK != dhcp_start", 0);
+			MUX_ASSERT(("ERR_OK != dhcp_start"), 0);
 		}
 		MUX_DEBUGF(MUX_DBG_ON, ("DHCP Started"MUX_NEW_LINE) );
 	}

@@ -174,7 +174,7 @@ icmp_input(struct pbuf *p, struct netif *inp)
       MEMCPY(r->payload, iphdr_in, hlen);
       /* switch r->payload back to icmp header (cannot fail) */
       if (pbuf_header(r, (s16_t)-hlen)) {
-        LWIP_ASSERT("icmp_input: moving r->payload to icmp header failed\n", 0);
+        LWIP_ASSERT(("icmp_input: moving r->payload to icmp header failed\n"), 0);
         pbuf_free(r);
         goto icmperr;
       }
@@ -191,7 +191,7 @@ icmp_input(struct pbuf *p, struct netif *inp)
     } else {
       /* restore p->payload to point to icmp header (cannot fail) */
       if (pbuf_header(p, -(s16_t)(hlen + PBUF_LINK_HLEN + PBUF_LINK_ENCAPSULATION_HLEN))) {
-        LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
+        LWIP_ASSERT(("icmp_input: restoring original p->payload failed\n"), 0);
         goto icmperr;
       }
     }
@@ -352,7 +352,7 @@ icmp_send_response(struct pbuf *p, u8_t type, u8_t code)
     MIB2_STATS_INC(mib2.icmpouterrors);
     return;
   }
-  LWIP_ASSERT("check that first pbuf can hold icmp message",
+  LWIP_ASSERT(("check that first pbuf can hold icmp message"),
              (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
 
   iphdr = (struct ip_hdr *)p->payload;

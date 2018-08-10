@@ -528,7 +528,7 @@ static void main_thread(void *arg)
 
 	if(sys_sem_new(&sem, 0) != ERR_OK)
 	{
-		LWIP_ASSERT("Failed to create semaphore", 0);
+		LWIP_ASSERT(("Failed to create semaphore"), 0);
 	}
 
 	runCfg->data = &sem;

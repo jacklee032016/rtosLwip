@@ -271,7 +271,7 @@ err_t ethernet_output(struct netif* netif, struct pbuf* p, const struct eth_addr
 	{
 		struct eth_vlan_hdr* vlanhdr;
 
-		LWIP_ASSERT("prio_vid must be <= 0xFFFF", vlan_prio_vid <= 0xFFFF);
+		LWIP_ASSERT(("prio_vid must be <= 0xFFFF"), vlan_prio_vid <= 0xFFFF);
 
 		if (pbuf_header(p, SIZEOF_ETH_HDR + SIZEOF_VLAN_HDR) != 0)
 		{
@@ -297,7 +297,7 @@ err_t ethernet_output(struct netif* netif, struct pbuf* p, const struct eth_addr
 	ETHADDR32_COPY(&ethhdr->dest, dst);
 	ETHADDR16_COPY(&ethhdr->src,  src);
 
-	LWIP_ASSERT("netif->hwaddr_len must be 6 for ethernet_output!", (netif->hwaddr_len == ETH_HWADDR_LEN) );
+	LWIP_ASSERT(("netif->hwaddr_len must be 6 for ethernet_output!"), (netif->hwaddr_len == ETH_HWADDR_LEN) );
 //	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet etharp_hwaddr_len:%d(%p)"LWIP_NEW_LINE, netif->hwaddr_len, netif));
 
 	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet_output: sending packet %p\n", (void *)p));

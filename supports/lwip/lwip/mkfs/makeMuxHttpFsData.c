@@ -290,7 +290,7 @@ u8_t* getFileData(const char* filename, int* file_size, int can_be_compressed, i
 	fsize = (size_t)rs;
 	fseek(inFile, 0, SEEK_SET);
 	buf = (u8_t*)malloc(fsize);
-	LWIP_ASSERT("buf != NULL", buf != NULL);
+	LWIP_ASSERT(("buf != NULL"), buf != NULL);
 	
 	r = fread(buf, 1, fsize, inFile);
 	*file_size = fsize;
@@ -334,12 +334,12 @@ u8_t* getFileData(const char* filename, int* file_size, int can_be_compressed, i
 					exit(-1);
 				}
 
-				LWIP_ASSERT("out_bytes <= COPY_BUFSIZE", out_bytes <= OUT_BUF_SIZE);
+				LWIP_ASSERT(("out_bytes <= COPY_BUFSIZE"), out_bytes <= OUT_BUF_SIZE);
 
 				if (out_bytes < fsize)
 				{
 					ret_buf = (u8_t*)malloc(out_bytes);
-					LWIP_ASSERT("ret_buf != NULL", ret_buf != NULL);
+					LWIP_ASSERT(("ret_buf != NULL"), ret_buf != NULL);
 					memcpy(ret_buf, s_outbuf, out_bytes);
 					{
 						/* sanity-check compression be inflating and comparing to the original */
@@ -353,9 +353,9 @@ u8_t* getFileData(const char* filename, int* file_size, int can_be_compressed, i
 						memset(s_checkbuf, 0, sizeof(s_checkbuf));
 
 						dec_status = tinfl_decompress(&inflator, (const mz_uint8 *)ret_buf, &dec_in_bytes, s_checkbuf, (mz_uint8 *)next_out, &dec_out_bytes, 0);
-						LWIP_ASSERT("tinfl_decompress failed", dec_status == TINFL_STATUS_DONE);
-						LWIP_ASSERT("tinfl_decompress size mismatch", fsize == dec_out_bytes);
-						LWIP_ASSERT("decompressed memcmp failed", !memcmp(s_checkbuf, buf, fsize));
+						LWIP_ASSERT(("tinfl_decompress failed"), dec_status == TINFL_STATUS_DONE);
+						LWIP_ASSERT(("tinfl_decompress size mismatch"), fsize == dec_out_bytes);
+						LWIP_ASSERT(("decompressed memcmp failed"), !memcmp(s_checkbuf, buf, fsize));
 					}
 
 					/* free original buffer, use compressed data + size */
@@ -396,12 +396,12 @@ void processFileData(FILE* data_file, u8_t* file_data, size_t file_size)
 	size_t off = 0;
 	for (i = 0; i < file_size; i++)
 	{
-		LWIP_ASSERT("file_buffer_c overflow", off < sizeof(file_buffer_c) - 5);
+		LWIP_ASSERT(("file_buffer_c overflow"), off < sizeof(file_buffer_c) - 5);
 		sprintf(&file_buffer_c[off], "0x%02.2x,", file_data[i]);
 		off += 5;
 		if ((++src_off % HEX_BYTES_PER_LINE) == 0)
 		{
-			LWIP_ASSERT("file_buffer_c overflow", off < sizeof(file_buffer_c) - HTTP_NEWLINE_LEN);
+			LWIP_ASSERT(("file_buffer_c overflow"), off < sizeof(file_buffer_c) - HTTP_NEWLINE_LEN);
 			memcpy(&file_buffer_c[off], HTTP_NEWLINE, HTTP_NEWLINE_LEN);
 			off += HTTP_NEWLINE_LEN;
 		}
@@ -409,7 +409,7 @@ void processFileData(FILE* data_file, u8_t* file_data, size_t file_size)
 		if (off + 20 >= sizeof(file_buffer_c))
 		{
 			written = fwrite(file_buffer_c, 1, off, data_file);
-			LWIP_ASSERT("written == off", written == off);
+			LWIP_ASSERT(("written == off"), written == off);
 			off = 0;
 		}
 	}
@@ -763,7 +763,7 @@ int fileWriteHttpHeader(FILE *data_file, const char *filename, int file_size, u1
 #if MMAKEFS_SUPPORT_DEFLATE
 	if (is_compressed)
 	{/* tell the client about the deflate encoding */
-		LWIP_ASSERT("error", deflateNonSsiFiles);
+		LWIP_ASSERT(("error"), deflateNonSsiFiles);
 		cur_string = "Content-Encoding: deflate\r\n";
 		cur_len = strlen(cur_string);
 		fprintf(data_file, HTTP_NEWLINE "/* \"%s\" (%d bytes) */" HTTP_NEWLINE, cur_string, cur_len);
@@ -788,8 +788,8 @@ int fileWriteHttpHeader(FILE *data_file, const char *filename, int file_size, u1
 		memcpy(&hdr_buf[hdr_len], cur_string, cur_len);
 		hdr_len += cur_len;
 
-		LWIP_ASSERT("hdr_len <= 0xffff", hdr_len <= 0xffff);
-		LWIP_ASSERT("strlen(hdr_buf) == hdr_len", strlen(hdr_buf) == hdr_len);
+		LWIP_ASSERT(("hdr_len <= 0xffff"), hdr_len <= 0xffff);
+		LWIP_ASSERT(("strlen(hdr_buf) == hdr_len"), strlen(hdr_buf) == hdr_len);
 		acc = ~inet_chksum(hdr_buf, (u16_t)hdr_len);
 		*http_hdr_len = (u16_t)hdr_len;
 		*http_hdr_chksum = acc;
@@ -918,7 +918,7 @@ int processSub(FILE *data_file, FILE *struct_file)
 			/* process subs recursively */
 		size_t sublen = strlen(curSubdir);
 		size_t freelen = sizeof(curSubdir) - sublen - 1;
-		LWIP_ASSERT("sublen < sizeof(curSubdir)", sublen < sizeof(curSubdir));
+		LWIP_ASSERT(("sublen < sizeof(curSubdir)"), sublen < sizeof(curSubdir));
 		fret = FINDFIRST_DIR("*", &fInfo);
 
 		if (FINDFIRST_SUCCEEDED(fret))

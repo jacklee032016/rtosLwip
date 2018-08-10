@@ -251,7 +251,7 @@ struct netif *netif_add(struct netif *netif,
 	LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_STATE, ("netif_add: netif address being changed: %d(%p), offset:%d:%d:%d"LWIP_NEW_LINE, 
 		netif->hwaddr_len, netif, NETIF_HWADDR_OFFSET(), (offsetof(struct netif, rs_count)),(offsetof(struct netif, mtu)) ));
 
-	LWIP_ASSERT("No init function given", init != NULL);
+	LWIP_ASSERT(("No init function given"), init != NULL);
 
 	/* reset new interface configuration state */
 #if LWIP_IPV4
@@ -868,7 +868,7 @@ netif_loop_output(struct netif *netif, struct pbuf *p)
 
   SYS_ARCH_PROTECT(lev);
   if (netif->loop_first != NULL) {
-    LWIP_ASSERT("if first != NULL, last must also be != NULL", netif->loop_last != NULL);
+    LWIP_ASSERT(("if first != NULL, last must also be != NULL"), netif->loop_last != NULL);
     netif->loop_last->next = r;
     netif->loop_last = last;
   } else {
@@ -940,7 +940,7 @@ netif_poll(struct netif *netif)
 
     in = in_end = netif->loop_first;
     while (in_end->len != in_end->tot_len) {
-      LWIP_ASSERT("bogus pbuf: len != tot_len but next == NULL!", in_end->next != NULL);
+      LWIP_ASSERT(("bogus pbuf: len != tot_len but next == NULL!"), in_end->next != NULL);
       in_end = in_end->next;
 #if LWIP_LOOPBACK_MAX_PBUFS
       clen++;
@@ -948,7 +948,7 @@ netif_poll(struct netif *netif)
     }
 #if LWIP_LOOPBACK_MAX_PBUFS
     /* adjust the number of pbufs on queue */
-    LWIP_ASSERT("netif->loop_cnt_current underflow",
+    LWIP_ASSERT(("netif->loop_cnt_current underflow"),
       ((netif->loop_cnt_current - clen) < netif->loop_cnt_current));
     netif->loop_cnt_current -= clen;
 #endif /* LWIP_LOOPBACK_MAX_PBUFS */
@@ -960,7 +960,7 @@ netif_poll(struct netif *netif)
     } else {
       /* pop the pbuf off the list */
       netif->loop_first = in_end->next;
-      LWIP_ASSERT("should not be null since first != last!", netif->loop_first != NULL);
+      LWIP_ASSERT(("should not be null since first != last!"), netif->loop_first != NULL);
     }
     /* De-queue the pbuf from its successors on the 'loop_' list. */
     in_end->next = NULL;
@@ -1008,7 +1008,7 @@ u8_t netif_alloc_client_data_id(void)
 	u8_t result = netif_client_id;
 	netif_client_id++;
 
-	LWIP_ASSERT("Increase LWIP_NUM_NETIF_CLIENT_DATA in lwipopts.h", result < LWIP_NUM_NETIF_CLIENT_DATA);
+	LWIP_ASSERT(("Increase LWIP_NUM_NETIF_CLIENT_DATA in lwipopts.h"), result < LWIP_NUM_NETIF_CLIENT_DATA);
 	return result + LWIP_NETIF_CLIENT_DATA_INDEX_MAX;
 }
 #endif
@@ -1027,7 +1027,7 @@ u8_t netif_alloc_client_data_id(void)
 void
 netif_ip6_addr_set(struct netif *netif, s8_t addr_idx, const ip6_addr_t *addr6)
 {
-  LWIP_ASSERT("addr6 != NULL", addr6 != NULL);
+  LWIP_ASSERT(("addr6 != NULL"), addr6 != NULL);
   netif_ip6_addr_set_parts(netif, addr_idx, addr6->addr[0], addr6->addr[1],
     addr6->addr[2], addr6->addr[3]);
 }
@@ -1046,8 +1046,8 @@ void
 netif_ip6_addr_set_parts(struct netif *netif, s8_t addr_idx, u32_t i0, u32_t i1, u32_t i2, u32_t i3)
 {
   const ip6_addr_t *old_addr;
-  LWIP_ASSERT("netif != NULL", netif != NULL);
-  LWIP_ASSERT("invalid index", addr_idx < LWIP_IPV6_NUM_ADDRESSES);
+  LWIP_ASSERT(("netif != NULL"), netif != NULL);
+  LWIP_ASSERT(("invalid index"), addr_idx < LWIP_IPV6_NUM_ADDRESSES);
 
   old_addr = netif_ip6_addr(netif, addr_idx);
   /* address is actually being changed? */
@@ -1100,8 +1100,8 @@ void
 netif_ip6_addr_set_state(struct netif* netif, s8_t addr_idx, u8_t state)
 {
   u8_t old_state;
-  LWIP_ASSERT("netif != NULL", netif != NULL);
-  LWIP_ASSERT("invalid index", addr_idx < LWIP_IPV6_NUM_ADDRESSES);
+  LWIP_ASSERT(("netif != NULL"), netif != NULL);
+  LWIP_ASSERT(("invalid index"), addr_idx < LWIP_IPV6_NUM_ADDRESSES);
 
   old_state = netif_ip6_addr_state(netif, addr_idx);
   /* state is actually being changed? */

@@ -158,14 +158,6 @@ typedef    _CODE unsigned char    cBYTE;
 
 
 
-/** Number of buffer for RX */
-#define GMAC_RX_BUFFERS						3
-
-/** Number of buffer for TX */
-#define GMAC_TX_BUFFERS						3
-
-
-
 /**
  * \brief Set peripheral mode for IOPORT pins.
  * It will configure port mode and disable pin mode (but enable peripheral).
@@ -225,6 +217,11 @@ typedef    _CODE unsigned char    cBYTE;
 #endif
 
 
+
+#define LWIP_EXT_UDP_RX_PERF			1
+#define LWIP_EXT_UDP_TX_PERF			1	/* extend for UDP TX Perf testing */
+
+
 #define CMD_BUFFER_SIZE   (1024)
 
 /* commands in both */
@@ -272,6 +269,8 @@ typedef    _CODE unsigned char    cBYTE;
 
 #define	MUX_CMD_PING					"ping"
 #define	MUX_CMD_IGMP					"igmp"
+
+#define	MUX_CMD_UDP_PERF				"udp"
 
 #define	MUX_CMD_IGMP_JOIN			"join"
 #define	MUX_CMD_IGMP_LEAVE			"leave"

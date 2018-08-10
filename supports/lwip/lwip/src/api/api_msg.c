@@ -177,8 +177,8 @@ recv_udp(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 #endif /* LWIP_SO_RCVBUF */
 
   LWIP_UNUSED_ARG(pcb); /* only used for asserts... */
-  LWIP_ASSERT("recv_udp must have a pcb argument", pcb != NULL);
-  LWIP_ASSERT("recv_udp must have an argument", arg != NULL);
+  LWIP_ASSERT(("recv_udp must have a pcb argument"), pcb != NULL);
+  LWIP_ASSERT(("recv_udp must have an argument"), arg != NULL);
   conn = (struct netconn *)arg;
 
   if (conn == NULL) {
@@ -186,7 +186,7 @@ recv_udp(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     return;
   }
 
-  LWIP_ASSERT("recv_udp: recv for wrong pcb!", conn->pcb.udp == pcb);
+  LWIP_ASSERT(("recv_udp: recv for wrong pcb!"), conn->pcb.udp == pcb);
 
 #if LWIP_SO_RCVBUF
   SYS_ARCH_GET(conn->recv_avail, recv_avail);
@@ -249,14 +249,14 @@ recv_tcp(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
   u16_t len;
 
   LWIP_UNUSED_ARG(pcb);
-  LWIP_ASSERT("recv_tcp must have a pcb argument", pcb != NULL);
-  LWIP_ASSERT("recv_tcp must have an argument", arg != NULL);
+  LWIP_ASSERT(("recv_tcp must have a pcb argument"), pcb != NULL);
+  LWIP_ASSERT(("recv_tcp must have an argument"), arg != NULL);
   conn = (struct netconn *)arg;
 
   if (conn == NULL) {
     return ERR_VAL;
   }
-  LWIP_ASSERT("recv_tcp: recv for wrong pcb!", conn->pcb.tcp == pcb);
+  LWIP_ASSERT(("recv_tcp: recv for wrong pcb!"), conn->pcb.tcp == pcb);
 
   if (!sys_mbox_valid(&conn->recvmbox)) {
     /* recvmbox already deleted */
@@ -312,7 +312,7 @@ poll_tcp(void *arg, struct tcp_pcb *pcb)
   struct netconn *conn = (struct netconn *)arg;
 
   LWIP_UNUSED_ARG(pcb);
-  LWIP_ASSERT("conn != NULL", (conn != NULL));
+  LWIP_ASSERT(("conn != NULL"), (conn != NULL));
 
   if (conn->state == NETCONN_WRITE) {
     lwip_netconn_do_writemore(conn  WRITE_DELAYED);
@@ -353,7 +353,7 @@ sent_tcp(void *arg, struct tcp_pcb *pcb, u16_t len)
   struct netconn *conn = (struct netconn *)arg;
 
   LWIP_UNUSED_ARG(pcb);
-  LWIP_ASSERT("conn != NULL", (conn != NULL));
+  LWIP_ASSERT(("conn != NULL"), (conn != NULL));
 
   if (conn) {
     if (conn->state == NETCONN_WRITE) {
@@ -388,7 +388,7 @@ err_tcp(void *arg, err_t err)
   enum netconn_state old_state;
 
   conn = (struct netconn *)arg;
-  LWIP_ASSERT("conn != NULL", (conn != NULL));
+  LWIP_ASSERT(("conn != NULL"), (conn != NULL));
 
   conn->pcb.tcp = NULL;
 
@@ -435,17 +435,17 @@ err_tcp(void *arg, err_t err)
     if (!was_nonblocking_connect) {
       sys_sem_t* op_completed_sem;
       /* set error return code */
-      LWIP_ASSERT("conn->current_msg != NULL", conn->current_msg != NULL);
+      LWIP_ASSERT(("conn->current_msg != NULL"), conn->current_msg != NULL);
       conn->current_msg->err = err;
       op_completed_sem = LWIP_API_MSG_SEM(conn->current_msg);
-      LWIP_ASSERT("inavlid op_completed_sem", sys_sem_valid(op_completed_sem));
+      LWIP_ASSERT(("inavlid op_completed_sem"), sys_sem_valid(op_completed_sem));
       conn->current_msg = NULL;
       /* wake up the waiting task */
       NETCONN_SET_SAFE_ERR(conn, err);
       sys_sem_signal(op_completed_sem);
     }
   } else {
-    LWIP_ASSERT("conn->current_msg == NULL", conn->current_msg == NULL);
+    LWIP_ASSERT(("conn->current_msg == NULL"), conn->current_msg == NULL);
   }
 }
 
@@ -555,7 +555,7 @@ static void pcb_new(struct api_msg *msg)
 {
 	enum lwip_ip_addr_type iptype = IPADDR_TYPE_V4;
 
-	LWIP_ASSERT("pcb_new: pcb already allocated", msg->conn->pcb.tcp == NULL);
+	LWIP_ASSERT(("pcb_new: pcb already allocated"), msg->conn->pcb.tcp == NULL);
 
 #if LWIP_IPV6 && LWIP_IPV4
 	/* IPv6: Dual-stack by default, unless netconn_set_ipv6only() is called */
@@ -688,7 +688,7 @@ struct netconn *netconn_alloc(enum netconn_type t, netconn_callback callback)
 		break;
 #endif /* LWIP_TCP */
 		default:
-		LWIP_ASSERT("netconn_alloc: undefined netconn_type", 0);
+		LWIP_ASSERT(("netconn_alloc: undefined netconn_type"), 0);
 		goto free_and_return;
 	}
 
@@ -748,11 +748,10 @@ free_and_return:
 void
 netconn_free(struct netconn *conn)
 {
-  LWIP_ASSERT("PCB must be deallocated outside this function", conn->pcb.tcp == NULL);
-  LWIP_ASSERT("recvmbox must be deallocated before calling this function",
-    !sys_mbox_valid(&conn->recvmbox));
+  LWIP_ASSERT(("PCB must be deallocated outside this function"), conn->pcb.tcp == NULL);
+  LWIP_ASSERT(("recvmbox must be deallocated before calling this function"),   !sys_mbox_valid(&conn->recvmbox));
 #if LWIP_TCP
-  LWIP_ASSERT("acceptmbox must be deallocated before calling this function",
+  LWIP_ASSERT(("acceptmbox must be deallocated before calling this function"),
     !sys_mbox_valid(&conn->acceptmbox));
 #endif /* LWIP_TCP */
 
@@ -847,11 +846,11 @@ lwip_netconn_do_close_internal(struct netconn *conn  WRITE_DELAYED_PARAM)
   u8_t linger_wait_required = 0;
 #endif /* LWIP_SO_LINGER */
 
-  LWIP_ASSERT("invalid conn", (conn != NULL));
-  LWIP_ASSERT("this is for tcp netconns only", (NETCONNTYPE_GROUP(conn->type) == NETCONN_TCP));
-  LWIP_ASSERT("conn must be in state NETCONN_CLOSE", (conn->state == NETCONN_CLOSE));
-  LWIP_ASSERT("pcb already closed", (conn->pcb.tcp != NULL));
-  LWIP_ASSERT("conn->current_msg != NULL", conn->current_msg != NULL);
+  LWIP_ASSERT(("invalid conn"), (conn != NULL));
+  LWIP_ASSERT(("this is for tcp netconns only"), (NETCONNTYPE_GROUP(conn->type) == NETCONN_TCP));
+  LWIP_ASSERT(("conn must be in state NETCONN_CLOSE"), (conn->state == NETCONN_CLOSE));
+  LWIP_ASSERT(("pcb already closed"), (conn->pcb.tcp != NULL));
+  LWIP_ASSERT(("conn->current_msg != NULL"), conn->current_msg != NULL);
 
   tpcb = conn->pcb.tcp;
   shut = conn->current_msg->msg.sd.shut;
@@ -1007,7 +1006,7 @@ lwip_netconn_do_close_internal(struct netconn *conn  WRITE_DELAYED_PARAM)
   if (!close_finished) {
     /* Closing failed and we want to wait: restore some of the callbacks */
     /* Closing of listen pcb will never fail! */
-    LWIP_ASSERT("Closing a listen pcb may not fail!", (tpcb->state != LISTEN));
+    LWIP_ASSERT(("Closing a listen pcb may not fail!"), (tpcb->state != LISTEN));
     if (shut_tx) {
       tcp_sent(tpcb, sent_tcp);
     }
@@ -1019,7 +1018,7 @@ lwip_netconn_do_close_internal(struct netconn *conn  WRITE_DELAYED_PARAM)
   }
   /* If closing didn't succeed, we get called again either
      from poll_tcp or from sent_tcp */
-  LWIP_ASSERT("err != ERR_OK", err != ERR_OK);
+  LWIP_ASSERT(("err != ERR_OK"), err != ERR_OK);
   return err;
 }
 #endif /* LWIP_TCP */
@@ -1036,7 +1035,7 @@ lwip_netconn_do_delconn(void *m)
   struct api_msg *msg = (struct api_msg*)m;
 
   enum netconn_state state = msg->conn->state;
-  LWIP_ASSERT("netconn state error", /* this only happens for TCP netconns */
+  LWIP_ASSERT(("netconn state error"), /* this only happens for TCP netconns */
     (state == NETCONN_NONE) || (NETCONNTYPE_GROUP(msg->conn->type) == NETCONN_TCP));
 #if LWIP_NETCONN_FULLDUPLEX
   /* In full duplex mode, blocking write/connect is aborted with ERR_CLSD */
@@ -1045,7 +1044,7 @@ lwip_netconn_do_delconn(void *m)
         ((state == NETCONN_CONNECT) && !IN_NONBLOCKING_CONNECT(msg->conn))) {
       /* close requested, abort running write/connect */
       sys_sem_t* op_completed_sem;
-      LWIP_ASSERT("msg->conn->current_msg != NULL", msg->conn->current_msg != NULL);
+      LWIP_ASSERT(("msg->conn->current_msg != NULL"), msg->conn->current_msg != NULL);
       op_completed_sem = LWIP_API_MSG_SEM(msg->conn->current_msg);
       msg->conn->current_msg->err = ERR_CLSD;
       msg->conn->current_msg = NULL;
@@ -1066,7 +1065,7 @@ lwip_netconn_do_delconn(void *m)
   } else
 #endif /* LWIP_NETCONN_FULLDUPLEX */
   {
-    LWIP_ASSERT("blocking connect in progress",
+    LWIP_ASSERT(("blocking connect in progress"),
       (state != NETCONN_CONNECT) || IN_NONBLOCKING_CONNECT(msg->conn));
     msg->err = ERR_OK;
     /* Drain and delete mboxes */
@@ -1088,18 +1087,18 @@ lwip_netconn_do_delconn(void *m)
 #endif /* LWIP_UDP */
 #if LWIP_TCP
       case NETCONN_TCP:
-        LWIP_ASSERT("already writing or closing", msg->conn->current_msg == NULL &&
+        LWIP_ASSERT(("already writing or closing"), msg->conn->current_msg == NULL &&
           msg->conn->write_offset == 0);
         msg->conn->state = NETCONN_CLOSE;
         msg->msg.sd.shut = NETCONN_SHUT_RDWR;
         msg->conn->current_msg = msg;
 #if LWIP_TCPIP_CORE_LOCKING
         if (lwip_netconn_do_close_internal(msg->conn, 0) != ERR_OK) {
-          LWIP_ASSERT("state!", msg->conn->state == NETCONN_CLOSE);
+          LWIP_ASSERT(("state!"), msg->conn->state == NETCONN_CLOSE);
           UNLOCK_TCPIP_CORE();
           sys_arch_sem_wait(LWIP_API_MSG_SEM(msg), 0);
           LOCK_TCPIP_CORE();
-          LWIP_ASSERT("state!", msg->conn->state == NETCONN_NONE);
+          LWIP_ASSERT(("state!"), msg->conn->state == NETCONN_NONE);
         }
 #else /* LWIP_TCPIP_CORE_LOCKING */
         lwip_netconn_do_close_internal(msg->conn);
@@ -1188,8 +1187,8 @@ lwip_netconn_do_connected(void *arg, struct tcp_pcb *pcb, err_t err)
     return ERR_VAL;
   }
 
-  LWIP_ASSERT("conn->state == NETCONN_CONNECT", conn->state == NETCONN_CONNECT);
-  LWIP_ASSERT("(conn->current_msg != NULL) || conn->in_non_blocking_connect",
+  LWIP_ASSERT(("conn->state == NETCONN_CONNECT"), conn->state == NETCONN_CONNECT);
+  LWIP_ASSERT(("(conn->current_msg != NULL) || conn->in_non_blocking_connect"),
     (conn->current_msg != NULL) || IN_NONBLOCKING_CONNECT(conn));
 
   if (conn->current_msg != NULL) {
@@ -1201,7 +1200,7 @@ lwip_netconn_do_connected(void *arg, struct tcp_pcb *pcb, err_t err)
   }
   was_blocking = !IN_NONBLOCKING_CONNECT(conn);
   SET_NONBLOCKING_CONNECT(conn, 0);
-  LWIP_ASSERT("blocking connect state error",
+  LWIP_ASSERT(("blocking connect state error"),
     (was_blocking && op_completed_sem != NULL) ||
     (!was_blocking && op_completed_sem == NULL));
   conn->current_msg = NULL;
@@ -1265,11 +1264,11 @@ lwip_netconn_do_connect(void *m)
             /* sys_sem_signal() is called from lwip_netconn_do_connected (or err_tcp()),
                when the connection is established! */
 #if LWIP_TCPIP_CORE_LOCKING
-            LWIP_ASSERT("state!", msg->conn->state == NETCONN_CONNECT);
+            LWIP_ASSERT(("state!"), msg->conn->state == NETCONN_CONNECT);
             UNLOCK_TCPIP_CORE();
             sys_arch_sem_wait(LWIP_API_MSG_SEM(msg), 0);
             LOCK_TCPIP_CORE();
-            LWIP_ASSERT("state!", msg->conn->state != NETCONN_CONNECT);
+            LWIP_ASSERT(("state!"), msg->conn->state != NETCONN_CONNECT);
 #endif /* LWIP_TCPIP_CORE_LOCKING */
             return;
           }
@@ -1521,11 +1520,11 @@ lwip_netconn_do_writemore(struct netconn *conn  WRITE_DELAYED_PARAM)
   u8_t dontblock;
   u8_t apiflags;
 
-  LWIP_ASSERT("conn != NULL", conn != NULL);
-  LWIP_ASSERT("conn->state == NETCONN_WRITE", (conn->state == NETCONN_WRITE));
-  LWIP_ASSERT("conn->current_msg != NULL", conn->current_msg != NULL);
-  LWIP_ASSERT("conn->pcb.tcp != NULL", conn->pcb.tcp != NULL);
-  LWIP_ASSERT("conn->write_offset < conn->current_msg->msg.w.len",
+  LWIP_ASSERT(("conn != NULL"), conn != NULL);
+  LWIP_ASSERT(("conn->state == NETCONN_WRITE"), (conn->state == NETCONN_WRITE));
+  LWIP_ASSERT(("conn->current_msg != NULL"), conn->current_msg != NULL);
+  LWIP_ASSERT(("conn->pcb.tcp != NULL"), conn->pcb.tcp != NULL);
+  LWIP_ASSERT(("conn->write_offset < conn->current_msg->msg.w.len"),
     conn->write_offset < conn->current_msg->msg.w.len);
 
   apiflags = conn->current_msg->msg.w.apiflags;
@@ -1569,7 +1568,7 @@ lwip_netconn_do_writemore(struct netconn *conn  WRITE_DELAYED_PARAM)
         apiflags |= TCP_WRITE_FLAG_MORE;
       }
     }
-    LWIP_ASSERT("lwip_netconn_do_writemore: invalid length!", ((conn->write_offset + len) <= conn->current_msg->msg.w.len));
+    LWIP_ASSERT(("lwip_netconn_do_writemore: invalid length!"), ((conn->write_offset + len) <= conn->current_msg->msg.w.len));
     err = tcp_write(conn->pcb.tcp, dataptr, len, apiflags);
     /* if OK or memory error, check available space */
     if ((err == ERR_OK) || (err == ERR_MEM)) {
@@ -1680,18 +1679,18 @@ lwip_netconn_do_write(void *m)
       } else if (msg->conn->pcb.tcp != NULL) {
         msg->conn->state = NETCONN_WRITE;
         /* set all the variables used by lwip_netconn_do_writemore */
-        LWIP_ASSERT("already writing or closing", msg->conn->current_msg == NULL &&
+        LWIP_ASSERT(("already writing or closing"), msg->conn->current_msg == NULL &&
           msg->conn->write_offset == 0);
-        LWIP_ASSERT("msg->msg.w.len != 0", msg->msg.w.len != 0);
+        LWIP_ASSERT(("msg->msg.w.len != 0"), msg->msg.w.len != 0);
         msg->conn->current_msg = msg;
         msg->conn->write_offset = 0;
 #if LWIP_TCPIP_CORE_LOCKING
         if (lwip_netconn_do_writemore(msg->conn, 0) != ERR_OK) {
-          LWIP_ASSERT("state!", msg->conn->state == NETCONN_WRITE);
+          LWIP_ASSERT(("state!"), msg->conn->state == NETCONN_WRITE);
           UNLOCK_TCPIP_CORE();
           sys_arch_sem_wait(LWIP_API_MSG_SEM(msg), 0);
           LOCK_TCPIP_CORE();
-          LWIP_ASSERT("state!", msg->conn->state != NETCONN_WRITE);
+          LWIP_ASSERT(("state!"), msg->conn->state != NETCONN_WRITE);
         }
 #else /* LWIP_TCPIP_CORE_LOCKING */
         lwip_netconn_do_writemore(msg->conn);
@@ -1771,7 +1770,7 @@ lwip_netconn_do_getaddr(void *m)
       break;
 #endif /* LWIP_TCP */
     default:
-      LWIP_ASSERT("invalid netconn_type", 0);
+      LWIP_ASSERT(("invalid netconn_type"), 0);
       break;
     }
   } else {
@@ -1808,7 +1807,7 @@ lwip_netconn_do_close(void *m)
       if (msg->msg.sd.shut & NETCONN_SHUT_WR) {
         /* close requested, abort running write */
         sys_sem_t* write_completed_sem;
-        LWIP_ASSERT("msg->conn->current_msg != NULL", msg->conn->current_msg != NULL);
+        LWIP_ASSERT(("msg->conn->current_msg != NULL"), msg->conn->current_msg != NULL);
         write_completed_sem = LWIP_API_MSG_SEM(msg->conn->current_msg);
         msg->conn->current_msg->err = ERR_CLSD;
         msg->conn->current_msg = NULL;
@@ -1818,7 +1817,7 @@ lwip_netconn_do_close(void *m)
         NETCONN_SET_SAFE_ERR(msg->conn, ERR_CLSD);
         sys_sem_signal(write_completed_sem);
       } else {
-        LWIP_ASSERT("msg->msg.sd.shut == NETCONN_SHUT_RD", msg->msg.sd.shut == NETCONN_SHUT_RD);
+        LWIP_ASSERT(("msg->msg.sd.shut == NETCONN_SHUT_RD"), msg->msg.sd.shut == NETCONN_SHUT_RD);
         /* In this case, let the write continue and do not interfere with
            conn->current_msg or conn->state! */
         msg->err = tcp_shutdown(msg->conn->pcb.tcp, 1, 0);
@@ -1833,17 +1832,17 @@ lwip_netconn_do_close(void *m)
         /* Drain and delete mboxes */
         netconn_drain(msg->conn);
       }
-      LWIP_ASSERT("already writing or closing", msg->conn->current_msg == NULL &&
+      LWIP_ASSERT(("already writing or closing"), msg->conn->current_msg == NULL &&
         msg->conn->write_offset == 0);
       msg->conn->state = NETCONN_CLOSE;
       msg->conn->current_msg = msg;
 #if LWIP_TCPIP_CORE_LOCKING
       if (lwip_netconn_do_close_internal(msg->conn, 0) != ERR_OK) {
-        LWIP_ASSERT("state!", msg->conn->state == NETCONN_CLOSE);
+        LWIP_ASSERT(("state!"), msg->conn->state == NETCONN_CLOSE);
         UNLOCK_TCPIP_CORE();
         sys_arch_sem_wait(LWIP_API_MSG_SEM(msg), 0);
         LOCK_TCPIP_CORE();
-        LWIP_ASSERT("state!", msg->conn->state == NETCONN_NONE);
+        LWIP_ASSERT(("state!"), msg->conn->state == NETCONN_NONE);
       }
 #else /* LWIP_TCPIP_CORE_LOCKING */
       lwip_netconn_do_close_internal(msg->conn);

@@ -104,7 +104,7 @@ static void tcpip_thread(void *arg)
 		if (msg == NULL)
 		{
 			LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: invalid message: NULL\n"));
-			LWIP_ASSERT("tcpip_thread: invalid message", 0);
+			LWIP_ASSERT(("tcpip_thread: invalid message"), 0);
 			continue;
 		}
 		
@@ -159,7 +159,7 @@ static void tcpip_thread(void *arg)
 
 			default:
 				LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: invalid message: %d"LWIP_NEW_LINE, msg->type));
-				LWIP_ASSERT("tcpip_thread: invalid message", 0);
+				LWIP_ASSERT(("tcpip_thread: invalid message"), 0);
 				break;
 		}
 	}
@@ -184,7 +184,7 @@ err_t tcpip_inpkt(struct pbuf *p, struct netif *inp, netif_input_fn input_fn)
 #else /* LWIP_TCPIP_CORE_LOCKING_INPUT */
 	struct tcpip_msg *msg;
 
-	LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
 	msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_INPKT);
 	if (msg == NULL)
@@ -245,7 +245,7 @@ tcpip_callback_with_block(tcpip_callback_fn function, void *ctx, u8_t block)
 {
   struct tcpip_msg *msg;
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
   msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
   if (msg == NULL) {
@@ -280,7 +280,7 @@ tcpip_timeout(u32_t msecs, sys_timeout_handler h, void *arg)
 {
   struct tcpip_msg *msg;
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
   msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
   if (msg == NULL) {
@@ -307,7 +307,7 @@ tcpip_untimeout(sys_timeout_handler h, void *arg)
 {
   struct tcpip_msg *msg;
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
   msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
   if (msg == NULL) {
@@ -347,8 +347,8 @@ tcpip_send_msg_wait_sem(tcpip_callback_fn fn, void *apimsg, sys_sem_t* sem)
 #else /* LWIP_TCPIP_CORE_LOCKING */
   TCPIP_MSG_VAR_DECLARE(msg);
 
-  LWIP_ASSERT("semaphore not initialized", sys_sem_valid(sem));
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT(("semaphore not initialized"), sys_sem_valid(sem));
+  LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
   TCPIP_MSG_VAR_ALLOC(msg);
   TCPIP_MSG_VAR_REF(msg).type = TCPIP_MSG_API;
@@ -390,7 +390,7 @@ tcpip_api_call(tcpip_api_call_fn fn, struct tcpip_api_call_data *call)
   }
 #endif /* LWIP_NETCONN_SEM_PER_THREAD */
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
   TCPIP_MSG_VAR_ALLOC(msg);
   TCPIP_MSG_VAR_REF(msg).type = TCPIP_MSG_API_CALL;
@@ -455,7 +455,7 @@ tcpip_callbackmsg_delete(struct tcpip_callback_msg* msg)
 err_t
 tcpip_trycallback(struct tcpip_callback_msg* msg)
 {
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
   return sys_mbox_trypost(&mbox, msg);
 }
 
@@ -476,16 +476,16 @@ void tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 	tcpip_init_done_arg = arg;
 	if (sys_mbox_new(&mbox, TCPIP_MBOX_SIZE) != ERR_OK)
 	{
-		LWIP_ASSERT("failed to create tcpip_thread mbox", 0);
+		LWIP_ASSERT(("failed to create tcpip_thread mbox"), 0);
 	}
 #if LWIP_TCPIP_CORE_LOCKING
 	if (sys_mutex_new(&lock_tcpip_core) != ERR_OK)
 	{
-		LWIP_ASSERT("failed to create lock_tcpip_core", 0);
+		LWIP_ASSERT(("failed to create lock_tcpip_core"), 0);
 	}
 #endif /* LWIP_TCPIP_CORE_LOCKING */
 
-	sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
+	sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO );
 }
 
 /**

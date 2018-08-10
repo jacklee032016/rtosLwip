@@ -105,9 +105,9 @@ static void autoip_start_probing(struct netif *netif);
 void
 autoip_set_struct(struct netif *netif, struct autoip *autoip)
 {
-  LWIP_ASSERT("netif != NULL", netif != NULL);
-  LWIP_ASSERT("autoip != NULL", autoip != NULL);
-  LWIP_ASSERT("netif already has a struct autoip set",
+  LWIP_ASSERT(("netif != NULL"), netif != NULL);
+  LWIP_ASSERT(("autoip != NULL"), autoip != NULL);
+  LWIP_ASSERT(("netif already has a struct autoip set"),
               netif_autoip_data(netif) == NULL);
 
   /* clear data structure */
@@ -184,7 +184,7 @@ autoip_create_addr(struct netif *netif, ip4_addr_t *ipaddr)
   if (addr > AUTOIP_RANGE_END) {
     addr -= AUTOIP_RANGE_END - AUTOIP_RANGE_START + 1;
   }
-  LWIP_ASSERT("AUTOIP address not in range", (addr >= AUTOIP_RANGE_START) &&
+  LWIP_ASSERT(("AUTOIP address not in range"), (addr >= AUTOIP_RANGE_START) &&
     (addr <= AUTOIP_RANGE_END));
   ip4_addr_set_u32(ipaddr, lwip_htonl(addr));
 
@@ -255,7 +255,7 @@ err_t autoip_start(struct netif *netif)
 	struct autoip* autoip = netif_autoip_data(netif);
 	err_t result = ERR_OK;
 
-	LWIP_ERROR("netif is not up, old style port?", netif_is_up(netif), return ERR_ARG;);
+	LWIP_ERROR(("netif is not up, old style port?"), netif_is_up(netif), return ERR_ARG;);
 
 	/* Set IP-Address, Netmask and Gateway to 0 to make sure that
 	* ARP Packets are formed correctly

@@ -293,6 +293,8 @@ class TftpPacketDAT(TftpPacket):
                                   self.opcode,
                                   self.blocknumber,
                                   self.data)
+        log.debug("encode DATA packet: opcode = %d, block = %d",
+            self.opcode, self.blocknumber)
         return self
 
     def decode(self):

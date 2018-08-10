@@ -81,7 +81,7 @@ a lot of data that needs to be copied, this should be set high. */
  * MEMP_NUM_TCP_PCB: the number of simulatenously active TCP connections.
  * (requires the LWIP_TCP option)
  */
-#define MEMP_NUM_TCP_PCB				16	/* 5 */
+#define MEMP_NUM_TCP_PCB				16*4	/* 5 */
 
 /* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP connections.  (requires the LWIP_TCP option) */
 #define MEMP_NUM_TCP_PCB_LISTEN		8 //8	/* 1 */
@@ -269,7 +269,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_DNS						1
 
 /* ---------- MDNS options ---------- */
-#define LWIP_MDNS_RESPONDER			1
+#define LWIP_MDNS_RESPONDER			0
 #define LWIP_NUM_NETIF_CLIENT_DATA	(LWIP_MDNS_RESPONDER)
 
 /* ---------- UDP options ---------- */
@@ -379,7 +379,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 #define	RAW_DEBUG						LWIP_DBG_OFF
 #define	MEM_DEBUG						LWIP_DBG_OFF
-#define	MEMP_DEBUG					LWIP_DBG_OFF
+#define	MEMP_DEBUG					LWIP_DBG_ON
 #define	SYS_DEBUG						LWIP_DBG_OFF
 
 #define	UDP_DEBUG						LWIP_DBG_OFF
@@ -442,10 +442,6 @@ a lot of data that needs to be copied, this should be set high. */
 
 //#define	TCPIP_THREAD_STACKSIZE		10240
 //#define	TCPIP_THREAD_PRIO				2
-
-
-#define LWIP_EXT_UDP_RX_PERF			1
-#define LWIP_EXT_UDP_TX_PERF			1
 
 
 #endif

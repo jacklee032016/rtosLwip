@@ -271,7 +271,7 @@ The most commonly used commands are:
         tftpmcu = TftpUpload(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
         tftpmcu.uploadOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
 
-        self.reboot()
+        #self.reboot()
 
     def tftpFpga(self):
         parser = argparse.ArgumentParser(

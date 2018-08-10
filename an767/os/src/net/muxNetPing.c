@@ -92,7 +92,7 @@ static err_t ping_send(int s, const ip_addr_t *addr)
 	struct icmp_echo_hdr *iecho;
 	struct sockaddr_storage to;
 	size_t ping_size = sizeof(struct icmp_echo_hdr) + PING_DATA_SIZE;
-	LWIP_ASSERT("ping_size is too big", ping_size <= 0xffff);
+	MUX_ASSERT(("ping_size is too big"), ping_size <= 0xffff);
 
 #if LWIP_IPV6
 	if(IP_IS_V6(addr) && !ip6_addr_isipv6mappedipv4(ip_2_ip6(addr)))
@@ -240,7 +240,7 @@ static void ping_thread(void *arg)
 	}
 
 	ret = lwip_setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-	LWIP_ASSERT("setting receive timeout failed", ret == 0);
+	MUX_ASSERT(("setting receive timeout failed"), ret == 0);
 	LWIP_UNUSED_ARG(ret);
 
 	while (1)
@@ -274,7 +274,7 @@ static u8_t pingRawRecv(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip
 	LWIP_UNUSED_ARG(arg);
 	LWIP_UNUSED_ARG(pcb);
 	LWIP_UNUSED_ARG(addr);
-	LWIP_ASSERT("p != NULL", p != NULL);
+	MUX_ASSERT(("p != NULL"), p != NULL);
 
 	if ((p->tot_len >= (PBUF_IP_HLEN + sizeof(struct icmp_echo_hdr))) && pbuf_header(p, -PBUF_IP_HLEN) == 0)
 	{
@@ -316,7 +316,7 @@ static void pingRawSend(struct raw_pcb *raw, ip_addr_t *addr)
 #else
 	printf("PING sent to %s"MUX_NEW_LINE, MUX_LWIP_IPADD_TO_STR(addr) );
 #endif
-	LWIP_ASSERT("ping_size <= 0xffff", ping_size <= 0xffff);
+	MUX_ASSERT(("ping_size <= 0xffff"), ping_size <= 0xffff);
 
 	p = pbuf_alloc(PBUF_IP, (u16_t)ping_size, PBUF_RAM);
 	if (!p)
@@ -342,7 +342,7 @@ static void pingRawTimeout(void *arg)
 	struct raw_pcb *pcb = (struct raw_pcb*)arg;
 	ip_addr_t _pingTarget;
 
-	LWIP_ASSERT("ping_timeout: no pcb given!", pcb != NULL);
+	MUX_ASSERT(("ping_timeout: no pcb given!"), pcb != NULL);
 
 	ip_addr_copy_from_ip4(_pingTarget, _ping_target);
 	
@@ -363,7 +363,7 @@ static void pingRawInit(void)
 	if(pingPcb == NULL)
 	{
 		pingPcb = raw_new(IP_PROTO_ICMP);
-		LWIP_ASSERT("ping_pcb != NULL", pingPcb != NULL);
+		MUX_ASSERT(("ping_pcb != NULL"), pingPcb != NULL);
 
 		raw_recv(pingPcb, pingRawRecv, NULL);
 		raw_bind(pingPcb, IP_ADDR_ANY);
@@ -375,7 +375,7 @@ void muxNetPingSendNow(unsigned int destIp)
 {
 	ip_addr_t _pingTarget;
 	
-	LWIP_ASSERT("pingPcb != NULL", pingPcb != NULL);
+	MUX_ASSERT(("pingPcb != NULL"), pingPcb != NULL);
 	_ping_target.addr = destIp;
 #if 1	
 	ip_addr_copy_from_ip4(_pingTarget, _ping_target );

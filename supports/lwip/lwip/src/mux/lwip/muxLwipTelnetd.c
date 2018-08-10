@@ -443,7 +443,7 @@ static err_t _telnetCallbackRecv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p
 	MuxTelnetCtx  *telnetCtx;
 	err_t ret_err;
 
-	LWIP_ASSERT("arg != NULL", arg != NULL);
+	MUX_ASSERT(("arg != NULL"), arg != NULL);
 	telnetCtx = (MuxTelnetCtx  *)(arg);
 	if (p == NULL)
 	{/* remote host closed connection */

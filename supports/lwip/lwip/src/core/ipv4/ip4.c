@@ -905,7 +905,7 @@ err_t ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_add
 		}
 
 		iphdr = (struct ip_hdr *)p->payload;
-		LWIP_ASSERT("check that first pbuf can hold struct ip_hdr", (p->len >= sizeof(struct ip_hdr)));
+		LWIP_ASSERT(("check that first pbuf can hold struct ip_hdr"), (p->len >= sizeof(struct ip_hdr)));
 
 		IPH_TTL_SET(iphdr, ttl);
 		IPH_PROTO_SET(iphdr, proto);

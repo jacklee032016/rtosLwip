@@ -229,7 +229,7 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 
 	unsigned short size;
 
-	MUX_ASSERT("runCfg is null", (parser !=NULL && parser->runCfg != NULL) );
+	MUX_ASSERT(("runCfg is null"), (parser !=NULL && parser->runCfg != NULL) );
 	if (p != NULL)
 	{
 		if(addr == NULL)

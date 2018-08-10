@@ -298,7 +298,7 @@ struct tcp_seg {
 #if LWIP_WND_SCALE
 #define TCPWNDSIZE_F       U32_F
 #define TCPWND_MAX         0xFFFFFFFFU
-#define TCPWND_CHECK16(x)  LWIP_ASSERT("window size > 0xFFFF", (x) <= 0xFFFF)
+#define TCPWND_CHECK16(x)  LWIP_ASSERT(("window size > 0xFFFF"), (x) <= 0xFFFF)
 #define TCPWND_MIN16(x)    ((u16_t)LWIP_MIN((x), 0xFFFF))
 #else /* LWIP_WND_SCALE */
 #define TCPWNDSIZE_F       U16_F
@@ -346,18 +346,18 @@ extern struct tcp_pcb ** const tcp_pcb_lists[NUM_TCP_PCB_LISTS];
                             for (tcp_tmp_pcb = *(pcbs); \
           tcp_tmp_pcb != NULL; \
         tcp_tmp_pcb = tcp_tmp_pcb->next) { \
-                                LWIP_ASSERT("TCP_REG: already registered\n", tcp_tmp_pcb != (npcb)); \
+                                LWIP_ASSERT(("TCP_REG: already registered\n"), tcp_tmp_pcb != (npcb)); \
                             } \
-                            LWIP_ASSERT("TCP_REG: pcb->state != CLOSED", ((pcbs) == &tcp_bound_pcbs) || ((npcb)->state != CLOSED)); \
+                            LWIP_ASSERT(("TCP_REG: pcb->state != CLOSED"), ((pcbs) == &tcp_bound_pcbs) || ((npcb)->state != CLOSED)); \
                             (npcb)->next = *(pcbs); \
-                            LWIP_ASSERT("TCP_REG: npcb->next != npcb", (npcb)->next != (npcb)); \
+                            LWIP_ASSERT(("TCP_REG: npcb->next != npcb"), (npcb)->next != (npcb)); \
                             *(pcbs) = (npcb); \
-                            LWIP_ASSERT("TCP_RMV: tcp_pcbs sane", tcp_pcbs_sane()); \
+                            LWIP_ASSERT(("TCP_RMV: tcp_pcbs sane"), tcp_pcbs_sane()); \
               tcp_timer_needed(); \
                             } while(0)
 #define TCP_RMV(pcbs, npcb) do { \
                             struct tcp_pcb *tcp_tmp_pcb; \
-                            LWIP_ASSERT("TCP_RMV: pcbs != NULL", *(pcbs) != NULL); \
+                            LWIP_ASSERT(("TCP_RMV: pcbs != NULL"), *(pcbs) != NULL); \
                             LWIP_DEBUGF(TCP_DEBUG, ("TCP_RMV: removing %p from %p\n", (npcb), *(pcbs))); \
                             if(*(pcbs) == (npcb)) { \
                                *(pcbs) = (*pcbs)->next; \
@@ -368,7 +368,7 @@ extern struct tcp_pcb ** const tcp_pcb_lists[NUM_TCP_PCB_LISTS];
                                } \
                             } \
                             (npcb)->next = NULL; \
-                            LWIP_ASSERT("TCP_RMV: tcp_pcbs sane", tcp_pcbs_sane()); \
+                            LWIP_ASSERT(("TCP_RMV: tcp_pcbs sane"), tcp_pcbs_sane()); \
                             LWIP_DEBUGF(TCP_DEBUG, ("TCP_RMV: removed %p from %p\n", (npcb), *(pcbs))); \
                             } while(0)
 

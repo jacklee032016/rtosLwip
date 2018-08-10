@@ -91,7 +91,7 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 		}
 
 	}
-	LWIP_ASSERT(("HTTP Connection is null"), mhc!= NULL);
+	MUX_ASSERT(("HTTP Connection is null"), mhc!= NULL);
 	runCfg = mhc->nodeInfo->runCfg;
 
 
@@ -183,14 +183,14 @@ static void _killOldestConnection(u8_t ssi_required)
 		{
 			hs_free_next = mhc;
 		}
-		LWIP_ASSERT("broken list", mhc != mhc->next);
+		MUX_ASSERT(("broken list"), mhc != mhc->next);
 		mhc = mhc->next;
 	}
 	
 	if (hs_free_next != NULL)
 	{
-		LWIP_ASSERT("hs_free_next->next != NULL", hs_free_next->next != NULL);
-		LWIP_ASSERT("hs_free_next->next->pcb != NULL", hs_free_next->next->pcb != NULL);
+		MUX_ASSERT(("hs_free_next->next != NULL"), hs_free_next->next != NULL);
+		MUX_ASSERT(("hs_free_next->next->pcb != NULL"), hs_free_next->next->pcb != NULL);
 		/* send RST when killing a connection because of memory shortage */
 		_mhttpConnCloseOrAbort(hs_free_next->next, hs_free_next->next->pcb, 1); /* this also unlinks the mhttp_state from the list */
 	}
@@ -291,7 +291,7 @@ err_t muxHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apifla
 {
 	u16_t len, max_len;
 	err_t err;
-	LWIP_ASSERT("length != NULL", length != NULL);
+	LWIP_ASSERT(("length != NULL"), length != NULL);
 	len = *length;
 	if (len == 0)
 	{

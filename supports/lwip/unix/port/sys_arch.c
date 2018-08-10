@@ -224,7 +224,7 @@ sys_mbox_trypost(struct sys_mbox **mb, void *msg)
 {
   u8_t first;
   struct sys_mbox *mbox;
-  LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
+  LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
   mbox = *mb;
 
   sys_arch_sem_wait(&mbox->mutex, 0);
@@ -261,7 +261,7 @@ sys_mbox_post(struct sys_mbox **mb, void *msg)
 {
   u8_t first;
   struct sys_mbox *mbox;
-  LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
+  LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
   mbox = *mb;
 
   sys_arch_sem_wait(&mbox->mutex, 0);
@@ -297,7 +297,7 @@ u32_t
 sys_arch_mbox_tryfetch(struct sys_mbox **mb, void **msg)
 {
   struct sys_mbox *mbox;
-  LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
+  LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
   mbox = *mb;
 
   sys_arch_sem_wait(&mbox->mutex, 0);
@@ -331,7 +331,7 @@ sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
 {
   u32_t time_needed = 0;
   struct sys_mbox *mbox;
-  LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
+  LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
   mbox = *mb;
 
   /* The mutex lock is quick so we don't bother with the timeout
@@ -453,7 +453,7 @@ sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
 {
   u32_t time_needed = 0;
   struct sys_sem *sem;
-  LWIP_ASSERT("invalid sem", (s != NULL) && (*s != NULL));
+  LWIP_ASSERT(("invalid sem"), (s != NULL) && (*s != NULL));
   sem = *s;
 
   pthread_mutex_lock(&(sem->mutex));
@@ -480,7 +480,7 @@ void
 sys_sem_signal(struct sys_sem **s)
 {
   struct sys_sem *sem;
-  LWIP_ASSERT("invalid sem", (s != NULL) && (*s != NULL));
+  LWIP_ASSERT(("invalid sem"), (s != NULL) && (*s != NULL));
   sem = *s;
 
   pthread_mutex_lock(&(sem->mutex));
