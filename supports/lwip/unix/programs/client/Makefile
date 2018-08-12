@@ -30,6 +30,6 @@ LDFLAGS += -lLwip -pthread -lm
 #-lLwip 
 
 apiClient:$(OBJS)
-	$(CC) -s -o $@ $^ $(LDFLAGS) 
+	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS) 
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 

@@ -16,6 +16,7 @@ CODE_SUBDIRS = \
 UNIX_PORT_SRC += \
 	sys_arch.c \
 	perf.c \
+	simCmds.c \
 	netif/tapif.c \
 	netif/tunif.c \
 	netif/unixif.c \

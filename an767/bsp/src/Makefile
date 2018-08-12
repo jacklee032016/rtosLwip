@@ -62,10 +62,9 @@ HW_SRC += \
 
 
 BSP_SRC += \
-	bspCmds.c \
 	bspCmdBist.c \
+	bspConfigCmds.c \
 	bspConsole.c \
-	bspConfig.c \
 	bspSpiFlash.c \
 
 

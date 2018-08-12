@@ -11,9 +11,9 @@
 #include <unistd.h>
 
 
-#include "muxSysParams.h"
+#include "extSysParams.h"
 #include "jsmn.h"
-#include "muxIpCmd.h"
+#include "extUdpCmd.h"
 
 
 #include "../lwipTestClient.h"

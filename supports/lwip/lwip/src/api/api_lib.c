@@ -72,7 +72,7 @@
 #include <string.h>
 
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #define API_MSG_VAR_REF(name)               API_VAR_REF(name)
 #define API_MSG_VAR_DECLARE(name)           API_VAR_DECLARE(struct api_msg, name)

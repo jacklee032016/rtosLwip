@@ -102,7 +102,7 @@
 #include "lwip/raw.h"
 #endif
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 #include "jsmn.h"
 
 #if LWIP_SNMP
@@ -545,14 +545,14 @@ static void main_thread(void *arg)
 	}
 #endif
 
+#if 0
+	stats_display(NULL, 0);
+#endif
 	printf("Applications started.\n");
 
 #ifdef MEM_PERF
 	mem_perf_init("/tmp/memstats.client");
 #endif /* MEM_PERF */
-#if 0
-	stats_display();
-#endif
 
 #if PPP_SUPPORT
 	/* Block forever. */

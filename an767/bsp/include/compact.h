@@ -217,11 +217,6 @@ typedef    _CODE unsigned char    cBYTE;
 #endif
 
 
-
-#define LWIP_EXT_UDP_RX_PERF			1
-#define LWIP_EXT_UDP_TX_PERF			1	/* extend for UDP TX Perf testing */
-
-
 #define CMD_BUFFER_SIZE   (1024)
 
 /* commands in both */
@@ -376,27 +371,8 @@ typedef enum flash_rc
 #pragma		pack(1)
 
 
-#include "muxSysParams.h"
+#include "extSysParams.h"
 
-struct _MUX_CLI_CMD;
-
-/* return TRUE, more data needed; FALSE: no mor data */
-typedef char (*MUX_CMD_CALLBACK)(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferSzie );
-
-/* The structure that defines command line commands.  A command line command
-should be defined by declaring a const structure of this type. */
-struct _MUX_CLI_CMD
-{
-	const char * const			name;
-	const char * const			helpString;/* String that describes how to use the command.  Should start with the command itself, and end with "\r\n".  For example "help: Returns a list of all the commands\r\n". */
-
-	/* return MUX_TRUE, continue this command again */
-	const MUX_CMD_CALLBACK	callback;
-	
-//	int8_t					numberOfParams;
-};
-
-typedef struct _MUX_CLI_CMD		MUX_CLI_CMD_T;
 
 typedef char (*MUX_BIST_HANDLER)(char *outBuffer, size_t bufferSize );
 

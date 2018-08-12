@@ -245,7 +245,7 @@ _CODE  MUX_CLI_CMD_T muxCmds[] =
 	{
 		name	: MUX_CMD_UPDATE,
 		helpString: CMD_HELP_UPDATE,
-		callback: bspCmdUpdate,
+		callback: cmnCmdUpdate,
 	},
 	
 	{
@@ -263,12 +263,12 @@ _CODE  MUX_CLI_CMD_T muxCmds[] =
 	{
 		name	: MUX_CMD_VERSION,
 		helpString: CMD_HELP_VERSION,
-		callback: bspCmdVersion,
+		callback: cmnCmdVersion,
 	},
 	{
 		name	: MUX_CMD_DEFAULT,
 		helpString: CMD_HELP_HELP,
-		callback: bspCmdHelp,
+		callback: cmnCmdHelp,
 	},
 	{
 		name	: NULL,

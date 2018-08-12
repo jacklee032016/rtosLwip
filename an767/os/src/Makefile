@@ -14,7 +14,7 @@ NETWORK_SUPPORT=YES
 
 CODE_SUBDIRS += \
 	utils \
-	net/lwip \
+	net \
 	cmds	\
 	tasks \
 	hw \
@@ -48,12 +48,11 @@ ASM_FLAGS=
 
 
 NETWORK_SRC += \
-	net/lwip/muxLwipTimerMgt.c \
-	net/lwip/muxLwipSysArch.c \
-	net/lwip/muxLwipMac.c \
-	net/lwip/muxLwipPhy.c \
-	net/lwip/muxLwipNetInit.c \
-	net/muxNetPing.c \
+	net/netTimerMgt.c \
+	net/netSysArch.c \
+	net/netMac.c \
+	net/netPhy.c \
+	net/netInit.c \
 
 
 CMDS_SRC += \

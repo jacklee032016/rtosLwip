@@ -117,7 +117,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define MEMP_NUM_RAW_PCB        3
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
    per active UDP "connection". */
-#define MEMP_NUM_UDP_PCB        6
+#define MEMP_NUM_UDP_PCB        12*2 /* 6 */
 /* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP
    connections. */
 #define MEMP_NUM_TCP_PCB        16
@@ -147,7 +147,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-#define PBUF_POOL_SIZE          200
+#define PBUF_POOL_SIZE          64
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #if 0
@@ -271,15 +271,33 @@ extern void sntp_set_system_time(u32_t sec);
 #define LWIP_RAW                1
 #define RAW_TTL                 255
 
-/* ---------- Statistics options ---------- */
-/* individual STATS options can be turned off by defining them to 0 
- * (e.g #define TCP_STATS 0). All of them are turned off if LWIP_STATS
- * is 0
- * */
 
-#define LWIP_STATS        1
 
-#define LWIP_NETIF_API    1
+#define LWIP_STATS							1
+#define LWIP_STATS_DISPLAY					1
+
+/**
+ * LWIP_STATS_LARGE==1: Use 32 bits counter instead of 16.
+ */
+#define LWIP_STATS_LARGE					1
+
+#if LWIP_STATS
+#define	LINK_STATS							1
+#define	IP_STATS							1
+#define	IPFRAG_STATS						1
+#define	ICMP_STATS							1
+#define	IGMP_STATS							1
+#define	UDP_STATS							1
+#define	TCP_STATS							1
+#define	MEM_STATS							1
+#define	MEMP_STATS							1
+#define	SYS_STATS							1
+/* Left outside to avoid warning. */
+#define	ETHARP_STATS                      			1
+#endif
+
+
+#define LWIP_NETIF_API    				1
 #define LWIP_NETIF_STATUS_CALLBACK 1
 #define LWIP_NETIF_HOSTNAME 0
 

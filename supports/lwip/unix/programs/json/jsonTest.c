@@ -4,7 +4,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 #include "lwip/inet.h"
 
 typedef enum

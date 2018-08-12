@@ -11,7 +11,7 @@
 
 /* common/utils/stdio */
 #include "compact.h"
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #include "muxOs.h"
 

@@ -54,7 +54,7 @@ Steve Reynolds
 #include "lwip/stats.h"
 #include "lwip/prot/igmp.h"
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #include "string.h"
 

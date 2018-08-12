@@ -5,6 +5,7 @@
 
 include $(RULE_DIR)/Rules.mak
 
+EXT_HOME:=exts
 
 ###################################################################
 # define directory for object files
@@ -17,14 +18,15 @@ CODE_SUBDIRS = \
 	netif/ppp/polarssl \
 	api \
 	core/ipv4 \
-	lwip/protocols \
-	mux/cmn	\
-	mux/lwip	\
-	mux/http	\
-	mux/mdns	\
-	mux/nmos	\
-	mux/ipCmd	\
-	exts/ptp/dep \
+	$(EXT_HOME)/cmn	\
+	$(EXT_HOME)/http	\
+	$(EXT_HOME)/iperf	\
+	$(EXT_HOME)/mdns	\
+	$(EXT_HOME)/mqtt	\
+	$(EXT_HOME)/nmos	\
+	$(EXT_HOME)/misc	\
+	$(EXT_HOME)/cmd	\
+	$(EXT_HOME)/ptp/dep	\
 
 
 # 
@@ -87,75 +89,73 @@ LWIP_IF_SRC += \
 	netif/ppp/polarssl/sha1.c \
 
 
-LWIP_MUX_SRC += \
-	lwip/protocols/tftpServer.c \
-	lwip/protocols/lwiperf.c \
+EXTS_MISC_SRC += \
+	$(EXT_HOME)/misc/tftpServer.c \
+	$(EXT_HOME)/misc/extTelnetd.c \
+	$(EXT_HOME)/misc/extPing.c \
 
 #	src/lwip/jsonUtils.c \
 
-MUX_LWIP_SRC += \
-	mux/lwip/muxLwipStart.c \
-	mux/lwip/muxLwipUtils.c \
-	mux/lwip/muxLwipTelnetd.c \
+EXTS_MDNS_SRC += \
+	$(EXT_HOME)/mdns/mdns.c \
+	$(EXT_HOME)/mdns/mdnsClient.c \
 
 
-MDNS_SRC += \
-	mux/mdns/muxMdns.c \
-	mux/mdns/muxMdnsClient.c \
+EXTS_WEB_SRC += \
+	$(EXT_HOME)/http/httpPost.c \
+	$(EXT_HOME)/http/httpFs.c \
+	$(EXT_HOME)/http/httpConns.c \
+	$(EXT_HOME)/http/httpRequest.c \
+	$(EXT_HOME)/http/httpResponseFile.c \
+	$(EXT_HOME)/http/httpSend.c \
+	$(EXT_HOME)/http/httpWebSocket.c \
+	$(EXT_HOME)/http/httpWebPages.c \
+	$(EXT_HOME)/http/httpMain.c \
 
 
-WEB_SRC += \
-	mux/http/muxHttpPost.c \
-	mux/http/muxHttpFs.c \
-	mux/http/muxHttpConns.c \
-	mux/http/muxHttpRequest.c \
-	mux/http/muxHttpResponseFile.c \
-	mux/http/muxHttpSend.c \
-	mux/http/muxHttpWebSocket.c \
-	mux/http/muxHttpWebPages.c \
-	mux/http/muxHttpMain.c \
-
-
-CMN_SRC += \
-	mux/cmn/muxCmnUtils.c	\
-	mux/cmn/muxCmnJsonUtils.c \
-	mux/cmn/muxCmnSysConfig.c \
-	mux/cmn/muxUploadFile.c \
-	mux/cmn/jsmn.c \
+EXTS_CMN_SRC += \
+	$(EXT_HOME)/cmn/cmnUtils.c	\
+	$(EXT_HOME)/cmn/cmnJsonUtils.c \
+	$(EXT_HOME)/cmn/cmnSysConfig.c \
+	$(EXT_HOME)/cmn/cmnUploadFile.c \
+	$(EXT_HOME)/cmn/cmnLwipUtils.c \
+	$(EXT_HOME)/cmn/cmnCmdLine.c \
+	$(EXT_HOME)/cmn/jsmn.c \
+	$(EXT_HOME)/cmn/base64.c \
 
 
 
-NMOS_SRC += \
-	mux/nmos/muxNmosHttp.c \
-	mux/nmos/muxNmosHttpErrors.c \
-	mux/nmos/muxNmosPost.c \
-	mux/nmos/muxNmosNode.c \
-	mux/nmos/muxNmosConn.c \
-	mux/nmos/muxNmosUtils.c \
-	mux/nmos/muxNmosInit.c \
-	mux/nmos/muxNmosSdp.c \
+EXTS_NMOS_SRC += \
+	$(EXT_HOME)/nmos/nnmosHttp.c \
+	$(EXT_HOME)/nmos/nnmosHttpErrors.c \
+	$(EXT_HOME)/nmos/nnmosPost.c \
+	$(EXT_HOME)/nmos/nnmosNode.c \
+	$(EXT_HOME)/nmos/nnmosConn.c \
+	$(EXT_HOME)/nmos/nnmosUtils.c \
+	$(EXT_HOME)/nmos/nnmosInit.c \
+	$(EXT_HOME)/nmos/nnmosSdp.c \
 
 
-IPCMD_SRC += \
-	mux/ipCmd/muxIpCmdRequest.c \
-	mux/ipCmd/muxIpCmdResponses.c \
-	mux/ipCmd/muxIpCmdExecs.c \
-	mux/ipCmd/muxIpCmdSetup.c \
-	mux/ipCmd/muxIpCmdMain.c \
+EXTS_CMD_SRC += \
+	$(EXT_HOME)/cmd/udpCmdRequest.c \
+	$(EXT_HOME)/cmd/udpCmdResponses.c \
+	$(EXT_HOME)/cmd/udpCmdExecs.c \
+	$(EXT_HOME)/cmd/udpCmdSetup.c \
+	$(EXT_HOME)/cmd/udpCmdMain.c \
 	
-EXTS_SRC += \
-	exts/extPerfUdp.c \
-	
+EXTS_IPERF_SRC += \
+	$(EXT_HOME)/iperf/iperfUdp.c \
+	$(EXT_HOME)/iperf/iperfLwip.c \
 
-MUX_SRC += \
-	$(MUX_LWIP_SRC) \
-	$(MDNS_SRC) \
-	$(WEB_SRC) \
-	$(NMOS_SRC) \
-	$(CMN_SRC) \
-	$(IPCMD_SRC) \
-	$(EXTS_SRC) \
-	mux/base64.c \
+EXTS_LWIP_SRC += \
+	$(EXTS_CMN_SRC) \
+	$(EXTS_MISC_SRC) \
+	$(EXTS_MDNS_SRC) \
+	$(EXTS_WEB_SRC) \
+	$(EXTS_NMOS_SRC) \
+	$(EXTS_CMD_SRC) \
+	$(EXTS_IPERF_SRC) \
+	$(EXT_HOME)/extLwipStart.c \
 
 #	lwip/frozen.c \
 
@@ -164,8 +164,7 @@ SRC += \
 	$(LWIP_CORE_V4_SRC) \
 	$(LWIP_API_SRC) \
 	$(LWIP_IF_SRC) \
-	$(LWIP_MUX_SRC) \
-	$(MUX_SRC) \
+	$(EXTS_LWIP_SRC) \
 
 
 TARGET_LIB:=libLwip

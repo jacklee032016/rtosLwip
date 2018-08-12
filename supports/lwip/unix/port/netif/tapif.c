@@ -34,7 +34,7 @@
 
 #include "netif/tapif.h"
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 #include "jsmn.h"
 
 #define IFCONFIG_BIN "/sbin/ifconfig "

@@ -45,7 +45,7 @@
 #define LWIP_UNIX_CYGWIN
 #endif
 
-#include "muxSysParams.h"
+#include "extSysParams.h"
 
 #define LWIP_TIMEVAL_PRIVATE 0
 #include <sys/time.h>

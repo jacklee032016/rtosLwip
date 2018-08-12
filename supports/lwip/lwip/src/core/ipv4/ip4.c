@@ -59,7 +59,7 @@
 
 #include <string.h>
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 
 #ifdef LWIP_HOOK_FILENAME

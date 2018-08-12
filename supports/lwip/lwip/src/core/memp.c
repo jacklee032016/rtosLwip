@@ -78,7 +78,7 @@
 #define LWIP_MEMPOOL(name,num,size,desc) LWIP_MEMPOOL_DECLARE(name,num,size,desc)
 #include "lwip/priv/memp_std.h"
 
-//#include "lwipMux.h"
+//#include "lwipExt.h"
 
 /* all of every mem pool */
 const struct memp_desc* const memp_pools[MEMP_MAX] =

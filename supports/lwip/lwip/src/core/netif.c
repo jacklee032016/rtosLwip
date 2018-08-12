@@ -89,7 +89,7 @@
 #include "lwip/nd6.h"
 #endif
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #if LWIP_NETIF_STATUS_CALLBACK
 #define NETIF_STATUS_CALLBACK(n) do{ if (n->status_callback) { (n->status_callback)(n); }}while(0)

@@ -324,12 +324,12 @@ a lot of data that needs to be copied, this should be set high. */
 /**
  * LWIP_STATS==1: Enable statistics collection in lwip_stats.
  */
-#define LWIP_STATS							0
+#define LWIP_STATS							1
 
 /**
  * LWIP_STATS_DISPLAY==1: Compile in the statistics output functions.
  */
-#define LWIP_STATS_DISPLAY					0
+#define LWIP_STATS_DISPLAY					1
 
 /**
  * LWIP_STATS_LARGE==1: Use 32 bits counter instead of 16.

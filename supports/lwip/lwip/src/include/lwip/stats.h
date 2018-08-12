@@ -229,54 +229,55 @@ struct stats_mib2_netif_ctrs {
 };
 
 /** lwIP stats container */
-struct stats_ {
+struct stats_
+{
 #if LINK_STATS
-  /** Link level */
-  struct stats_proto link;
+	/** Link level */
+	struct stats_proto link;
 #endif
 #if ETHARP_STATS
-  /** ARP */
-  struct stats_proto etharp;
+	/** ARP */
+	struct stats_proto etharp;
 #endif
 #if IPFRAG_STATS
-  /** Fragmentation */
-  struct stats_proto ip_frag;
+	/** Fragmentation */
+	struct stats_proto ip_frag;
 #endif
 #if IP_STATS
-  /** IP */
-  struct stats_proto ip;
+	/** IP */
+	struct stats_proto ip;
 #endif
 #if ICMP_STATS
-  /** ICMP */
-  struct stats_proto icmp;
+	/** ICMP */
+	struct stats_proto icmp;
 #endif
 #if IGMP_STATS
-  /** IGMP */
-  struct stats_igmp igmp;
+	/** IGMP */
+	struct stats_igmp igmp;
 #endif
 #if UDP_STATS
-  /** UDP */
-  struct stats_proto udp;
+	/** UDP */
+	struct stats_proto udp;
 #endif
 #if TCP_STATS
-  /** TCP */
-  struct stats_proto tcp;
+	/** TCP */
+	struct stats_proto tcp;
 #endif
 #if MEM_STATS
-  /** Heap */
-  struct stats_mem mem;
+	/** Heap */
+	struct stats_mem mem;
 #endif
 #if MEMP_STATS
-  /** Internal memory pools */
-  struct stats_mem *memp[MEMP_MAX];
+	/** Internal memory pools */
+	struct stats_mem *memp[MEMP_MAX];
 #endif
 #if SYS_STATS
-  /** System */
-  struct stats_sys sys;
+	/** System */
+	struct stats_sys sys;
 #endif
 #if IP6_STATS
-  /** IPv6 */
-  struct stats_proto ip6;
+	/** IPv6 */
+	struct stats_proto ip6;
 #endif
 #if ICMP6_STATS
   /** ICMP6 */
@@ -308,11 +309,13 @@ void stats_init(void);
 
 #define STATS_INC(x) ++lwip_stats.x
 #define STATS_DEC(x) --lwip_stats.x
+
 #define STATS_INC_USED(x, y) do { lwip_stats.x.used += y; \
                                 if (lwip_stats.x.max < lwip_stats.x.used) { \
                                     lwip_stats.x.max = lwip_stats.x.used; \
                                 } \
                              } while(0)
+                             
 #define STATS_GET(x) lwip_stats.x
 #else /* LWIP_STATS */
 #define stats_init()
@@ -320,6 +323,7 @@ void stats_init(void);
 #define STATS_DEC(x)
 #define STATS_INC_USED(x)
 #endif /* LWIP_STATS */
+
 
 #if TCP_STATS
 #define TCP_STATS_INC(x) STATS_INC(x)
@@ -469,14 +473,14 @@ void stats_init(void);
 
 /* Display of statistics */
 #if LWIP_STATS_DISPLAY
-void stats_display(void);
+void stats_display(char *outBuffer, size_t bufferLen);
 void stats_display_proto(struct stats_proto *proto, const char *name);
 void stats_display_igmp(struct stats_igmp *igmp, const char *name);
 void stats_display_mem(struct stats_mem *mem, const char *name);
 void stats_display_memp(struct stats_mem *mem, int index);
 void stats_display_sys(struct stats_sys *sys);
 #else /* LWIP_STATS_DISPLAY */
-#define stats_display()
+//#define stats_display(outBuffer, bufferLen)
 #define stats_display_proto(proto, name)
 #define stats_display_igmp(igmp, name)
 #define stats_display_mem(mem, name)

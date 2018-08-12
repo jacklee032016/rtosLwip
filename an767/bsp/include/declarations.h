@@ -10,10 +10,10 @@ void board_init(void);
 
 char	 bspCmdFactory(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
 
-char bspCmdUpdate(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char cmnCmdUpdate(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
-char bspCmdHelp(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char bspCmdVersion(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char cmnCmdHelp(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char cmnCmdVersion(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
 
 void bspSpiFlashInit(unsigned int startSector, unsigned int startAddress, char isWrite);
@@ -184,7 +184,7 @@ void muxHwRs232Config(MUX_RUNTIME_CFG *runCfg);
 int muxRs232Write(unsigned char *data, unsigned short size);
 
 
-char bspCmdProcess( const char * const cmdInput, char *outBuffer, size_t bufferSize );
+char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, size_t bufferSize );
 
 char	 bspCmdReboot(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
 
@@ -201,15 +201,32 @@ char muxCmdFactory(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t buff
 extern	int 		argc;
 extern	char		argv[MUX_CMD_MAX_ARGUMENTS][MUX_CMD_MAX_LENGTH];
 
-extern _CODE  MUX_CLI_CMD_T muxCmds[];
+#if LWIP_EXT_UDP_TX_PERF
+char	muxCmdUdpTxPerf(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+#endif
+char cmnCmdLwipPing(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char cmnCmdLwipIgmp(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char	cmnCmdNetInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	cmnCmdMacInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	cmnCmdDestInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	cmnCmdLocalInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	muxCmdChangeName(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
-extern	_CODE char *versionString;
+char cmdCmdDebuggable(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
+char cmnCmdParams(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen);
+char cmnCmdTx(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
 char bspMultiAddressFromDipSwitch(void);
 
 
 void muxDelayReboot(unsigned short delayMs);
+
+void muxNetPingInit(void);
+void muxNetPingSendNow(unsigned int destIp);
+
+
+int	cmnParseGetHexIntValue(char *hexString);
 
 #endif
 

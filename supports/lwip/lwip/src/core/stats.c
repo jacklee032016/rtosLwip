@@ -134,10 +134,72 @@ void stats_display_sys(struct stats_sys *sys)
 }
 #endif /* SYS_STATS */
 
-void stats_display(void)
+
+#define	STATS_OUT_PROTOCOL(proto, name) \
+	{	index += snprintf( outBuffer+index, (bufferLen-index), \
+		"%s\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%" \
+		STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"\
+		STAT_COUNTER_F"\t%"STAT_COUNTER_F""MUX_NEW_LINE, name, \
+		(proto)->xmit, (proto)->recv, (proto)->fw, (proto)->drop, (proto)->chkerr , \
+		(proto)->lenerr, (proto)->memerr, (proto)->rterr, (proto)->proterr, (proto)->opterr, (proto)->err, (proto)->cachehit); }
+
+#define	STATS_OUT_MEM(mem, name) \
+	{	index += snprintf( outBuffer+index, (bufferLen-index), \
+		"%s\t%"U32_F"\t%"U32_F"\t%"U32_F"\t%"U32_F""MUX_NEW_LINE, name, \
+		(u32_t)(mem)->avail, (u32_t)(mem)->used, (u32_t)(mem)->max, (u32_t)(mem)->err); }
+
+
+#define	STATS_OUT_SYS(sys, name) \
+	{	index += snprintf( outBuffer+index, (bufferLen-index), \
+		"%s\t%"U32_F"\t%"U32_F"\t%"U32_F""MUX_NEW_LINE, name, \
+		(u32_t)(sys)->used, (u32_t)(sys)->max, (u32_t)(sys)->err); }
+
+
+void stats_display(char *outBuffer, size_t bufferLen)
 {
 	s16_t i;
+	int index = 0;
+	struct stats_igmp *igmp = &lwip_stats.igmp;
+	struct stats_mem *mem;
+	struct stats_syselem *sys;
 
+	index += snprintf( outBuffer+index, (bufferLen-index), "\txmit\trecv\tfw\tdrop\tchkerr\tlenerr\tmemerr\trterr\tproterr\topterr\terr\tcachehit"MUX_NEW_LINE);
+	STATS_OUT_PROTOCOL((&lwip_stats.link), "LINK");
+	STATS_OUT_PROTOCOL((&lwip_stats.etharp), "ETHARP");
+	STATS_OUT_PROTOCOL((&lwip_stats.ip_frag), "IP_FRAG");
+	STATS_OUT_PROTOCOL((&lwip_stats.ip), "IP");
+//	STATS_OUT_PROTOCOL((&lwip_stats.igmp), "IGMP");
+	STATS_OUT_PROTOCOL((&lwip_stats.icmp), "ICMP");
+	STATS_OUT_PROTOCOL((&lwip_stats.udp), "UDP");
+	STATS_OUT_PROTOCOL((&lwip_stats.tcp), "TCP");
+
+	index += snprintf( outBuffer+index, (bufferLen-index),"IGMP:\txmit:%"STAT_COUNTER_F"; recv:%"STAT_COUNTER_F"; drop:%"\
+		STAT_COUNTER_F"; chkerr:%"STAT_COUNTER_F"; lenerr: %"STAT_COUNTER_F"; memerr: %"STAT_COUNTER_F"; " \
+		"proterr:%"STAT_COUNTER_F"; rx_v1:%"STAT_COUNTER_F"; rx_group:%"STAT_COUNTER_F"; rx_general:%"\
+		STAT_COUNTER_F"; rx_report:%"STAT_COUNTER_F"; tx_join:%"STAT_COUNTER_F"; tx_leave:%"STAT_COUNTER_F"; tx_report:%"STAT_COUNTER_F""LWIP_NEW_LINE,
+		igmp->xmit, igmp->recv, igmp->drop, igmp->chkerr, igmp->lenerr, igmp->memerr, igmp->proterr, 
+		igmp->rx_v1, igmp->rx_group, igmp->rx_general, igmp->rx_report, igmp->tx_join, igmp->tx_leave, igmp->tx_report);
+
+
+	index += snprintf( outBuffer+index, (bufferLen-index), "\t\tavail \tused \tmax \terr"LWIP_NEW_LINE);
+
+	STATS_OUT_MEM((&lwip_stats.mem), "HEAP\t");
+	for (i = 0; i < MEMP_MAX; i++)
+	{
+		mem = lwip_stats.memp[i];
+		STATS_OUT_MEM(mem, mem->name);
+	}
+
+	index += snprintf( outBuffer+index, (bufferLen-index), "\tused\tmax\terr"MUX_NEW_LINE);
+	sys = &lwip_stats.sys.sem;
+	STATS_OUT_SYS((sys), "Sem");
+	sys = &lwip_stats.sys.mutex;
+	STATS_OUT_SYS((sys), "Mutex");
+	sys = &lwip_stats.sys.mbox;
+	STATS_OUT_SYS((sys), "mbox");
+
+
+TRACE();
 	LINK_STATS_DISPLAY();
 	ETHARP_STATS_DISPLAY();
 	IPFRAG_STATS_DISPLAY();
@@ -151,6 +213,7 @@ void stats_display(void)
 	ICMP6_STATS_DISPLAY();
 	UDP_STATS_DISPLAY();
 	TCP_STATS_DISPLAY();
+	
 	MEM_STATS_DISPLAY();
 
 	for (i = 0; i < MEMP_MAX; i++)
@@ -158,6 +221,8 @@ void stats_display(void)
 		MEMP_STATS_DISPLAY(i);
 	}
 	SYS_STATS_DISPLAY();
+
+TRACE();
 }
 #endif /* LWIP_STATS_DISPLAY */
 

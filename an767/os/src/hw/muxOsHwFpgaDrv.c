@@ -4,7 +4,7 @@
 
 #include "muxFpga.h"
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #define	_PORT_BYTE_ORDER_CHANGE		0
 

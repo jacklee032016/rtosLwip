@@ -82,14 +82,14 @@ LDFLAGS += -lLwip -lLwipUnix -lz -lpthread -lm
 
 
 simhost:$(OBJ_DIR)/simhost.o $(OBJS)
-	$(CC) -s -o $@ $^ $(LDFLAGS) 
+	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS) 
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 
 simnode:$(OBJ_DIR)/simnode.o $(OBJS)
-	$(CC) -s -o $@ $^ $(LDFLAGS)
+	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS)
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 
 simrouter:$(OBJ_DIR)/simrouter.o $(OBJS)
-	$(CC) -s -o $@ $^ $(LDFLAGS)
+	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS)
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 

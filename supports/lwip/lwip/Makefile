@@ -4,18 +4,21 @@
 
 include $(RULE_DIR)/Makefile.pre
 
+EXT_HOME:=src/exts
+
 CODE_SUBDIRS = \
 	src/api \
 	src/core/ipv4 \
 	src/netif/ppp/polarssl \
-	src/lwip/protocols	\
-	src/mux/cmn	\
-	src/mux/lwip	\
-	src/mux/http	\
-	src/mux/mdns	\
-	src/mux/nmos	\
-	src/mux/ipCmd	\
-	src/exts/ptp/dep	\
+	$(EXT_HOME)/cmn	\
+	$(EXT_HOME)/http	\
+	$(EXT_HOME)/iperf	\
+	$(EXT_HOME)/mdns	\
+	$(EXT_HOME)/mqtt	\
+	$(EXT_HOME)/nmos	\
+	$(EXT_HOME)/misc	\
+	$(EXT_HOME)/cmd	\
+	$(EXT_HOME)/ptp/dep	\
 
 
 #	src/core/ipv6 \
@@ -78,75 +81,73 @@ LWIP_IF_SRC += \
 #	src/netif/slipif.c \
 
 
-LWIP_MUX_SRC += \
-	src/lwip/protocols/tftpServer.c \
-	src/lwip/protocols/lwiperf.c \
+EXTS_MISC_SRC += \
+	$(EXT_HOME)/misc/tftpServer.c \
+	$(EXT_HOME)/misc/extTelnetd.c \
+	$(EXT_HOME)/misc/extPing.c \
 
 #	src/lwip/jsonUtils.c \
 
-MUX_LWIP_SRC += \
-	src/mux/lwip/muxLwipStart.c \
-	src/mux/lwip/muxLwipUtils.c \
-	src/mux/lwip/muxLwipTelnetd.c \
+EXTS_MDNS_SRC += \
+	$(EXT_HOME)/mdns/mdns.c \
+	$(EXT_HOME)/mdns/mdnsClient.c \
 
 
-MDNS_SRC += \
-	src/mux/mdns/muxMdns.c \
-	src/mux/mdns/muxMdnsClient.c \
+EXTS_WEB_SRC += \
+	$(EXT_HOME)/http/httpPost.c \
+	$(EXT_HOME)/http/httpFs.c \
+	$(EXT_HOME)/http/httpConns.c \
+	$(EXT_HOME)/http/httpRequest.c \
+	$(EXT_HOME)/http/httpResponseFile.c \
+	$(EXT_HOME)/http/httpSend.c \
+	$(EXT_HOME)/http/httpWebSocket.c \
+	$(EXT_HOME)/http/httpWebPages.c \
+	$(EXT_HOME)/http/httpMain.c \
 
 
-WEB_SRC += \
-	src/mux/http/muxHttpPost.c \
-	src/mux/http/muxHttpFs.c \
-	src/mux/http/muxHttpConns.c \
-	src/mux/http/muxHttpRequest.c \
-	src/mux/http/muxHttpResponseFile.c \
-	src/mux/http/muxHttpSend.c \
-	src/mux/http/muxHttpWebSocket.c \
-	src/mux/http/muxHttpWebPages.c \
-	src/mux/http/muxHttpMain.c \
-
-
-CMN_SRC += \
-	src/mux/cmn/muxCmnUtils.c	\
-	src/mux/cmn/muxCmnJsonUtils.c \
-	src/mux/cmn/muxCmnSysConfig.c \
-	src/mux/cmn/muxUploadFile.c \
-	src/mux/cmn/jsmn.c \
+EXTS_CMN_SRC += \
+	$(EXT_HOME)/cmn/cmnUtils.c	\
+	$(EXT_HOME)/cmn/cmnJsonUtils.c \
+	$(EXT_HOME)/cmn/cmnSysConfig.c \
+	$(EXT_HOME)/cmn/cmnUploadFile.c \
+	$(EXT_HOME)/cmn/cmnLwipUtils.c \
+	$(EXT_HOME)/cmn/cmnCmdLine.c \
+	$(EXT_HOME)/cmn/jsmn.c \
+	$(EXT_HOME)/cmn/base64.c \
 
 
 
-NMOS_SRC += \
-	src/mux/nmos/muxNmosHttp.c \
-	src/mux/nmos/muxNmosHttpErrors.c \
-	src/mux/nmos/muxNmosPost.c \
-	src/mux/nmos/muxNmosNode.c \
-	src/mux/nmos/muxNmosConn.c \
-	src/mux/nmos/muxNmosUtils.c \
-	src/mux/nmos/muxNmosInit.c \
-	src/mux/nmos/muxNmosSdp.c \
+EXTS_NMOS_SRC += \
+	$(EXT_HOME)/nmos/nnmosHttp.c \
+	$(EXT_HOME)/nmos/nnmosHttpErrors.c \
+	$(EXT_HOME)/nmos/nnmosPost.c \
+	$(EXT_HOME)/nmos/nnmosNode.c \
+	$(EXT_HOME)/nmos/nnmosConn.c \
+	$(EXT_HOME)/nmos/nnmosUtils.c \
+	$(EXT_HOME)/nmos/nnmosInit.c \
+	$(EXT_HOME)/nmos/nnmosSdp.c \
 
 
-IPCMD_SRC += \
-	src/mux/ipCmd/muxIpCmdRequest.c \
-	src/mux/ipCmd/muxIpCmdResponses.c \
-	src/mux/ipCmd/muxIpCmdExecs.c \
-	src/mux/ipCmd/muxIpCmdSetup.c \
-	src/mux/ipCmd/muxIpCmdMain.c \
+EXTS_CMD_SRC += \
+	$(EXT_HOME)/cmd/udpCmdRequest.c \
+	$(EXT_HOME)/cmd/udpCmdResponses.c \
+	$(EXT_HOME)/cmd/udpCmdExecs.c \
+	$(EXT_HOME)/cmd/udpCmdSetup.c \
+	$(EXT_HOME)/cmd/udpCmdMain.c \
 	
-EXTS_SRC += \
-	src/exts/extPerfUdp.c \
+EXTS_IPERF_SRC += \
+	$(EXT_HOME)/iperf/iperfUdp.c \
+	$(EXT_HOME)/iperf/iperfLwip.c \
 
-MUX_SRC += \
-	$(MUX_LWIP_SRC) \
-	$(MDNS_SRC) \
-	$(WEB_SRC) \
-	$(NMOS_SRC) \
-	$(CMN_SRC) \
-	$(IPCMD_SRC) \
-	$(EXTS_SRC) \
-	src/mux/base64.c \
-
+EXTS_LWIP_SRC += \
+	$(EXTS_CMN_SRC) \
+	$(EXTS_MISC_SRC) \
+	$(EXTS_MDNS_SRC) \
+	$(EXTS_WEB_SRC) \
+	$(EXTS_NMOS_SRC) \
+	$(EXTS_CMD_SRC) \
+	$(EXTS_IPERF_SRC) \
+	$(EXT_HOME)/extLwipStart.c \
 
 
 #	src/lwip/frozen.c \
@@ -156,8 +157,7 @@ SRC += \
 	$(LWIP_CORE_V4_SRC) \
 	$(LWIP_API_SRC) \
 	$(LWIP_IF_SRC) \
-	$(LWIP_MUX_SRC) \
-	$(MUX_SRC) \
+	$(EXTS_LWIP_SRC) \
 		
  
 TARGET_LIB:=libLwip

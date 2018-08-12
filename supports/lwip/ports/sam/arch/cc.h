@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "muxSysParams.h"
+#include "extSysParams.h"
 
 /* Define platform endianness */
 #ifndef	BYTE_ORDER	/* toolchains gcc has defined it for AMTEL: arm-none-eabi\include\machine\endian.h */

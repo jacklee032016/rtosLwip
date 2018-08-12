@@ -73,16 +73,6 @@ char *muxBspCLIGetOutputBuffer( void );
 
 
 /* commands */
-#if LWIP_EXT_UDP_TX_PERF
-char	muxCmdUdpTxPerf(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-#endif
-char muxCmdNetPing(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
-char muxCmdIgmp(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
-char	muxCmdNetInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	muxCmdMacInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	muxCmdDestInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	muxCmdLocalInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	muxCmdChangeName(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
 
 /************** RTOS ************/
@@ -107,9 +97,6 @@ void muxBspEfcFlashTestWrite(void);
 
 
 /************** LwIP ************/
-
-void muxNetPingInit(void);
-void muxNetPingSendNow(unsigned int destIp);
 
 
 void muxNetShellInit(void);
@@ -136,24 +123,7 @@ void muxFgpaRegisterDebug(void);
 
 void muxEtherDebug(void);
 
-
-
-int	cmnParseGetHexIntValue(char *hexString);
-
-/* output for used in OS */
-extern	struct netif			guNetIf;
-
-#define	MUX_NET_IGMP_JOIN(groupAddress)	\
-			muxLwipGroupMgr(&guNetIf, (groupAddress), 1)
-
-
-#define	MUX_NET_IGMP_LEAVE(groupAddress)	\
-			muxLwipGroupMgr(&guNetIf, (groupAddress), 0)
-
-
 void muxJobPeriod(MUX_RUNTIME_CFG *runCfg);
-
-
 
 #endif
 

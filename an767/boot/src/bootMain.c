@@ -267,7 +267,7 @@ int main( void )
 			char continues = MUX_FALSE;
 			do
 			{
-				continues = bspCmdProcess((const char * const) cmd_buffer, outBuffer, sizeof(outBuffer));
+				continues = cmnCmdLineProcess((const char * const) cmd_buffer, outBuffer, sizeof(outBuffer));
 				printf(outBuffer);
 			}while(continues == MUX_TRUE);
 

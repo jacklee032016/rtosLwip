@@ -11,7 +11,7 @@
 #include "sysclk.h"
 #include "ioport.h"
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #include "muxOs.h"
 
@@ -172,15 +172,5 @@ int main( void )
 	return 0;
 }
 
-
-int	cmnParseGetHexIntValue(char *hexString)
-{
-	int value =0;
-	
-//	sscanf(hexString, "%x", &value);
-	value = (int)strtol(hexString, NULL, 16);
-
-	return value;
-}
 
 

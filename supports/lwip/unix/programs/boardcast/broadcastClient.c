@@ -10,7 +10,7 @@
 
 #include <unistd.h>
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #include "../lwipTestClient.h"
 

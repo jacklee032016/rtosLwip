@@ -12,7 +12,7 @@ LOCAL_ALL := \
 LDFLAGS += -lm
 
 
-mkfsdata:makeMuxHttpFsData.c
+mkfsdata:makeHttpFsData.c
 	gcc -s -o $@ -I../src/include -I../../unix/port/include -I../  $^ $(LDFLAGS) 
 
 #	mv $@ $(BIN_DIR)/usr/bin  

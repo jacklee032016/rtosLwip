@@ -15,7 +15,7 @@
 #include <unistd.h>	/* sleep/close() */
 
 
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #include		"../lwipTestClient.h"
 

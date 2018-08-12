@@ -62,7 +62,7 @@ $(OBJ_DIR)/%.o:%.cxx $(OBJ_DIR)/%.d
 	
 	
 $(OBJ_DIR)/%.o:%.c $(OBJ_DIR)/%.d
-	$(CC) $(C_FLAGS) $(CFLAGS) -c $< -o $(OUTPUT_FLAG) $@ 
+	$(CC) $(C_FLAGS) $(CFLAGS)  -fdata-sections -ffunction-sections -c $< -o $(OUTPUT_FLAG) $@ 
 	
 # .o.cpp :
 .o.cxx :

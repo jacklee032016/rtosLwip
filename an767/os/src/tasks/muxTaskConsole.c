@@ -15,7 +15,7 @@
 
 /* common/utils/stdio */
 #include "compact.h"
-#include "lwipMux.h"
+#include "lwipExt.h"
 
 #include "muxOs.h"
 
@@ -139,7 +139,7 @@ static void _prvUartCmdConsoleTask( void *pvParameters )
 				do
 				{
 					/* Get the next output string from the command interpreter. */
-					ret = bspCmdProcess( cInputString, pcOutputString, MUX_COMMAND_BUFFER_SIZE );
+					ret = cmnCmdLineProcess( cInputString, pcOutputString, MUX_COMMAND_BUFFER_SIZE );
 
 					/* Write the generated string to the UART. */
 					vMuxUartPutString( ( const char * ) pcOutputString, ( unsigned short ) strlen( pcOutputString ) );
