@@ -269,7 +269,7 @@ static void update_IROM(void)
  */
 void rtk_iROM_update(void)
 {
-#ifndef MUX_LAB
+#ifndef EXT_LAB
 	uint32 regval;
 #endif
 

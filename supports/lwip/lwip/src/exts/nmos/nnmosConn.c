@@ -14,32 +14,32 @@ static int _nmosConstraintsHander(char *data, unsigned int size, MuxNmosConstrai
 	
 	index += snprintf(data+index, size-index, "{");
 
-	MUX_ASSERT(("Constraints->parent is null"), cstrts->parent != NULL);
-	MUX_ASSERT(("cstrts->parent->node is null"), cstrts->parent->node != NULL);
+	EXT_ASSERT(("Constraints->parent is null"), cstrts->parent != NULL);
+	EXT_ASSERT(("cstrts->parent->node is null"), cstrts->parent->node != NULL);
 
 	/* resource core fields */
-	index += snprintf(data+index, size-index, "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->local.ip) );
+	index += snprintf(data+index, size-index, "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->local.ip) );
 
 	if(isSender)
 	{/* dest IP and source port : only for sender */
-		index += snprintf(data+index, size-index, "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->dest.ip) );
+		index += snprintf(data+index, size-index, "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->dest.ip) );
 
 		index += snprintf(data+index, size-index, "\""NMOS_LABEL_SOURCE_PORT"\":{\""NMOS_LABEL_MINIMUM"\":%d,\""NMOS_LABEL_MAXIMUM"\":%d},", 
 			cstrts->sourcePortMini, cstrts->sourcePortMini+cstrts->portRange );
 	}
 	else
 	{
-		index += snprintf(data+index, size-index, "\""NMOS_LABEL_MULTICAST_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->dest.ip) );
-		index += snprintf(data+index, size-index, "\""NMOS_LABEL_INTERFACE_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->local.ip) );
+		index += snprintf(data+index, size-index, "\""NMOS_LABEL_MULTICAST_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->dest.ip) );
+		index += snprintf(data+index, size-index, "\""NMOS_LABEL_INTERFACE_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&cstrts->parent->node->runCfg->local.ip) );
 	}
 	
 	index += snprintf(data+index, size-index, "\""NMOS_LABEL_DEST_PORT"\":{\""NMOS_LABEL_MINIMUM"\":%d,\""NMOS_LABEL_MAXIMUM"\":%d},", 
 		cstrts->destPortMini, cstrts->destPortMini+cstrts->portRange );
 
-	index += snprintf(data+index, size-index, "\""NMOS_LABEL_FEC_ENABLED"\":%s,", MUX_JSON_BOOL_STR(cstrts->fecEnabled));
+	index += snprintf(data+index, size-index, "\""NMOS_LABEL_FEC_ENABLED"\":%s,", EXT_JSON_BOOL_STR(cstrts->fecEnabled));
 
-	index += snprintf(data+index, size-index, "\""NMOS_LABEL_RTCP_ENABLED"\":%s,", MUX_JSON_BOOL_STR(cstrts->rtcpEnabled));
-	index += snprintf(data+index, size-index, "\""NMOS_LABEL_RTP_ENABLED"\":%s", MUX_JSON_BOOL_STR(cstrts->rtpEnabled));
+	index += snprintf(data+index, size-index, "\""NMOS_LABEL_RTCP_ENABLED"\":%s,", EXT_JSON_BOOL_STR(cstrts->rtcpEnabled));
+	index += snprintf(data+index, size-index, "\""NMOS_LABEL_RTP_ENABLED"\":%s", EXT_JSON_BOOL_STR(cstrts->rtpEnabled));
 
 	index += snprintf(data+index, size-index, "}");
 
@@ -58,15 +58,15 @@ static char _connSingleReceiverActiveHander(MuxHttpConn  *mhc, void *data)
 	MuxNmosReceiver	*rcv = dev->receivers;
 	unsigned short srcPort, destPort;
 
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 
 	if(!UUID_IS_NULL(&mhc->apiReq.uuid) )
 	{
 		while(rcv)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &rcv->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &rcv->resourceId.nmosId.uuid) )
 			{
 				break;
 			}
@@ -75,7 +75,7 @@ static char _connSingleReceiverActiveHander(MuxHttpConn  *mhc, void *data)
 
 		if(rcv == NULL)
 		{
-			return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -83,19 +83,19 @@ static char _connSingleReceiverActiveHander(MuxHttpConn  *mhc, void *data)
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "{");
 
 	/* resource core fields */
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_SENDER_ID"\":\"%s\",", muxUuidToString(&rcv->subscriber->resourceId.nmosId.uuid));
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_SENDER_ID"\":\"%s\",", extUuidToString(&rcv->subscriber->resourceId.nmosId.uuid));
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_MASTER_EANBLE"\":%s,", NMOS_LABEL_TRUE);
 	/*activation */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION"\":{");
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_MODE"\":\"%s\",", NMOS_FIND_CONN_ACTIVATE(NMOS_CONN_ACTIVATE_T_IMMEDIATE));
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%u:%d\",",  sys_now(), 0 );
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%u:%d\"},", sys_now(), 0);
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%"FOR_U32":%d\",",  sys_now(), 0 );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%"FOR_U32":%d\"},", sys_now(), 0);
 
 	/* transport_params */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_TRANSPORT_PARAMS"\":[{");
 
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&rcv->device->node->runCfg->local.ip) );
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&rcv->device->node->runCfg->dest.ip) );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&rcv->device->node->runCfg->local.ip) );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&rcv->device->node->runCfg->dest.ip) );
 
 	switch (rcv->format)
 	{
@@ -148,7 +148,7 @@ static const ApiAccessPoint	__apConnSingleReceiversStaged =
 {
 	type 	: 	2,
 	name	: 	NMOS_CONN_URL_STR_STAGED,
-	callback :	muxNmosNodeDumpHander,
+	callback :	extNmosNodeDumpHander,
 	
 	child		:	NULL,
 	next		:	&__apConnSingleReceiversActive
@@ -162,8 +162,8 @@ static char _connSingleReceiveConstraintsHander(MuxHttpConn  *mhc, void *data)
 	MuxNmosDevice	*dev = mhc->nodeInfo->device;
 	MuxNmosReceiver	*rcv = dev->receivers;
 
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "[" );
 
@@ -171,7 +171,7 @@ static char _connSingleReceiveConstraintsHander(MuxHttpConn  *mhc, void *data)
 	{
 		while(rcv)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &rcv->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &rcv->resourceId.nmosId.uuid) )
 			{
 				break;
 			}
@@ -180,7 +180,7 @@ static char _connSingleReceiveConstraintsHander(MuxHttpConn  *mhc, void *data)
 
 		if(rcv == NULL)
 		{
-			return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
+			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
 		}
 	}
 
@@ -218,21 +218,21 @@ static char _connSingleReceiversHander(MuxHttpConn  *mhc, void *data)
 	MuxNmosDevice	*dev = mhc->nodeInfo->device;
 	MuxNmosReceiver	*rcv = dev->receivers;
 
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 	if(!UUID_IS_NULL(&mhc->apiReq.uuid) )
 	{
 		while(rcv)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &rcv->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &rcv->resourceId.nmosId.uuid) )
 			{
-				return muxNmosRootApHander(mhc, data);
+				return extNmosRootApHander(mhc, data);
 			}
 			rcv = rcv->next;
 		}
 		
-		return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
+		return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
 	}
 
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "[" );
@@ -241,7 +241,7 @@ static char _connSingleReceiversHander(MuxHttpConn  *mhc, void *data)
 	{
 		while(rcv)
 		{
-			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",",  muxUuidToString(&rcv->resourceId.nmosId.uuid) );
+			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",",  extUuidToString(&rcv->resourceId.nmosId.uuid) );
 
 			rcv = rcv->next;
 			i++;
@@ -277,15 +277,15 @@ static char _connSingleSenderTransportFileHander(MuxHttpConn  *mhc, void *data)
 	MuxNmosDevice	*dev = mhc->nodeInfo->device;
 	MuxNmosSender	*snd = dev->senders;
 
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 
 	if(!UUID_IS_NULL(&mhc->apiReq.uuid) )
 	{
 		while(snd)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
 			{
 				break;
 			}
@@ -294,11 +294,11 @@ static char _connSingleSenderTransportFileHander(MuxHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
-	index += muxNmosSdpMediaHander((char *)mhc->data+index, sizeof(mhc->data)-index, snd);
+	index += extNmosSdpMediaHander((char *)mhc->data+index, sizeof(mhc->data)-index, snd);
 
 	mhc->contentLength = (unsigned short)index;
 	mhc->dataSendIndex = 0;
@@ -327,15 +327,15 @@ static char _connSingleSenderActiveHander(MuxHttpConn  *mhc, void *data)
 	MuxNmosSender	*snd = dev->senders;
 	unsigned short srcPort, destPort;
 
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 
 	if(!UUID_IS_NULL(&mhc->apiReq.uuid) )
 	{
 		while(snd)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
 			{
 				break;
 			}
@@ -344,7 +344,7 @@ static char _connSingleSenderActiveHander(MuxHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -355,7 +355,7 @@ static char _connSingleSenderActiveHander(MuxHttpConn  *mhc, void *data)
 	if(snd->subscriber)
 	{
 		index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_RECEIVER_ID"\":\"%s\",", 
-			muxUuidToString(&snd->subscriber->resourceId.nmosId.uuid));
+			extUuidToString(&snd->subscriber->resourceId.nmosId.uuid));
 	}
 	else
 	{
@@ -366,14 +366,14 @@ static char _connSingleSenderActiveHander(MuxHttpConn  *mhc, void *data)
 	/*activation */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION"\":{");
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_MODE"\":\"%s\",", NMOS_FIND_CONN_ACTIVATE(NMOS_CONN_ACTIVATE_T_IMMEDIATE));
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%u:%d\",",  sys_now(), 0 );
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%u:%d\"},", sys_now(), 0);
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%"FOR_U32":%d\",",  sys_now(), 0 );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%"FOR_U32":%d\"},", sys_now(), 0);
 
 	/* transport_params */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_TRANSPORT_PARAMS"\":[{");
 
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->local.ip) );
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->dest.ip) );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->local.ip) );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->dest.ip) );
 
 	switch (snd->flow->format)
 	{
@@ -432,9 +432,9 @@ static char _connSingleSenderStageHander(MuxHttpConn  *mhc, void *data)
 	unsigned short srcPort, destPort;
 	TRACE();
 
-	MUX_ASSERT(("node is null"), mhc !=NULL && mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("node is null"), mhc !=NULL && mhc->nodeInfo!=NULL);
 	dev=mhc->nodeInfo->device;
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 	snd = dev->senders;
 
 
@@ -442,7 +442,7 @@ static char _connSingleSenderStageHander(MuxHttpConn  *mhc, void *data)
 	{
 		while(snd)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
 			{
 				break;
 			}
@@ -451,7 +451,7 @@ static char _connSingleSenderStageHander(MuxHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -462,7 +462,7 @@ static char _connSingleSenderStageHander(MuxHttpConn  *mhc, void *data)
 	if(snd->subscriber)
 	{
 		index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_RECEIVER_ID"\":\"%s\",", 
-			muxUuidToString(&snd->subscriber->resourceId.nmosId.uuid));
+			extUuidToString(&snd->subscriber->resourceId.nmosId.uuid));
 	}
 	else
 	{
@@ -475,8 +475,8 @@ static char _connSingleSenderStageHander(MuxHttpConn  *mhc, void *data)
 	/* transport_params */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_TRANSPORT_PARAMS"\":[{");
 
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->local.ip) );
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", MUX_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->dest.ip) );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_SOURCE_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->local.ip) );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data), "\""NMOS_LABEL_DEST_IP"\":{\"enum\":[\"%s\"]},", EXT_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->dest.ip) );
 
 	switch (snd->flow->format)
 	{
@@ -533,15 +533,15 @@ static char _connSingleSenderConstraintsHander(MuxHttpConn  *mhc, void *data)
 	MuxNmosDevice	*dev = mhc->nodeInfo->device;
 	MuxNmosSender	*snd = dev->senders;
 
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 
 	if(!UUID_IS_NULL(&mhc->apiReq.uuid) )
 	{
 		while(snd)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
 			{
 				break;
 			}
@@ -550,7 +550,7 @@ static char _connSingleSenderConstraintsHander(MuxHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -591,8 +591,8 @@ static char _connSingleSendersHander(MuxHttpConn  *mhc, void *data)
 	MuxNmosDevice	*dev = mhc->nodeInfo->device;
 	MuxNmosSender	*snd = dev->senders;
 
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "[" );
 
@@ -600,21 +600,21 @@ static char _connSingleSendersHander(MuxHttpConn  *mhc, void *data)
 	{
 		while(snd)
 		{
-			if( muxUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
+			if( extUuidEqual(&mhc->apiReq.uuid, &snd->resourceId.nmosId.uuid) )
 			{
-				return muxNmosRootApHander(mhc, data);
+				return extNmosRootApHander(mhc, data);
 			}
 			snd = snd->next;
 		}
 		
-		return muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+		return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 	}
 
 	if(snd)
 	{
 		while(snd)
 		{
-			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",", muxUuidToString(&snd->resourceId.nmosId.uuid) );
+			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",", extUuidToString(&snd->resourceId.nmosId.uuid) );
 
 			snd = snd->next;
 			i++;
@@ -646,7 +646,7 @@ static const ApiAccessPoint	_apConnSingle =
 {
 	type 	: 	3,
 	name	: 	NMOS_CONN_URL_STR_SINGLE,
-	callback :	muxNmosRootApHander,
+	callback :	extNmosRootApHander,
 	
 	child		:	&__apConnSingleSenders,
 	next		:	NULL
@@ -668,25 +668,25 @@ static char _connBulkReceiversHander(MuxHttpConn  *mhc, void *data)
 
 	if(mhc->method == HTTP_METHOD_GET )
 	{
-		muxHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
+		extHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
 		return EXIT_SUCCESS;
 	}
 
 #if 0
-	MUX_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
-	MUX_ASSERT(("device is null"), dev!=NULL);
+	EXT_ASSERT(("node is null"), mhc->nodeInfo!=NULL);
+	EXT_ASSERT(("device is null"), dev!=NULL);
 
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "[{" );
 
 	index += __nmosPrintResource((char *)mhc->data+index, sizeof(mhc->data)-index, &dev->resourceId);
 	
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_NODE_ID"\":\"%s\",", muxUuidToString(&mhc->nodeInfo->resourceId.nmosId.uuid));
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_NODE_ID"\":\"%s\",", extUuidToString(&mhc->nodeInfo->resourceId.nmosId.uuid));
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_TYPE"\":\"%s\",", NMOS_URN_DEVICE_TYPE_GENERIC );
 	
 	/* Controls [] */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_CONTROLS"\":[");
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "{\""NMOS_LABEL_HREF"\":\"http://%s:%d"NMOS_API_URI_CONNECTION"/"NMOS_API_VERSION_10 "\",", 
-		MUX_LWIP_IPADD_TO_STR(&mhc->nodeInfo->runCfg->local.ip), mhc->nodeInfo->runCfg->httpPort );
+		EXT_LWIP_IPADD_TO_STR(&mhc->nodeInfo->runCfg->local.ip), mhc->nodeInfo->runCfg->httpPort );
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_TYPE"\":\"%s\"}", NMOS_URN_CONTROL_SRCTRL );
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "],");
 
@@ -695,7 +695,7 @@ static char _connBulkReceiversHander(MuxHttpConn  *mhc, void *data)
 		index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\"" NMOS_LABEL_RECEIVERS "\":[");
 		while(rcv)
 		{
-			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",",  muxUuidToString(&rcv->resourceId.nmosId.uuid) );
+			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",",  extUuidToString(&rcv->resourceId.nmosId.uuid) );
 
 			rcv = rcv->next;
 			i++;
@@ -714,7 +714,7 @@ static char _connBulkReceiversHander(MuxHttpConn  *mhc, void *data)
 		index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\"" NMOS_LABEL_SENDERS "\":[");
 		while(snd)
 		{
-			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",", muxUuidToString(&snd->resourceId.nmosId.uuid) );
+			index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "%s\"%s\"", (i==0)?"":",", extUuidToString(&snd->resourceId.nmosId.uuid) );
 
 			snd = snd->next;
 			i++;
@@ -733,7 +733,7 @@ static char _connBulkReceiversHander(MuxHttpConn  *mhc, void *data)
 	
 	mhc->httpStatusCode = WEB_RES_REQUEST_OK;
 #else
-	muxNmosNodeDumpHander(mhc, data);
+	extNmosNodeDumpHander(mhc, data);
 #endif
 
 	return EXIT_SUCCESS;
@@ -753,11 +753,11 @@ static char _connBulkSendersHander(MuxHttpConn  *mhc, void *data)
 
 	if(mhc->method == HTTP_METHOD_GET )
 	{
-		muxHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
+		extHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
 		return EXIT_SUCCESS;
 	}
 
-	muxNmosNodeDumpHander(mhc, data);
+	extNmosNodeDumpHander(mhc, data);
 
 	return EXIT_SUCCESS;
 }
@@ -789,7 +789,7 @@ static const ApiAccessPoint	_apConnBulk =
 {
 	type 	: 	2,
 	name	: 	NMOS_CONN_URL_STR_BULK,
-	callback :	muxNmosRootApHander,
+	callback :	extNmosRootApHander,
 	
 	child		:	&__apConnBulkSenders,
 	next		:	&_apConnSingle
@@ -801,7 +801,7 @@ const ApiAccessPoint	apConnRoot =
 {
 	type 	: 	1,
 	name	: 	"/",
-	callback :	muxNmosRootApHander,
+	callback :	extNmosRootApHander,
 	
 	child		:	&_apConnBulk,
 	next		:	NULL

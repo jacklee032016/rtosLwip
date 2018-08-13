@@ -3,7 +3,7 @@ Update on May.17, 2018. Jack Lee
 		Update log and some info in static web pages;
 		build: make under mingw (call windows API), creating mkfsdata.exe;
 		run: mkfsdata: read and create file for 'fs' directory;
-		Result file: muxHttpFsData.c, copy to directory and replace file in muxHttp;
+		Result file: extHttpFsData.c, copy to directory and replace file in extHttp;
 		
 
 This directory contains a script ('makefsdata') to create C code suitable for

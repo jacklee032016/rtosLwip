@@ -43,10 +43,9 @@
 
 #include "lwipExt.h"
 
-#include "muxOs.h"
+#include "eos.h"
 
 #include "tc.h"
-#include "muxLwipTimerMgt.h"
 
 /* Clock tick count. */
 static volatile uint32_t gs_ul_clk_tick;

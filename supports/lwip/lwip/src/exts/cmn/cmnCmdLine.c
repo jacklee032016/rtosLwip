@@ -7,14 +7,14 @@
 #include <string.h>
 
 int 		argc = 0;
-char		argv[MUX_CMD_MAX_ARGUMENTS][MUX_CMD_MAX_LENGTH];
+char		argv[EXT_CMD_MAX_ARGUMENTS][EXT_CMD_MAX_LENGTH];
 
 
-static char _muxGetOneArgument(const char *start, const char *end)
+static char _extGetOneArgument(const char *start, const char *end)
 {
 	int length = end - start;
 
-	if(argc<MUX_CMD_MAX_ARGUMENTS && length <= MUX_CMD_MAX_LENGTH-1 )
+	if(argc<EXT_CMD_MAX_ARGUMENTS && length <= EXT_CMD_MAX_LENGTH-1 )
 	{
 		memcpy(argv[argc], start, length);
 		argv[argc][length] = 0;
@@ -22,7 +22,7 @@ static char _muxGetOneArgument(const char *start, const char *end)
 	}
 	else
 	{
-		printf("No.%d argument %s (length %d) is ignored"MUX_NEW_LINE, argc, end, length);
+		printf("No.%d argument %s (length %d) is ignored"EXT_NEW_LINE, argc, end, length);
 		return EXIT_FAILURE;
 	}
 
@@ -36,7 +36,7 @@ static void _cmdParseParameters( const char *cmdStr )
 	const char *start = cmdStr;
 
 	argc = 0;
-	for(i=0; i<MUX_CMD_MAX_ARGUMENTS; i++)
+	for(i=0; i<EXT_CMD_MAX_ARGUMENTS; i++)
 	{
 		argv[i][0] = 0;
 	}
@@ -46,7 +46,7 @@ static void _cmdParseParameters( const char *cmdStr )
 	{
 		if( ( *cmdStr ) == ' ' ||(*cmdStr ) == ASCII_KEY_TAB /* TAB */ )
 		{
-			_muxGetOneArgument(start, cmdStr);
+			_extGetOneArgument(start, cmdStr);
 
 			while(( *cmdStr ) == ' '|| (*cmdStr ) == ASCII_KEY_TAB /* TAB */)
 			{/* ignore other space character */
@@ -64,26 +64,26 @@ static void _cmdParseParameters( const char *cmdStr )
 
 	if(start< cmdStr)
 	{
-		_muxGetOneArgument(start, cmdStr);
+		_extGetOneArgument(start, cmdStr);
 	}
 }
 
 
-char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, size_t bufferSize  )
+char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, unsigned int bufferSize  )
 {
-	static const MUX_CLI_CMD_T *currentCmd = NULL;
-	char ret = MUX_TRUE;
+	static const EXT_CLI_CMD_T *currentCmd = NULL;
+	char ret = EXT_TRUE;
 	
 	_cmdParseParameters(cmdInput);
 	if(argc == 0)
 	{
-		printf("No command is defined"MUX_NEW_LINE);
+		printf("No command is defined"EXT_NEW_LINE);
 	}
 
 	/* Note:  This function is not re-entrant.  It must not be called from more thank one task. */
 	if( currentCmd == NULL )
 	{
-		currentCmd = muxCmds;
+		currentCmd = extCmds;
 
 		/* Search for the command string in the list of registered commands. */
 		while( currentCmd->name != NULL)
@@ -101,10 +101,10 @@ char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, size_t buf
 	{
 		int i;
 
-		printf( "Total %d argument in '%s':"MUX_NEW_LINE MUX_NEW_LINE, argc, cmdInput);
-		for(i=0; i< MUX_CMD_MAX_ARGUMENTS; i++)
+		printf( "Total %d argument in '%s':"EXT_NEW_LINE EXT_NEW_LINE, argc, cmdInput);
+		for(i=0; i< EXT_CMD_MAX_ARGUMENTS; i++)
 		{
-			printf( "No.%d argument: '%s' "MUX_NEW_LINE, i, argv[i] );
+			printf( "No.%d argument: '%s' "EXT_NEW_LINE, i, argv[i] );
 		}
 	}
 #endif
@@ -112,15 +112,15 @@ char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, size_t buf
 	if( currentCmd->name != NULL )
 	{/* Call the callback function */
 		ret = currentCmd->callback(currentCmd, outBuffer, bufferSize );
-		if( ret == MUX_FALSE )
+		if( ret == EXT_FALSE )
 		{
 			currentCmd = NULL;
 		}
 	}
 	else
 	{/* pxCommand was NULL, the command was not found. */
-		snprintf( outBuffer, bufferSize, "Command '%s' not recognised.  Enter 'help' to view a list of available commands."MUX_NEW_LINE MUX_NEW_LINE, cmdInput );
-		ret = MUX_FALSE;
+		snprintf( outBuffer, bufferSize, "Command '%s' not recognised.  Enter 'help' to view a list of available commands."EXT_NEW_LINE EXT_NEW_LINE, cmdInput );
+		ret = EXT_FALSE;
 		currentCmd = NULL;
 	}
 
@@ -128,21 +128,21 @@ char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, size_t buf
 }
 
 
-char cmnCmdVersion(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen)
+char cmnCmdVersion(const struct _EXT_CLI_CMD *cmd, char *outBuffer, unsigned int bufferLen)
 {
 	strncpy( outBuffer, versionString, bufferLen );
 	/* no more data*/
-	return MUX_FALSE;
+	return EXT_FALSE;
 }
 
 
-char cmnCmdHelp(const const struct _MUX_CLI_CMD *_cmd, char *outBuffer, size_t bufferLen)
+char cmnCmdHelp(const const struct _EXT_CLI_CMD *_cmd, char *outBuffer, unsigned int bufferLen)
 {
-	static const MUX_CLI_CMD_T *cmd = NULL;
+	static const EXT_CLI_CMD_T *cmd = NULL;
 
 	if( cmd == NULL )
 	{
-		cmd = muxCmds;
+		cmd = extCmds;
 	}
 
 	/* Return the next command help string, before moving the pointer on to the next command in the list. */
@@ -152,11 +152,11 @@ char cmnCmdHelp(const const struct _MUX_CLI_CMD *_cmd, char *outBuffer, size_t b
 	if( cmd->name == NULL )
 	{/* no more data*/
 		cmd = NULL;
-		return MUX_FALSE;
+		return EXT_FALSE;
 	}
 
 	/* more data needed */
-	return MUX_TRUE;
+	return EXT_TRUE;
 }
 
 

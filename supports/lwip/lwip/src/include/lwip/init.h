@@ -81,7 +81,7 @@ extern "C" {
 #endif
 
 /** Provides the version of the stack */
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 #define LWIP_VERSION   ((LWIP_VERSION_MAJOR) << 24   | (LWIP_VERSION_MINOR) << 16 | \
                         (LWIP_VERSION_REVISION) << 8 | (LWIP_VERSION_RC))
 #else

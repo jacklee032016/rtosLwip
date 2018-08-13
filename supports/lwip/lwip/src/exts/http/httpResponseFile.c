@@ -3,6 +3,7 @@
 
 #include "http.h"
 
+#if 0
 typedef struct
 {
 	const char	*name;
@@ -20,6 +21,7 @@ static const default_filename _psDefaultFilenames[] =
 
 #define NUM_DEFAULT_FILENAMES		\
 				(sizeof(_psDefaultFilenames) /sizeof(default_filename) )
+#endif
 
 
 #if	MHTTPD_CGI || MHTTPD_CGI_SSI
@@ -168,7 +170,7 @@ static err_t _mhttpFileInit(MuxHttpConn *mhc, struct mfs_file *file, u8_t tag_ch
 
 		mhc->handle = file;
 		mhc->file = file->data;
-		MUX_ASSERT(("File length must be positive!"), (file->len >= 0));
+		EXT_ASSERT(("File length must be positive!"), (file->len >= 0));
 #if	MHTTPD_CUSTOM_FILES
 		if (file->is_custom_file && (file->data == NULL))
 		{
@@ -187,7 +189,7 @@ static err_t _mhttpFileInit(MuxHttpConn *mhc, struct mfs_file *file, u8_t tag_ch
 		mhc->time_started = sys_now();
 #endif
 
-		MUX_ASSERT(("HTTP headers not included in file system"), (mhc->handle->flags & MFS_FILE_FLAGS_HEADER_INCLUDED) != 0);
+		EXT_ASSERT(("HTTP headers not included in file system"), (mhc->handle->flags & MFS_FILE_FLAGS_HEADER_INCLUDED) != 0);
 
 #if	MHTTPD_SUPPORT_V09
 		if ( mhc->isV09 && ((mhc->handle->flags & MFS_FILE_FLAGS_HEADER_INCLUDED) != 0))
@@ -301,7 +303,7 @@ err_t mhttpFindErrorFile(MuxHttpConn *mhc, u16_t error_nr)
 			err = mfsOpen(&mhc->file_handle, uri3);
 			if (err != ERR_OK)
 			{
-				MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Error page for error %"U16_F" not found", error_nr));
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error page for error %"U16_F" not found", error_nr));
 				return ERR_ARG;
 			}
 		}
@@ -321,7 +323,7 @@ err_t mhttpFindErrorFile(MuxHttpConn *mhc, u16_t error_nr)
  * @return ERR_OK if file was found and mhc has been initialized correctly
  *         another err_t otherwise
  */
-err_t muxHttpFileFind(MuxHttpConn *mhc )
+err_t extHttpFileFind(MuxHttpConn *mhc )
 {
 //	size_t loop;
 	struct mfs_file *file = NULL;
@@ -372,14 +374,14 @@ err_t muxHttpFileFind(MuxHttpConn *mhc )
 			{
 				file_name = _psDefaultFilenames[loop].name;
 			}
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Looking for '%s' for root...", file_name));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Looking for '%s' for root...", file_name));
 
 			err = mfsOpen(&mhc->file_handle, file_name);
 			if(err == ERR_OK)
 			{
 				snprintf(mhc->uri, sizeof(mhc->uri), "%s", file_name);
 				file = &mhc->file_handle;
-				MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Opened '%s'!", file_name ));
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Opened '%s'!", file_name ));
 #if	MHTTPD_SSI
 				tag_check = _psDefaultFilenames[loop].shtml;
 #endif /* LWIP_HTTPD_SSI */
@@ -387,7 +389,7 @@ err_t muxHttpFileFind(MuxHttpConn *mhc )
 			}
 		}
 #else
-		muxHttpWebPageRootHander(mhc, NULL);
+		extHttpWebPageRootHander(mhc, NULL);
 #endif
 	}
 
@@ -423,7 +425,7 @@ err_t muxHttpFileFind(MuxHttpConn *mhc )
 		}
 #endif
 
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Opening '%s'", mhc->uri));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Opening '%s'", mhc->uri));
 
 		err = mfsOpen(&mhc->file_handle, mhc->uri);
 		if (err == ERR_OK)

@@ -8,26 +8,26 @@
 #include "jsmn.h"
 #include <stdlib.h> /* rand() and srand() */
 
-#define		MUX_JSON_DEBUG						MUX_DBG_ON
+#define		EXT_JSON_DEBUG						EXT_DBG_ON
 
 #if 0
 const char *jsonErrorStatus = 
-		"{ \""MUX_JSON_KEY_STATUS"\":\"getParams\", "
-		   "\""MUX_JSON_KEY_ERROR"\":\"readable message\", "
-		   "\""MUX_JSON_KEY_DEBUG"\":\"detailed debug info\"}";
+		"{ \""EXT_JSON_KEY_STATUS"\":\"getParams\", "
+		   "\""EXT_JSON_KEY_ERROR"\":\"readable message\", "
+		   "\""EXT_JSON_KEY_DEBUG"\":\"detailed debug info\"}";
 
-const char *jsonReplyParams = "{ \""MUX_JSON_KEY_STATUS"\":200, \""MUX_JSON_KEY_NAME"\":\"SdiOverIP-767\", "
-		   "\""MUX_JSON_KEY_MODEL"\":\"500767-TX\", \""MUX_JSON_KEY_VERSION"\":\"01.01.01\", "
-		   "\""MUX_JSON_KEY_MAC"\":\"1a:25:00:00:01:02\", \""MUX_JSON_KEY_IP"\":\"192.168.168.55\", "
-		   "\""MUX_JSON_KEY_MASK"\":24, \""MUX_JSON_KEY_GATEWAY"\":\"192.168.168.1\", "
-		   "\""MUX_JSON_KEY_DHCP"\":0, "
-		   "\""MUX_JSON_KEY_TX"\":1, \""MUX_JSON_KEY_ID"\":\"5da68790-2198-43cb-9321-2951eeb5ee90\", \""MUX_JSON_KEY_DEST_IP"\":\"192.168.168.56\", "
-		   "\""MUX_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:00:10\", \""MUX_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:00:11\", "
-		   "\""MUX_JSON_KEY_VIDEO_IP_LOCAL"\":\"10.0.4.211\", \""MUX_JSON_KEY_VIDEO_IP_DEST"\":\"10.0.4.210\", "
-		   "\""MUX_JSON_KEY_VIDEO_PORT_LOCAL"\":49712, \""MUX_JSON_KEY_VIDEO_PORT_DEST"\":49696, "
-		   "\""MUX_JSON_KEY_AUDIO_PORT_LOCAL"\":49716, \""MUX_JSON_KEY_AUDIO_PORT_DEST"\":49700, "
-		   "\""MUX_JSON_KEY_MC_IP"\":\"239.0.0.1\", \""MUX_JSON_KEY_MC_PORT"\":3700, "
-		   "\""MUX_JSON_KEY_IS_CONNECT"\":1, \""MUX_JSON_KEY_IS_MC"\":1 }";
+const char *jsonReplyParams = "{ \""EXT_JSON_KEY_STATUS"\":200, \""EXT_JSON_KEY_NAME"\":\"SdiOverIP-767\", "
+		   "\""EXT_JSON_KEY_MODEL"\":\"500767-TX\", \""EXT_JSON_KEY_VERSION"\":\"01.01.01\", "
+		   "\""EXT_JSON_KEY_MAC"\":\"1a:25:00:00:01:02\", \""EXT_JSON_KEY_IP"\":\"192.168.168.55\", "
+		   "\""EXT_JSON_KEY_MASK"\":24, \""EXT_JSON_KEY_GATEWAY"\":\"192.168.168.1\", "
+		   "\""EXT_JSON_KEY_DHCP"\":0, "
+		   "\""EXT_JSON_KEY_TX"\":1, \""EXT_JSON_KEY_ID"\":\"5da68790-2198-43cb-9321-2951eeb5ee90\", \""EXT_JSON_KEY_DEST_IP"\":\"192.168.168.56\", "
+		   "\""EXT_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:00:10\", \""EXT_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:00:11\", "
+		   "\""EXT_JSON_KEY_VIDEO_IP_LOCAL"\":\"10.0.4.211\", \""EXT_JSON_KEY_VIDEO_IP_DEST"\":\"10.0.4.210\", "
+		   "\""EXT_JSON_KEY_VIDEO_PORT_LOCAL"\":49712, \""EXT_JSON_KEY_VIDEO_PORT_DEST"\":49696, "
+		   "\""EXT_JSON_KEY_AUDIO_PORT_LOCAL"\":49716, \""EXT_JSON_KEY_AUDIO_PORT_DEST"\":49700, "
+		   "\""EXT_JSON_KEY_MC_IP"\":\"239.0.0.1\", \""EXT_JSON_KEY_MC_PORT"\":3700, "
+		   "\""EXT_JSON_KEY_IS_CONNECT"\":1, \""EXT_JSON_KEY_IS_MC"\":1 }";
 #endif
 
 
@@ -35,10 +35,10 @@ typedef struct
 {
 	short			statusCode;
 	const char		*msg;	
-}_MUX_STATUS_MSG;
+}_EXT_STATUS_MSG;
 
 
-const _MUX_STATUS_MSG _msgs[] =
+const _EXT_STATUS_MSG _msgs[] =
 {	
 	{
 		statusCode: JSON_STATUS_PARSE_ERROR,
@@ -65,9 +65,9 @@ const _MUX_STATUS_MSG _msgs[] =
 
 
 
-const char *muxJsonErrorMsg(short code)
+const char *extJsonErrorMsg(short code)
 {
-	const _MUX_STATUS_MSG *msg = _msgs;
+	const _EXT_STATUS_MSG *msg = _msgs;
 
 	while(msg->msg != NULL)
 	{
@@ -82,7 +82,7 @@ const char *muxJsonErrorMsg(short code)
 	return "NULL";
 }
 
-void muxJsonInit(MUX_JSON_PARSER  *parser, char *jsonStr, unsigned short size)
+void extJsonInit(EXT_JSON_PARSER  *parser, char *jsonStr, unsigned short size)
 {
 	/* Prepare parser */
 	jsmn_init(&parser->parser);
@@ -93,9 +93,9 @@ void muxJsonInit(MUX_JSON_PARSER  *parser, char *jsonStr, unsigned short size)
 		parser->jsonLength = size;
 	}
 	
-	parser->tokenCount = MUX_JSON_TOKEN_SIZE;
+	parser->tokenCount = EXT_JSON_TOKEN_SIZE;
 
-	parser->outSize = MUX_JSON_OUT_BUF_SIZE;
+	parser->outSize = EXT_JSON_OUT_BUF_SIZE;
 	parser->outIndex = 0;
 
 //	TRACE();	
@@ -103,11 +103,11 @@ void muxJsonInit(MUX_JSON_PARSER  *parser, char *jsonStr, unsigned short size)
 
 
 
-int	muxJsonParse(MUX_JSON_PARSER  *parser, char *jStr , unsigned short size)
+int	extJsonParse(EXT_JSON_PARSER  *parser, char *jStr , unsigned short size)
 {
 	int ret;
 
-	muxJsonInit(parser, jStr, size);
+	extJsonInit(parser, jStr, size);
 
 	parser->status = JSON_STATUS_OK;
 	
@@ -116,34 +116,34 @@ int	muxJsonParse(MUX_JSON_PARSER  *parser, char *jStr , unsigned short size)
 	{
 		if (ret == JSMN_ERROR_NOMEM)
 		{
-			MUX_ERRORF(("ERROR: JSMN_ERROR_NOMEM"));
+			EXT_ERRORF(("ERROR: JSMN_ERROR_NOMEM"));
 		}
 		else if(ret == JSMN_ERROR_INVAL)
 		{
-			MUX_ERRORF(("ERROR: JSMN_ERROR_INVAL"));
+			EXT_ERRORF(("ERROR: JSMN_ERROR_INVAL"));
 		}
 		else
 		{
-			MUX_ERRORF(("ERROR: JSMN_ERROR_PART"));
+			EXT_ERRORF(("ERROR: JSMN_ERROR_PART"));
 		}
 
 		parser->status = JSON_STATUS_PARSE_ERROR;
 		return ret;
 	}
 
-	MUX_DEBUGF(MUX_JSON_DEBUG, ("JSON parsing OK"));
+	EXT_DEBUGF(EXT_JSON_DEBUG, ("JSON parsing OK"));
 
 	return 0;
 }
 
 
-int muxJsonEqual(MUX_JSON_PARSER  *parser, int index, jsmntok_t *token, void *data)
+int extJsonEqual(EXT_JSON_PARSER  *parser, int index, jsmntok_t *token, void *data)
 {
 	char	*keyStr = (char *)data;
 	return jsoneq(parser->currentJSonString, token, keyStr);
 }
 
-jsmntok_t *muxJsonFindKeyToken(MUX_JSON_PARSER  *parser, const char *key)
+jsmntok_t *extJsonFindKeyToken(EXT_JSON_PARSER  *parser, const char *key)
 {
 	unsigned int i;
 	int ret;
@@ -155,12 +155,12 @@ jsmntok_t *muxJsonFindKeyToken(MUX_JSON_PARSER  *parser, const char *key)
 #if 0//def	JSON_DEBUG
 		printf("No. %d item: '%.*s'\n\r", i, JSON_TOKEN_LENGTH(keyToken), parser->currentJSonString+ keyToken->start);
 #endif
-		ret = muxJsonEqual(parser, i, keyToken, (void *)key);
+		ret = extJsonEqual(parser, i, keyToken, (void *)key);
 		if( ret == 0)
 		{
 			return keyToken+1;
 		}
-//		jsmntok_t *value = &muxParser.tokens[2*i+2];
+//		jsmntok_t *value = &extParser.tokens[2*i+2];
 	}
 
 	return NULL;
@@ -183,7 +183,7 @@ static unsigned long  cfgRandom(void)
 }
 #endif 
 
-void	muxUuidGenerate(MUX_UUID_T *uuid, MUX_RUNTIME_CFG *runCfg)
+void	extUuidGenerate(EXT_UUID_T *uuid, EXT_RUNTIME_CFG *runCfg)
 {
 //	srand( runCfg->currentTimestamp);
 
@@ -202,87 +202,87 @@ void	muxUuidGenerate(MUX_UUID_T *uuid, MUX_RUNTIME_CFG *runCfg)
 }
 
 /* UUID string  8-4-4-4-12 */
-char muxUuidParse(MUX_UUID_T *uuid, char *strUuid)
+char extUuidParse(EXT_UUID_T *uuid, char *strUuid)
 {
 	char *tmp = strUuid;
-	muxSysAtoInt8(tmp, &uuid->uuid[0]);
+	extSysAtoInt8(tmp, &uuid->uuid[0]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[1]);
+	extSysAtoInt8(tmp, &uuid->uuid[1]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[2]);
+	extSysAtoInt8(tmp, &uuid->uuid[2]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[3]);
+	extSysAtoInt8(tmp, &uuid->uuid[3]);
 	if( *(tmp+2) != '-')
 	{
-		MUX_INFOF(("#9 char is '%c', not '-'", *(tmp+2)));
+		EXT_INFOF(("#9 char is '%c', not '-'", *(tmp+2)));
 		goto errParsing;
 	}
 	
 	tmp += 3;
 
-	muxSysAtoInt8(tmp, &uuid->uuid[4]);
+	extSysAtoInt8(tmp, &uuid->uuid[4]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[5]);
+	extSysAtoInt8(tmp, &uuid->uuid[5]);
 	if( *(tmp+2) != '-')
 	{
-		MUX_INFOF(("#14 char is '%c', not '-'", *(tmp+2)));
+		EXT_INFOF(("#14 char is '%c', not '-'", *(tmp+2)));
 		goto errParsing;
 	}
 	tmp += 3;
 
-	muxSysAtoInt8(tmp, &uuid->uuid[6]);
+	extSysAtoInt8(tmp, &uuid->uuid[6]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[7]);
+	extSysAtoInt8(tmp, &uuid->uuid[7]);
 	if( *(tmp+2) != '-')
 	{
-		MUX_INFOF(("#19 char is '%c', not '-'", *(tmp+2)));
+		EXT_INFOF(("#19 char is '%c', not '-'", *(tmp+2)));
 		goto errParsing;
 	}
 	tmp += 3;
 
-	muxSysAtoInt8(tmp, &uuid->uuid[8]);
+	extSysAtoInt8(tmp, &uuid->uuid[8]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[9]);
+	extSysAtoInt8(tmp, &uuid->uuid[9]);
 	if( *(tmp+2) != '-')
 	{
-		MUX_INFOF(("#24 char is '%c', not '-'", *(tmp+2)));
+		EXT_INFOF(("#24 char is '%c', not '-'", *(tmp+2)));
 		goto errParsing;
 	}
 	tmp += 3;
 
-	muxSysAtoInt8(tmp, &uuid->uuid[10]);
+	extSysAtoInt8(tmp, &uuid->uuid[10]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[11]);
+	extSysAtoInt8(tmp, &uuid->uuid[11]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[12]);
+	extSysAtoInt8(tmp, &uuid->uuid[12]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[13]);
+	extSysAtoInt8(tmp, &uuid->uuid[13]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[14]);
+	extSysAtoInt8(tmp, &uuid->uuid[14]);
 	tmp += 2;
-	muxSysAtoInt8(tmp, &uuid->uuid[15]);
+	extSysAtoInt8(tmp, &uuid->uuid[15]);
 	tmp += 2;
 
 	return EXIT_SUCCESS;
 
 errParsing:
-	memset(uuid, 0, sizeof(MUX_UUID_T));
+	memset(uuid, 0, sizeof(EXT_UUID_T));
 	return EXIT_FAILURE;
 	
 }
 
-char muxUuidEqual(MUX_UUID_T *dest, MUX_UUID_T *src)
+char extUuidEqual(EXT_UUID_T *dest, EXT_UUID_T *src)
 {
 	if(UUID_IS_NULL(dest) || UUID_IS_NULL(src))
-		return MUX_FALSE;
+		return EXT_FALSE;
 
 	return IS_STRING_EQUAL((char *)dest->uuid, (char *)src->uuid);
 }
 
-static char _uuidString[MUX_JSON_MESSAGE_SIZE];
+static char _uuidString[EXT_JSON_MESSAGE_SIZE];
 
 /* output 8-4-4-4-12 format */
-char *muxUuidToString(MUX_UUID_T *guid)
+char *extUuidToString(EXT_UUID_T *guid)
 {
 	int index = 0;
 	

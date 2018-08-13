@@ -10,7 +10,7 @@
 
 #define	UPLOAD_PROGRESS_BAR		0
 
-extern	const struct _MuxUploadContext muxUpload;
+extern	const struct _MuxUploadContext extUpload;
 
 #define	_FIND_HEADER_END(data, data_len) \
 		lwip_strnstr((char *)(data), MHTTP_CRLF MHTTP_CRLF, (data_len))
@@ -28,13 +28,13 @@ static int __httpWebPagePrintHeader(char *data, unsigned int size, MuxHttpConn *
 {
 	int index = 0;
 	
-	index += snprintf(data+index, size-index, "HTTP/1.0 200 OK"MUX_NEW_LINE );
-	index += snprintf(data+index, size-index, "Server: "MHTTPD_SERVER_AGENT"" MUX_NEW_LINE);
-	index += snprintf(data+index, size-index, "Content-type: text/html" MUX_NEW_LINE );
+	index += snprintf(data+index, size-index, "HTTP/1.0 200 OK"EXT_NEW_LINE );
+	index += snprintf(data+index, size-index, "Server: "MHTTPD_SERVER_AGENT"" EXT_NEW_LINE);
+	index += snprintf(data+index, size-index, "Content-type: text/html" EXT_NEW_LINE );
 #if UPLOAD_PROGRESS_BAR
-	index += snprintf(data+index, size-index, MUX_NEW_LINE MUX_NEW_LINE );
+	index += snprintf(data+index, size-index, EXT_NEW_LINE EXT_NEW_LINE );
 #else
-	index += snprintf(data+index, size-index, "Content-Length: 955 " MUX_NEW_LINE MUX_NEW_LINE );
+	index += snprintf(data+index, size-index, "Content-Length: 955 " EXT_NEW_LINE EXT_NEW_LINE );
 #endif
 	
 	return index;
@@ -94,7 +94,7 @@ static char _updatePageEnd(MuxHttpConn  *mhc)
 	int index = 0;
 
 //	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "<DIV id=\"nav\"><a data-text=\"Info\" id=\"nav_info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Info</a>", 
-//		MUX_WEBPAGE_INFO);
+//		EXT_WEBPAGE_INFO);
 	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "<script>");
 	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->contentLength);
 	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "</script>");
@@ -119,8 +119,8 @@ static char _updatePageResult(MuxHttpConn  *mhc, char *title, char *msg)
 	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<DIV class=\"title\"><H2>%s</H2></DIV>Result:%s. Please reboot system</DIV>",
 		title, msg);
 #if 0
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<a href=\"%s\">Reboot</a><BR>", MUX_WEBPAGE_REBOOT);
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<a data-text=\"Info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Reboot</a>", MUX_WEBPAGE_REBOOT);
+	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<a href=\"%s\">Reboot</a><BR>", EXT_WEBPAGE_REBOOT);
+	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<a data-text=\"Info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Reboot</a>", EXT_WEBPAGE_REBOOT);
 #endif
 	index += snprintf((char *)mhc->updateProgress+headerLength-8, 5, "%d", contentLength);
 
@@ -139,7 +139,7 @@ static char _updatePageResult(MuxHttpConn  *mhc, char *title, char *msg)
  *         ERR_INPROGRESS: POST not completely parsed (no error yet)
  *         another err_t: Error parsing POST or denied by the application
  */
-char muxHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
+char extHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	char	ret;
 	int contentLen;
@@ -152,7 +152,7 @@ char muxHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 	if (crlfcrlf != NULL)
 	{
 
-		contentLen = muxHttpParseContentLength(mhc, data, crlfcrlf);
+		contentLen = extHttpParseContentLength(mhc, data, crlfcrlf);
 		if(contentLen<0)
 		{
 			goto badPostRequest;
@@ -161,13 +161,13 @@ char muxHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 		char* boundary = lwip_strnstr((char *)data, HTTP_BUNDARY, crlfcrlf - (char *)data );
 		if(boundary )
 		{
-			mhc->reqType = MUX_HTTP_REQ_T_UPLOAD;
-			if( !IS_STRING_EQUAL(mhc->uri, MUX_WEBPAGE_UPDATE_MCU) && !IS_STRING_EQUAL(mhc->uri, MUX_WEBPAGE_UPDATE_FPGA)  )
+			mhc->reqType = EXT_HTTP_REQ_T_UPLOAD;
+			if( !IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_MCU) && !IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_FPGA)  )
 			{
 				goto badPostRequest;
 			}	
 
-			mhc->uploadCtx = (struct _MuxUploadContext *)&muxUpload;
+			mhc->uploadCtx = (struct _MuxUploadContext *)&extUpload;
 //			mhc->uploadCtx->priv = mhc;
 
 			boundary += (9);
@@ -176,12 +176,12 @@ char muxHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 //			endOfLine = strstr((char *)boundary, MHTTP_CRLF MHTTP_CRLF);
 			memset(mhc->boundary, 0, sizeof(mhc->boundary) );
 			snprintf(mhc->boundary, sizeof(mhc->boundary), "%.*s", endOfLine -1 - boundary, boundary);
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("UPLOAD: bounary(%d):'%.*s'", strlen(mhc->boundary), strlen(mhc->boundary), mhc->boundary));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD: bounary(%d):'%.*s'", strlen(mhc->boundary), strlen(mhc->boundary), mhc->boundary));
 		}
 		else
 		{
-			mhc->reqType = MUX_HTTP_REQ_T_REST;
-			ret = muxNmosPostDataBegin(mhc, data, data_len);
+			mhc->reqType = EXT_HTTP_REQ_T_REST;
+			ret = extNmosPostDataBegin(mhc, data, data_len);
 			if (ret != EXIT_SUCCESS)
 			{/* This is URI is not for POST */
 				return EXIT_SUCCESS;
@@ -192,7 +192,7 @@ char muxHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 		struct pbuf *q = mhc->req;
 		u16_t dataOffset = (u16_t)LWIP_MIN(data_len, crlfcrlf + 4 - (char *)data);
 		
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Receiving %d data, %d content at offset: %d", data_len, contentLen, dataOffset) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Receiving %d data, %d content at offset: %d", data_len, contentLen, dataOffset) );
 #if MHTTPD_POST_MANUAL_WND
 		mhc->no_auto_wnd = !isAutoWnd;
 #endif /* LWIP_HTTPD_POST_MANUAL_WND */
@@ -219,12 +219,12 @@ char muxHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 			}
 #endif
 			pbuf_ref(q);
-			return muxHttpPostRxDataPbuf(mhc, q);
+			return extHttpPostRxDataPbuf(mhc, q);
 		}
 		else if (mhc->postDataLeft == 0)
 		{/* when the first pbuf only contains headers, no data */
 			q = pbuf_alloc(PBUF_RAW, 0, PBUF_REF);
-			return muxHttpPostRxDataPbuf(mhc, q);
+			return extHttpPostRxDataPbuf(mhc, q);
 		}
 		else
 		{
@@ -254,28 +254,28 @@ static char  __findEndingBoundary(MuxHttpConn *mhc)
 #endif
 	if(boundary )
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Boundary found: last packet %d, content %d bytes", mhc->dataSendIndex, (boundary- (char *)mhc->data - 4) ) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Boundary found: last packet %d, content %d bytes", mhc->dataSendIndex, (boundary- (char *)mhc->data - 4) ) );
 		mhc->dataSendIndex = (boundary- (char *)mhc->data - 4);
 
-//		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("last packet %d bytes:'%.*s'", mhc->dataSendIndex, mhc->dataSendIndex, mhc->data) );
+//		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("last packet %d bytes:'%.*s'", mhc->dataSendIndex, mhc->dataSendIndex, mhc->data) );
 		mhc->uploadStatus = _UPLOAD_STATUS_END;
 //		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->dataSendIndex, mhc->filename );
 		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->nodeInfo->runCfg->firmUpdateInfo.size, mhc->filename );
-		return MUX_TRUE;
+		return EXT_TRUE;
 	}
 #if 0	
 	else
 	{
 		printf("Boundary '%s' NOT found in '%.*s'", mhc->boundary, mhc->dataSendIndex, (char *)mhc->data) ;
-		MUX_ERRORF( ("\r\nBoundary '%s' NOT found in '%.*s'\r\n", mhc->boundary, mhc->dataSendIndex, (char *)mhc->data) );
+		EXT_ERRORF( ("\r\nBoundary '%s' NOT found in '%.*s'\r\n", mhc->boundary, mhc->dataSendIndex, (char *)mhc->data) );
 	}
 #endif
 
-	return MUX_FALSE;
+	return EXT_FALSE;
 }
 
 /* save data in block and flash/save into spi/file */
-static char __muxHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
+static char __extHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
 {
 	unsigned short len, copied = 0;//, total_copied = 0;
 
@@ -293,12 +293,12 @@ static char __muxHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
 
 		if(mhc->dataSendIndex == sizeof(mhc->data) )
 		{
-			MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("write to flash: packet %d bytes, copied %d len %d byte data", p->tot_len, copied, len) );
+			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("write to flash: packet %d bytes, copied %d len %d byte data", p->tot_len, copied, len) );
 			__findEndingBoundary(mhc);
 			len =mhc->uploadCtx->write(mhc, mhc->data, mhc->dataSendIndex);
 			if( len != mhc->dataSendIndex)
 			{
-				MUX_ERRORF(("Write %d bytes of %d bytes to %s", len, mhc->dataSendIndex, mhc->filename) );
+				EXT_ERRORF(("Write %d bytes of %d bytes to %s", len, mhc->dataSendIndex, mhc->filename) );
 				return EXIT_FAILURE;
 			}
 
@@ -308,7 +308,7 @@ static char __muxHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
 			mhc->dataSendIndex = 0;
 		}
 
-		MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("packet %d bytes, copied %d (total %d)byte data", p->tot_len, copied, mhc->dataSendIndex) );
+		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("packet %d bytes, copied %d (total %d)byte data", p->tot_len, copied, mhc->dataSendIndex) );
 	}
 	
 
@@ -322,7 +322,7 @@ static char __muxHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
 #if 0
 		if(copied != len)
 		{
-			MUX_INFOF(("Only copied %d bytes from %d byte data", copied, len) );
+			EXT_INFOF(("Only copied %d bytes from %d byte data", copied, len) );
 			return EXIT_FAILURE;
 		}
 #endif
@@ -330,21 +330,21 @@ static char __muxHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
 	}
 	else
 	{
-		MUX_ERRORF(("copied %d bytes from %d byte data", copied, len) );
+		EXT_ERRORF(("copied %d bytes from %d byte data", copied, len) );
 	}
 
 
 	return EXIT_SUCCESS;
 }
 
-static char muxHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
+static char extHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 {
 	unsigned short len;//, copied;
 	
-//	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("'%s'", (char *)p->payload) );
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("'%s'", (char *)p->payload) );
 	if(HTTPREQ_IS_REST(mhc) )
 	{
-		return muxNmosPostDataRecv(mhc, p);
+		return extNmosPostDataRecv(mhc, p);
 	}
 
 	if(mhc->uploadStatus == _UPLOAD_STATUS_INIT )
@@ -367,7 +367,7 @@ static char muxHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 				mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
 				snprintf(mhc->uri, sizeof(mhc->uri), "Error: no file is transmitted"  );
 
-				return muxHttpWebPageResult(mhc,(char *)"Upload Firmware", mhc->uri);
+				return extHttpWebPageResult(mhc,(char *)"Upload Firmware", mhc->uri);
 			}
 			
 			mhc->uploadStatus = _UPLOAD_STATUS_COPY;
@@ -382,7 +382,7 @@ static char muxHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 
 			u16_t dataOffset = crlfcrlf + 4 - (char *)mhc->data;
 
-//			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("offsetData :%d, %d", dataOffset, p->len) );
+//			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("offsetData :%d, %d", dataOffset, p->len) );
 			/* get to the pbuf where the body starts */
 			while((p != NULL) && (p->len <= dataOffset))
 			{
@@ -390,7 +390,7 @@ static char muxHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 				p = p->next;
 			}
 			
-			MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("UPLOAD copied %d byte filename: '%s', move header :%d", (endOfFilename-filename), mhc->filename, dataOffset) );
+			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD copied %d byte filename: '%s', move header :%d", (endOfFilename-filename), mhc->filename, dataOffset) );
 			/* hide the remaining HTTP header */
 			pbuf_header(p, -(s16_t)dataOffset);
 			mhc->dataSendIndex = 0;
@@ -402,7 +402,7 @@ static char muxHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 		}
 	}
 
-	if(__muxHttpPostData(mhc, p) == EXIT_FAILURE )
+	if(__extHttpPostData(mhc, p) == EXIT_FAILURE )
 	{
 		return EXIT_FAILURE;
 	}
@@ -412,23 +412,23 @@ static char muxHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 }
 
 /* begin to execute on the recevied data of POST request or when conn is closed */
-void muxHttpPostDataFinished(MuxHttpConn *mhc)
+void extHttpPostDataFinished(MuxHttpConn *mhc)
 {
-//	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("POST request on '%s' ended: '%.*s' bounary:'%s'", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) );
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST request on '%s' ended: '%.*s' bounary:'%s'", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) );
 //	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) ;
 
 	if(HTTPREQ_IS_REST(mhc) )
 	{
-		return muxNmosPostDataFinished(mhc);
+		return extNmosPostDataFinished(mhc);
 	}
 
 	if(mhc->uploadStatus == _UPLOAD_STATUS_ERROR || mhc->uploadStatus == _UPLOAD_STATUS_END)
 	{
-		MUX_ERRORF(("POST request has been handled"));
+		EXT_ERRORF(("POST request has been handled"));
 		return;
 	}
 
-	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("UPLOAD last packet") );
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD last packet") );
 
 	if(__findEndingBoundary(mhc) )
 	{
@@ -447,7 +447,7 @@ void muxHttpPostDataFinished(MuxHttpConn *mhc)
 #if UPLOAD_PROGRESS_BAR
 	_updatePageEnd(mhc);
 #endif
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("POST upload %d byte into file %s", mhc->nodeInfo->runCfg->firmUpdateInfo.size, mhc->filename ) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST upload %d byte into file %s", mhc->nodeInfo->runCfg->firmUpdateInfo.size, mhc->filename ) );
 	
 //	mhc->uploadCtx->priv = NULL;
 	mhc->uploadCtx = NULL;
@@ -470,12 +470,12 @@ void muxHttpPostDataFinished(MuxHttpConn *mhc)
  * @return ERR_OK if passed successfully, another err_t if the response file
  *         hasn't been found (after POST finished)
  */
-err_t muxHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
+err_t extHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
 {
 	err_t err;
 	unsigned char ret;
 
-	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("p->len:%d; p->tot_len:%d(postDataLeft:%u);", p->len, p->tot_len, mhc->postDataLeft ) );
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("p->len:%d; p->tot_len:%d(postDataLeft:%"FOR_U32");", p->len, p->tot_len, mhc->postDataLeft ) );
 
 	if (p != NULL)
 	{
@@ -494,7 +494,7 @@ err_t muxHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
 	mhc->unrecved_bytes++;
 #endif
 
-	ret = muxHttpPostDataRecv(mhc, p);
+	ret = extHttpPostDataRecv(mhc, p);
 #if	MHTTPD_POST_MANUAL_WND
 	mhc->unrecved_bytes--;
 #endif
@@ -526,7 +526,7 @@ err_t muxHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
 		mhc->post_finished = 1;
 #endif
 
-		muxHttpPostDataFinished(mhc);
+		extHttpPostDataFinished(mhc);
 		return ERR_OK;
 	}
 

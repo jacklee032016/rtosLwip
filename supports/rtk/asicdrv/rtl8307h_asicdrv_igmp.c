@@ -310,7 +310,7 @@ ret_t rtl8307h_igmp_asicIgmpTrap_set( rtk_trap_misc_action_t action)
  */
 ret_t rtl8307h_igmp_asicIgmpTrap_get( rtk_trap_misc_action_t* action)
 {
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*action = MISC_ACTION_FORWARD;
@@ -350,7 +350,7 @@ ret_t rtl8307h_igmp_asicIgmpTrap_get( rtk_trap_misc_action_t* action)
  */
 ret_t rtl8307h_igmp_asicMldTrap_set( rtk_trap_misc_action_t action)
 {
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	if( SUCCESS == reg_field_write(RTL8307H_UNIT, IGMP_MLD_CONTROL, MLDTRAP, (uint32)action))
 	{
 		return RT_ERR_OK;       
@@ -386,7 +386,7 @@ ret_t rtl8307h_igmp_asicMldTrap_set( rtk_trap_misc_action_t action)
  */
 ret_t rtl8307h_igmp_asicMldTrap_get( rtk_trap_misc_action_t* action)
 {
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*action= MISC_ACTION_FORWARD;
@@ -512,7 +512,7 @@ ret_t rtl8307h_igmp_asicPri_get( uint32* igmpPri)
  * Note:
  *      This API can reset 8051 code when igmp parameters changed.
  */
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 ret_t rtl8307h_igmp_paraChanged_reset(void)
 #else
 ret_t rtl8307h_igmp_paraChanged_reset()

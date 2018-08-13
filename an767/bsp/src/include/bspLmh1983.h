@@ -3,8 +3,8 @@
 * hardware definitions for LMH1983
 */
 
-#ifndef __MUX_LMH1983_H__
-#define __MUX_LMH1983_H__
+#ifndef __EXT_LMH1983_H__
+#define __EXT_LMH1983_H__
 
 
 #define		I2C_ADDR_GENLOCK	(0xCA >> 1)		// 8 bits addr format

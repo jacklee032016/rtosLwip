@@ -210,33 +210,33 @@ typedef	enum
 }NMOS_STR_TYPE;
 
 #define	NMOS_FIND_SOURCE_FORMAT(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_SOURCE_FORMAT, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_SOURCE_FORMAT, (type) )
 
 	
 #define	NMOS_FIND_CHANNEL_SYMBOL(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_AUDIO_CHANNEL, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_AUDIO_CHANNEL, (type) )
 
 
 #define	NMOS_FIND_TRANSPORT(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_TRANSPORT, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_TRANSPORT, (type) )
 
 
 #define	NMOS_FIND_INTERLACE_MODE(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_INTERLACE_MODE, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_INTERLACE_MODE, (type) )
 
 #define	NMOS_FIND_TRANSFER_CHARC(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_TRANSFER_CHARACTER, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_TRANSFER_CHARACTER, (type) )
 
 
 #define	NMOS_FIND_COLOR_SPACE(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_COLOR_SPACE, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_COLOR_SPACE, (type) )
 
 
 #define	NMOS_FIND_VIDEO_COMPONENT(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_VIDEO_COMPONENT, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_VIDEO_COMPONENT, (type) )
 
 #define	NMOS_FIND_CONN_ACTIVATE(type)		\
-	muxNmosStringFindFormat(NMOS_STR_T_CONN_ACTIVATE, (type) )
+	extNmosStringFindFormat(NMOS_STR_T_CONN_ACTIVATE, (type) )
 
 
 #define	NMOS_URN_TRANSPORT				NMOS_URN":transport"
@@ -464,7 +464,7 @@ typedef	enum
 			((apiIf)->protoFlags & (1<<NMOS_API_PROTO_F_WEB_SOCKET) )
 
 
-#define		MUX_JSON_BOOL_STR( _bool)	\
+#define		EXT_JSON_BOOL_STR( _bool)	\
 				((_bool==0)?NMOS_LABEL_FALSE:NMOS_LABEL_TRUE)
 
 typedef	struct
@@ -760,21 +760,21 @@ typedef	struct _MuxNmosNode
 	NMOS_API_INTERFACE				queryApi;
 
 
-	MUX_RUNTIME_CFG				*runCfg;
+	EXT_RUNTIME_CFG				*runCfg;
 }MuxNmosNode;
 
 
 
-char muxNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len);
-char muxNmosPostDataRecv(void *connection, struct pbuf *p);
-void muxNmosPostDataFinished(void *conn);
+char extNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len);
+char extNmosPostDataRecv(void *connection, struct pbuf *p);
+void extNmosPostDataFinished(void *conn);
 
-void	muxNmosNodeInit(MuxNmosNode	*node, MUX_RUNTIME_CFG *runCfg);
+void	extNmosNodeInit(MuxNmosNode	*node, EXT_RUNTIME_CFG *runCfg);
 
 
-const char *muxNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type);
+const char *extNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type);
 
-int muxNmosSdpMediaHander(char *data, unsigned int size, MuxNmosSender *snd);
+int extNmosSdpMediaHander(char *data, unsigned int size, MuxNmosSender *snd);
 
 
 

@@ -95,7 +95,7 @@
 
 #include <string.h>
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 /* for 'rand' from libc of toolchain. J.L. */
 #include	<stdlib.h>
 #endif

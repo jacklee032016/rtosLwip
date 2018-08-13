@@ -473,7 +473,7 @@ err_t ip4_input(struct pbuf *p, struct netif *inp)
 
 //		LWIP_DEBUGF(IP_DEBUG,  ("Multicast....."LWIP_NEW_LINE));
 //		ip4_debug_print(p);
-		muxLwipIp4DebugPrint(p, "MULTICAST");
+		extLwipIp4DebugPrint(p, "MULTICAST");
 
 
 		if ((inp->flags & NETIF_FLAG_IGMP) && (igmp_lookfor_group(inp, ip4_current_dest_addr())))
@@ -685,7 +685,7 @@ err_t ip4_input(struct pbuf *p, struct netif *inp)
 	}
 #endif /* IP_OPTIONS_ALLOWED == 0 */
 
-	muxLwipIp4DebugPrint(p, "RX");
+	extLwipIp4DebugPrint(p, "RX");
 	/* send to upper layers */
 	LWIP_DEBUGF(IP_DEBUG, ("ip4_input: "LWIP_NEW_LINE));
 	ip4_debug_print(p);
@@ -985,7 +985,7 @@ err_t ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_add
 	LWIP_DEBUGF(IP_DEBUG, ("ip4_output_if: %c%c%"U16_F""LWIP_NEW_LINE, netif->name[0], netif->name[1], (u16_t)netif->num));
 	ip4_debug_print(p);
 
-	muxLwipIp4DebugPrint(p, "TX");
+	extLwipIp4DebugPrint(p, "TX");
 
 #if ENABLE_LOOPBACK
 	if (ip4_addr_cmp(dest, netif_ip4_addr(netif))

@@ -37,7 +37,7 @@ int32 rtl8307h_dot1x_unauthPktAct_set(rtl8307h_dot1xPktType_t pktType, rtk_dot1x
 
 int32 rtl8307h_dot1x_unauthPktAct_get(rtl8307h_dot1xPktType_t pktType, rtk_dot1x_unauth_action_t *pAction)
 {
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	if (pktType >= RTL8307H_DOT1X_PKT_END)

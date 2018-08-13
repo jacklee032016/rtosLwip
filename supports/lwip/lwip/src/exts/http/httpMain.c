@@ -49,12 +49,12 @@ static void mhttpContinue(void *connection)
 	MuxHttpConn *mhc = (MuxHttpConn*)connection;
 	if (mhc && (mhc->pcb) && (mhc->handle))
 	{
-		MUX_ASSERT(("mhc->pcb != NULL"), mhc->pcb != NULL);
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("httpd_continue: try to send more data"LWIP_NEW_LINE));
-		if (muxHttpSend(mhc))
+		EXT_ASSERT(("mhc->pcb != NULL"), mhc->pcb != NULL);
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("httpd_continue: try to send more data"LWIP_NEW_LINE));
+		if (extHttpSend(mhc))
 		{
 			/* If we wrote anything to be sent, go ahead and send it now. */
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("tcp_output"));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
 			tcp_output(mhc->pcb);
 		}
 	}
@@ -70,7 +70,7 @@ static void __mhttpErr(void *arg, err_t err)
 	MuxHttpConn *mhc = (MuxHttpConn *)arg;
 	LWIP_UNUSED_ARG(err);
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_err: %s", lwip_strerr(err)));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_err: %s", lwip_strerr(err)));
 
 	if (mhc != NULL)
 	{
@@ -86,7 +86,7 @@ static err_t __mhttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 {
 	MuxHttpConn *mhc = (MuxHttpConn *)arg;
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_sent %p", (void*)pcb));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_sent %p", (void*)pcb));
 
 	LWIP_UNUSED_ARG(len);
 
@@ -96,7 +96,7 @@ static err_t __mhttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 	}
 
 	mhc->retries = 0;
-	muxHttpSend( mhc);
+	extHttpSend( mhc);
 
 	return ERR_OK;
 }
@@ -112,13 +112,13 @@ static err_t __mhttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 err_t mhttpPoll(void *arg, struct tcp_pcb *pcb)
 {
 	MuxHttpConn *mhc = (MuxHttpConn *)arg;
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_poll: pcb=%p mhc=%p pcb_state=%s", (void*)pcb, (void*)mhc, tcp_debug_state_str(pcb->state)));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: pcb=%p mhc=%p pcb_state=%s", (void*)pcb, (void*)mhc, tcp_debug_state_str(pcb->state)));
 
 	if (mhc == NULL)
 	{
 		err_t closed;
 		/* arg is null, close. */
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_poll: arg is NULL, close"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: arg is NULL, close"));
 		closed = mhttpConnClose(NULL, pcb);
 		LWIP_UNUSED_ARG(closed);
 #if	MHTTPD_ABORT_ON_CLOSE_MEM_ERROR
@@ -135,7 +135,7 @@ err_t mhttpPoll(void *arg, struct tcp_pcb *pcb)
 		mhc->retries++;
 		if (mhc->retries == MHTTPD_MAX_RETRIES)
 		{
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_poll: too many retries, close"));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: too many retries, close"));
 			mhttpConnClose(mhc, pcb);
 			return ERR_OK;
 		}
@@ -145,10 +145,10 @@ err_t mhttpPoll(void *arg, struct tcp_pcb *pcb)
 		* cause the connection to close immediately. */
 		if(mhc )//&& (mhc->handle))
 		{
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_poll: try to send more data"));
-			if(muxHttpSend( mhc))
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: try to send more data"));
+			if(extHttpSend( mhc))
 			{/* If we wrote anything to be sent, go ahead and send it now. */
-				MUX_DEBUGF(MUX_HTTPD_DEBUG, ("tcp_output"));
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
 				tcp_output(pcb);
 			}
 		}
@@ -169,7 +169,7 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 {
 	MuxHttpConn *mhc = (MuxHttpConn *)arg;
 	
-	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("http_recv: pcb=%p pbuf=%p err=%s", (void*)pcb, (void*)p, lwip_strerr(err)));
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("http_recv: pcb=%p pbuf=%p err=%s", (void*)pcb, (void*)p, lwip_strerr(err)));
 
 	if ((err != ERR_OK) || (p == NULL) || (mhc == NULL))
 	{/* error or closed by other side? */
@@ -181,10 +181,10 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 		
 		if (mhc == NULL)
 		{/* this should not happen, only to be robust */
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Error, http_recv: mhc is NULL, close"));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error, http_recv: mhc is NULL, close"));
 		}
 		
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("HTTP Connection is broken by peer"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("HTTP Connection is broken by peer"));
 		mhttpConnClose(mhc, pcb);
 		return ERR_OK;
 	}
@@ -202,21 +202,21 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 
 #ifdef	ARM
 #else
-	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, (MUX_NEW_LINE MUX_NEW_LINE"Received %"U16_F" bytes", p->tot_len));
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, (EXT_NEW_LINE EXT_NEW_LINE"Received %"U16_F" bytes", p->tot_len));
 	memset(_debugBuf,0 , sizeof(_debugBuf));
 	
 	pbuf_copy_partial(p, _debugBuf, p->tot_len, 0);
-//	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("recv:'%.*s'" , p->tot_len,_debugBuf) );
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , p->tot_len,_debugBuf) );
 //	CONSOLE_DEBUG_MEM(mhc->data, p->tot_len, 0, "RECV HTTP Data");
 #endif
 
 	if ( HTTPREQ_IS_WEBSOCKET(mhc) )
 	{
-		err_t ret = muxHttpWebSocketParseFrame(mhc, p);
+		err_t ret = extHttpWebSocketParseFrame(mhc, p);
 		if (p != NULL)
 		{
 			/* otherwise tcp buffer hogs */
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[wsoc] freeing buffer"));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[wsoc] freeing buffer"));
 			pbuf_free(p);
 		}
 		
@@ -235,7 +235,7 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 	{/* reset idle counter when POST data is received */
 		mhc->retries = 0;
 		/* this is data for a POST, pass the complete pbuf to the application */
-		muxHttpPostRxDataPbuf(mhc, p);
+		extHttpPostRxDataPbuf(mhc, p);
 		
 		/* pbuf is passed to the application, don't free it! */
 #if 0
@@ -244,7 +244,7 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 		if ( 1)
 #endif			
 		{/* all data received, send response or close connection */
-			muxHttpSend(mhc);
+			extHttpSend(mhc);
 		}
 
 		return ERR_OK;
@@ -253,8 +253,8 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 	{
 		if (mhc->handle == NULL)
 		{
-			err_t parsed = muxHttpRequestParse(mhc, p );
-			MUX_ASSERT(("parse request: unexpected return value"), parsed == ERR_OK|| parsed == ERR_INPROGRESS ||parsed == ERR_ARG || parsed == ERR_USE);
+			err_t parsed = extHttpRequestParse(mhc, p );
+			EXT_ASSERT(("parse request: unexpected return value"), parsed == ERR_OK|| parsed == ERR_INPROGRESS ||parsed == ERR_ARG || parsed == ERR_USE);
 
 			if (parsed != ERR_INPROGRESS)
 			{
@@ -275,8 +275,8 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 				if ( 1)
 #endif			
 				{
-					//MUX_DEBUGF(MUX_HTTPD_DEBUG, ("file %p len %"S32_F"", (const void*)mhc->file, mhc->left));
-					muxHttpSend(mhc);
+					//EXT_DEBUGF(EXT_HTTPD_DEBUG, ("file %p len %"S32_F"", (const void*)mhc->file, mhc->left));
+					extHttpSend(mhc);
 				}
 			}
 			else if (parsed == ERR_ARG)
@@ -286,7 +286,7 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 		}
 		else
 		{
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_recv: already sending data"));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_recv: already sending data"));
 			/* already sending but still receiving data, we might want to RST here? */
 			pbuf_free(p);
 		}
@@ -298,12 +298,12 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 {
 	MuxHttpConn *mhc;
-	MUX_RUNTIME_CFG *runCfg = (MUX_RUNTIME_CFG *)arg;
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 	
 	LWIP_UNUSED_ARG(err);
 
-//	MUX_DEBUGF(MUX_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
-//	MUX_ERRORF(("_mhttpAccept %p / total Connection %d", (void*)pcb, runCfg->currentHttpConns ));
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
+//	EXT_ERRORF(("_mhttpAccept %p / total Connection %d", (void*)pcb, runCfg->currentHttpConns ));
 
 	if ((err != ERR_OK) || (pcb == NULL))
 	{
@@ -317,7 +317,7 @@ static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	mhc = mhttpConnAlloc();
 	if (mhc == NULL)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_accept: Out of memory, RST"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_accept: Out of memory, RST"));
 		return ERR_MEM;
 	}
 
@@ -345,27 +345,27 @@ void mHttpSvrMain(void *data)
 	struct tcp_pcb *pcb;
 	err_t err;
 
-	MUX_RUNTIME_CFG *runCfg = (MUX_RUNTIME_CFG *)data;
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
 #if	MHTTPD_USE_MEM_POOL
 	LWIP_MEMPOOL_INIT(MHTTPD_STATE);
 #if	MHTTPD_SSI
 	LWIP_MEMPOOL_INIT(MHTTPD_SSI_STATE);
 #endif
 #endif
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("mHttpSvrMain"));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("mHttpSvrMain"));
 
 	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	MUX_ASSERT(("mHttpSvrMain: tcp_new failed"), pcb != NULL);
+	EXT_ASSERT(("mHttpSvrMain: tcp_new failed"), pcb != NULL);
 	
 	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
 	/* set SOF_REUSEADDR here to explicitly bind httpd to multiple interfaces */
 	err = tcp_bind(pcb, IP_ANY_TYPE, runCfg->httpPort);
 	
 	LWIP_UNUSED_ARG(err); /* in case of LWIP_NOASSERT */
-	MUX_ASSERT(("mHttpSvrMain: tcp_bind failed"), err == ERR_OK);
+	EXT_ASSERT(("mHttpSvrMain: tcp_bind failed"), err == ERR_OK);
 	
 	pcb = tcp_listen(pcb);
-	MUX_ASSERT(("mHttpSvrMain: tcp_listen failed"), pcb != NULL);
+	EXT_ASSERT(("mHttpSvrMain: tcp_listen failed"), pcb != NULL);
 
 	tcp_arg(pcb, runCfg);
 
@@ -382,17 +382,17 @@ void mHttpSvrMain(void *data)
  */
 void mhttpSetSsiHandler(tSSIHandler ssi_handler, const char **tags, int num_tags)
 {
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("http_set_ssi_handler"));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_set_ssi_handler"));
 
-	MUX_ASSERT(("no ssi_handler given"), ssi_handler != NULL);
+	EXT_ASSERT(("no ssi_handler given"), ssi_handler != NULL);
 	g_pfnSSIHandler = ssi_handler;
 
 #if	MHTTPD_SSI_RAW
 	LWIP_UNUSED_ARG(tags);
 	LWIP_UNUSED_ARG(num_tags);
 #else
-	MUX_ASSERT(("no tags given"), tags != NULL);
-	MUX_ASSERT(("invalid number of tags"), num_tags > 0);
+	EXT_ASSERT(("no tags given"), tags != NULL);
+	EXT_ASSERT(("invalid number of tags"), num_tags > 0);
 
 	g_ppcTags = tags;
 	g_iNumTags = num_tags;
@@ -410,8 +410,8 @@ void mhttpSetSsiHandler(tSSIHandler ssi_handler, const char **tags, int num_tags
  */
 void mhttpSetCgiHandlers(const tCGI *cgis, int num_handlers)
 {
-	MUX_ASSERT(("no cgis given"), cgis != NULL);
-	MUX_ASSERT(("invalid number of handlers"), num_handlers > 0);
+	EXT_ASSERT(("no cgis given"), cgis != NULL);
+	EXT_ASSERT(("invalid number of handlers"), num_handlers > 0);
 
 	g_pCGIs = cgis;
 	g_iNumCGIs = num_handlers;

@@ -7,7 +7,7 @@
 #include "http.h"
 #include "jsmn.h"
 
-const	MUX_CONST_STR	nodeRoots[] =
+const	EXT_CONST_STR	nodeRoots[] =
 {
 	{
 		type	: NMOS_NODE_URL_T_SELF,
@@ -43,17 +43,17 @@ const	MUX_CONST_STR	nodeRoots[] =
 	}
 };
 
-char muxNmosNodeDumpHander(MuxHttpConn  *mhc, void *data)
+char extNmosNodeDumpHander(MuxHttpConn  *mhc, void *data)
 {
 	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
 
 	snprintf(mhc->uri + strlen(mhc->uri), sizeof(mhc->uri)-strlen(mhc->uri), "(%s)%s", apiAp->name, " will be implemented in future" );
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("'%s' is not implemented yet", apiAp->name) );
-	muxHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("'%s' is not implemented yet", apiAp->name) );
+	extHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
 	return EXIT_SUCCESS;
 }
 
-char muxNmosRootApHander(MuxHttpConn  *mhc, void *data)
+char extNmosRootApHander(MuxHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
@@ -84,43 +84,43 @@ char muxNmosRootApHander(MuxHttpConn  *mhc, void *data)
 }
 
 
-static void _muxApiRequestDebug(MuxHttpConn *mhc)
+static void _extApiRequestDebug(MuxHttpConn *mhc)
 {
 	int i;
 	char uuidStr[128];
-	printf("API Request: v:%d; Count of resources:%d"MUX_NEW_LINE, mhc->apiReq.versionFlags, mhc->apiReq.resourceCount);
+	printf("API Request: v:%d; Count of resources:%d"EXT_NEW_LINE, mhc->apiReq.versionFlags, mhc->apiReq.resourceCount);
 
 	for(i=0; i< mhc->apiReq.resourceCount; i++)	
 	{
-		printf("resource[%d]: %s;"MUX_NEW_LINE, i, mhc->apiReq.resources[i]);
+		printf("resource[%d]: %s;"EXT_NEW_LINE, i, mhc->apiReq.resources[i]);
 	}
 
 	i = 0;
 	UUID_PRINT(uuidStr, sizeof(uuidStr), i, &mhc->apiReq.uuid );
-	printf("UUID: %s;"MUX_NEW_LINE, uuidStr);
+	printf("UUID: %s;"EXT_NEW_LINE, uuidStr);
 	
 }
 
 
 /* UUID can be used in the middle of URI string */
-static char _muxParseApiResource(MuxNmosApiReq *apiReq, char *resource)
+static char _extParseApiResource(MuxNmosApiReq *apiReq, char *resource)
 {
 	unsigned int size;
 	char	*next = strstr(resource, "/");
 	
-	printf("parse: %s"MUX_NEW_LINE, resource);
+	printf("parse: %s"EXT_NEW_LINE, resource);
 	if(next)
 	{
 		/* case: UUID in the middle of URI*/
-		if(muxUuidParse(&apiReq->uuid, resource) == EXIT_SUCCESS)
+		if(extUuidParse(&apiReq->uuid, resource) == EXIT_SUCCESS)
 		{
-			return MUX_UUID_STR_LENGTH+1;	/* +1: ignore the last '/'*/
+			return EXT_UUID_STR_LENGTH+1;	/* +1: ignore the last '/'*/
 		}
 		
 		size = LWIP_MIN(next-resource, NMOS_URI_RESOURCE_LENGTH);
 		if(size< ((unsigned int)(next-resource)) )
 		{
-			MUX_INFOF(("resource buffer is not enough (%d) for '%.*s'", size, next- resource, resource) );
+			EXT_INFOF(("resource buffer is not enough (%d) for '%.*s'", size, next- resource, resource) );
 		}
 		
 		memcpy(apiReq->resources[apiReq->resourceCount++], resource, size);
@@ -128,28 +128,28 @@ static char _muxParseApiResource(MuxNmosApiReq *apiReq, char *resource)
 	}
 
 	/* case: the last pat of URI is UUID */
-	if(strlen(resource) != MUX_UUID_STR_LENGTH)
+	if(strlen(resource) != EXT_UUID_STR_LENGTH)
 	{
 		size = LWIP_MIN(strlen(resource), NMOS_URI_RESOURCE_LENGTH);
 		if(size< strlen(resource))
 		{
-			MUX_INFOF(("resource buffer is not enough (%d) for '%.*s'", size, strlen(resource), resource) );
+			EXT_INFOF(("resource buffer is not enough (%d) for '%.*s'", size, strlen(resource), resource) );
 		}
 		
 		memcpy(apiReq->resources[apiReq->resourceCount++], resource, size);
 		return strlen(resource);
 	}
 
-	if(muxUuidParse(&apiReq->uuid, resource) == EXIT_SUCCESS)
+	if(extUuidParse(&apiReq->uuid, resource) == EXIT_SUCCESS)
 	{
-		return MUX_UUID_STR_LENGTH;
+		return EXT_UUID_STR_LENGTH;
 	}
 
 	return 0;
 }
 
 
-static char muxHttpNmosParseApiRequest(MuxHttpConn *mhc, NMOS_API_TYPE type)
+static char extHttpNmosParseApiRequest(MuxHttpConn *mhc, NMOS_API_TYPE type)
 {
 	MuxNmosApiReq *apiReq;
 	char *version;
@@ -184,14 +184,14 @@ static char muxHttpNmosParseApiRequest(MuxHttpConn *mhc, NMOS_API_TYPE type)
 	}
 	else 
 	{
-		MUX_INFOF(("API version '%.*s' not supported", 4, version) );
+		EXT_INFOF(("API version '%.*s' not supported", 4, version) );
 		return EXIT_FAILURE;
 	}
 	
 	version += strlen(NMOS_API_VERSION_12);
 	if(urlLen == version - mhc->uri /* with last '/' */ || urlLen == version+1-mhc->uri /* with last '/' */)
 	{
-		MUX_INFOF(("API request at root URI") );
+		EXT_INFOF(("API request at root URI") );
 //		sprintf(apiReq->resources[apiReq->resourceCount], "%s", "/");
 		apiReq->resourceCount = 0;
 		return EXIT_SUCCESS;
@@ -200,41 +200,41 @@ static char muxHttpNmosParseApiRequest(MuxHttpConn *mhc, NMOS_API_TYPE type)
 	version++; /* ignore the root '/' */
 	do
 	{
-		ret = _muxParseApiResource(apiReq, version);
+		ret = _extParseApiResource(apiReq, version);
 		version += ret;
 	}while(version - mhc->uri < urlLen);
 		
-	_muxApiRequestDebug(mhc);
+	_extApiRequestDebug(mhc);
 	
 	return EXIT_SUCCESS;
 }
 
-#if MUX_HTTPD_DEBUG
-static void _muxApiApdebug(const ApiAccessPoint *apRoot)
+#if EXT_HTTPD_DEBUG
+static void _extApiApdebug(const ApiAccessPoint *apRoot)
 {
 	int i = 0;
 	while(apRoot)
 	{
-		printf("#%d:Type:%d, name:%s"MUX_NEW_LINE, ++i, apRoot->type, apRoot->name);
+		printf("#%d:Type:%d, name:%s"EXT_NEW_LINE, ++i, apRoot->type, apRoot->name);
 		apRoot = apRoot->next;
 	}
 	
 }
 #endif
 
-static char _muxRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot, NMOS_API_TYPE type)
+static char _extRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot, NMOS_API_TYPE type)
 {
 	const ApiAccessPoint	*apiAp = apiAcRoot;
 	MuxNmosApiReq	*apiReq = &mhc->apiReq;
 	int	index = 0;
 	char		ret;
 
-	mhc->reqType = MUX_HTTP_REQ_T_REST;
+	mhc->reqType = EXT_HTTP_REQ_T_REST;
 	
 
-	if( muxHttpNmosParseApiRequest(mhc, type) == EXIT_FAILURE)
+	if( extHttpNmosParseApiRequest(mhc, type) == EXIT_FAILURE)
 	{
-		muxHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Failed in parsing resources in URI");
+		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Failed in parsing resources in URI");
 		return EXIT_SUCCESS;
 	}
 	
@@ -246,7 +246,7 @@ static char _muxRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 
 	while(apiAp)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("API:'%s' :: REQ:'%s'", apiAp->name, apiReq->resources[index]) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("API:'%s' :: REQ:'%s'", apiAp->name, apiReq->resources[index]) );
 		if(strcasecmp(apiAp->name, apiReq->resources[index] ) == 0)
 		{
 			index++;
@@ -257,11 +257,11 @@ static char _muxRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 				if(ret == EXIT_FAILURE)
 				{
 				}	
-				if(MUX_DEBUG_IS_ENABLE(MUX_DEBUG_FLAG_CMD))
+				if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 				{
 	//					printf("output RES12 %p, %d bytes: '%s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outBuffer);
 				}
-				MUX_DEBUGF(MUX_HTTPD_DEBUG, ("return value of REST API callback handler:%d", ret) );
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("return value of REST API callback handler:%d", ret) );
 
 				return ret;
 			}	
@@ -275,18 +275,18 @@ static char _muxRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 		
 	}
 
-	muxHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Can't find service of URI");
+	extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Can't find service of URI");
 
 	return EXIT_SUCCESS;
 
 }
 
-char muxHttpHandleRequest(MuxHttpConn *mhc)
+char extHttpHandleRequest(MuxHttpConn *mhc)
 {
 //	char ret = EXIT_FAILURE;
 
-#if MUX_HTTPD_DEBUG
-	_muxApiApdebug(&apNodeRoot);
+#if EXT_HTTPD_DEBUG
+	_extApiApdebug(&apNodeRoot);
 #endif
 
 	if(HTTP_IS_ERROR(mhc) )
@@ -296,27 +296,27 @@ char muxHttpHandleRequest(MuxHttpConn *mhc)
 
 	if(strstr(mhc->uri, NMOS_API_URI_NODE) )
 	{
-		return _muxRestApiHandle(mhc, &apNodeRoot, NMOS_API_T_NODE);
+		return _extRestApiHandle(mhc, &apNodeRoot, NMOS_API_T_NODE);
 	}
 	else if( strstr(mhc->uri, NMOS_API_URI_CONNECTION) )
 	{
-		return _muxRestApiHandle(mhc, &apConnRoot, NMOS_API_T_CONNECTION);
+		return _extRestApiHandle(mhc, &apConnRoot, NMOS_API_T_CONNECTION);
 	}
-	else if(muxHttpWebService(mhc, NULL) == EXIT_SUCCESS)
+	else if(extHttpWebService(mhc, NULL) == EXIT_SUCCESS)
 	{
 		return EXIT_SUCCESS;
 	}
-	else if(muxHttpFileFind(mhc) == ERR_OK)
+	else if(extHttpFileFind(mhc) == ERR_OK)
 	{
-		mhc->reqType = MUX_HTTP_REQ_T_FILE;
+		mhc->reqType = EXT_HTTP_REQ_T_FILE;
 		return EXIT_SUCCESS;
 	}
 	else
 	{
 	}
 
-	mhc->reqType = MUX_HTTP_REQ_T_REST;
-	muxHttpRestError(mhc, WEB_RES_NOT_FOUND, "URI not exist in server");
+	mhc->reqType = EXT_HTTP_REQ_T_REST;
+	extHttpRestError(mhc, WEB_RES_NOT_FOUND, "URI not exist in server");
 	
 	return EXIT_SUCCESS;
 }

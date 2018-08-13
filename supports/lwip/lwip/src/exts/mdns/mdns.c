@@ -1909,7 +1909,7 @@ static void mdns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_a
 	mdns_client_t *client = (mdns_client_t *)arg;
 
 	LWIP_DEBUGF(MDNS_DEBUG, (LWIP_NEW_LINE LWIP_NEW_LINE"MDNS: Received IPv%d MDNS packet, len %d(%d, %d), from %s:%d"LWIP_NEW_LINE, 
-		IP_IS_V6(addr)? 6 : 4, p->tot_len, p->len, pbuf_clen(p), MUX_LWIP_IPADD_TO_STR(addr), port) );
+		IP_IS_V6(addr)? 6 : 4, p->tot_len, p->len, pbuf_clen(p), EXT_LWIP_IPADD_TO_STR(addr), port) );
 
 //	CONSOLE_DEBUG_MEM(p->payload, (uint32_t)p->tot_len, 0, "RECV MDNS Data");
 #if 0
@@ -1986,7 +1986,7 @@ void mdns_resp_init(void *_client)
 	mdns_client_t *client = (mdns_client_t *)_client;
 
 	mdns_pcb = udp_new_ip_type(IPADDR_TYPE_ANY);
-	MUX_ASSERT(("Failed to allocate pcb"), mdns_pcb != NULL);
+	EXT_ASSERT(("Failed to allocate pcb"), mdns_pcb != NULL);
 #if LWIP_MULTICAST_TX_OPTIONS
 	udp_set_multicast_ttl(mdns_pcb, MDNS_TTL);
 #else
@@ -1994,7 +1994,7 @@ void mdns_resp_init(void *_client)
 #endif
 	res = udp_bind(mdns_pcb, IP_ANY_TYPE, MDNS_PORT);
 	LWIP_UNUSED_ARG(res); /* in case of LWIP_NOASSERT */
-	MUX_ASSERT(("Failed to bind pcb"), res == ERR_OK);
+	EXT_ASSERT(("Failed to bind pcb"), res == ERR_OK);
 	udp_recv(mdns_pcb, mdns_recv, client);
 
 	mdns_netif_client_id = netif_alloc_client_data_id();
@@ -2046,7 +2046,7 @@ err_t mdns_resp_add_netif(struct netif *netif, const char *hostname, u32_t dns_t
 	LWIP_ERROR(("mdns_resp_add_netif: netif != NULL"), (netif != NULL), return ERR_VAL);
 	LWIP_ERROR(("mdns_resp_add_netif: Hostname too long"), (strlen(hostname) <= MDNS_LABEL_MAXLEN), return ERR_VAL);
 
-	MUX_ASSERT(("mdns_resp_add_netif: Double add"), NETIF_TO_HOST(netif) == NULL);
+	EXT_ASSERT(("mdns_resp_add_netif: Double add"), NETIF_TO_HOST(netif) == NULL);
 	mdns = (struct mdns_host *) mem_malloc(sizeof(struct mdns_host));
 	LWIP_ERROR(("mdns_resp_add_netif: Alloc failed"), (mdns != NULL), return ERR_MEM);
 
@@ -2096,7 +2096,7 @@ err_t mdns_resp_remove_netif(struct netif *netif)
 	int i;
 	struct mdns_host* mdns;
 
-	MUX_ASSERT(("mdns_resp_remove_netif: Null pointer"), netif);
+	EXT_ASSERT(("mdns_resp_remove_netif: Null pointer"), netif);
 	mdns = NETIF_TO_HOST(netif);
 	LWIP_ERROR(("mdns_resp_remove_netif: Not an active netif"), (mdns != NULL), return ERR_VAL);
 
@@ -2144,7 +2144,7 @@ err_t mdns_resp_add_service(struct netif *netif, const char *name, const char *s
 	struct mdns_service *srv;
 	struct mdns_host* mdns;
 
-	MUX_ASSERT(("mdns_resp_add_service: netif != NULL"), netif);
+	EXT_ASSERT(("mdns_resp_add_service: netif != NULL"), netif);
 	mdns = NETIF_TO_HOST(netif);
 	LWIP_ERROR(("mdns_resp_add_service: Not an mdns netif"), (mdns != NULL), return ERR_VAL);
 
@@ -2199,7 +2199,7 @@ err_t mdns_resp_add_service(struct netif *netif, const char *name, const char *s
  */
 err_t mdns_resp_add_service_txtitem(struct mdns_service *service, const char *txt, u8_t txt_len)
 {
-	MUX_ASSERT(("mdns_resp_add_service_txtitem: service != NULL"), service);
+	EXT_ASSERT(("mdns_resp_add_service_txtitem: service != NULL"), service);
 
 	/* Use a mdns_domain struct to store txt chunks since it is the same encoding */
 	return mdns_domain_add_label(&service->txtdata, txt, txt_len);

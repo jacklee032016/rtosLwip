@@ -152,7 +152,7 @@ ret_t rtl8307h_arp_asicArpTrap_set( rtk_trap_misc_action_t action)
 */
 ret_t rtl8307h_arp_asicArpTrap_get( rtk_trap_misc_action_t* action)
 {
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*action = MISC_ACTION_FORWARD;
@@ -361,7 +361,7 @@ ret_t rtl8307h_cfi_asicCfiTrap_set( rtk_trap_misc_action_t action)
 @comm
     This API can check  packets with inner tag and cfi == 1 trapped to CPU or not
 */
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
 ret_t rtl8307h_cfi_asicCfiTrap_get( rtk_trap_misc_action_t* action)
 {
     if( SUCCESS == reg_field_read(RTL8307H_UNIT, CFI_CONTROL, CFITRAP, action))

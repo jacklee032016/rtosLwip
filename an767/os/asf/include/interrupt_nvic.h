@@ -47,7 +47,7 @@
 #ifndef UTILS_INTERRUPT_INTERRUPT_H
 #define UTILS_INTERRUPT_INTERRUPT_H
 
-#include "muxOs.h"
+#include "eos.h"
 
 #ifdef __cplusplus
 extern "C" {

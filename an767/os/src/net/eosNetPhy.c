@@ -4,7 +4,7 @@
  *
  */
 
-#include "muxOs.h"
+#include "eos.h"
 #include "ethernetPhy.h"
 #include "pio.h"
 #include "ioport.h"
@@ -42,7 +42,7 @@
  *
  * \return 0xFF when no valid PHY address is found.
  */
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 static uint8_t ethernet_phy_find_valid(Gmac *p_gmac, uint8_t uc_phy_addr, uint8_t uc_start_addr)
 {
@@ -103,13 +103,13 @@ static uint8_t ethernet_phy_find_valid(Gmac *p_gmac, uint8_t uc_phy_addr, uint8_
 uint8_t ethernet_phy_init(Gmac *p_gmac, uint8_t uc_phy_addr, uint32_t mck)
 {
 	uint8_t uc_rc = 0;
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 	uint8_t uc_phy;
 #endif
 
 	pio_set_output(PIN_GMAC_RESET_PIO, PIN_GMAC_RESET_MASK, 1,  false, true);
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 	/* external INT pin from ethernet switch chip, this pin has been routed to FPGA */
 	pio_set_input(PIN_GMAC_INT_PIO, PIN_GMAC_INT_MASK, PIO_PULLUP);
@@ -123,14 +123,14 @@ uint8_t ethernet_phy_init(Gmac *p_gmac, uint8_t uc_phy_addr, uint32_t mck)
 	pio_set_peripheral(PIN_GMAC_PIO, PIN_GMAC_PERIPH, PIN_GMAC_MASK);
 
 
-#if MUXLAB_BOARD
-	if(muxBspRtl8305Config() != EXIT_SUCCESS)
+#if EXTLAB_BOARD
+	if(extBspRtl8305Config() != EXIT_SUCCESS)
 		uc_rc = GMAC_TIMEOUT;
 #else
 	uc_rc = ethernet_phy_reset(GMAC, uc_phy_addr);
 	if (uc_rc != GMAC_OK)
 	{
-		MUX_ABORT("PHY RESET");
+		EXT_ABORT("PHY RESET");
 		return 0;
 	}
 	
@@ -140,7 +140,7 @@ uint8_t ethernet_phy_init(Gmac *p_gmac, uint8_t uc_phy_addr, uint32_t mck)
 	if (uc_rc != GMAC_OK)
 	{/* set clock: 300,000,000 */
 		printf("ERROR: set GMAC clock error: %uMHz\t\r\n", (unsigned int)mck/1000/1000);
-//		MUX_ABORT("set clock");
+//		EXT_ABORT("set clock");
 		return 0;
 	}
 
@@ -175,7 +175,7 @@ uint8_t ethernet_phy_set_link(Gmac *p_gmac, uint8_t uc_phy_addr, uint8_t uc_appl
 {
 	uint8_t uc_rc =0;
 	uint8_t uc_speed, uc_fd;
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 	uint32_t ul_stat1;
 	uint32_t ul_stat2;
@@ -183,7 +183,7 @@ uint8_t ethernet_phy_set_link(Gmac *p_gmac, uint8_t uc_phy_addr, uint8_t uc_appl
 #endif
 
 	gmac_enable_management(p_gmac, true);
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 	/* Set GMAC for 100BaseTX and Full Duplex */
 	uc_speed = true;
 	uc_fd = true;
@@ -246,7 +246,7 @@ uint8_t ethernet_phy_set_link(Gmac *p_gmac, uint8_t uc_phy_addr, uint8_t uc_appl
 	gmac_set_speed(p_gmac, uc_speed);
 	gmac_enable_full_duplex(p_gmac, uc_fd);
 
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 #endif
 
@@ -270,7 +270,7 @@ uint8_t ethernet_phy_auto_negotiate(Gmac *p_gmac, uint8_t uc_phy_addr)
 	uint8_t uc_fd=0;
 	uint8_t uc_rc =0;
 	
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 	uint32_t ul_retry_max = ETH_PHY_RETRY_MAX;
 	uint32_t ul_value;
@@ -281,7 +281,7 @@ uint8_t ethernet_phy_auto_negotiate(Gmac *p_gmac, uint8_t uc_phy_addr)
 
 	gmac_enable_management(p_gmac, true);
 
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 	/* Set MII for 100BaseTX and Full Duplex */
 	uc_speed = true;
 	uc_fd = true;

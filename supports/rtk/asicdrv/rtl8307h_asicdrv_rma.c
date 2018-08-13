@@ -104,7 +104,7 @@ int32  rtl8307h_rmaAction_get(uint32 index, rtk_trap_rma_action_t* pRmaOp)
 {
     int32 retVal;
     
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*pRmaOp = RMA_ACTION_FORWARD;
@@ -240,7 +240,7 @@ int32  rtl8307h_rmaAction_get(uint32 index, rtk_trap_rma_action_t* pRmaOp)
 
 int32  rtl8307h_rmaTrapPri_set(uint32 index, uint32 priority)
 {
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
     uint32 regVal;
 #else	
     int32 retVal;
@@ -432,14 +432,14 @@ int32  rtl8307h_rmaTrapPri_get(uint32 index, uint32* pPriority)
         return RT_ERR_RMA_ADDR;
     } 
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	return retVal;
 #else
     return RT_ERR_OK;
 #endif
 }
 
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
 int32  rtl8307h_rmaCpuMsk_set(uint32 index, uint32 portMsk)
 {
     int32 retVal;

@@ -6,7 +6,7 @@
 
 #if LWIP_EXT_MQTT_CLIENT
 
-#define	MQTT_CLIENT_DEBUG		MUX_DBG_OFF
+#define	MQTT_CLIENT_DEBUG		EXT_DBG_OFF
 
 /* The idea is to demultiplex topic and create some reference to be used in data callbacks
    Example here uses a global variable, better would be to use a member in arg
@@ -20,11 +20,11 @@ static void _mqttClientPublishRequestCb(void *arg, err_t result)
 {
 	if(result != ERR_OK)
 	{
-		MUX_ERRORF(("Publish result: %d", result));
+		EXT_ERRORF(("Publish result: %d", result));
 	}
 }
 
-void mqttClientPublish(mqtt_client_t *client, void *arg)
+static void mqttClientPublish(mqtt_client_t *client, void *arg)
 {
 	//const char *pub_payload= "Hola mundo de mierda!";
 	const char *pub_payload= arg;
@@ -35,14 +35,14 @@ void mqttClientPublish(mqtt_client_t *client, void *arg)
 	err = mqtt_publish(client, "placa", pub_payload, strlen(pub_payload), qos, retain, _mqttClientPublishRequestCb, arg);
 	if(err != ERR_OK)
 	{
-		MUX_ERRORF(("Publish err: %d", err));
+		EXT_ERRORF(("Publish err: %d", err));
 	}
 }
 
 
 static void _mqttClientIncomingPublishCb(void *arg, const char *topic, u32_t tot_len)
 {
-	MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("Incoming publish at topic %s with total length %u", topic, (unsigned int)tot_len) );
+	EXT_DEBUGF(MQTT_CLIENT_DEBUG, ("Incoming publish at topic %s with total length %u", topic, (unsigned int)tot_len) );
 
 	/* Decode topic string into a user defined reference */
 	if(strcmp(topic, "print_payload") == 0)
@@ -72,7 +72,7 @@ static void _mqttClientIncomingPublishCb(void *arg, const char *topic, u32_t tot
 
 static void _mqttClientIncomingDataCb(void *arg, const u8_t *data, u16_t len, u8_t flags)
 {
-	MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("Incoming publish payload with length %d, flags %u", len, (unsigned int)flags));
+	EXT_DEBUGF(MQTT_CLIENT_DEBUG, ("Incoming publish payload with length %d, flags %u", len, (unsigned int)flags));
 
 	if(flags & MQTT_DATA_FLAG_LAST)
 	{
@@ -84,7 +84,7 @@ static void _mqttClientIncomingDataCb(void *arg, const u8_t *data, u16_t len, u8
 			/* Don't trust the publisher, check zero termination */
 			if(data[len-1] == 0)
 			{
-				MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_incoming_data: '%s'", (const char *)data));
+				EXT_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_incoming_data: '%s'", (const char *)data));
 			}
 		}
 		else if(inpub_id == 1)
@@ -116,7 +116,7 @@ static void _mqttClientIncomingDataCb(void *arg, const u8_t *data, u16_t len, u8
 		}
 		else
 		{
-			MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_incoming_data_cb: Ignoring payload..."));
+			EXT_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_incoming_data_cb: Ignoring payload..."));
 		}
 	}
 	else
@@ -132,7 +132,10 @@ static void _mqttClientSubscribeRequestCb(void *arg, err_t result)
 	/* Just print the result code here for simplicity,
 	 normal behaviour would be to take some action if subscribe fails like
 	 notifying user, retry subscribe or disconnect from server */
-	MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("Subscribe result: %d", result));
+	EXT_DEBUGF(MQTT_CLIENT_DEBUG, ("Subscribe result: %d", result));
+	mqtt_client_t * client = (mqtt_client_t *)arg;
+
+	mqttClientPublish(client, arg);
 }
 
 
@@ -145,21 +148,21 @@ static void _mqttClientConnectionCb(mqtt_client_t * client, void * arg, mqtt_con
 
 	if (status == MQTT_CONNECT_ACCEPTED)
 	{
-		MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_connection: Successfully connected"));
+		EXT_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_connection: Successfully connected"));
 
 		/* Setup callback for incoming publish requests */
 		mqtt_set_inpub_callback(client, _mqttClientIncomingPublishCb, _mqttClientIncomingDataCb, arg);
 
 		/* Subscribe to a topic named "subtopic" with QoS level 1, call mqtt_sub_request_cb with result */
-		err = mqtt_subscribe(client, topico, 1, _mqttClientSubscribeRequestCb, arg);
+		err = mqtt_subscribe(client, topico, 1, _mqttClientSubscribeRequestCb, client);
 		if (err != ERR_OK)
 		{
-			MUX_ERRORF(("mqtt_subscribe return failed: %d", err));
+			EXT_ERRORF(("mqtt_subscribe return failed: %d", err));
 		}
 	}
 	else
 	{
-		MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_connection: Disconnected, reason: %d", status));
+		EXT_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_connection: Disconnected, reason: %d", status));
 		/* Its more nice to be connected, so try to reconnect */
 		//mqtt_do_connect(client);
 		mqttClientConnect(client, brokerIp->addr);
@@ -193,7 +196,7 @@ void mqttClientConnect(mqtt_client_t * client, unsigned int svrIp)
 	/* For now just print the result code if something goes wrong */
 	if (err != ERR_OK)
 	{
-		MUX_ERRORF(("mqtt_connect return failed %d", err));
+		EXT_ERRORF(("mqtt_connect return failed %d", err));
 	}
 
 }

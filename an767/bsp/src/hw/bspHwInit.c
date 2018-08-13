@@ -19,12 +19,12 @@
  */
 static void _buttonHandler(uint32_t id, uint32_t mask)
 {
-	if ((MUX_PUSH_BUTTON_ID == id) && (MUX_PUSH_BUTTON_PIN_MSK == mask) )
+	if ((EXT_PUSH_BUTTON_ID == id) && (EXT_PUSH_BUTTON_PIN_MSK == mask) )
 	{
 //		g_button_event = 1;
-		MUX_INFOF(("'%s' is pressed, now reboot..."MUX_NEW_LINE MUX_NEW_LINE, MUX_BUTTON_STRING));
-		MUX_PRINTF((MUX_NEW_LINE)); /* reset the color to default before reboot */
-		MUX_REBOOT();
+		EXT_INFOF(("'%s' is pressed, now reboot..."EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING));
+		EXT_PRINTF((EXT_NEW_LINE)); /* reset the color to default before reboot */
+		EXT_REBOOT();
 	}
 }
 
@@ -40,20 +40,20 @@ void bspButtonConfig(boot_mode bMode)
 	if(bMode == BOOT_MODE_RTOS)
 	{
 		/* Configure PIO clock. */
-		pmc_enable_periph_clk(MUX_PUSH_BUTTON_ID );
+		pmc_enable_periph_clk(EXT_PUSH_BUTTON_ID );
 
 		/* Adjust pio debounce filter parameters, uses 10 Hz filter. */
-		pio_set_debounce_filter(MUX_PUSH_BUTTON_PIO, MUX_PUSH_BUTTON_PIN_MSK, 10);
+		pio_set_debounce_filter(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_PIN_MSK, 10);
 
 		/* Initialize pios interrupt handlers, see PIO definition in board.h. */
-		pio_handler_set(MUX_PUSH_BUTTON_PIO, MUX_PUSH_BUTTON_ID, MUX_PUSH_BUTTON_PIN_MSK, MUX_PUSH_BUTTON_ATTR, _buttonHandler);
+		pio_handler_set(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_ID, EXT_PUSH_BUTTON_PIN_MSK, EXT_PUSH_BUTTON_ATTR, _buttonHandler);
 
 		/* Enable PIO controller IRQs. */
-		NVIC_EnableIRQ((IRQn_Type)MUX_PUSH_BUTTON_ID);
+		NVIC_EnableIRQ((IRQn_Type)EXT_PUSH_BUTTON_ID);
 
 		/* Enable PIO line interrupts. */
-		pio_enable_interrupt(MUX_PUSH_BUTTON_PIO, MUX_PUSH_BUTTON_PIN_MSK);
-		gpio_configure_pin(MUX_PIN_SOFTWARE_RESET, IOPORT_DIR_INPUT );
+		pio_enable_interrupt(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_PIN_MSK);
+		gpio_configure_pin(EXT_PIN_SOFTWARE_RESET, IOPORT_DIR_INPUT );
 	}
 	else
 	{/* bootloader */	
@@ -62,42 +62,42 @@ void bspButtonConfig(boot_mode bMode)
 
 	/*switch buttons */
 #if 0	
-	gpio_configure_pin(MUX_PIN_DIP_SW_01, IOPORT_DIR_INPUT );
-	gpio_configure_pin(MUX_PIN_DIP_SW_02, IOPORT_DIR_INPUT );
-	gpio_configure_pin(MUX_PIN_DIP_SW_03, IOPORT_DIR_INPUT );
-	gpio_configure_pin(MUX_PIN_DIP_SW_04, IOPORT_DIR_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_01, IOPORT_DIR_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_02, IOPORT_DIR_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_03, IOPORT_DIR_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_04, IOPORT_DIR_INPUT );
 #else
-	gpio_configure_pin(MUX_PIN_DIP_SW_01, PIO_TYPE_PIO_INPUT );
-	gpio_configure_pin(MUX_PIN_DIP_SW_02, PIO_TYPE_PIO_INPUT );
-	gpio_configure_pin(MUX_PIN_DIP_SW_03, PIO_TYPE_PIO_INPUT );
-	gpio_configure_pin(MUX_PIN_DIP_SW_04, PIO_TYPE_PIO_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_01, PIO_TYPE_PIO_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_02, PIO_TYPE_PIO_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_03, PIO_TYPE_PIO_INPUT );
+	gpio_configure_pin(EXT_PIN_DIP_SW_04, PIO_TYPE_PIO_INPUT );
 #endif
 }
 
 
-static void _muxBspPinsConfig(void)
+static void _extBspPinsConfig(void)
 {
 	//WDT->WDT_MR = WDT_MR_WDDIS;         // disable watchdog
 
 	/* PROGRAM_B: Active Low reset to configuration logic; so output pin with high levelOUTPUT + INIT_HIGH + Drive Low Configuration */
 #if 0
-	gpio_configure_pin(MUX_PIN_FPGA_PROGRAM, IOPORT_DIR_OUTPUT | IOPORT_PIN_LEVEL_HIGH );//| IOPORT_MODE_PULLDOWN);
+	gpio_configure_pin(EXT_PIN_FPGA_PROGRAM, IOPORT_DIR_OUTPUT | IOPORT_PIN_LEVEL_HIGH );//| IOPORT_MODE_PULLDOWN);
 #else
-//	gpio_configure_pin(MUX_PIN_FPGA_PROGRAM, IOPORT_DIR_OUTPUT | IOPORT_PIN_LEVEL_HIGH | IOPORT_MODE_PULLUP);
-	gpio_configure_pin(MUX_PIN_FPGA_PROGRAM,  PIO_OUTPUT_1 | PIO_DEFAULT);
+//	gpio_configure_pin(EXT_PIN_FPGA_PROGRAM, IOPORT_DIR_OUTPUT | IOPORT_PIN_LEVEL_HIGH | IOPORT_MODE_PULLUP);
+	gpio_configure_pin(EXT_PIN_FPGA_PROGRAM,  PIO_OUTPUT_1 | PIO_DEFAULT);
 #endif
-//	gpio_configure_pin(MUX_PIN_FPGA_DONE,     IOPORT_DIR_INPUT );
-	gpio_configure_pin(MUX_PIN_FPGA_DONE,     PIO_TYPE_PIO_INPUT );
+//	gpio_configure_pin(EXT_PIN_FPGA_DONE,     IOPORT_DIR_INPUT );
+	gpio_configure_pin(EXT_PIN_FPGA_DONE,     PIO_TYPE_PIO_INPUT );
 
 
 #if 0
-	gpio_configure_pin(MUX_PIN_PLL_INIT,	IOPORT_DIR_OUTPUT | IOPORT_PIN_LEVEL_LOW | IOPORT_MODE_PULLDOWN);
+	gpio_configure_pin(EXT_PIN_PLL_INIT,	IOPORT_DIR_OUTPUT | IOPORT_PIN_LEVEL_LOW | IOPORT_MODE_PULLDOWN);
 #else
-	gpio_configure_pin(MUX_PIN_PLL_INIT,	 PIO_OUTPUT_0 | PIO_DEFAULT);
+	gpio_configure_pin(EXT_PIN_PLL_INIT,	 PIO_OUTPUT_0 | PIO_DEFAULT);
 #endif
 
 //	gpio_configure_pin(PIN_JUMPER_SELECT,     IOPORT_DIR_INPUT );
-	gpio_configure_pin(MUX_PIN_POWER_1V_OK, IOPORT_DIR_INPUT );
+	gpio_configure_pin(EXT_PIN_POWER_1V_OK, IOPORT_DIR_INPUT );
 
 }
 
@@ -117,7 +117,7 @@ void bspHwConsoleConfig(void)
 	};
 
 	/* Configure console UART. */
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 	/* configure UART pins */
 	ioport_set_port_mode(IOPORT_PIOA, PIO_PA9A_URXD0 | PIO_PA10A_UTXD0, IOPORT_MODE_MUX_A);
 	ioport_disable_port(IOPORT_PIOA, PIO_PA9A_URXD0 | PIO_PA10A_UTXD0);
@@ -143,26 +143,26 @@ void bspHwConsoleConfig(void)
 static void _bspHwSpiConfig(void)
 {
 
-	ioport_set_pin_peripheral_mode(MUX_SPI_MISO_GPIO,  MUX_SPI_MISO_FLAGS);
+	ioport_set_pin_peripheral_mode(EXT_SPI_MISO_GPIO,  EXT_SPI_MISO_FLAGS);
 //	gpio_configure_pin(SPI0_MISO_GPIO,		 IOPORT_DIR_INPUT | IOPORT_PIN_LEVEL_HIGH | IOPORT_MODE_PULLUP);
-	ioport_set_pin_peripheral_mode(MUX_SPI_MOSI_GPIO,  MUX_SPI_MOSI_FLAGS);
-	ioport_set_pin_peripheral_mode(MUX_SPI_SPCK_GPIO,  MUX_SPI_SPCK_FLAGS);
+	ioport_set_pin_peripheral_mode(EXT_SPI_MOSI_GPIO,  EXT_SPI_MOSI_FLAGS);
+	ioport_set_pin_peripheral_mode(EXT_SPI_SPCK_GPIO,  EXT_SPI_SPCK_FLAGS);
 
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
-	ioport_set_pin_peripheral_mode(MUX_SPI_NPCS0_GPIO, MUX_SPI_NPCS0_FLAGS);
+	ioport_set_pin_peripheral_mode(EXT_SPI_NPCS0_GPIO, EXT_SPI_NPCS0_FLAGS);
 #endif
 
-	ioport_set_pin_peripheral_mode(MUX_SPI_NPCS1_GPIO,  MUX_SPI_NPCS1_FLAGS);
+	ioport_set_pin_peripheral_mode(EXT_SPI_NPCS1_GPIO,  EXT_SPI_NPCS1_FLAGS);
 
-	bspSpiMasterInitialize(MUX_SPI_CHIP_SEL);
+	bspSpiMasterInitialize(EXT_SPI_CHIP_SEL);
 
 	bspHwSpiFlashInit();
 }
 
 void bspHwInit(boot_mode bMode)
 {
-	MUX_RUNTIME_CFG *runCfg = &muxRun;
+	EXT_RUNTIME_CFG *runCfg = &extRun;
 	runCfg->bootMode = bMode;
 	
 	sysclk_init();
@@ -172,7 +172,7 @@ void bspHwInit(boot_mode bMode)
 	/* after memory and watchdog, initialize IOPORTs */
 	ioport_init();
 
-	_muxBspPinsConfig();
+	_extBspPinsConfig();
 	
 	/* UART must follow PINs configuration, so put it here */
 	bspHwConsoleConfig();
@@ -203,44 +203,44 @@ void bspHwInit(boot_mode bMode)
 	if (efcFlashInit() != EXIT_SUCCESS)
 	{
 		printf("EFC Flash initialization error!");
-//		return MUX_FALSE;
+//		return EXT_FALSE;
 	}
 
-	memset(runCfg, 0, sizeof(MUX_RUNTIME_CFG));
-	if(bspCfgRead(runCfg, MUX_CFG_MAIN) == EXIT_FAILURE)
+	memset(runCfg, 0, sizeof(EXT_RUNTIME_CFG));
+	if(bspCfgRead(runCfg, EXT_CFG_MAIN) == EXIT_FAILURE)
 	{
-		MUX_INFOF(("Use factory configuration"MUX_NEW_LINE));
-		muxCfgFromFactory(runCfg);
+		EXT_INFOF(("Use factory configuration"EXT_NEW_LINE));
+		extCfgFromFactory(runCfg);
 	}
 
-	muxCfgInitAfterReadFromFlash(runCfg);
+	extCfgInitAfterReadFromFlash(runCfg);
 
 	if(runCfg->isMCast)
 	{
 		runCfg->dest.ip = CFG_MAKEU32(bspMultiAddressFromDipSwitch(), MCAST_DEFAULT_IPADDR2, MCAST_DEFAULT_IPADDR1, MCAST_DEFAULT_IPADDR0 );
-		muxTxMulticastIP2Mac(runCfg);
+		extTxMulticastIP2Mac(runCfg);
 	}
 
 	/* First output of UART initialized must be platform info */
 	if(bMode == BOOT_MODE_RTOS)
 	{
-#ifdef __MUX_RELEASE__
+#ifdef __EXT_RELEASE__
 		/* debug version is disabled */
 		bspConsoleReset(versionString);
 #endif
 	}
 	else
 	{
-		puts(MUX_NEW_LINE);
+		puts(EXT_NEW_LINE);
 		puts(versionString);
 	}
 
-	MUX_INFOF(("CPU Freq:%u MHz; Peripheral Freq:%u MHz; System clock:%u MHz"MUX_NEW_LINE, (int)sysclk_get_main_hz()/1000/1000, (int)sysclk_get_peripheral_hz()/1000/1000, (int)SystemCoreClock/1000/1000 ));
+	EXT_INFOF(("CPU Freq:%u MHz; Peripheral Freq:%u MHz; System clock:%u MHz"EXT_NEW_LINE, (int)sysclk_get_main_hz()/1000/1000, (int)sysclk_get_peripheral_hz()/1000/1000, (int)SystemCoreClock/1000/1000 ));
 
-	muxHwRs232Init(runCfg);
-//	muxBspEfcFlashReadInfo();
+	extHwRs232Init(runCfg);
+//	extBspEfcFlashReadInfo();
 	
-//	muxFpgaInit();
+//	extFpgaInit();
 	
 }
 

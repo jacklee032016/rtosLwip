@@ -37,7 +37,7 @@
 #ifndef LWIP_HDR_DEBUG_H
 #define LWIP_HDR_DEBUG_H
 
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
 #include "lwip/arch.h"
 #endif
 #include "lwip/opt.h"

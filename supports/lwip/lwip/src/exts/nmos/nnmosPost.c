@@ -6,7 +6,7 @@
 #include "jsmn.h"
 
 
-char muxNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len)
+char extNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len)
 {
 	MuxHttpConn *mhc = (MuxHttpConn *)conn;
 
@@ -15,12 +15,12 @@ char muxNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len)
 		return EXIT_SUCCESS;
 	}
 
-	MUX_ERRORF(("URI '%s' is not validate for POST", mhc->uri) );
-	muxHttpRestError(mhc, WEB_RES_NOT_IMP, "POST is not support in this URI");
+	EXT_ERRORF(("URI '%s' is not validate for POST", mhc->uri) );
+	extHttpRestError(mhc, WEB_RES_NOT_IMP, "POST is not support in this URI");
 	return EXIT_FAILURE;
 }
 
-char muxNmosPostDataRecv(void *conn, struct pbuf *p)
+char extNmosPostDataRecv(void *conn, struct pbuf *p)
 {
 	MuxHttpConn *mhc = (MuxHttpConn *)conn;
 	unsigned short len, copied;
@@ -31,7 +31,7 @@ char muxNmosPostDataRecv(void *conn, struct pbuf *p)
 	mhc->dataSendIndex += copied;
 	mhc->data[mhc->dataSendIndex] = 0;
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("packet %d bytes, copied %d (%d)byte  data: '%s'", p->tot_len, copied, mhc->dataSendIndex, mhc->data) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("packet %d bytes, copied %d (%d)byte  data: '%s'", p->tot_len, copied, mhc->dataSendIndex, mhc->data) );
 
 	if(HTTPREQ_IS_UPLOAD(mhc) )
 	{
@@ -40,7 +40,7 @@ char muxNmosPostDataRecv(void *conn, struct pbuf *p)
 	pbuf_free(p);
 	if(copied != len)
 	{
-		MUX_INFOF(("Only copied %d bytes from %d byte data", copied, len) );
+		EXT_INFOF(("Only copied %d bytes from %d byte data", copied, len) );
 		return EXIT_FAILURE;
 	}
 
@@ -49,16 +49,16 @@ char muxNmosPostDataRecv(void *conn, struct pbuf *p)
 }
 
 /* begin to execute on the recevied data of POST request or when conn is closed */
-void muxNmosPostDataFinished(void *conn)
+void extNmosPostDataFinished(void *conn)
 {
 	MuxHttpConn *mhc = (MuxHttpConn *)conn;
 
 	mhc = mhc;
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("POST request on '%s', data is '%s'", mhc->uri, mhc->data) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST request on '%s', data is '%s'", mhc->uri, mhc->data) );
 
 	snprintf(mhc->uri + strlen(mhc->uri), sizeof(mhc->uri)-strlen(mhc->uri), " %s", "will be implemented in future" );
 
-	muxHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
+	extHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
 
 	TRACE();
 }

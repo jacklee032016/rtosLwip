@@ -81,11 +81,13 @@ ifdef CODE_SUBDIRS
 	-@ for subdir in $(CODE_SUBDIRS) ; do ( mkdir -p $(OBJ_DIR)/$$subdir ) ; done
 endif
 ifeq ($(DEPS),yes)
-	@echo "Making $@  $(CFLAGS)"
+	@echo "Making $@ "  # $(CFLAGS)
 	@$(SHELL) -ec '$(CC) $(C_FLAGS) $(DFLAGS) $(CFLAGS) $< \
 		$(DMANGLE) | sed -e "s#^$(*F).o[ :]*#$(@D)\/$(*F).o $@ : #" \
 		> $@; [ -s $@ ] || mv -f a.temp'
 endif
+
+
 
 # $(OBJ_DIR)/%.d: %.cpp 
 $(OBJ_DIR)/%.d: %.cxx 

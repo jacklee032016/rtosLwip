@@ -38,7 +38,7 @@ struct _AN767_DEVICE
 {
 	struct _AN767_DEVICE		*next;
 
-	MUX_RUNTIME_CFG		cfg;
+	EXT_RUNTIME_CFG		cfg;
 };
 
 struct API_PARAMETERS
@@ -47,9 +47,9 @@ struct API_PARAMETERS
 	int					port;
 
 	char					cmd[128];
-	MUX_MAC_ADDRESS	target;
+	EXT_MAC_ADDRESS	target;
 
-	MUX_VIDEO_CONFIG	vCfg;
+	EXT_VIDEO_CONFIG	vCfg;
 
 	/* video configuration */	
 	char					mediaMac[128];
@@ -73,7 +73,7 @@ struct API_PARAMETERS
 	unsigned char			rs232stop;
 	char					rs232Parity[32];
 
-	MUX_MAC_ADDRESS	hexData;
+	EXT_MAC_ADDRESS	hexData;
 	char					isFeed;
 	unsigned	short		waitMs;
 
@@ -97,16 +97,16 @@ typedef	struct
 	int						socket;
 //	int						peerAddress;
 	struct sockaddr_in			peerAddress;
-	MUX_UUID_T				uuid;
-	MUX_MAC_ADDRESS		macAddress;
+	EXT_UUID_T				uuid;
+	EXT_MAC_ADDRESS		macAddress;
 
 	char						buffer[8192];
 	int						size;
 	int						bufIndex;
 
-	MUX_JSON_PARSER  		parser;
+	EXT_JSON_PARSER  		parser;
 
-	MUX_RUNTIME_CFG		*clientCfg;
+	EXT_RUNTIME_CFG		*clientCfg;
 	struct API_PARAMETERS	*params;
 
 	AN767_DEV_T				*devs;

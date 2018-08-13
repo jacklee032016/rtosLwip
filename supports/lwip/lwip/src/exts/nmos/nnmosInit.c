@@ -12,11 +12,11 @@
 #include "http.h"
 #include "jsmn.h"
 
-#define	MUX_AUDIO_SAMPLE_RATE		48000
+#define	EXT_AUDIO_SAMPLE_RATE		48000
 
-#define	MUX_VIDEO_FRAME_RATE			60
-#define	MUX_VIDEO_FRAME_WIDTH		1080
-#define	MUX_VIDEO_FRAME_HEIGHT		720
+#define	EXT_VIDEO_FRAME_RATE			60
+#define	EXT_VIDEO_FRAME_WIDTH		1080
+#define	EXT_VIDEO_FRAME_HEIGHT		720
 
 
 
@@ -36,12 +36,12 @@ static MuxNmosSource		_sourceAudio;
 
 static MuxNmosSource		_sourceData;
 
-static unsigned char __muxDataSenderInit(MuxNmosFlow *flow)
+static unsigned char __extDataSenderInit(MuxNmosFlow *flow)
 {
 	MuxNmosSender *snd = &_senderData;
 	memset(snd, 0, sizeof(MuxNmosSender));
 
-	muxNmosIdGenerate(&snd->resourceId.nmosId, flow->source->device->node->runCfg);
+	extNmosIdGenerate(&snd->resourceId.nmosId, flow->source->device->node->runCfg);
 	snprintf(snd->resourceId.label, sizeof(snd->resourceId.label), "MuxLab data sender from %s", flow->source->device->node->runCfg->name );
 	snprintf(snd->resourceId.description, sizeof(snd->resourceId.description), "%s", "MuxLab NMOS data sender");
 	snd->resourceId.node = flow->resourceId.node;
@@ -58,18 +58,18 @@ static unsigned char __muxDataSenderInit(MuxNmosFlow *flow)
 
 	snd->constraints.sourcePortMini = flow->resourceId.node->runCfg->local.dport;
 	snd->constraints.destPortMini = flow->resourceId.node->runCfg->dest.dport;
-	snd->constraints.portRange = MUX_MEDIA_PORT_RANGE;
+	snd->constraints.portRange = EXT_MEDIA_PORT_RANGE;
 
 	return EXIT_SUCCESS;
 }
 
 
-static unsigned char __muxDataFlowInit(MuxNmosSource	*src)
+static unsigned char __extDataFlowInit(MuxNmosSource	*src)
 {
 	MuxNmosFlow *flow = &_flowData;
 	memset(flow, 0, sizeof(MuxNmosFlow));
 
-	muxNmosIdGenerate(&flow->resourceId.nmosId, src->device->node->runCfg);
+	extNmosIdGenerate(&flow->resourceId.nmosId, src->device->node->runCfg);
 	snprintf(flow->resourceId.label, sizeof(flow->resourceId.label), "MuxLab data from %s", src->device->node->runCfg->name );
 	snprintf(flow->resourceId.description, sizeof(flow->resourceId.description), "%s", "MuxLab data supports NMOS");
 	flow->resourceId.node = src->resourceId.node;
@@ -79,19 +79,19 @@ static unsigned char __muxDataFlowInit(MuxNmosSource	*src)
 	flow->format = NMOS_SOURCE_FORMAT_DATA;
 	snprintf(flow->mediaType, sizeof(flow->mediaType), "%s", NMOS_MEDIA_TYPE_DATA_291);
 	
-	__muxDataSenderInit(flow);
+	__extDataSenderInit(flow);
 	
 	ADD_ELEMENT(src->device->flows, flow);
 	return EXIT_SUCCESS;
 }
 
 
-static unsigned char __muxDataSourceInit(MuxNmosDevice *dev)
+static unsigned char __extDataSourceInit(MuxNmosDevice *dev)
 {
 	MuxNmosSource	*src = &_sourceData;
 
 	memset(src, 0, sizeof(MuxNmosSource));
-	muxNmosIdGenerate(&src->resourceId.nmosId, dev->node->runCfg);
+	extNmosIdGenerate(&src->resourceId.nmosId, dev->node->runCfg);
 	snprintf(src->resourceId.label, sizeof(src->resourceId.label), "MuxLab data stream from %s", dev->node->runCfg->name );
 	snprintf(src->resourceId.description, sizeof(src->resourceId.description), "%s", "MuxLab data stream supports NMOS");
 	src->resourceId.node = dev->resourceId.node;
@@ -101,7 +101,7 @@ static unsigned char __muxDataSourceInit(MuxNmosDevice *dev)
 	src->clockIndex = NMOS_CLOCK_INTERNAL;
 	src->format = NMOS_SOURCE_FORMAT_DATA;
 
-	__muxDataFlowInit(src);
+	__extDataFlowInit(src);
 
 	ADD_ELEMENT(dev->sources, src);
 	return EXIT_SUCCESS;
@@ -110,7 +110,7 @@ static unsigned char __muxDataSourceInit(MuxNmosDevice *dev)
 static NmosAudioChannel		_leftChannel;
 static NmosAudioChannel		_rightChannel;
 
-static void	_muxNmosAudioChannelInit(MuxNmosSource *audioSrc)
+static void	_extNmosAudioChannelInit(MuxNmosSource *audioSrc)
 {
 	NmosAudioChannel *chan = &_leftChannel;
 	
@@ -128,12 +128,12 @@ static void	_muxNmosAudioChannelInit(MuxNmosSource *audioSrc)
 
 }
 
-static unsigned char __muxAudioSenderInit(MuxNmosFlow *flow)
+static unsigned char __extAudioSenderInit(MuxNmosFlow *flow)
 {
 	MuxNmosSender *snd = &_senderAudio;
 	memset(snd, 0, sizeof(MuxNmosSender));
 
-	muxNmosIdGenerate(&snd->resourceId.nmosId, flow->source->device->node->runCfg);
+	extNmosIdGenerate(&snd->resourceId.nmosId, flow->source->device->node->runCfg);
 	snprintf(snd->resourceId.label, sizeof(snd->resourceId.label), "MuxLab audio sender from %s", flow->source->device->node->runCfg->name );
 	snprintf(snd->resourceId.description, sizeof(snd->resourceId.description), "%s", "MuxLab NMOS audio sender");
 	snd->resourceId.node = flow->resourceId.node;
@@ -150,18 +150,18 @@ static unsigned char __muxAudioSenderInit(MuxNmosFlow *flow)
 
 	snd->constraints.sourcePortMini = flow->resourceId.node->runCfg->local.aport;
 	snd->constraints.destPortMini = flow->resourceId.node->runCfg->dest.aport;
-	snd->constraints.portRange = MUX_MEDIA_PORT_RANGE;
+	snd->constraints.portRange = EXT_MEDIA_PORT_RANGE;
 	
 	return EXIT_SUCCESS;
 }
 
 
-static unsigned char __muxAudioFlowInit(MuxNmosSource	*src)
+static unsigned char __extAudioFlowInit(MuxNmosSource	*src)
 {
 	MuxNmosFlow *flow = &_flowAudio;
 	memset(flow, 0, sizeof(MuxNmosFlow));
 
-	muxNmosIdGenerate(&flow->resourceId.nmosId, src->device->node->runCfg);
+	extNmosIdGenerate(&flow->resourceId.nmosId, src->device->node->runCfg);
 	snprintf(flow->resourceId.label, sizeof(flow->resourceId.label), "MuxLab audio from %s", src->device->node->runCfg->name );
 	snprintf(flow->resourceId.description, sizeof(flow->resourceId.description), "%s", "MuxLab audio supports NMOS");
 	flow->resourceId.node = src->resourceId.node;
@@ -172,23 +172,23 @@ static unsigned char __muxAudioFlowInit(MuxNmosSource	*src)
 	snprintf(flow->mediaType, sizeof(flow->mediaType), "%s", NMOS_MEDIA_TYPE_AUDIO_L16);
 	
 	flow->sampleRate.denominator = 1;
-	flow->sampleRate.numberator = MUX_AUDIO_SAMPLE_RATE;
+	flow->sampleRate.numberator = EXT_AUDIO_SAMPLE_RATE;
 	flow->bitDepth = 16;
 
-	__muxAudioSenderInit(flow);
+	__extAudioSenderInit(flow);
 	
 	ADD_ELEMENT(src->device->flows, flow);
 	return EXIT_SUCCESS;
 }
 
-static unsigned char __muxAudioSourceInit(MuxNmosDevice *dev)
+static unsigned char __extAudioSourceInit(MuxNmosDevice *dev)
 {
 	MuxNmosSource	*src = &_sourceAudio;
 	memset(src, 0, sizeof(MuxNmosSource));
 	memset(src, 0, sizeof(MuxNmosSource));
 
 	/* source core fields */
-	muxNmosIdGenerate(&src->resourceId.nmosId, dev->node->runCfg);
+	extNmosIdGenerate(&src->resourceId.nmosId, dev->node->runCfg);
 	snprintf(src->resourceId.label, sizeof(src->resourceId.label), "MuxLab audio stream from %s", dev->node->runCfg->name );
 	snprintf(src->resourceId.description, sizeof(src->resourceId.description), "%s", "MuxLab audio stream supports NMOS");
 	src->resourceId.node = dev->resourceId.node;
@@ -197,12 +197,12 @@ static unsigned char __muxAudioSourceInit(MuxNmosDevice *dev)
 	src->clockIndex = NMOS_CLOCK_INTERNAL;
 	src->format = NMOS_SOURCE_FORMAT_AUDIO;
 
-	_muxNmosAudioChannelInit(src);
+	_extNmosAudioChannelInit(src);
 
 	src->gRate.denominator = 1;
-	src->gRate.numberator = MUX_VIDEO_FRAME_RATE;
+	src->gRate.numberator = EXT_VIDEO_FRAME_RATE;
 
-	__muxAudioFlowInit(src);
+	__extAudioFlowInit(src);
 
 	ADD_ELEMENT(dev->sources, src);
 
@@ -210,12 +210,12 @@ static unsigned char __muxAudioSourceInit(MuxNmosDevice *dev)
 }
 
 
-static unsigned char __muxVideoSenderInit(MuxNmosFlow *flow)
+static unsigned char __extVideoSenderInit(MuxNmosFlow *flow)
 {
 	MuxNmosSender *snd = &_senderVideo;
 	memset(snd, 0, sizeof(MuxNmosSender));
 
-	muxNmosIdGenerate(&snd->resourceId.nmosId, flow->source->device->node->runCfg);
+	extNmosIdGenerate(&snd->resourceId.nmosId, flow->source->device->node->runCfg);
 	snprintf(snd->resourceId.label, sizeof(snd->resourceId.label), "MuxLab video sender from %s", flow->source->device->node->runCfg->name );
 	snprintf(snd->resourceId.description, sizeof(snd->resourceId.description), "%s", "MuxLab NMOS video sender");
 	snd->resourceId.node = flow->resourceId.node;
@@ -231,7 +231,7 @@ static unsigned char __muxVideoSenderInit(MuxNmosFlow *flow)
 	snd->constraints.parent = &snd->resourceId;
 	snd->constraints.sourcePortMini = flow->resourceId.node->runCfg->local.vport;
 	snd->constraints.destPortMini = flow->resourceId.node->runCfg->dest.vport;
-	snd->constraints.portRange = MUX_MEDIA_PORT_RANGE;
+	snd->constraints.portRange = EXT_MEDIA_PORT_RANGE;
 
 	return EXIT_SUCCESS;
 }
@@ -270,12 +270,12 @@ static NmosVideoComponent _yComponent =
 };
 
 
-static unsigned char __muxVideoFlowInit(MuxNmosSource	*src)
+static unsigned char __extVideoFlowInit(MuxNmosSource	*src)
 {
 	MuxNmosFlow *flow = &_flowVideo;
 	memset(flow, 0, sizeof(MuxNmosFlow));
 
-	muxNmosIdGenerate(&flow->resourceId.nmosId, src->device->node->runCfg);
+	extNmosIdGenerate(&flow->resourceId.nmosId, src->device->node->runCfg);
 	snprintf(flow->resourceId.label, sizeof(flow->resourceId.label), "MuxLab raw video from %s", src->device->node->runCfg->name );
 	snprintf(flow->resourceId.description, sizeof(flow->resourceId.description), "%s", "MuxLab raw video supports NMOS");
 	flow->resourceId.node = src->resourceId.node;
@@ -286,26 +286,26 @@ static unsigned char __muxVideoFlowInit(MuxNmosSource	*src)
 	snprintf(flow->mediaType, sizeof(flow->mediaType), "%s", NMOS_MEDIA_TYPE_VIDEO_RAW);
 	
 	flow->colorspace = NMOS_VIDEO_CS_T_BT2100;
-	flow->frameWidth = MUX_VIDEO_FRAME_WIDTH;
-	flow->frameHeight = MUX_VIDEO_FRAME_HEIGHT;
+	flow->frameWidth = EXT_VIDEO_FRAME_WIDTH;
+	flow->frameHeight = EXT_VIDEO_FRAME_HEIGHT;
 
 	flow->interlaceMode= NMOS_VIDEO_ILM_T_PROGRESSIVE;
 	flow->transferCharacter = NMOS_VIDEO_TC_T_SDR;
 	flow->components = &_yComponent;
 
-	__muxVideoSenderInit(flow);
+	__extVideoSenderInit(flow);
 
 	ADD_ELEMENT(src->device->flows, flow);
 
 	return EXIT_SUCCESS;
 }
 
-static unsigned char __muxVideoSourceInit(MuxNmosDevice *dev)
+static unsigned char __extVideoSourceInit(MuxNmosDevice *dev)
 {
 	MuxNmosSource	*src = &_sourceVideo;
 	memset(src, 0, sizeof(MuxNmosSource));
 
-	muxNmosIdGenerate(&src->resourceId.nmosId, dev->node->runCfg);
+	extNmosIdGenerate(&src->resourceId.nmosId, dev->node->runCfg);
 	snprintf(src->resourceId.label, sizeof(src->resourceId.label), "MuxLab raw video from %s", dev->node->runCfg->name );
 	snprintf(src->resourceId.description, sizeof(src->resourceId.description), "%s", "MuxLab raw video supports NMOS");
 	src->resourceId.node = dev->resourceId.node;
@@ -316,28 +316,28 @@ static unsigned char __muxVideoSourceInit(MuxNmosDevice *dev)
 	src->format = NMOS_SOURCE_FORMAT_VIDEO;
 
 	src->gRate.denominator = 1;
-	src->gRate.numberator = MUX_VIDEO_FRAME_RATE;
+	src->gRate.numberator = EXT_VIDEO_FRAME_RATE;
 
 	ADD_ELEMENT(dev->sources, src);
 
-	__muxVideoFlowInit(src);
+	__extVideoFlowInit(src);
 	
 	return EXIT_SUCCESS;
 }
 
 /* only for TX */
-static void	_muxNmosSourceInit(MuxNmosDevice *dev)
+static void	_extNmosSourceInit(MuxNmosDevice *dev)
 {
 	unsigned char ret;
 	/* video */
-	ret = __muxVideoSourceInit(dev);
-	MUX_ASSERT(("Video Source initialization failed"), ret==EXIT_SUCCESS);
+	ret = __extVideoSourceInit(dev);
+	EXT_ASSERT(("Video Source initialization failed"), ret==EXIT_SUCCESS);
 
-	ret = __muxAudioSourceInit(dev);
-	MUX_ASSERT(("Audio Source initialization failed"), ret==EXIT_SUCCESS);
+	ret = __extAudioSourceInit(dev);
+	EXT_ASSERT(("Audio Source initialization failed"), ret==EXIT_SUCCESS);
 
-	ret = __muxDataSourceInit(dev);
-	MUX_ASSERT(("Data Source initialization failed"), ret==EXIT_SUCCESS);
+	ret = __extDataSourceInit(dev);
+	EXT_ASSERT(("Data Source initialization failed"), ret==EXIT_SUCCESS);
 
 	ret = ret;
 }
@@ -351,7 +351,7 @@ static const NmosMediaType _recvMediaVideo = {NMOS_MEDIA_TYPE_VIDEO_RAW, NULL};
 static const NmosMediaType _recvMediaAudio = {NMOS_MEDIA_TYPE_AUDIO_L16, NULL};
 static const NmosMediaType _recvMediaData = {NMOS_MEDIA_TYPE_DATA_291,  NULL};
 
-static unsigned char _muxNmosReceiversInit(MuxNmosDevice *dev)
+static unsigned char _extNmosReceiversInit(MuxNmosDevice *dev)
 {
 	/* video receiver */
 	MuxNmosReceiver	*rcv = &_receiverVideo;
@@ -360,7 +360,7 @@ static unsigned char _muxNmosReceiversInit(MuxNmosDevice *dev)
 	snprintf(rcv->resourceId.label, sizeof(rcv->resourceId.label), "MuxLab video receiver from %s", dev->node->runCfg->name );
 	snprintf(rcv->resourceId.description, sizeof(rcv->resourceId.description), "%s", "MuxLab NMOS video receiver");
 	rcv->resourceId.node = dev->resourceId.node;
-	muxNmosIdGenerate(&rcv->resourceId.nmosId, dev->node->runCfg);
+	extNmosIdGenerate(&rcv->resourceId.nmosId, dev->node->runCfg);
 	rcv->device = dev;
 
 	rcv->interface_binding = _interfaceName;
@@ -377,7 +377,7 @@ static unsigned char _muxNmosReceiversInit(MuxNmosDevice *dev)
 	snprintf(rcv->resourceId.label, sizeof(rcv->resourceId.label), "MuxLab audio receiver from %s", dev->node->runCfg->name );
 	snprintf(rcv->resourceId.description, sizeof(rcv->resourceId.description), "%s", "MuxLab NMOS audio receiver");
 	rcv->resourceId.node = dev->resourceId.node;
-	muxNmosIdGenerate(&rcv->resourceId.nmosId, dev->node->runCfg);
+	extNmosIdGenerate(&rcv->resourceId.nmosId, dev->node->runCfg);
 	rcv->device = dev;
 
 	rcv->interface_binding = _interfaceName;
@@ -394,7 +394,7 @@ static unsigned char _muxNmosReceiversInit(MuxNmosDevice *dev)
 	snprintf(rcv->resourceId.label, sizeof(rcv->resourceId.label), "MuxLab data receiver from %s", dev->node->runCfg->name );
 	snprintf(rcv->resourceId.description, sizeof(rcv->resourceId.description), "%s", "MuxLab NMOS data receiver");
 	rcv->resourceId.node = dev->resourceId.node;
-	muxNmosIdGenerate(&rcv->resourceId.nmosId, dev->node->runCfg);
+	extNmosIdGenerate(&rcv->resourceId.nmosId, dev->node->runCfg);
 	rcv->device = dev;
 
 	rcv->interface_binding = _interfaceName;
@@ -411,7 +411,7 @@ static unsigned char _muxNmosReceiversInit(MuxNmosDevice *dev)
 static MuxNmosDevice		_nmosDevice;
 MuxNmosNode		nmosNode;
 
-void	muxNmosNodeInit(MuxNmosNode	*node, MUX_RUNTIME_CFG *runCfg)
+void	extNmosNodeInit(MuxNmosNode	*node, EXT_RUNTIME_CFG *runCfg)
 {
 	MuxNmosDevice *dev = &_nmosDevice;
 
@@ -429,21 +429,21 @@ void	muxNmosNodeInit(MuxNmosNode	*node, MUX_RUNTIME_CFG *runCfg)
 	node->runCfg = runCfg;
 
 	/* should save in NV RAM */
-	muxNmosIdGenerate(&node->resourceId.nmosId, node->runCfg);
-	muxNmosIdGenerate(&dev->resourceId.nmosId, node->runCfg);
+	extNmosIdGenerate(&node->resourceId.nmosId, node->runCfg);
+	extNmosIdGenerate(&dev->resourceId.nmosId, node->runCfg);
 
 
 	node->device = dev;
 	dev->node = node;
 	
-	if(MUX_IS_TX(runCfg))
+	if(EXT_IS_TX(runCfg))
 	{
 		/* initialized SENDER */
-		_muxNmosSourceInit(dev);
+		_extNmosSourceInit(dev);
 	}
 	else
 	{
-		_muxNmosReceiversInit(dev);
+		_extNmosReceiversInit(dev);
 	}
 
 }

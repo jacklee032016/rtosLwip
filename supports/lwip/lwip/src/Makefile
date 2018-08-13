@@ -93,6 +93,8 @@ EXTS_MISC_SRC += \
 	$(EXT_HOME)/misc/tftpServer.c \
 	$(EXT_HOME)/misc/extTelnetd.c \
 	$(EXT_HOME)/misc/extPing.c \
+	$(EXT_HOME)/mqtt/mqtt.c \
+	$(EXT_HOME)/mqtt/mqttClient.c \
 
 #	src/lwip/jsonUtils.c \
 
@@ -174,4 +176,4 @@ TARGET_LIB_STATIC:=$(TARGET_LIB).a
 		 
 LOCAL_ALL:=
 
-include $(ROOT_DIR)/Makefile.post
+include $(RULE_DIR)/Makefile.post

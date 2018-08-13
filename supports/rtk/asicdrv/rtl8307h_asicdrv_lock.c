@@ -44,7 +44,7 @@ int32 rtl8307h_table_lock(void)
         }
     }
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	return regval;
 #endif	
 }
@@ -69,7 +69,7 @@ int32 rtl8307h_table_unlock(void)
     }
 
     reg_write(RTL8307H_UNIT, INDIRECT_OCCUPY_STATUS, 0); 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	return regval;
 #endif	
 }

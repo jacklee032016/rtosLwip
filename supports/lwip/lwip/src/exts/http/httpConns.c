@@ -64,8 +64,8 @@ static void _mhttpStateEof(MuxHttpConn *mhc)
 static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t abort_conn)
 {
 	err_t err = ERR_OK;
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Closing connection %p\n", (void*)pcb));
-	MUX_RUNTIME_CFG *runCfg = NULL;
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Closing connection %p\n", (void*)pcb));
+	EXT_RUNTIME_CFG *runCfg = NULL;
 
 	if (mhc != NULL)
 	{
@@ -82,16 +82,16 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 			}
 
 			/* make sure the post code knows that the connection is closed */
-			muxHttpPostDataFinished(mhc);
+			extHttpPostDataFinished(mhc);
 		}
 
 		if( HTTPREQ_IS_WEBSOCKET(mhc) )
 		{
-			muxHttpWebSocketSendClose(mhc);
+			extHttpWebSocketSendClose(mhc);
 		}
 
 	}
-	MUX_ASSERT(("HTTP Connection is null"), mhc!= NULL);
+	EXT_ASSERT(("HTTP Connection is null"), mhc!= NULL);
 	runCfg = mhc->nodeInfo->runCfg;
 
 
@@ -109,7 +109,7 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 
 	if (abort_conn)
 	{
-		MUX_INFOF( ("TCP %p is abort"MUX_NEW_LINE, (void*)pcb));
+		EXT_INFOF( ("TCP %p is abort"EXT_NEW_LINE, (void*)pcb));
 		tcp_abort(pcb);
 		return ERR_OK;
 	}
@@ -118,8 +118,8 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 	err = tcp_close(pcb);
 	if (err != ERR_OK)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Error %d closing %p"MUX_NEW_LINE, err, (void*)pcb));
-		MUX_ERRORF( ("Error %d closing %p"MUX_NEW_LINE, err, (void*)pcb));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+		EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
 		/* error closing, try again later in poll */
 		tcp_poll(pcb, mhttpPoll,  MHTTPD_POLL_INTERVAL);
 	}
@@ -183,14 +183,14 @@ static void _killOldestConnection(u8_t ssi_required)
 		{
 			hs_free_next = mhc;
 		}
-		MUX_ASSERT(("broken list"), mhc != mhc->next);
+		EXT_ASSERT(("broken list"), mhc != mhc->next);
 		mhc = mhc->next;
 	}
 	
 	if (hs_free_next != NULL)
 	{
-		MUX_ASSERT(("hs_free_next->next != NULL"), hs_free_next->next != NULL);
-		MUX_ASSERT(("hs_free_next->next->pcb != NULL"), hs_free_next->next->pcb != NULL);
+		EXT_ASSERT(("hs_free_next->next != NULL"), hs_free_next->next != NULL);
+		EXT_ASSERT(("hs_free_next->next->pcb != NULL"), hs_free_next->next->pcb != NULL);
 		/* send RST when killing a connection because of memory shortage */
 		_mhttpConnCloseOrAbort(hs_free_next->next, hs_free_next->next->pcb, 1); /* this also unlinks the mhttp_state from the list */
 	}
@@ -287,7 +287,7 @@ void mhttpConnEof(MuxHttpConn *mhc)
  * @param apiflags directly passed to tcp_write
  * @return the return value of tcp_write
  */
-err_t muxHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags)
+err_t extHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags)
 {
 	u16_t len, max_len;
 	err_t err;
@@ -314,7 +314,7 @@ err_t muxHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apifla
 
 	do
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Trying go send %d bytes, flags:0x%x", len, apiflags));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Trying go send %d bytes, flags:0x%x", len, apiflags));
 		err = tcp_write(mhc->pcb, ptr, len, apiflags);
 		if (err == ERR_MEM)
 		{
@@ -327,18 +327,18 @@ err_t muxHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apifla
 				len /= 2;
 			}
 
-			MUX_DEBUGF(MUX_HTTPD_DEBUG,  ("Send failed, trying less (%d bytes)", len));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG,  ("Send failed, trying less (%d bytes)", len));
 		}
 	} while ((err == ERR_MEM) && (len > 1));
 
 	if (err == ERR_OK)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Sent %d bytes", len));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Sent %d bytes", len));
 		*length = len;
 	}
 	else
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Send failed with err %d (\"%s\")", err, lwip_strerr(err)));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Send failed with err %d (\"%s\")", err, lwip_strerr(err)));
 		*length = 0;
 	}
 

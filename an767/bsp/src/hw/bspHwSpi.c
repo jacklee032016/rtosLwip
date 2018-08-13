@@ -46,14 +46,14 @@ void bspSpiMasterInitialize(uint32_t pcs)
 	spi_set_peripheral_chip_select_value(spi, spi_get_pcs(pcs));
 
 	/* CPOL:CPHA=0:0, means SPI mode 1: refer. page 972 table 40-4. JL. */
-	spi_set_clock_polarity(spi, pcs, MUX_SPI_CLK_POLARITY);
-	spi_set_clock_phase(spi, pcs, MUX_SPI_CLK_PHASE);
+	spi_set_clock_polarity(spi, pcs, EXT_SPI_CLK_POLARITY);
+	spi_set_clock_phase(spi, pcs, EXT_SPI_CLK_PHASE);
 
 	spi_set_bits_per_transfer(spi,pcs, SPI_CSR_BITS_8_BIT);
 	
 	spi_set_baudrate_div(spi, pcs, sysclk_get_peripheral_hz()/ gs_ul_spi_clock) ;
 
-	spi_set_transfer_delay(spi, pcs, MUX_SPI_DLYBS, MUX_SPI_DLYBCT);
+	spi_set_transfer_delay(spi, pcs, EXT_SPI_DLYBS, EXT_SPI_DLYBCT);
 
 	/* keep CS low, otherwise flash goes to standby */
 	spi_configure_cs_behavior(spi, pcs, SPI_CS_KEEP_LOW);
@@ -72,7 +72,7 @@ void bspSpiMasterInitialize(uint32_t pcs)
  * \param pbuf Pointer to buffer to transfer.
  * \param size Size of the buffer.
  */
-void muxBspSpiMasterTransfer(void *buf, uint32_t size)
+void extBspSpiMasterTransfer(void *buf, uint32_t size)
 {
 	Spi *spi = SPI_MASTER_BASE;
 	uint32_t i;
@@ -90,7 +90,7 @@ void muxBspSpiMasterTransfer(void *buf, uint32_t size)
 	{
 #ifdef DEBUG_SPI
 		err = spi_write(spi, p_buffer[i], spi_get_pcs(1), 0);
-//		MUX_DBG_ERRORF(("SPI write failed"), (err==SPI_OK), while(1){});
+//		EXT_DBG_ERRORF(("SPI write failed"), (err==SPI_OK), while(1){});
 #else
 		spi_write(spi, p_buffer[i], 1, 1);
 #endif
@@ -99,7 +99,7 @@ void muxBspSpiMasterTransfer(void *buf, uint32_t size)
 		
 #ifdef DEBUG_SPI
 		err = spi_read(spi, &data, &uc_pcs);
-//		MUX_DBG_ERRORF(("SPI read failed"), (err==SPI_OK), while(1){});
+//		EXT_DBG_ERRORF(("SPI read failed"), (err==SPI_OK), while(1){});
 #else
 		spi_read(spi, &data, &uc_pcs);
 #endif
@@ -107,21 +107,21 @@ void muxBspSpiMasterTransfer(void *buf, uint32_t size)
 	}
 }
 
-char muxBspSpiSelectChip(uint32_t pcs)
+char extBspSpiSelectChip(uint32_t pcs)
 {
 	Spi *spi = SPI_MASTER_BASE;
 	/* Assert all lines; no peripheral is selected. */
 	spi->SPI_MR |= SPI_MR_PCS_Msk;
 
 #if 0
-	MUX_DBG_ERRORF(("PCSDEC=1\r\n"), (!(spi->SPI_MR & SPI_MR_PCSDEC)), return EXIT_FAILURE);
+	EXT_DBG_ERRORF(("PCSDEC=1\r\n"), (!(spi->SPI_MR & SPI_MR_PCSDEC)), return EXIT_FAILURE);
 	spi_set_peripheral_chip_select_value(spi, spi_get_pcs(pcs));
 #else
 	if (spi->SPI_MR & SPI_MR_PCSDEC)
 	{/* use CSRx reguster to Chip Select */
 		/* The signal is decoded; allow up to 15 chips. */
 #if 0//def DEBUG_SPI
-		MUX_ASSERT("PCSDEC=1\r\n");
+		EXT_ASSERT("PCSDEC=1\r\n");
 #endif
 #if 0		
 		if (chip > 14)
@@ -152,7 +152,7 @@ char muxBspSpiSelectChip(uint32_t pcs)
 	return EXIT_SUCCESS;
 }
 
-char muxBspSpiUnselectChip(uint32_t pcs)
+char extBspSpiUnselectChip(uint32_t pcs)
 {
 	Spi *spi = SPI_MASTER_BASE;
 	uint32_t timeout = SPI_TIMEOUT;
@@ -161,7 +161,7 @@ char muxBspSpiUnselectChip(uint32_t pcs)
 	{/* waiting TR is empty */
 		if (!timeout--)
 		{
-			MUX_ERRORF(("timeout"));
+			EXT_ERRORF(("timeout"));
 			return EXIT_FAILURE;
 		}
 	}
@@ -180,7 +180,7 @@ char muxBspSpiUnselectChip(uint32_t pcs)
 }
 
 
-char muxBspSpiReadPacket(unsigned char *data, unsigned int len)
+char extBspSpiReadPacket(unsigned char *data, unsigned int len)
 {
 	Spi *spi = SPI_MASTER_BASE;
 	unsigned int timeout = SPI_TIMEOUT;
@@ -194,18 +194,18 @@ char muxBspSpiReadPacket(unsigned char *data, unsigned int len)
 		{
 			if (!timeout--)
 			{
-				MUX_ERRORF(("Timeout in SPI read packet"));
+				EXT_ERRORF(("Timeout in SPI read packet"));
 				return EXIT_FAILURE;
 			}
 		}
 		
-		spi_put(spi, (uint16_t)MUX_SPI_MASTER_DUMMY);
+		spi_put(spi, (uint16_t)EXT_SPI_MASTER_DUMMY);
 		timeout = SPI_TIMEOUT;
 		while (!spi_is_rx_ready(spi))
 		{
 			if (!timeout--)
 			{
-				MUX_ERRORF(("Timeout in SPI read packet2"));
+				EXT_ERRORF(("Timeout in SPI read packet2"));
 				return EXIT_FAILURE;
 			}
 		}
@@ -220,7 +220,7 @@ char muxBspSpiReadPacket(unsigned char *data, unsigned int len)
 }
 
 
-char 	muxBspSpiWritePacket(const unsigned char *data, unsigned int len)
+char 	extBspSpiWritePacket(const unsigned char *data, unsigned int len)
 {
 	Spi *spi = SPI_MASTER_BASE;
 	unsigned int timeout = SPI_TIMEOUT;
@@ -234,7 +234,7 @@ char 	muxBspSpiWritePacket(const unsigned char *data, unsigned int len)
 		{
 			if (!timeout--)
 			{
-				MUX_ERRORF(("Timeout in SPI write packet"));
+				EXT_ERRORF(("Timeout in SPI write packet"));
 				return EXIT_FAILURE;
 			}
 		}

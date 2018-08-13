@@ -139,19 +139,19 @@ void stats_display_sys(struct stats_sys *sys)
 	{	index += snprintf( outBuffer+index, (bufferLen-index), \
 		"%s\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%" \
 		STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"STAT_COUNTER_F"\t%"\
-		STAT_COUNTER_F"\t%"STAT_COUNTER_F""MUX_NEW_LINE, name, \
+		STAT_COUNTER_F"\t%"STAT_COUNTER_F""EXT_NEW_LINE, name, \
 		(proto)->xmit, (proto)->recv, (proto)->fw, (proto)->drop, (proto)->chkerr , \
 		(proto)->lenerr, (proto)->memerr, (proto)->rterr, (proto)->proterr, (proto)->opterr, (proto)->err, (proto)->cachehit); }
 
 #define	STATS_OUT_MEM(mem, name) \
 	{	index += snprintf( outBuffer+index, (bufferLen-index), \
-		"%s\t%"U32_F"\t%"U32_F"\t%"U32_F"\t%"U32_F""MUX_NEW_LINE, name, \
+		"%s\t%"U32_F"\t%"U32_F"\t%"U32_F"\t%"U32_F""EXT_NEW_LINE, name, \
 		(u32_t)(mem)->avail, (u32_t)(mem)->used, (u32_t)(mem)->max, (u32_t)(mem)->err); }
 
 
 #define	STATS_OUT_SYS(sys, name) \
 	{	index += snprintf( outBuffer+index, (bufferLen-index), \
-		"%s\t%"U32_F"\t%"U32_F"\t%"U32_F""MUX_NEW_LINE, name, \
+		"%s\t%"U32_F"\t%"U32_F"\t%"U32_F""EXT_NEW_LINE, name, \
 		(u32_t)(sys)->used, (u32_t)(sys)->max, (u32_t)(sys)->err); }
 
 
@@ -163,7 +163,7 @@ void stats_display(char *outBuffer, size_t bufferLen)
 	struct stats_mem *mem;
 	struct stats_syselem *sys;
 
-	index += snprintf( outBuffer+index, (bufferLen-index), "\txmit\trecv\tfw\tdrop\tchkerr\tlenerr\tmemerr\trterr\tproterr\topterr\terr\tcachehit"MUX_NEW_LINE);
+	index += snprintf( outBuffer+index, (bufferLen-index), "PROTOCOLS:"EXT_NEW_LINE"\txmit\trecv\tfw\tdrop\tchkerr\tlenerr\tmemerr\trterr\tproterr\topterr\terr\tcachehit"EXT_NEW_LINE);
 	STATS_OUT_PROTOCOL((&lwip_stats.link), "LINK");
 	STATS_OUT_PROTOCOL((&lwip_stats.etharp), "ETHARP");
 	STATS_OUT_PROTOCOL((&lwip_stats.ip_frag), "IP_FRAG");
@@ -176,12 +176,12 @@ void stats_display(char *outBuffer, size_t bufferLen)
 	index += snprintf( outBuffer+index, (bufferLen-index),"IGMP:\txmit:%"STAT_COUNTER_F"; recv:%"STAT_COUNTER_F"; drop:%"\
 		STAT_COUNTER_F"; chkerr:%"STAT_COUNTER_F"; lenerr: %"STAT_COUNTER_F"; memerr: %"STAT_COUNTER_F"; " \
 		"proterr:%"STAT_COUNTER_F"; rx_v1:%"STAT_COUNTER_F"; rx_group:%"STAT_COUNTER_F"; rx_general:%"\
-		STAT_COUNTER_F"; rx_report:%"STAT_COUNTER_F"; tx_join:%"STAT_COUNTER_F"; tx_leave:%"STAT_COUNTER_F"; tx_report:%"STAT_COUNTER_F""LWIP_NEW_LINE,
+		STAT_COUNTER_F"; rx_report:%"STAT_COUNTER_F"; tx_join:%"STAT_COUNTER_F"; tx_leave:%"STAT_COUNTER_F"; tx_report:%"STAT_COUNTER_F""LWIP_NEW_LINE LWIP_NEW_LINE LWIP_NEW_LINE,
 		igmp->xmit, igmp->recv, igmp->drop, igmp->chkerr, igmp->lenerr, igmp->memerr, igmp->proterr, 
 		igmp->rx_v1, igmp->rx_group, igmp->rx_general, igmp->rx_report, igmp->tx_join, igmp->tx_leave, igmp->tx_report);
 
 
-	index += snprintf( outBuffer+index, (bufferLen-index), "\t\tavail \tused \tmax \terr"LWIP_NEW_LINE);
+	index += snprintf( outBuffer+index, (bufferLen-index), "MEMORY:"LWIP_NEW_LINE"\t\tavail \tused \tmax \terr"LWIP_NEW_LINE);
 
 	STATS_OUT_MEM((&lwip_stats.mem), "HEAP\t");
 	for (i = 0; i < MEMP_MAX; i++)
@@ -190,7 +190,7 @@ void stats_display(char *outBuffer, size_t bufferLen)
 		STATS_OUT_MEM(mem, mem->name);
 	}
 
-	index += snprintf( outBuffer+index, (bufferLen-index), "\tused\tmax\terr"MUX_NEW_LINE);
+	index += snprintf( outBuffer+index, (bufferLen-index),EXT_NEW_LINE EXT_NEW_LINE"SYSTEM:"EXT_NEW_LINE"\tused\tmax\terr"EXT_NEW_LINE);
 	sys = &lwip_stats.sys.sem;
 	STATS_OUT_SYS((sys), "Sem");
 	sys = &lwip_stats.sys.mutex;
@@ -198,7 +198,7 @@ void stats_display(char *outBuffer, size_t bufferLen)
 	sys = &lwip_stats.sys.mbox;
 	STATS_OUT_SYS((sys), "mbox");
 
-
+#ifdef X86
 TRACE();
 	LINK_STATS_DISPLAY();
 	ETHARP_STATS_DISPLAY();
@@ -223,6 +223,8 @@ TRACE();
 	SYS_STATS_DISPLAY();
 
 TRACE();
+#endif
+
 }
 #endif /* LWIP_STATS_DISPLAY */
 

@@ -68,7 +68,7 @@ SRC += \
 EXE=bootloader$(BOARD_NAME)
 LOCAL_ALL:=$(EXE).bin
 
-include $(ROOT_DIR)/Makefile.post
+include $(RULE_DIR)/Makefile.post
 
 
 CMN_LIB:=-Wl,-L$(SUPPORT_HOME)/BIN/images.$(BOARD_NAME) -lLwip

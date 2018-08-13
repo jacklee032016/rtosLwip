@@ -20,7 +20,7 @@
 #define	LWIP_NETCONN				0 //(NO_SYS==0)
 
 
-#define	MUX_WITH_OS				(NO_SYS == 0)
+#define	EXT_WITH_OS				(NO_SYS == 0)
 
 /* options for socket */
 #define SO_REUSE					1
@@ -359,7 +359,7 @@ a lot of data that needs to be copied, this should be set high. */
 //#define LWIP_NOASSERT
 
 //#define	LWIP_DEBUG							/* debug option from LwIP, defined in command line */
-#define	MUXLAB_DEBUG_LWIP				1	/* mux debug options */
+#define	MUXLAB_DEBUG_LWIP				1	/* ext debug options */
 
 
 #define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL

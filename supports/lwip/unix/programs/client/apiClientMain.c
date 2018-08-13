@@ -29,10 +29,10 @@ unsigned int sys_now(void)
 
 static void usage(char* base, struct API_PARAMETERS *params)
 {
-	printf("%s: "MUX_NEW_LINE "\tCommand line interface for JSON API." MUX_NEW_LINE 
-		"\t%s -a ipaddress/fqdn -c command -o options" MUX_NEW_LINE 
-		"\tcmds: " API_CMD_FIND ", " API_CMD_SETUP_SYS ", "API_CMD_SETUP_RS232 ", "API_CMD_SETUP_PROTOCOL", " API_CMD_SETUP_MEDIA", "API_CMD_SETUP_ACTION ", "  MUX_NEW_LINE 
-		"\t      " API_CMD_RS232", " API_CMD_SECURITY " "MUX_NEW_LINE, 
+	printf("%s: "EXT_NEW_LINE "\tCommand line interface for JSON API." EXT_NEW_LINE 
+		"\t%s -a ipaddress/fqdn -c command -o options" EXT_NEW_LINE 
+		"\tcmds: " API_CMD_FIND ", " API_CMD_SETUP_SYS ", "API_CMD_SETUP_RS232 ", "API_CMD_SETUP_PROTOCOL", " API_CMD_SETUP_MEDIA", "API_CMD_SETUP_ACTION ", "  EXT_NEW_LINE 
+		"\t      " API_CMD_RS232", " API_CMD_SECURITY " "EXT_NEW_LINE, 
 		  base, base);
 
 	exit(-1);
@@ -44,56 +44,56 @@ API_CLIENT_CMD_HANDLER apiClientCmdHandlers[]=
 	/* PLAY commands */
 	{
 		.name = API_CMD_FIND,
-		.ipCmdName = MUX_IPCMD_CMD_GET_PARAMS,	
+		.ipCmdName = EXT_IPCMD_CMD_GET_PARAMS,	
 		.validate = NULL,
 		.execute = apiClientFind
 	},
 
 	{
 		.name = API_CMD_SETUP_SYS,
-		.ipCmdName = MUX_IPCMD_CMD_SET_PARAMS,	
+		.ipCmdName = EXT_IPCMD_CMD_SET_PARAMS,	
 		.validate = NULL,
 		.execute = apiClientSetupSys
 	},
 
 	{
 		.name = API_CMD_SETUP_RS232,
-		.ipCmdName = MUX_IPCMD_CMD_SET_PARAMS,	
+		.ipCmdName = EXT_IPCMD_CMD_SET_PARAMS,	
 		.validate = NULL,
 		.execute = apiClientSetupRs232
 	},
 
 	{
 		.name = API_CMD_SETUP_PROTOCOL,
-		.ipCmdName = MUX_IPCMD_CMD_SET_PARAMS,	
+		.ipCmdName = EXT_IPCMD_CMD_SET_PARAMS,	
 		.validate = NULL,
 		.execute = apiClientSetupProtocol
 	},
 
 	{
 		.name = API_CMD_SETUP_MEDIA,
-		.ipCmdName = MUX_IPCMD_CMD_SET_PARAMS,	
+		.ipCmdName = EXT_IPCMD_CMD_SET_PARAMS,	
 		.validate = NULL,
 		.execute = apiClientSetupMedia
 	},
 	
 	{
 		.name = API_CMD_SETUP_ACTION,
-		.ipCmdName = MUX_IPCMD_CMD_SET_PARAMS,	
+		.ipCmdName = EXT_IPCMD_CMD_SET_PARAMS,	
 		.validate = NULL,
 		.execute = apiClientSetupAction
 	},
 	
 	{
 		.name = API_CMD_RS232,
-		.ipCmdName = MUX_IPCMD_CMD_SEND_RS232,
+		.ipCmdName = EXT_IPCMD_CMD_SEND_RS232,
 		.validate = NULL,
 		.execute = apiClientRs232Data
 	},
 
 	{
 		.name = API_CMD_SECURITY,
-		.ipCmdName = MUX_IPCMD_CMD_SECURITY_CHECK,
+		.ipCmdName = EXT_IPCMD_CMD_SECURITY_CHECK,
 		.validate = NULL,
 		.execute = apiClientSecurityCheck
 	},
@@ -150,7 +150,7 @@ static int	_apiHandleCmd(API_CLIENT *apiClient, char *programName)
 int main(int argc, char *argv[])
 {
 	int opt;
-	MUX_RUNTIME_CFG _clientCfg;
+	EXT_RUNTIME_CFG _clientCfg;
 	struct	API_PARAMETERS params;
 
 
@@ -160,8 +160,8 @@ int main(int argc, char *argv[])
 
 	memset(&params, 0, sizeof(struct API_PARAMETERS));
 	memset(apiClient, 0, sizeof(API_CLIENT));
-	memset(&_clientCfg, 0 , sizeof(MUX_RUNTIME_CFG));
-	apiClient->port = MUX_CTRL_PORT;
+	memset(&_clientCfg, 0 , sizeof(EXT_RUNTIME_CFG));
+	apiClient->port = EXT_CTRL_PORT;
 	apiClient->size = sizeof(apiClient->buffer);
 	apiClient->clientCfg = &_clientCfg;
 	apiClient->params = &params;

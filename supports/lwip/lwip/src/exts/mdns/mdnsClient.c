@@ -17,7 +17,7 @@
 
 #include <string.h>
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 /* for 'rand' from libc of toolchain. J.L. */
 #include	<stdlib.h>
 #endif
@@ -40,10 +40,10 @@ typedef	struct
 #if _MDNS_CLIENT_DEBUG
 static void mdnsClientDebugApiIf(NMOS_API_INTERFACE *apiIf)
 {
-	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("%s API:"LWIP_NEW_LINE"\tName: '%s'; hostname: '%s'; IP: %s, port:%d", (apiIf->type== NMOS_API_T_REGISTRATION)?"Registration":"Query",
-		apiIf->name, apiIf->hostname, MUX_LWIP_IPADD_TO_STR(&apiIf->ip), apiIf->port));
+	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("%s API:"LWIP_NEW_LINE"\tName: '%s'; hostname: '%s'; IP: %s, port:%d", (apiIf->type== NMOS_API_T_REGISTRATION)?"Registration":"Query",
+		apiIf->name, apiIf->hostname, EXT_LWIP_IPADD_TO_STR(&apiIf->ip), apiIf->port));
 
-	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("\tAPI: v1.0:%s;v1.1:%s;v1.2:%s;v20:%s; Priority:%d", 
+	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("\tAPI: v1.0:%s;v1.1:%s;v1.2:%s;v20:%s; Priority:%d", 
 		NMOS_VERSION_IS_10(apiIf)?"Y":"N", NMOS_VERSION_IS_11(apiIf)?"Y":"N", NMOS_VERSION_IS_12(apiIf)?"Y":"N", NMOS_VERSION_IS_20(apiIf)?"Y":"N",  apiIf->priority)) ;
 
 }
@@ -143,7 +143,7 @@ static err_t mdnsClientSendQuery( mdns_client_t *client, NMOS_API_TYPE apiType)/
 	pbuf_take_at(p, &qry, SIZEOF_DNS_QUERY, query_idx);
 
 	/* send dns packet */
-	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE LWIP_NEW_LINE "MdnsC: sending MDNS request ID %d, type %d for service \"%s\""LWIP_NEW_LINE,  client->txId, qType, client->domainName) );
+	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE LWIP_NEW_LINE "MdnsC: sending MDNS request ID %d, type %d for service \"%s\""LWIP_NEW_LINE,  client->txId, qType, client->domainName) );
 
 	err = udp_sendto(client->udpPcb, p, &dns_mquery_v4group, DNS_MQUERY_PORT);
 
@@ -191,7 +191,7 @@ static void _mdnsClientGetFullDomain(char *dest, unsigned char *srcLabel, unsign
 	u8_t i;
 	unsigned short length = 0;
 
-//	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("src label %d", size));
+//	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("src label %d", size));
 //	CONSOLE_DEBUG_MEM(srcLabel, size, 0, "SRC Label");
 
 //	while(length < size && *src != 0)
@@ -241,18 +241,18 @@ static char _mdnsClientDnsParseRRA(mdns_client_t *client, struct mdns_answer *an
 		{
 			apiIf->ip = LWIP_MAKEU32(client->rdata[3], client->rdata[2],client->rdata[1],client->rdata[0]);
 #if _MDNS_CLIENT_DEBUG
-			MUX_INFOF( ("MdnsC: '%s':'%s'"LWIP_NEW_LINE, apiIf->hostname, MUX_LWIP_IPADD_TO_STR(&apiIf->ip)));
+			EXT_INFOF( ("MdnsC: '%s':'%s'"LWIP_NEW_LINE, apiIf->hostname, EXT_LWIP_IPADD_TO_STR(&apiIf->ip)));
 			mdnsClientDebug(client);
 #endif
 		}
 		else
 		{
-			MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("'MdnsC: RR A Address format error: %d'"LWIP_NEW_LINE, answer->rd_length));
+			EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("'MdnsC: RR A Address format error: %d'"LWIP_NEW_LINE, answer->rd_length));
 		}
 	}
 	else
 	{
-		MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("'MdnsC: RR A '%s' !='%s'"LWIP_NEW_LINE, apiIf->hostname, client->domainName));
+		EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("'MdnsC: RR A '%s' !='%s'"LWIP_NEW_LINE, apiIf->hostname, client->domainName));
 	}
 
 	return EXIT_SUCCESS;
@@ -268,12 +268,12 @@ static char _mdnsClientDnsParseTXT(mdns_client_t *client, NMOS_API_INTERFACE *ap
 	{/* not for me */
 		return EXIT_FAILURE;
 	}
-			MUX_ASSERT(("ApiIf is not initialized"), (apiIf!=NULL) );
+			EXT_ASSERT(("ApiIf is not initialized"), (apiIf!=NULL) );
 
-//			MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC:  TXT #%d Answer offset:%d"LWIP_NEW_LINE, index, ans.rd_offset));
+//			EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC:  TXT #%d Answer offset:%d"LWIP_NEW_LINE, index, ans.rd_offset));
 //			CONSOLE_DEBUG_MEM(client->rdata, (uint32_t)ans.rd_length, 0, "DNS TXT");
 //			mdns_domain_debug_print(client->rdata);
-			MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC: TXT Answer offset:%d"LWIP_NEW_LINE, answer->rd_offset));
+			EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC: TXT Answer offset:%d"LWIP_NEW_LINE, answer->rd_offset));
 //			_mdnsClientParseRRTxt(client, apiIf, &ans);
 
 //			memcpy(client->domainName, ans.info.domain.name, ans.info.domain.length);
@@ -283,16 +283,16 @@ static char _mdnsClientDnsParseTXT(mdns_client_t *client, NMOS_API_INTERFACE *ap
 
 	if( IS_STRING_EQUAL((char *)client->domainName, (char *)apiIf->name) )
 	{
-		MUX_ERRORF(("RR is not for this API: '%s'!='%s'", client->domainName, apiIf->name ));
+		EXT_ERRORF(("RR is not for this API: '%s'!='%s'", client->domainName, apiIf->name ));
 		return EXIT_FAILURE;
 	}
 
 	offset += _mdnsClientGetOneLabel(client->domainName, client->rdata);
 	
-	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("offset %d(%d):'%s'", offset, answer->rd_offset, client->domainName));
+	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("offset %d(%d):'%s'", offset, answer->rd_offset, client->domainName));
 	while( offset <= answer->rd_length)
 	{
-		MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("offset %d:'%s'", offset, client->domainName));
+		EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("offset %d:'%s'", offset, client->domainName));
 		
 		if(strstr((char *)client->domainName, NMOS_API_NAME_PROTOCOL) )
 		{
@@ -303,7 +303,7 @@ static char _mdnsClientDnsParseTXT(mdns_client_t *client, NMOS_API_INTERFACE *ap
 			}
 			else
 			{
-				MUX_ERRORF(("Not support protocol:'%s'", client->domainName));
+				EXT_ERRORF(("Not support protocol:'%s'", client->domainName));
 			}
 		}
 		else if(strstr((char *)client->domainName, NMOS_API_NAME_VERSION) )
@@ -336,7 +336,7 @@ static char _mdnsClientDnsParseTXT(mdns_client_t *client, NMOS_API_INTERFACE *ap
 			apiIf->priority= strtol((char *)(client->domainName+4), NULL, 10);
 			if(apiIf->priority < 0)
 			{
-				MUX_ERRORF(("Not support priority:'%s'", client->domainName));
+				EXT_ERRORF(("Not support priority:'%s'", client->domainName));
 				apiIf->priority = 0;
 			}
 			else
@@ -347,7 +347,7 @@ static char _mdnsClientDnsParseTXT(mdns_client_t *client, NMOS_API_INTERFACE *ap
 		}
 		else 
 		{
-			MUX_ERRORF(("Not support label in RR TXT:'%s'", client->domainName));
+			EXT_ERRORF(("Not support label in RR TXT:'%s'", client->domainName));
 		}
 
 		offset += _mdnsClientGetOneLabel(client->domainName, client->rdata+offset);
@@ -369,17 +369,17 @@ static char _mdnsClientDnsParseSRV(mdns_client_t *client, NMOS_API_INTERFACE *ap
 	{/* not for me */
 		return EXIT_FAILURE;
 	}
-	MUX_ASSERT(("ApiIf is not initialized"), (apiIf != NULL) );
+	EXT_ASSERT(("ApiIf is not initialized"), (apiIf != NULL) );
 
 	if( IS_STRING_EQUAL((char *)client->domainName, (char *)apiIf->name) )
 	{
-		MUX_ERRORF(("RR is not for this API: '%s'!='%s'", client->domainName, apiIf->name ));
+		EXT_ERRORF(("RR is not for this API: '%s'!='%s'", client->domainName, apiIf->name ));
 		return EXIT_FAILURE;
 	}
 
-//	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC: SRV Answer offset:%d"LWIP_NEW_LINE, answer->rd_offset));
+//	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC: SRV Answer offset:%d"LWIP_NEW_LINE, answer->rd_offset));
 
-	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE"MdnsC: SRV priority:%d; weight:%d; port:%d"LWIP_NEW_LINE, lwip_htons(srv->priority), lwip_htons(srv->weight), lwip_htons(srv->port)));
+	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE"MdnsC: SRV priority:%d; weight:%d; port:%d"LWIP_NEW_LINE, lwip_htons(srv->priority), lwip_htons(srv->weight), lwip_htons(srv->port)));
 
 	client->state = MDNS_CLIENT_S_REQUEST_API;
 	apiIf->port = lwip_htons(srv->port);
@@ -393,12 +393,12 @@ static char _mdnsClientDnsParseSRV(mdns_client_t *client, NMOS_API_INTERFACE *ap
 		u16_t jumpaddr;
 		u16_t copied;
 		jumpaddr = (((firstLableLength & 0x3f) << 8) | *(client->rdata+sizeof(DNS_RR_SRV)+1) );
-		MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC: compressed target at offset:%d"LWIP_NEW_LINE, jumpaddr) );
+		EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC: compressed target at offset:%d"LWIP_NEW_LINE, jumpaddr) );
 
 		copied = pbuf_copy_partial(client->pkt->pbuf, client->rdata, sizeof(client->rdata), jumpaddr);
 		if (copied != sizeof(client->rdata))
 		{
-			MUX_INFOF(("MdnsC: copied:%d"LWIP_NEW_LINE, copied) );
+			EXT_INFOF(("MdnsC: copied:%d"LWIP_NEW_LINE, copied) );
 		}
 
 		target = client->rdata;
@@ -409,7 +409,7 @@ static char _mdnsClientDnsParseSRV(mdns_client_t *client, NMOS_API_INTERFACE *ap
 	}
 
 	_mdnsClientGetFullDomain(client->domainName, target, answer->rd_length );
-	MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE"MdnsC: SRV host:'%s'"LWIP_NEW_LINE, client->domainName ));
+	EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE"MdnsC: SRV host:'%s'"LWIP_NEW_LINE, client->domainName ));
 
 	//client->qType = ans.info.type;
 	/* if it is not IP address, begin to parse hostname */
@@ -424,7 +424,7 @@ static char _mdnsClientDnsParseSRV(mdns_client_t *client, NMOS_API_INTERFACE *ap
 		sprintf((char *)client->domainName, "%s", apiIf->hostname );
 		res = mdnsClientSendQuery(client, apiIf->type);
 	
-		MUX_ASSERT(("MdnsC: Send MDNS domain QUERY"LWIP_NEW_LINE), (res == ERR_OK) );
+		EXT_ASSERT(("MdnsC: Send MDNS domain QUERY"LWIP_NEW_LINE), (res == ERR_OK) );
 		if(res == !ERR_OK)
 			return EXIT_FAILURE;
 	}
@@ -477,38 +477,38 @@ char mdnsClientParseAnswer(mdns_client_t *client, struct mdns_packet *pkt)
 		u16_t copied;
 
 		index++;
-//		MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC: read #%d Answer"LWIP_NEW_LINE, index));
+//		EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC: read #%d Answer"LWIP_NEW_LINE, index));
 		res = mdns_read_answer(pkt, &ans);
 		if (res != ERR_OK)
 		{
-			LWIP_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC: Failed to parse answer, skipping response packet"LWIP_NEW_LINE));
+			LWIP_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC: Failed to parse answer, skipping response packet"LWIP_NEW_LINE));
 			return ret;
 		}
 		
 #if _MDNS_CLIENT_DEBUG
 		_mdnsClientGetFullDomain(client->domainName, ans.info.domain.name, ans.info.domain.length);
-		MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC: ANSWER#%d: type:%d; class:%d; rdLength:%d; rdOffset:%d; NAME :'%s'", 
+		EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC: ANSWER#%d: type:%d; class:%d; rdLength:%d; rdOffset:%d; NAME :'%s'", 
 			index, ans.info.type, ans.info.klass, ans.rd_length, ans.rd_offset, client->domainName) );
 #endif
 
 		/* read RDATA */
 		if(sizeof(client->rdata) < ans.rd_length)
 		{
-			MUX_ERRORF(("Length of RDATA for Type %d is larger than buffer size: %d>%d", ans.info.type, ans.rd_length, sizeof(client->domainName)));
+			EXT_ERRORF(("Length of RDATA for Type %d is larger than buffer size: %d>%d", ans.info.type, ans.rd_length, sizeof(client->domainName)));
 			return ret;
 		}
 		
 		copied = pbuf_copy_partial(pkt->pbuf, client->rdata, ans.rd_length, ans.rd_offset);
 		if (copied != ans.rd_length)
 		{
-			MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC: copied:%d=%d"LWIP_NEW_LINE, copied, ans.rd_length));
+			EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC: copied:%d=%d"LWIP_NEW_LINE, copied, ans.rd_length));
 			return ERR_VAL;
 		}
 		
 #if _MDNS_CLIENT_DEBUG
-		MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, ("MdnsC:#%d RDATA", index) );
+		EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, ("MdnsC:#%d RDATA", index) );
 		CONSOLE_DEBUG_MEM(client->rdata, (uint32_t)ans.rd_length, 0, "MDNS RDATA");
-		MUX_DEBUGF(MUX_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE));
+		EXT_DEBUGF(EXT_MDNS_CLIENT_DEBUG, (LWIP_NEW_LINE));
 #endif
 
 		if(ans.info.klass != DNS_RRCLASS_IN)
@@ -527,7 +527,7 @@ char mdnsClientParseAnswer(mdns_client_t *client, struct mdns_packet *pkt)
 			}
 
 			_mdnsClientGetOneLabel(apiIf->name, client->rdata);//, ans.rd_offset -2 /* 0xc0 0c ??? */);
-			MUX_INFOF( ("MdnsC: service name '%s' for service '%s'"LWIP_NEW_LINE, apiIf->name, apiIf->service));
+			EXT_INFOF( ("MdnsC: service name '%s' for service '%s'"LWIP_NEW_LINE, apiIf->name, apiIf->service));
 			client->state = MDNS_CLIENT_S_PARSE_PTR;
 		}
 		else if(ans.info.type == DNS_RRTYPE_SRV )
@@ -571,14 +571,14 @@ static char	_mdnsClientInitQueryForInterface(mdns_client_t *client, NMOS_API_INT
 	sprintf((char *)client->domainName, "%s", apiIf->service );
 	
 	res = mdnsClientSendQuery(client, apiIf->type);
-	MUX_ASSERT(("Send MDNS QUERY"), (res == ERR_OK) );
+	EXT_ASSERT(("Send MDNS QUERY"), (res == ERR_OK) );
 	if(res == !ERR_OK)
 		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;
 }
 
-char mdnsClientInit(mdns_client_t *client, MUX_RUNTIME_CFG *runCfg)
+char mdnsClientInit(mdns_client_t *client, EXT_RUNTIME_CFG *runCfg)
 {
 	snprintf(client->service, sizeof(client->service), "%s", NMOS_MDNS_TYPE_REGISTRATION);
 	client->qType = DNS_RRTYPE_PTR;

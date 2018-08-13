@@ -34,7 +34,6 @@ CFLAGS += \
 	$(RTOS_HEADER) \
 	$(LWIP_HEADER) \
 	$(RTK_HEADER) \
-	-Iinclude	\
 	-I.		\
 	
   
@@ -48,30 +47,30 @@ ASM_FLAGS=
 
 
 NETWORK_SRC += \
-	net/netTimerMgt.c \
-	net/netSysArch.c \
-	net/netMac.c \
-	net/netPhy.c \
-	net/netInit.c \
+	net/eosNetTimerMgt.c \
+	net/eosNetSysArch.c \
+	net/eosNetMac.c \
+	net/eosNetPhy.c \
+	net/eosNetInit.c \
 
 
 CMDS_SRC += \
-	cmds/muxCliCmds.c \
-	cmds/muxCliCmdNetwork.c \
+	cmds/eosCliCmds.c \
+	cmds/eosCliNetworks.c \
 
 
 TASKS_SRC += \
-	tasks/muxTaskConsole.c \
-	tasks/muxTimerJobs.c \
+	tasks/eosTaskConsole.c \
+	tasks/eosTimerJobs.c \
 
 HW_SRC += \
-	hw/muxOsHwRtk.c \
-	hw/muxOsHwFpgaDrv.c \
+	hw/eosHwRtk.c \
+	hw/eosHwFpgaDrv.c \
 
 	
 
 UTILS_SRC += \
-	utils/syscalls.c \
+	utils/eosSyscalls.c \
 
 
 SRC += \
@@ -80,8 +79,8 @@ SRC += \
 	$(CMDS_SRC) \
 	$(UTILS_SRC) \
 	$(TASKS_SRC) \
-	muxMain.c	\
-	cstartup.c	\
+	eosMain.c	\
+	eosCStartup.c	\
 
 
 
@@ -90,7 +89,7 @@ TARGET_LIB_STATIC:=$(TARGET_LIB).a
 		 
 LOCAL_ALL=$(EXE).bin 
 
-include $(ROOT_DIR)/Makefile.post
+include $(RULE_DIR)/Makefile.post
 
 
 

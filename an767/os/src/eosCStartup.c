@@ -42,7 +42,7 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#include "muxOs.h"
+#include "eos.h"
 
 #if __FPU_USED /* CMSIS defined value to indicate usage of FPU */
 #include "fpu.h"

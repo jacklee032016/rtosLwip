@@ -4,8 +4,8 @@
 * J.L. 02.08.2018
 */
 
-#ifndef __MUX_FPGA_H__
-#define __MUX_FPGA_H__
+#ifndef __EXT_FPGA_H__
+#define __EXT_FPGA_H__
 
 
 #define I2C_ADDR_FPGA_A	(0x60 >> 1)		// 8 bits addr format
@@ -270,7 +270,7 @@
 
 COMPILER_PACK_SET(1);
 
-struct _MUX_FPGA_VER
+struct _EXT_FPGA_VER
 {
 	char		rx_tx : 1;
 	char		version : 7;
@@ -278,7 +278,7 @@ struct _MUX_FPGA_VER
 	char		fpgaDevice;
 }__attribute__((packed));
 
-typedef	struct _MUX_FPGA_VER		MUX_FPGA_VER;
+typedef	struct _EXT_FPGA_VER		EXT_FPGA_VER;
 
 typedef	struct {
 	uint8_t		Ctrl0;
@@ -324,85 +324,6 @@ typedef	struct {
 	volatile uint8_t		SDI_modes;	// **********************
 
 } FPGA_B_regs, *pFPGA_B_reg;
-
-
-extern const char  *TX_MODE_STR[];
-extern const char  *RX_MODE_STR[];
-	
-extern volatile FPGA_A_regs	g_FPGA_A;
-extern volatile FPGA_B_regs	g_FPGA_B;
-
-
-#if 0
-BOOL  fpga_init_rtos(void);
-BOOL  Wait_FPGA_done(uint32_t  Sec);
-
-BOOL  fpga_reload(void);
-BOOL  fpga_init(void);
-BOOL  fpga_reset(BYTE flag);
-
-BOOL  set_gs6080_param(BOOL  enable, BOOL rate6g, BOOL  eq_en);
-BOOL  set_gs6042_gain(BOOL gain);
-BOOL  set_gs3490(uint8_t  ch, BOOL gain, BOOL sd_en, BOOL sq_adj, BOOL op_ctl);
-BOOL  set_gs3490_dir(uint8_t  ch, uint8_t dir);
-BOOL  set_serdes_modes(uint8_t  spd_A, uint8_t  mode_A,
-						uint8_t  spd_B, uint8_t  mode_B,
-						uint8_t  spd_C, uint8_t  mode_C,
-						uint8_t  spd_D, uint8_t  mode_D  );
-
-
-BOOL  set_rx_tx_unit_mode(BOOL mode);
-BOOL  set_sfp_rs(BOOL rs0, BOOL rs1);
-BOOL  set_sfp_ena(BOOL ena);
-
-
-BOOL  sdi_drv_enable(U8  msk);
-
-BOOL  reset_eth_phy(void);
-BOOL  reset_pcs_tx(void);
-BOOL  reset_pcs_rx(void);
-
-BOOL  f_reset_rx(void);
-BOOL  f_reset_tx(void);
-
-BOOL  f_enable_tx(void);
-BOOL  f_disable_tx(void);
-
-BOOL  f_enable_rx(void);
-BOOL  f_disable_rx(void);
-
-//void  Valens_reset(void);
-//void  FPGA_hpd(void);
-
-void  WriteLED_TX(U8  blue, U8 red);
-void  WriteLED_XOR_TX(U8  Led);
-
-void  WriteLED_RX(U8  blue, U8 red);
-void  WriteLED_XOR_RX(U8  Led);
-
-
-BOOL  fpga_set_mode(U8  tx_mode, U8 rx_mode);
-BOOL  fpga_set_compress_rx(U8  ratio);
-BOOL  fpga_set_compress_tx(U8  ratio);
-BOOL  fpga_channel_detect_RX(U8  *ptr);
-BOOL  fpga_channel_detect_TX(U8  *ptr);
-BOOL  fpga_sync_lock(U8  *ptr);
-
-void  testPattern(bool  ena, U8 tx_mode);
-void  testPattern_exit(void);
-//U32   MeasureFreq_s(void);
-//U32   MeasureFreq_h(void);
-
-BOOL  fpga_set_vcxo(int32_t  dac_a, int32_t  dac_b, int32_t  dac_c, int32_t  dac_d );
-
-BOOL  fpga_rst_sdi_ch( BYTE ch);
-
-U32  get_timing_param(BYTE reg);
-
-U32  MeasureFreq(BYTE reg);
-
-int32_t  get_bitrate_score(a);
-#endif
 
 
 #endif

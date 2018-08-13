@@ -49,7 +49,7 @@
  * will be set to standard values. Override anything you don't like!
  */
 #include "lwipopts.h"
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 #include "lwip/arch.h"
 #endif
 #include "lwip/debug.h"
@@ -2039,7 +2039,7 @@
 #define IP6_FRAG_STATS                  0
 #define MLD6_STATS                      0
 #define ND6_STATS                       0
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	#if !defined MIB2_STATS || defined __DOXYGEN__
 	#define MIB2_STATS                      0
 	#endif

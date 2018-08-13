@@ -259,15 +259,15 @@ static void low_level_init(struct netif *netif)
 //	int ret;
 	char buf[1024];
 #endif /* LWIP_IPV4 */
-	MUX_RUNTIME_CFG *runCfg;
+	EXT_RUNTIME_CFG *runCfg;
 	char *preconfigured_tapif;
 	
 
 	tapif = (struct tapif *)netif->state;
-	runCfg = (MUX_RUNTIME_CFG *)tapif->data;
+	runCfg = (EXT_RUNTIME_CFG *)tapif->data;
 
 	LWIP_ASSERT(("RUN Configuration is null"), runCfg!= NULL);
-	if(MUX_IS_TX(runCfg))
+	if(EXT_IS_TX(runCfg))
 	{
 	 	preconfigured_tapif = "tap0";//getenv("PRECONFIGURED_TAPIF_TX");
 	}

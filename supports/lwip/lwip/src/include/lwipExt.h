@@ -61,32 +61,32 @@
 #endif
 
 
-void muxLwipHttpSvrInit(void *data);
+void extLwipHttpSvrInit(void *data);
 
 void mHttpSvrMain(void *data);
 
-char muxLwipStartup(struct netif *netif, MUX_RUNTIME_CFG *runCfg);
-void muxNetRawTelnetInit(MUX_RUNTIME_CFG *runCfg);
+char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg);
+void extNetRawTelnetInit(EXT_RUNTIME_CFG *runCfg);
 
 #if LWIP_MDNS_RESPONDER
 void extLwipMdsnDestroy(struct netif *netif);
 #endif
 
-char	 muxLwipGroupMgr(struct netif *netif, unsigned int gAddress, unsigned char isAdd);
+char	 extLwipGroupMgr(struct netif *netif, unsigned int gAddress, unsigned char isAdd);
 
 
 void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, ip4_addr_t *gw);
 
-void muxLwipIp4DebugPrint(struct pbuf *p, const char *prompt);
-void muxLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin);
+void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt);
+void extLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin);
 
-char muxNetMulticastIP4Mac(unsigned int	*ipAddress, MUX_MAC_ADDRESS *macAddress);
-
-
-void muxVideoConfigCopy(MUX_VIDEO_CONFIG *dest, MUX_VIDEO_CONFIG *src);
+char extNetMulticastIP4Mac(unsigned int	*ipAddress, EXT_MAC_ADDRESS *macAddress);
 
 
-char	muxNetIsGroupAddress(unsigned int	*ipAddress);
+void extVideoConfigCopy(EXT_VIDEO_CONFIG *dest, EXT_VIDEO_CONFIG *src);
+
+
+char	extNetIsGroupAddress(unsigned int	*ipAddress);
 
 
 
@@ -95,23 +95,23 @@ char	muxNetIsGroupAddress(unsigned int	*ipAddress);
 			(offsetof(struct netif, hwaddr_len))
 
 
-#define	MUX_LWIP_INT_TO_IP(ipAddr,  intAddr)	\
+#define	EXT_LWIP_INT_TO_IP(ipAddr,  intAddr)	\
 				((ipAddr)->addr = intAddr)
 
-#define	MUX_LWIP_IPADD_TO_STR(ipAddr)		\
+#define	EXT_LWIP_IPADD_TO_STR(ipAddr)		\
 			inet_ntoa((*(struct in_addr *)(ipAddr)) )
 
 
-#define	MUX_LWIP_DEBUG	0
+#define	EXT_LWIP_DEBUG	0
 
 
-#define	MUX_LWIP_DEBUG_NETIF(_netif)	\
-			MUX_DEBUGF(MUX_DBG_ON, ("netif :%p; hwaddr_len:%d, offset:%d:%d:%d"MUX_NEW_LINE,  \
+#define	EXT_LWIP_DEBUG_NETIF(_netif)	\
+			EXT_DEBUGF(EXT_DBG_ON, ("netif :%p; hwaddr_len:%d, offset:%d:%d:%d"EXT_NEW_LINE,  \
 				(_netif), (_netif)->hwaddr_len, (offsetof(struct netif, rs_count)), (offsetof(struct netif, mtu)), NETIF_HWADDR_OFFSET() ) )
 
 
-#define	MUX_LWIP_DEBUG_PBUF(_pbuf)	\
-			MUX_DEBUGF(MUX_DBG_ON, ("pbuf :%p, size:%d, next:%p; payload:%p, total:%d, len:%d, type:%d, ref:%d"MUX_NEW_LINE,  \
+#define	EXT_LWIP_DEBUG_PBUF(_pbuf)	\
+			EXT_DEBUGF(EXT_DBG_ON, ("pbuf :%p, size:%d, next:%p; payload:%p, total:%d, len:%d, type:%d, ref:%d"EXT_NEW_LINE,  \
 				(_pbuf), sizeof(struct pbuf), _pbuf->next, _pbuf->payload, _pbuf->tot_len, _pbuf->len, _pbuf->type, _pbuf->ref ) )
 
 
@@ -135,10 +135,10 @@ typedef	enum
 #include "lwip/apps/mdns_priv.h"
 
 
-#define	MUX_MDNS_CLIENT_DEBUG				MUX_DBG_OFF
-#define	MUX_HTTPD_DEBUG						MUX_DBG_OFF
+#define	EXT_MDNS_CLIENT_DEBUG				EXT_DBG_OFF
+#define	EXT_HTTPD_DEBUG						EXT_DBG_OFF
 
-#define	MUX_HTTPD_DATA_DEBUG				MUX_DBG_OFF
+#define	EXT_HTTPD_DATA_DEBUG				EXT_DBG_OFF
 
 
 typedef	struct 
@@ -159,11 +159,11 @@ typedef	struct
 
 	MuxNmosNode			node;
 	
-	MUX_RUNTIME_CFG	*runCfg;
+	EXT_RUNTIME_CFG	*runCfg;
 }mdns_client_t;
 
 
-char mdnsClientInit(mdns_client_t *mdnsClient, MUX_RUNTIME_CFG *runCfg);
+char mdnsClientInit(mdns_client_t *mdnsClient, EXT_RUNTIME_CFG *runCfg);
 char mdnsClientParseAnswer(mdns_client_t *mdnsClient, struct mdns_packet *pkt);
 
 struct ptptime_t
@@ -173,19 +173,19 @@ struct ptptime_t
 };
 
 
-char muxCmdConnect(MUX_RUNTIME_CFG  *runCfg);
+char extCmdConnect(EXT_RUNTIME_CFG  *runCfg);
 
 char extUdpRxPerfStart(void);
 
 
-char *muxLwipIpAddress(void);
+char *extLwipIpAddress(void);
 
 //void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address);
 
 
 /* clear updateInfo, so it will not be wrotten to flash */
 #define	CANCEL_UPDATE(runCfg) \
-	do{		memset(&(runCfg)->firmUpdateInfo, 0, sizeof(MUX_FM_UPDATE) );	\
+	do{		memset(&(runCfg)->firmUpdateInfo, 0, sizeof(EXT_FM_UPDATE) );	\
 	}while(0)
 
 
@@ -201,7 +201,7 @@ void gmacEnableWakeOnLan(unsigned int ipAddr);
 #endif
 
 
-char cmnCmdLwipStats(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char cmnCmdLwipStats(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
 #if LWIP_EXT_MQTT_CLIENT
 void mqttClientConnect(mqtt_client_t * client, unsigned int svrIp);

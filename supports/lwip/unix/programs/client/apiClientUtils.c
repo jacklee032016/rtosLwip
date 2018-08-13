@@ -33,7 +33,7 @@ static int _apiSendoutSocket(int socket, struct sockaddr_in *peerAddress, void *
 	crc32 =  htonl(cmnMuxCRC32b(data, size));
 	*((unsigned int *)(ipCmd.data+size)) = crc32;
 
-	printf("\tsend out '%s'"MUX_NEW_LINE, (char *)data);
+	printf("\tsend out '%s'"EXT_NEW_LINE, (char *)data);
 	if(sendto(socket, &ipCmd, size+8, 0, (struct sockaddr *)peerAddress, sizeof(struct sockaddr_in)) < 0)
 	{
 		perror("sendto");
@@ -150,10 +150,10 @@ int apiClientReceive(API_CLIENT *apiClient)
 
 
 static const char *_jsonGetParamsCmd = 
-		"{\""MUX_IPCMD_KEY_COMMAND"\":\""MUX_IPCMD_CMD_GET_PARAMS"\", "
-		"\""MUX_IPCMD_LOGIN_ACK"\":\""MUX_USER"\", "
-		"\""MUX_IPCMD_PWD_MSG"\":\""MUX_PASSWORD"\", "
-		   "\""MUX_IPCMD_KEY_TARGET"\":\"FF:FF:FF:FF:FF:FF\" }";
+		"{\""EXT_IPCMD_KEY_COMMAND"\":\""EXT_IPCMD_CMD_GET_PARAMS"\", "
+		"\""EXT_IPCMD_LOGIN_ACK"\":\""EXT_USER"\", "
+		"\""EXT_IPCMD_PWD_MSG"\":\""EXT_PASSWORD"\", "
+		   "\""EXT_IPCMD_KEY_TARGET"\":\"FF:FF:FF:FF:FF:FF\" }";
 
 
 char apiClientCmdHeaderPrint(struct API_CLIENT_CMD_HANDLER *handle, API_CLIENT *apiClient)
@@ -162,14 +162,14 @@ char apiClientCmdHeaderPrint(struct API_CLIENT_CMD_HANDLER *handle, API_CLIENT *
 	char *data = apiClient->buffer;
 	int size = apiClient->size;
 		
-	index += snprintf(data+index, size-index, "{\""MUX_IPCMD_KEY_TARGET"\":" );
+	index += snprintf(data+index, size-index, "{\""EXT_IPCMD_KEY_TARGET"\":" );
 	MAC_ADDRESS_PRINT(data, size, index, &(apiClient->params->target));
-	index += snprintf(data+index, size-index, "\""MUX_IPCMD_KEY_COMMAND"\":\"%s\",", handle->ipCmdName );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_KEY_COMMAND"\":\"%s\",", handle->ipCmdName );
 
-	index += snprintf(data+index, size-index, "\""MUX_IPCMD_LOGIN_ACK"\":\"%s\",", MUX_USER);
-	index += snprintf(data+index, size-index, "\""MUX_IPCMD_PWD_MSG"\":\"%s\"", MUX_PASSWORD );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_LOGIN_ACK"\":\"%s\",", EXT_USER);
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_PWD_MSG"\":\"%s\"", EXT_PASSWORD );
 
-//	index += snprintf(data+index, size-index, "\""MUX_JSON_KEY_DEBUG"\":\"%s\"}", parser->msg);
+//	index += snprintf(data+index, size-index, "\""EXT_JSON_KEY_DEBUG"\":\"%s\"}", parser->msg);
 	apiClient->bufIndex = index;
 
 	return EXIT_SUCCESS;
@@ -182,23 +182,23 @@ static int apiClientParseAddDevice(API_CLIENT *apiClient)
 {
 //	int index = 0;
 	char	ret;
-	MUX_JSON_PARSER replyParser;
-	MUX_RUNTIME_CFG replyCfg;
+	EXT_JSON_PARSER replyParser;
+	EXT_RUNTIME_CFG replyCfg;
 	AN767_DEV_T		*dev = NULL;
 
-	memset(&replyCfg, 0, sizeof(MUX_RUNTIME_CFG));
+	memset(&replyCfg, 0, sizeof(EXT_RUNTIME_CFG));
 
 	replyParser->runCfg = &replyCfg;
 
 	printf("\tparse reply params..."LWIP_NEW_LINE);
-	ret = muxJsonRequestParseCommand(apiClient->buffer, strlen(apiClient->buffer), &replyParser);
+	ret = extJsonRequestParseCommand(apiClient->buffer, strlen(apiClient->buffer), &replyParser);
 	if(ret == EXIT_FAILURE)
 	{
 		printf("Parse reply SetParams failed"API_CLIENT_NEW_LINE);
 		return EXIT_FAILURE;
 	}
 	
-	ret = muxJsonRequestParse(&replyParser);
+	ret = extJsonRequestParse(&replyParser);
 	if(ret == EXIT_FAILURE)
 	{
 		printf("Parse reply cfg of SetParams failed"API_CLIENT_NEW_LINE);
@@ -213,37 +213,37 @@ static int apiClientParseAddDevice(API_CLIENT *apiClient)
 	}
 	memset(dev, 0, sizeof(AN767_DEV_T));
 
-	memcpy(&dev->cfg, &replyCfg, sizeof(MUX_RUNTIME_CFG));
+	memcpy(&dev->cfg, &replyCfg, sizeof(EXT_RUNTIME_CFG));
 	ADD_ELEMENT(apiClient->devs, dev);
 	
 	return EXIT_SUCCESS;
 }
 
-static void	apiClientDebugCfg(MUX_RUNTIME_CFG *cfg, const char *prompt)
+static void	apiClientDebugCfg(EXT_RUNTIME_CFG *cfg, const char *prompt)
 {
 	printf("%s: "API_CLIENT_NEW_LINE, prompt);
 
-	printf("TX/RX\t: %s\n\r", MUX_IS_TX(cfg)?"TX":"RX");
-	printf(MUX_JSON_KEY_MAC"\t: ");
+	printf("TX/RX\t: %s\n\r", EXT_IS_TX(cfg)?"TX":"RX");
+	printf(EXT_JSON_KEY_MAC"\t: ");
 	_MAC_ADDRESS_DEBUG(&cfg->local.mac);
-	printf(MUX_JSON_KEY_IP"\t: %s\n\r",  MUX_LWIP_IPADD_TO_STR(&cfg->local.ip));
-	printf(MUX_JSON_KEY_MASK"\t: %s\n\r",  MUX_LWIP_IPADD_TO_STR(&cfg->ipMask));
-	printf(MUX_JSON_KEY_GATEWAY"\t: %s\n\r",  MUX_LWIP_IPADD_TO_STR(&cfg->ipGateway));
-	printf(MUX_JSON_KEY_DHCP"\t: %s\n\r", MUX_DHCP_IS_ENABLE(cfg)?"Enable":"Disable");
+	printf(EXT_JSON_KEY_IP"\t: %s\n\r",  EXT_LWIP_IPADD_TO_STR(&cfg->local.ip));
+	printf(EXT_JSON_KEY_MASK"\t: %s\n\r",  EXT_LWIP_IPADD_TO_STR(&cfg->ipMask));
+	printf(EXT_JSON_KEY_GATEWAY"\t: %s\n\r",  EXT_LWIP_IPADD_TO_STR(&cfg->ipGateway));
+	printf(EXT_JSON_KEY_DHCP"\t: %s\n\r", EXT_DHCP_IS_ENABLE(cfg)?"Enable":"Disable");
 
-	printf(MUX_JSON_KEY_VIDEO_MAC_DEST"\t: ");
+	printf(EXT_JSON_KEY_VIDEO_MAC_DEST"\t: ");
 	_MAC_ADDRESS_DEBUG(&cfg->dest.mac);
-	printf(MUX_JSON_KEY_VIDEO_IP_DEST"\t: %s\n\r",  MUX_LWIP_IPADD_TO_STR(&cfg->dest.ip) );
-	printf(MUX_JSON_KEY_VIDEO_PORT_DEST"\t: %d\n\r", cfg->dest.vport);
-	printf(MUX_JSON_KEY_AUDIO_PORT_DEST"\t: %d\n\r", cfg->dest.aport);
+	printf(EXT_JSON_KEY_VIDEO_IP_DEST"\t: %s\n\r",  EXT_LWIP_IPADD_TO_STR(&cfg->dest.ip) );
+	printf(EXT_JSON_KEY_VIDEO_PORT_DEST"\t: %d\n\r", cfg->dest.vport);
+	printf(EXT_JSON_KEY_AUDIO_PORT_DEST"\t: %d\n\r", cfg->dest.aport);
 
 	if(cfg->local.ip != IPADDR_NONE)
 	{
-		printf(MUX_JSON_KEY_VIDEO_MAC_LOCAL"\t: ");
+		printf(EXT_JSON_KEY_VIDEO_MAC_LOCAL"\t: ");
 		_MAC_ADDRESS_DEBUG(&cfg->local.mac);
-		printf(MUX_JSON_KEY_VIDEO_IP_LOCAL"\t: %s\n\r",  MUX_LWIP_IPADD_TO_STR(&cfg->local.ip) );
-		printf(MUX_JSON_KEY_VIDEO_PORT_LOCAL"\t: %d\n\r", cfg->local.vport);
-		printf(MUX_JSON_KEY_AUDIO_PORT_LOCAL"\t: %d\n\r", cfg->local.aport);
+		printf(EXT_JSON_KEY_VIDEO_IP_LOCAL"\t: %s\n\r",  EXT_LWIP_IPADD_TO_STR(&cfg->local.ip) );
+		printf(EXT_JSON_KEY_VIDEO_PORT_LOCAL"\t: %d\n\r", cfg->local.vport);
+		printf(EXT_JSON_KEY_AUDIO_PORT_LOCAL"\t: %d\n\r", cfg->local.aport);
 	}
 
 }

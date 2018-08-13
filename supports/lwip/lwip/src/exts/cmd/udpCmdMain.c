@@ -8,13 +8,13 @@
 #include "extUdpCmd.h"
 
 
-static char	 muxCmdPaserHandler(MUX_JSON_PARSER  *parser, void *data, u16_t size, const ip_addr_t *addr, u16_t port)
+static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size, const ip_addr_t *addr, u16_t port)
 {
 	CMN_IP_COMMAND *ipCmd = (CMN_IP_COMMAND *)data;
 	unsigned int crcDecoded, crcReceived;
 
 	ipCmd->length = ntohs(ipCmd->length);
-	if(MUX_DEBUG_IS_ENABLE(MUX_DEBUG_FLAG_CMD))
+	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 	{
 		printf("receive %d (IP CMD->length:%d) bytes from at port %d of '%s' ", size, ipCmd->length, port,  inet_ntoa(*(ip_addr_t *)addr));
 		printf("'%.*s' \n\r", ipCmd->length-IPCMD_HEADER_LENGTH, ipCmd->data );
@@ -23,8 +23,8 @@ static char	 muxCmdPaserHandler(MUX_JSON_PARSER  *parser, void *data, u16_t size
 
 	if (CMD_TAG_REQUEST != ipCmd->tag)
 	{
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "Tag of command is wrong:0x%x", ipCmd->tag );
-		MUX_ERRORF(("%s", parser->msg) );
+		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "Tag of command is wrong:0x%x", ipCmd->tag );
+		EXT_ERRORF(("%s", parser->msg) );
 		parser->status = JSON_STATUS_TAG_ERROR;
 		goto Failed;
 	}
@@ -35,36 +35,36 @@ static char	 muxCmdPaserHandler(MUX_JSON_PARSER  *parser, void *data, u16_t size
 	if (crcReceived != crcDecoded)
 	{//Wrong CRC
 		//sendto(sockCtrl, msg_reply, n /*+ 8*/, 0, (struct sockaddr *) &addr, addrlen); //  if suceeded the updated data is send back
-		snprintf(parser->msg, MUX_JSON_MESSAGE_SIZE, "CRC of command is wrong:received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded );
-		MUX_ERRORF(("%s", parser->msg) );
+		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "CRC of command is wrong:received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded );
+		EXT_ERRORF(("%s", parser->msg) );
 		parser->status = JSON_STATUS_CRC_ERROR;
 		goto Failed;
 	}
 	
-	MUX_DEBUGF(MUX_IPCMD_DEBUG, ("received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded));
+	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded));
 
 	memset(parser->msg, 0, sizeof(parser->msg));
-	if(muxJsonRequestParseCommand((char *)ipCmd->data, size-IPCMD_HEADER_LENGTH*2, parser) == EXIT_FAILURE)
+	if(extJsonRequestParseCommand((char *)ipCmd->data, size-IPCMD_HEADER_LENGTH*2, parser) == EXIT_FAILURE)
 	{
 #ifdef	X86
-//		muxJsonDebug(parser, runCfg, "Parsed JSON");
+//		extJsonDebug(parser, runCfg, "Parsed JSON");
 #endif
-		MUX_DEBUGF(MUX_IPCMD_DEBUG, ("parse JSON command failed (%d): %s,because '%s'"LWIP_NEW_LINE, ipCmd->length, ipCmd->data, parser->msg ) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("parse JSON command failed (%d): %s,because '%s'"LWIP_NEW_LINE, ipCmd->length, ipCmd->data, parser->msg ) );
 		goto Failed;
 	}
 	else
 	{
 #ifdef	X86
-//		muxJsonDebug(parser, runCfg, "Parsed JSON");
+//		extJsonDebug(parser, runCfg, "Parsed JSON");
 #endif
-		if( muxJsonHandle(parser) == EXIT_FAILURE)
+		if( extJsonHandle(parser) == EXIT_FAILURE)
 		{
-			MUX_DEBUGF(MUX_IPCMD_DEBUG, ("JSON command: '%s' handler failed:%s"LWIP_NEW_LINE, parser->cmd, parser->msg ) );
+			EXT_DEBUGF(EXT_IPCMD_DEBUG, ("JSON command: '%s' handler failed:%s"LWIP_NEW_LINE, parser->cmd, parser->msg ) );
 			goto Failed;
 		}
 
 #if 0
-		if(MUX_DEBUG_IS_ENABLE(MUX_DEBUG_FLAG_CMD))
+		if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 		{
 			printf("output RES2 %p, %d bytes: '%.*s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outIndex -IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH);
 		}
@@ -72,17 +72,17 @@ static char	 muxCmdPaserHandler(MUX_JSON_PARSER  *parser, void *data, u16_t size
 
 	}
 
-	if(MUX_DEBUG_IS_ENABLE(MUX_DEBUG_FLAG_CMD))
+	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 	{
 		printf("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
 			parser->status, parser->outIndex,  parser->outIndex -IPCMD_HEADER_LENGTH*2, parser->outBuffer+IPCMD_HEADER_LENGTH, parser->msg );
-		MUX_DEBUGF(MUX_IPCMD_DEBUG, ("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
 			parser->status, parser->outIndex,  parser->outIndex -IPCMD_HEADER_LENGTH*2, parser->outBuffer+IPCMD_HEADER_LENGTH, parser->msg) );
 	}
 	return EXIT_SUCCESS;
 
 Failed:
-	muxIpCmdResponseReply(parser);
+	extIpCmdResponseReply(parser);
 	return EXIT_FAILURE;
 	
 }
@@ -93,9 +93,9 @@ Failed:
 #include "lwip/sys.h"
 
 /* UDP_CONN API or RAW API */
-//#define	MUX_BC_UDPCONN_API		0
+//#define	EXT_BC_UDPCONN_API		0
 
-//#if MUX_BC_UDPCONN_API
+//#if EXT_BC_UDPCONN_API
 static void _udpSysCtrlThread(void *arg)
 {
 //#define	_USE_LOCAL_BOARDCAST
@@ -107,28 +107,28 @@ static void _udpSysCtrlThread(void *arg)
 #ifdef	_USE_LOCAL_BOARDCAST
 	ip_addr_t addrAny;
 #endif
-	MUX_JSON_PARSER  *parser = (MUX_JSON_PARSER *)arg;
+	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
 
-//	MUX_RUNTIME_CFG *runCfg = (MUX_RUNTIME_CFG *)arg;
+//	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
 //	printf("Boardcast Thread running.....\n\r");
 //	LWIP_DEBUGF(LWIP_DBG_ON, ("Boardcast Thread running2.....\n\r"));
 
 #ifdef	_USE_LOCAL_BOARDCAST
-	printf("IP Mask '%s'\n\r", MUX_LWIP_IPADD_TO_STR(&parser->runCfg->ipAddress) );
+	printf("IP Mask '%s'\n\r", EXT_LWIP_IPADD_TO_STR(&parser->runCfg->ipAddress) );
 	addrAny.addr =parser-> runCfg->ipAddress| (~(parser->runCfg->ipMask));
-	printf("Listen on '%s'\n\r", MUX_LWIP_IPADD_TO_STR(&addrAny) );
+	printf("Listen on '%s'\n\r", EXT_LWIP_IPADD_TO_STR(&addrAny) );
 #endif
 
 #if LWIP_IPV6
 	conn = netconn_new(NETCONN_UDP_IPV6);
-	netconn_bind(conn, IP6_ADDR_ANY, MUX_CTRL_PORT);
+	netconn_bind(conn, IP6_ADDR_ANY, EXT_CTRL_PORT);
 #else /* LWIP_IPV6 */
 	conn = netconn_new(NETCONN_UDP);
 #ifdef	_USE_LOCAL_BOARDCAST
-	netconn_bind(conn, &addrAny, MUX_CTRL_PORT);
+	netconn_bind(conn, &addrAny, EXT_CTRL_PORT);
 #else
-	netconn_bind(conn, IP_ADDR_ANY, MUX_CTRL_PORT);
+	netconn_bind(conn, IP_ADDR_ANY, EXT_CTRL_PORT);
 #endif
 #endif /* LWIP_IPV6 */
 	LWIP_ERROR("boardcast: invalid conn", (conn != NULL), return;);
@@ -152,10 +152,10 @@ static void _udpSysCtrlThread(void *arg)
 				
 //				if(IP_BADCLASS(buf->addr.addr))
 
-//				printf("RX %s (%s) packet ", (IP_BADCLASS(buf->toaddr.addr))?"BOARDCAST":"UNICAST", MUX_LWIP_IPADD_TO_STR(&(buf->toaddr.addr)));
-//				printf("from %s : '%s'\n", MUX_LWIP_IPADD_TO_STR(&(buf->addr.addr)), buffer);
+//				printf("RX %s (%s) packet ", (IP_BADCLASS(buf->toaddr.addr))?"BOARDCAST":"UNICAST", EXT_LWIP_IPADD_TO_STR(&(buf->toaddr.addr)));
+//				printf("from %s : '%s'\n", EXT_LWIP_IPADD_TO_STR(&(buf->addr.addr)), buffer);
 #if 0
-				if(MUX_DEBUG_IS_ENABLE(MUX_DEBUG_FLAG_CMD))
+				if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 				{
 					printf("RX %s (%s) packet ", (IP_BADCLASS(buf->toaddr.addr))?"BOARDCAST":"UNICAST", inet_ntoa(*(ip_addr_t *)&(buf->toaddr)));
 					printf("from %s : '%s'\n", inet_ntoa(*(ip_addr_t *)&(buf->addr)), buffer);
@@ -163,13 +163,13 @@ static void _udpSysCtrlThread(void *arg)
 #endif
 
 #if 1				
-				muxCmdPaserHandler(buffer, buf->p->tot_len, &buf->toaddr, buf->port);
+				extCmdPaserHandler(buffer, buf->p->tot_len, &buf->toaddr, buf->port);
 				netbuf_ref(buf, parser->outBuffer, strlen(parser->outBuffer) );
 #else				
 				char *msg="reply from 767";
 				netbuf_ref(buf, msg, strlen(msg) );
 #endif
-//				err = netconn_sendto(conn, buf, &addrAny, MUX_CTRL_PORT);
+//				err = netconn_sendto(conn, buf, &addrAny, EXT_CTRL_PORT);
 				err = netconn_send(conn, buf);
 				if(err != ERR_OK)
 				{
@@ -193,7 +193,7 @@ static void _udpSysCtrlThread(void *arg)
 
 static struct udp_pcb *_ipcmdPcb;
 
-char muxIpCmdSendout(MUX_JSON_PARSER  *parser, unsigned int *ip, unsigned short port)
+char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short port)
 {
 	struct pbuf *newBuf = NULL;
 	const ip_addr_t *addr =  (ip_addr_t *)ip;
@@ -202,7 +202,7 @@ char muxIpCmdSendout(MUX_JSON_PARSER  *parser, unsigned int *ip, unsigned short 
 	newBuf = pbuf_alloc(PBUF_TRANSPORT, parser->outIndex, PBUF_ROM);
 	if (newBuf == NULL)
 	{
-		MUX_ERRORF(("ERROR : can't allocate new pbuf"));
+		EXT_ERRORF(("ERROR : can't allocate new pbuf"));
 		return EXIT_FAILURE;
 	}
 
@@ -210,7 +210,7 @@ char muxIpCmdSendout(MUX_JSON_PARSER  *parser, unsigned int *ip, unsigned short 
 	newBuf->len = parser->outIndex;
 	newBuf->tot_len = parser->outIndex;
 	
-	MUX_DEBUGF(MUX_IPCMD_DEBUG, ("send out %p:%p, size %d to  port %d of '%s': "LWIP_NEW_LINE"'%.*s'"LWIP_NEW_LINE, 
+	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("send out %p:%p, size %d to  port %d of '%s': "LWIP_NEW_LINE"'%.*s'"LWIP_NEW_LINE, 
 		newBuf, newBuf->payload, newBuf->len, port,  inet_ntoa(*(ip_addr_t *)addr), parser->outIndex-2*IPCMD_HEADER_LENGTH,  parser->outBuffer+IPCMD_HEADER_LENGTH ) );
 	CONSOLE_DEBUG_MEM((unsigned char *)parser->outBuffer, parser->outIndex, 0, "Send out Raw IP CMD");
 	udp_sendto(_ipcmdPcb, newBuf, addr, port); //dest port
@@ -225,28 +225,28 @@ char muxIpCmdSendout(MUX_JSON_PARSER  *parser, unsigned int *ip, unsigned short 
 static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
 {
 //	struct pbuf *newBuf = NULL;
-	MUX_JSON_PARSER  *parser = (MUX_JSON_PARSER *)arg;
+	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
 
 	unsigned short size;
 
-	MUX_ASSERT(("runCfg is null"), (parser !=NULL && parser->runCfg != NULL) );
+	EXT_ASSERT(("runCfg is null"), (parser !=NULL && parser->runCfg != NULL) );
 	if (p != NULL)
 	{
 		if(addr == NULL)
 		{
-			MUX_ERRORF(("ERROR : add is null"LWIP_NEW_LINE));
+			EXT_ERRORF(("ERROR : add is null"LWIP_NEW_LINE));
 			return;
 		}
-		MUX_DEBUGF(MUX_IPCMD_DEBUG, ("receive %d bytes from '%s' port %d"LWIP_NEW_LINE, p->tot_len, inet_ntoa(*(ip_addr_t *)addr), port) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("receive %d bytes from '%s' port %d"LWIP_NEW_LINE, p->tot_len, inet_ntoa(*(ip_addr_t *)addr), port) );
 //		CONSOLE_DEBUG_MEM( p->payload, p->len, 0, "RECV IP Cmd");
 
 		size = (p->tot_len > parser->runCfg->bufLength)? parser->runCfg->bufLength: p->tot_len;
 		pbuf_copy_partial(p, parser->runCfg->bufRead, size, 0);
 		pbuf_free(p);
 
-		muxCmdPaserHandler(parser, parser->runCfg->bufRead, size, addr, port);
+		extCmdPaserHandler(parser, parser->runCfg->bufRead, size, addr, port);
 
-		muxIpCmdSendout(parser, (unsigned int *)addr, port );
+		extIpCmdSendout(parser, (unsigned int *)addr, port );
 	}
 }
 
@@ -257,7 +257,7 @@ static void _udpSysCtrlThread(void *arg)
 //	ip_set_option(((struct ip_pcb *)ptel_pcb), SOF_BROADCAST);
 //	ptel_pcb->so_options |= SOF_BROADCAST;
 
-	udp_bind(_ipcmdPcb, IP_ADDR_ANY, MUX_CTRL_PORT);
+	udp_bind(_ipcmdPcb, IP_ADDR_ANY, EXT_CTRL_PORT);
 
 	udp_recv(_ipcmdPcb, _rawUdpEchoRecv, arg);
 
@@ -284,10 +284,10 @@ static void _udpSysCtrlThread(void *arg)
 #endif
 
 
-void muxIpCmdAgentInit(MUX_JSON_PARSER  *parser)
+void extIpCmdAgentInit(EXT_JSON_PARSER  *parser)
 {
 #if LWIP_NETCONN
-	sys_thread_new(MUX_TASK_SYS_CTRL, _udpSysCtrlThread, parser, 130*15, 2);
+	sys_thread_new(EXT_TASK_SYS_CTRL, _udpSysCtrlThread, parser, 130*15, 2);
 #else
 	_udpSysCtrlThread(parser);
 #endif

@@ -14,8 +14,8 @@ void loadApplication(uint32_t appAddress)
 	__Start_New = (uint32_t(*) (void) ) pCode[1];
 	__Start_SP = pCode[0];
 
-	printf("\n\r Starting application at flash 0x%08x! "MUX_NEW_LINE, (unsigned int)appAddress);
-	printf("========================================================= "MUX_NEW_LINE );
+	printf("\n\r Starting application at flash 0x%08x! "EXT_NEW_LINE, (unsigned int)appAddress);
+	printf("========================================================= "EXT_NEW_LINE );
 
 //	WDT_Restart(WDT);
 //	__disable_irq();

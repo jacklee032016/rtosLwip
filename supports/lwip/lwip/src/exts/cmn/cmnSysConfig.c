@@ -5,13 +5,13 @@
 
 #include "extSysParams.h"
 
-static unsigned char		_readBuffer[MUX_RW_BUFFER_SIZE];
-static unsigned char		_writeBuffer[MUX_RW_BUFFER_SIZE];
+static unsigned char		_readBuffer[EXT_RW_BUFFER_SIZE];
+static unsigned char		_writeBuffer[EXT_RW_BUFFER_SIZE];
 
-MUX_RUNTIME_CFG	muxRun;
+EXT_RUNTIME_CFG	extRun;
 
 
-char muxSysAtoInt8(const char *str, unsigned char *value)
+char extSysAtoInt8(const char *str, unsigned char *value)
 {
 	char key;
 	unsigned int dw = 0;
@@ -54,12 +54,12 @@ char muxSysAtoInt8(const char *str, unsigned char *value)
 
 
 /*mac address in string format of "xx:xx:xx:xx:xx:xx" into structure */
-char	muxMacAddressParse(MUX_MAC_ADDRESS *macAddress, const char *macStr)
+char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr)
 {
 	const char *tmp = macStr;
 	int i;
 
-	for(i=0; i< MUX_MAC_ADDRESS_LENGTH; i++)
+	for(i=0; i< EXT_MAC_ADDRESS_LENGTH; i++)
 	{
 		if(i != 0)
 		{
@@ -73,7 +73,7 @@ char	muxMacAddressParse(MUX_MAC_ADDRESS *macAddress, const char *macStr)
 		
 		if( tmp )
 		{
-			if( muxSysAtoInt8(tmp, &macAddress->address[i]) )
+			if( extSysAtoInt8(tmp, &macAddress->address[i]) )
 			{
 				return EXIT_FAILURE;
 			}
@@ -84,31 +84,31 @@ char	muxMacAddressParse(MUX_MAC_ADDRESS *macAddress, const char *macStr)
 }
 
 /* used in bootloader, RTOS and Linux simhost */
-void muxCfgFromFactory( MUX_RUNTIME_CFG *cfg )
+void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 {
-	cfg->magic[0] = MUX_MAGIC_VALUE_A;
-	cfg->magic[1] = MUX_MAGIC_VALUE_B;
+	cfg->magic[0] = EXT_MAGIC_VALUE_A;
+	cfg->magic[1] = EXT_MAGIC_VALUE_B;
 
-	sprintf(cfg->name, "%s", MUX_767_PRODUCT_NAME);
-	sprintf(cfg->model, "%s", MUX_767_MODEL);
+	sprintf(cfg->name, "%s", EXT_767_PRODUCT_NAME);
+	sprintf(cfg->model, "%s", EXT_767_MODEL);
 
 	cfg->version.major = BL_VERSION_MAJOR;
 	cfg->version.minor = BL_VERSION_MINOR;
 	cfg->version.revision = BL_VERSION_REVISION;
 
-	snprintf(cfg->user, MUX_USER_SIZE, "%s", MUX_USER);
-	snprintf(cfg->password, MUX_PASSWORD_SIZE, "%s", MUX_PASSWORD);
+	snprintf(cfg->user, EXT_USER_SIZE, "%s", EXT_USER);
+	snprintf(cfg->password, EXT_PASSWORD_SIZE, "%s", EXT_PASSWORD);
 
-	snprintf(cfg->superUser, MUX_USER_SIZE, "%s", MUX_SUPER_USER);
-	snprintf(cfg->superPassword, MUX_PASSWORD_SIZE, "%s", MUX_SUPER_PASSWORD);
+	snprintf(cfg->superUser, EXT_USER_SIZE, "%s", EXT_SUPER_USER);
+	snprintf(cfg->superPassword, EXT_PASSWORD_SIZE, "%s", EXT_SUPER_PASSWORD);
 
 #if 1
-	cfg->isMCast = MUX_TRUE;
+	cfg->isMCast = EXT_TRUE;
 #else
-	cfg->isMCast = MUX_FALSE;
+	cfg->isMCast = EXT_FALSE;
 #endif
-	cfg->isUpdate = MUX_FALSE;
-	cfg->isDipOn = MUX_TRUE;
+	cfg->isUpdate = EXT_FALSE;
+	cfg->isDipOn = EXT_TRUE;
 	
 #if 0
 	cfg->macAddress.address[0] = ETHERNET_CONF_ETHADDR0;
@@ -130,22 +130,22 @@ void muxCfgFromFactory( MUX_RUNTIME_CFG *cfg )
 	cfg->dest.mac.address[3] = ETHERNET_CONF_ETHADDR3;
 	cfg->dest.mac.address[5] = ETHERNET_CONF_ETHADDR5;
 	
-	if(MUX_IS_TX(cfg) )
+	if(EXT_IS_TX(cfg) )
 	{
 //		cfg->ipAddress = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		
-//		muxMacAddressParse(&cfg->local.mac, "00:04:25:1c:20:01" );
+//		extMacAddressParse(&cfg->local.mac, "00:04:25:1c:20:01" );
 
 		cfg->local.mac.address[4] = ETHERNET_CONF_ETHADDR4_TX;
 		cfg->dest.mac.address[4] = ETHERNET_CONF_ETHADDR4_RX;
 		
 		cfg->local.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
-		cfg->local.vport = MUX_MEDIA_PORT_TX_VIDEO;
-		cfg->local.aport = MUX_MEDIA_PORT_TX_AUDIO;
-		cfg->local.dport = MUX_MEDIA_PORT_TX_DATA;
-		cfg->local.sport = MUX_MEDIA_PORT_TX_STREA;
+		cfg->local.vport = EXT_MEDIA_PORT_TX_VIDEO;
+		cfg->local.aport = EXT_MEDIA_PORT_TX_AUDIO;
+		cfg->local.dport = EXT_MEDIA_PORT_TX_DATA;
+		cfg->local.sport = EXT_MEDIA_PORT_TX_STREA;
 
-		if(cfg->isMCast == MUX_FALSE)
+		if(cfg->isMCast == EXT_FALSE)
 		{
 			cfg->dest.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_RX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		}
@@ -157,19 +157,19 @@ void muxCfgFromFactory( MUX_RUNTIME_CFG *cfg )
 
 		if(IP_ADDR_IS_MULTICAST(cfg->dest.ip))
 		{
-			muxTxMulticastIP2Mac(cfg);
+			extTxMulticastIP2Mac(cfg);
 		}
 
-		cfg->dest.vport = MUX_MEDIA_PORT_RX_VIDEO;
-		cfg->dest.aport = MUX_MEDIA_PORT_RX_AUDIO;
-		cfg->dest.dport = MUX_MEDIA_PORT_RX_DATA;
-		cfg->dest.sport = MUX_MEDIA_PORT_RX_STREA;
+		cfg->dest.vport = EXT_MEDIA_PORT_RX_VIDEO;
+		cfg->dest.aport = EXT_MEDIA_PORT_RX_AUDIO;
+		cfg->dest.dport = EXT_MEDIA_PORT_RX_DATA;
+		cfg->dest.sport = EXT_MEDIA_PORT_RX_STREA;
 	}
 	else
 	{/* RX */
 //		cfg->ipAddress = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_RX, ETHERNET_CONF_IPADDR2, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 
-//		muxMacAddressParse(&cfg->local.mac, "00:04:25:1c:b0:01" );
+//		extMacAddressParse(&cfg->local.mac, "00:04:25:1c:b0:01" );
 
 		/* for RX, 
 		* unicast: dest and local are same
@@ -179,12 +179,12 @@ void muxCfgFromFactory( MUX_RUNTIME_CFG *cfg )
 		cfg->dest.mac.address[4] = ETHERNET_CONF_ETHADDR4_RX;
 
 		cfg->local.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_RX, ETHERNET_CONF_IPADDR2_RX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
-		cfg->local.vport = MUX_MEDIA_PORT_RX_VIDEO;
-		cfg->local.aport = MUX_MEDIA_PORT_RX_AUDIO;
-		cfg->local.dport = MUX_MEDIA_PORT_RX_DATA;
-		cfg->local.sport = MUX_MEDIA_PORT_RX_STREA;
+		cfg->local.vport = EXT_MEDIA_PORT_RX_VIDEO;
+		cfg->local.aport = EXT_MEDIA_PORT_RX_AUDIO;
+		cfg->local.dport = EXT_MEDIA_PORT_RX_DATA;
+		cfg->local.sport = EXT_MEDIA_PORT_RX_STREA;
 		
-		if(cfg->isMCast == MUX_FALSE)
+		if(cfg->isMCast == EXT_FALSE)
 		{
 			cfg->dest.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_RX, ETHERNET_CONF_IPADDR2_RX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		}
@@ -196,17 +196,17 @@ void muxCfgFromFactory( MUX_RUNTIME_CFG *cfg )
 
 		if(IP_ADDR_IS_MULTICAST(cfg->dest.ip))
 		{
-			muxTxMulticastIP2Mac(cfg);
+			extTxMulticastIP2Mac(cfg);
 		}
 		
-		cfg->dest.vport = MUX_MEDIA_PORT_RX_VIDEO;
-		cfg->dest.aport = MUX_MEDIA_PORT_RX_AUDIO;
-		cfg->dest.dport = MUX_MEDIA_PORT_RX_DATA;
-		cfg->dest.sport = MUX_MEDIA_PORT_RX_STREA;
+		cfg->dest.vport = EXT_MEDIA_PORT_RX_VIDEO;
+		cfg->dest.aport = EXT_MEDIA_PORT_RX_AUDIO;
+		cfg->dest.dport = EXT_MEDIA_PORT_RX_DATA;
+		cfg->dest.sport = EXT_MEDIA_PORT_RX_STREA;
 
 	}
 
-//	memcpy(&cfg->videoMacLocal, &cfg->macAddress, MUX_MAC_ADDRESS_LENGTH);
+//	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;
 
 #if 0
@@ -220,30 +220,30 @@ void muxCfgFromFactory( MUX_RUNTIME_CFG *cfg )
 	cfg->ipMask = CFG_MAKEU32(ETHERNET_CONF_NET_MASK3, ETHERNET_CONF_NET_MASK2, ETHERNET_CONF_NET_MASK1, ETHERNET_CONF_NET_MASK0);
 
 	/* RS232: 57600, even, 6 bit, 2 stop-bits */
-	cfg->rs232Cfg.baudRate = MUX_BAUDRATE_57600;
-	cfg->rs232Cfg.charLength = MUX_RS232_CHAR_LENGTH_8;	/* 6 bits */
-	cfg->rs232Cfg.parityType = MUX_RS232_PARITY_NONE;
-	cfg->rs232Cfg.stopbits = MUX_RS232_STOP_BITS_1;
+	cfg->rs232Cfg.baudRate = EXT_BAUDRATE_57600;
+	cfg->rs232Cfg.charLength = EXT_RS232_CHAR_LENGTH_8;	/* 6 bits */
+	cfg->rs232Cfg.parityType = EXT_RS232_PARITY_NONE;
+	cfg->rs232Cfg.stopbits = EXT_RS232_STOP_BITS_1;
 
 #if 0
-	cfg->netMode = (MUX_IP_CFG_DHCP_ENABLE)|0;
+	cfg->netMode = (EXT_IP_CFG_DHCP_ENABLE)|0;
 #else
 	cfg->netMode = 0;
 #endif
 
-	cfg->httpPort = MUX_HTTP_SVR_PORT;
+	cfg->httpPort = EXT_HTTP_SVR_PORT;
 
-	muxNmosIdGenerate(&cfg->nodeID, cfg);
-	muxNmosIdGenerate(&cfg->deviceID, cfg);
+	extNmosIdGenerate(&cfg->nodeID, cfg);
+	extNmosIdGenerate(&cfg->deviceID, cfg);
 
-	cfg->isConfigFpga = MUX_TRUE;
-	memset(&cfg->firmUpdateInfo, 0, sizeof(MUX_FM_UPDATE));
+	cfg->isConfigFpga = EXT_TRUE;
+	memset(&cfg->firmUpdateInfo, 0, sizeof(EXT_FM_UPDATE));
 
-	cfg->endMagic[0] = MUX_MAGIC_VALUE_B;
-	cfg->endMagic[1] = MUX_MAGIC_VALUE_A;
+	cfg->endMagic[0] = EXT_MAGIC_VALUE_B;
+	cfg->endMagic[1] = EXT_MAGIC_VALUE_A;
 }
 
-void muxCfgInitAfterReadFromFlash(MUX_RUNTIME_CFG *runCfg)
+void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg)
 {
 	runCfg->bufRead = _readBuffer;
 	runCfg->bufWrite = _writeBuffer;

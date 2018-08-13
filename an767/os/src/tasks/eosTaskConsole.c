@@ -17,7 +17,7 @@
 #include "compact.h"
 #include "lwipExt.h"
 
-#include "muxOs.h"
+#include "eos.h"
 
 /* Dimensions the buffer into which input characters are placed. */
 #define cmdMAX_INPUT_SIZE		50
@@ -32,8 +32,8 @@
 
 
 /* Const messages output by the command console. */
-static const char * const pcWelcomeMessage = "MuxLab command line interface."MUX_NEW_LINE"Type 'help' to view a list of commands."MUX_NEW_LINE MUX_PROMPT ;
-static const char * const pcEndOfOutputMessage = MUX_NEW_LINE"[Press ENTER to execute the previous command again]"MUX_NEW_LINE MUX_PROMPT;
+static const char * const pcWelcomeMessage = "MuxLab command line interface."EXT_NEW_LINE"Type 'help' to view a list of commands."EXT_NEW_LINE EXT_PROMPT ;
+static const char * const pcEndOfOutputMessage = EXT_NEW_LINE"[Press ENTER to execute the previous command again]"EXT_NEW_LINE EXT_PROMPT;
 static const char * const pcNewLine = "\r\n";
 
 /* Used to guard access to the UART in case messages are sent to the UART from more than one task. */
@@ -48,10 +48,10 @@ so only one command interpreter interface can be used at any one time.  For that
 reason, no attempt at providing mutual exclusion to the cOutputBuffer array is
 attempted.
  */
-static char cOutputBuffer[ MUX_COMMAND_BUFFER_SIZE ];
+static char cOutputBuffer[ EXT_COMMAND_BUFFER_SIZE ];
 
 
-char *muxBspCLIGetOutputBuffer( void )
+char *extBspCLIGetOutputBuffer( void )
 {
 	return cOutputBuffer;
 }
@@ -95,10 +95,10 @@ static void _prvUartCmdConsoleTask( void *pvParameters )
 	( void ) pvParameters;
 
 	memset( lastInputString, 0x00, cmdMAX_INPUT_SIZE );
-//	strcpy( lastInputString, MUX_CMD_DEFAULT );
-	memcpy( lastInputString, MUX_CMD_DEFAULT, 4 );
+//	strcpy( lastInputString, EXT_CMD_DEFAULT );
+	memcpy( lastInputString, EXT_CMD_DEFAULT, 4 );
 
-	pcOutputString = muxBspCLIGetOutputBuffer();
+	pcOutputString = extBspCLIGetOutputBuffer();
 
 	/* Send the welcome message. */
 #if 1	
@@ -139,12 +139,12 @@ static void _prvUartCmdConsoleTask( void *pvParameters )
 				do
 				{
 					/* Get the next output string from the command interpreter. */
-					ret = cmnCmdLineProcess( cInputString, pcOutputString, MUX_COMMAND_BUFFER_SIZE );
+					ret = cmnCmdLineProcess( cInputString, pcOutputString, EXT_COMMAND_BUFFER_SIZE );
 
 					/* Write the generated string to the UART. */
 					vMuxUartPutString( ( const char * ) pcOutputString, ( unsigned short ) strlen( pcOutputString ) );
 
-				} while( ret != MUX_FALSE );
+				} while( ret != EXT_FALSE );
 
 				memset( lastInputString, 0x00, cmdMAX_INPUT_SIZE );
 //				strcpy( lastInputString, cInputString );
@@ -212,7 +212,7 @@ void vMuxUartCmdConsoleStart( uint16_t usStackSize, unsigned long uxPriority )
 	configASSERT( _xTxMutex );
 
 	/* Create that task that handles the console itself. */
-	xTaskCreate( _prvUartCmdConsoleTask, MUX_TASK_CONSOLE, usStackSize, NULL, uxPriority, NULL );
+	xTaskCreate( _prvUartCmdConsoleTask, EXT_TASK_CONSOLE, usStackSize, NULL, uxPriority, NULL );
 }
 
 

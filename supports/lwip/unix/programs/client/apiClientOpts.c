@@ -130,7 +130,7 @@ static int	_setupRs232CfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *o
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->target, value);
+					res = extMacAddressParse(&clientParams->target, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[0], value );
@@ -286,7 +286,7 @@ static int	_setupProtocolCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->target, value);
+					res = extMacAddressParse(&clientParams->target, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[0], value );
@@ -510,7 +510,7 @@ static int	_setupMediaCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *o
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->target, value);
+					res = extMacAddressParse(&clientParams->target, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[0], value );
@@ -803,7 +803,7 @@ static int	_setupSysCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *opt
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->target, value);
+					res = extMacAddressParse(&clientParams->target, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[0], value );
@@ -826,7 +826,7 @@ static int	_setupSysCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *opt
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->vCfg.mac, value);
+					res = extMacAddressParse(&clientParams->vCfg.mac, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[1], value );
@@ -960,7 +960,7 @@ static int	_setupActionCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *
 	char *const token[] =
 	{
 		API_CMD_CLIENT_TARGET,
-		MUX_JSON_KEY_ACTION,
+		EXT_JSON_KEY_ACTION,
 		NULL
 	};
 
@@ -981,7 +981,7 @@ static int	_setupActionCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->target, value);
+					res = extMacAddressParse(&clientParams->target, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[0], value );
@@ -1003,13 +1003,13 @@ static int	_setupActionCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *
 				}
 				else
 				{
-					res = strcmp(value, MUX_JSON_KEY_ACTION_START);
+					res = strcmp(value, EXT_JSON_KEY_ACTION_START);
 					if(res != 0)
 					{
-						res = strcmp(value, MUX_JSON_KEY_ACTION_STOP);
+						res = strcmp(value, EXT_JSON_KEY_ACTION_STOP);
 						if(res != 0)
 						{
-							fprintf(stderr, "'%s'='%s' error: %s must be %s or %s"API_CLIENT_NEW_LINE, token[1], value, token[1], MUX_JSON_KEY_ACTION_START, MUX_JSON_KEY_ACTION_STOP );
+							fprintf(stderr, "'%s'='%s' error: %s must be %s or %s"API_CLIENT_NEW_LINE, token[1], value, token[1], EXT_JSON_KEY_ACTION_START, EXT_JSON_KEY_ACTION_STOP );
 							ret= EXIT_FAILURE;
 							goto _ret;
 						}	
@@ -1074,7 +1074,7 @@ static int	_securityCheckCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->target, value);
+					res = extMacAddressParse(&clientParams->target, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[0], value );
@@ -1097,7 +1097,7 @@ static int	_securityCheckCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->hexData, value);
+					res = extMacAddressParse(&clientParams->hexData, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[1], value );
@@ -1172,7 +1172,7 @@ static int	_rs232DataCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *op
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->target, value);
+					res = extMacAddressParse(&clientParams->target, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[0], value );
@@ -1195,7 +1195,7 @@ static int	_rs232DataCfgOptions(struct API_CLIENT_OPT_HANDLER *handler, char *op
 				}
 				else
 				{
-					res = muxMacAddressParse(&clientParams->hexData, value);
+					res = extMacAddressParse(&clientParams->hexData, value);
 					if(res == EXIT_FAILURE)
 					{
 						fprintf(stderr, "'%s'='%s' is not MAC address"API_CLIENT_NEW_LINE, token[1], value );

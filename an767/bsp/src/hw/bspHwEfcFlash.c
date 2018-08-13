@@ -22,12 +22,12 @@ char efcFlashRead(uint32_t pageNo, unsigned char *data, uint32_t size)
 	rc = flashd_read(&flash, address, data, size);
 	if (rc != FLASH_RC_OK)
 	{
-		MUX_ERRORF(("IFlash Read failed (errno=%d)"MUX_NEW_LINE, rc));
+		EXT_ERRORF(("IFlash Read failed (errno=%d)"EXT_NEW_LINE, rc));
 		return EXIT_FAILURE;
 	}
 
 #if 0
-	printf("Read complete (%u bytes): "MUX_NEW_LINE, (unsigned int)size);
+	printf("Read complete (%u bytes): "EXT_NEW_LINE, (unsigned int)size);
 	CONSOLE_DEBUG_MEM(data, size, address, "read flash");
 #endif
 
@@ -42,11 +42,11 @@ static void efcFlashWrite(uint32_t pageNo, const uint8_t* buffer, uint32_t size)
 	rc = flashd_write(&flash, address, (uint8_t*)buffer, size);
 	if (rc != FLASH_RC_OK)
 	{
-		MUX_ERRORF(("IFlash Write failed (errno=%d)"MUX_NEW_LINE, rc));
+		EXT_ERRORF(("IFlash Write failed (errno=%d)"EXT_NEW_LINE, rc));
 	}
 	else
 	{
-		printf("IFlash Write complete (%d bytes)"MUX_NEW_LINE, (int)size);
+		printf("IFlash Write complete (%d bytes)"EXT_NEW_LINE, (int)size);
 	}
 }
 
@@ -57,11 +57,11 @@ static void _efcFlashErase(uint32_t pageNo)
 	rc = flashd_erase_block(&flash, address, flash.erase_size);
 	if (rc != FLASH_RC_OK)
 	{
-		MUX_ERRORF(("IFlash Erase failed (errno=%d)"MUX_NEW_LINE, rc));
+		EXT_ERRORF(("IFlash Erase failed (errno=%d)"EXT_NEW_LINE, rc));
 	}
 	else
 	{
-		printf("IFlash Erase complete (%lu bytes on 0x%08X of page %lu)"MUX_NEW_LINE, flash.erase_size, (unsigned int)address, pageNo);
+		printf("IFlash Erase complete (%lu bytes on 0x%08X of page %lu)"EXT_NEW_LINE, flash.erase_size, (unsigned int)address, pageNo);
 	}
 }
 
@@ -76,7 +76,7 @@ char efcFlashProgram(uint32_t pageNo, const uint8_t* buffer, uint32_t size)
 		rc = flashd_erase_block(&flash, address, flash.erase_size);
 		if(rc != FLASH_RC_OK)
 		{
-			printf("Erase failed on Page#%lu(0x%08X)"MUX_NEW_LINE, pageNo, (unsigned int)address);
+			printf("Erase failed on Page#%lu(0x%08X)"EXT_NEW_LINE, pageNo, (unsigned int)address);
 			return EXIT_FAILURE;
 		}
 	}
@@ -84,7 +84,7 @@ char efcFlashProgram(uint32_t pageNo, const uint8_t* buffer, uint32_t size)
 	rc = flashd_write(&flash, address, (uint8_t*)buffer, size);
 	if (rc != FLASH_RC_OK )
 	{
-		printf("Write failed on Page#%lu(0x%08X)"MUX_NEW_LINE, pageNo, (unsigned int)address);
+		printf("Write failed on Page#%lu(0x%08X)"EXT_NEW_LINE, pageNo, (unsigned int)address);
 		return EXIT_FAILURE;
 	}
 
@@ -103,7 +103,7 @@ static void efcFlashTestWrite(uint32_t pageNo)
 	uint32_t *testAddress = (uint32_t *)read_buffer;
 #endif
 	/* Write page */
-//	printf("-I- Writing test page with walking bit pattern"MUX_NEW_LINE);
+//	printf("-I- Writing test page with walking bit pattern"EXT_NEW_LINE);
 
 	for (i = 0; i < __IFLASH_BUFFER_SIZE; i++)
 	{
@@ -124,7 +124,7 @@ static void efcFlashTestWrite(uint32_t pageNo)
 		printf(".");
 		if ( testAddress[i] != pageBuffer[i])
 		{
-			MUX_ERRORF(("data error on address %d, 0x%08X!=0x%08X"MUX_NEW_LINE, i, (unsigned int)testAddress[i], (unsigned int)pageBuffer[i]));
+			EXT_ERRORF(("data error on address %d, 0x%08X!=0x%08X"EXT_NEW_LINE, i, (unsigned int)testAddress[i], (unsigned int)pageBuffer[i]));
 			return;
 		}
 	}
@@ -135,14 +135,14 @@ char	efcFlashInit(void)
 {
 	if (flashd_initialize(&flash, EFC) < 0)
 	{
-		MUX_ERRORF(("Flash initialization error!"MUX_NEW_LINE));
+		EXT_ERRORF(("Flash initialization error!"EXT_NEW_LINE));
 		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
 }
 
-char bspCmdInternalFlash(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
+char bspCmdInternalFlash(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen)
 {
 	unsigned int index = 0;
 //	unsigned int address = 0, temp;
@@ -151,19 +151,19 @@ char bspCmdInternalFlash(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_
 
 	if (flashd_initialize(&flash, EFC) < 0)
 	{
-		index += snprintf(outBuffer+index, bufferLen-index, "Flash initialization error!"MUX_NEW_LINE);
-		return MUX_FALSE;
+		index += snprintf(outBuffer+index, bufferLen-index, "Flash initialization error!"EXT_NEW_LINE);
+		return EXT_FALSE;
 	}
 	
 	if(argc==1)
 	{
-		index += snprintf(outBuffer+index, bufferLen-index, "Flash Info:"MUX_NEW_LINE"\tSize:\t\t%u bytes"MUX_NEW_LINE, (unsigned)flash.total_size);
-		index += snprintf(outBuffer+index, bufferLen-index, "\tPage Size:\t%u bytes"MUX_NEW_LINE, (unsigned)flash.page_size);
-		index += snprintf(outBuffer+index, bufferLen-index, "\tErase Size:\t%u bytes"MUX_NEW_LINE, (unsigned)flash.erase_size);
-		index += snprintf(outBuffer+index, bufferLen-index, "\tLock Count:\t%u bytes"MUX_NEW_LINE, (unsigned)flash.lock_count);
-		index += snprintf(outBuffer+index, bufferLen-index, "\tGPNVM Count:\t%u bits"MUX_NEW_LINE, (unsigned)flash.gpnvm_count);
+		index += snprintf(outBuffer+index, bufferLen-index, "Flash Info:"EXT_NEW_LINE"\tSize:\t\t%u bytes"EXT_NEW_LINE, (unsigned)flash.total_size);
+		index += snprintf(outBuffer+index, bufferLen-index, "\tPage Size:\t%u bytes"EXT_NEW_LINE, (unsigned)flash.page_size);
+		index += snprintf(outBuffer+index, bufferLen-index, "\tErase Size:\t%u bytes"EXT_NEW_LINE, (unsigned)flash.erase_size);
+		index += snprintf(outBuffer+index, bufferLen-index, "\tLock Count:\t%u bytes"EXT_NEW_LINE, (unsigned)flash.lock_count);
+		index += snprintf(outBuffer+index, bufferLen-index, "\tGPNVM Count:\t%u bits"EXT_NEW_LINE, (unsigned)flash.gpnvm_count);
 		
-		index += snprintf(outBuffer+index, bufferLen-index, "%s"MUX_NEW_LINE, cmd->helpString );
+		index += snprintf(outBuffer+index, bufferLen-index, "%s"EXT_NEW_LINE, cmd->helpString );
 	}
 	else if(argc >= 2)
 	{
@@ -174,41 +174,41 @@ char bspCmdInternalFlash(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_
 			page = atoi(argv[2]);
 		}
 
-//		printf("EFC Flash Testing: '%s'"MUX_NEW_LINE, argv[1] );
+//		printf("EFC Flash Testing: '%s'"EXT_NEW_LINE, argv[1] );
 		if(! strncmp(argv[1], "w", 1) )
 		{
 			if(page < FLASH_START_PAGE_CONFIG_BACKUP)
 			{
-				printf("In order to make OS usable, Page# must be %d--%d when Write"MUX_NEW_LINE, FLASH_START_PAGE_CONFIG_BACKUP, IFLASH_NB_OF_PAGES-1);
+				printf("In order to make OS usable, Page# must be %d--%d when Write"EXT_NEW_LINE, FLASH_START_PAGE_CONFIG_BACKUP, IFLASH_NB_OF_PAGES-1);
 				page = FLASH_START_PAGE_CONFIG_BACKUP;
 			}
-			printf("EFC Flash Write Testing on page #.%u: "MUX_NEW_LINE, page);
+			printf("EFC Flash Write Testing on page #.%u: "EXT_NEW_LINE, page);
 			efcFlashTestWrite(page);
 		}
 		else if(! strncmp(argv[1], "r", 1) )
 		{
-			printf("EFC Flash Read Testing on page #.%u: "MUX_NEW_LINE, page);
+			printf("EFC Flash Read Testing on page #.%u: "EXT_NEW_LINE, page);
 			
 			efcFlashRead(page, read_buffer, flash.page_size);
-//			printf("Read complete (%u bytes): "MUX_NEW_LINE, (unsigned int)flash.page_size);
+//			printf("Read complete (%u bytes): "EXT_NEW_LINE, (unsigned int)flash.page_size);
 			CONSOLE_DEBUG_MEM(read_buffer, flash.page_size, page*flash.page_size, "read complete");
 		}
 		else if(! strncmp(argv[1], "e", 1) )
 		{
 			if(page < FLASH_START_PAGE_CONFIG_BACKUP)
 			{
-				printf("In order to make OS usable, Page# must be %d--%d when Erase"MUX_NEW_LINE, FLASH_START_PAGE_CONFIG_BACKUP, IFLASH_NB_OF_PAGES-1);
+				printf("In order to make OS usable, Page# must be %d--%d when Erase"EXT_NEW_LINE, FLASH_START_PAGE_CONFIG_BACKUP, IFLASH_NB_OF_PAGES-1);
 				page = FLASH_START_PAGE_CONFIG_BACKUP;
 			}
 			
-			printf("EFC Flash Erase Testing on page #.%u: "MUX_NEW_LINE, page);
+			printf("EFC Flash Erase Testing on page #.%u: "EXT_NEW_LINE, page);
 			_efcFlashErase(page);
 			efcFlashRead(page, read_buffer, flash.page_size);
 			CONSOLE_DEBUG_MEM(read_buffer, flash.page_size, page*flash.page_size, "erase complete");
 		}
 		else
 		{
-			index += snprintf(outBuffer+index, bufferLen-index, "'%s' is invalidate command: %s"MUX_NEW_LINE, argv[1], cmd->helpString );
+			index += snprintf(outBuffer+index, bufferLen-index, "'%s' is invalidate command: %s"EXT_NEW_LINE, argv[1], cmd->helpString );
 		}
 #if 0
 		uint8_t unique_id[16];
@@ -226,15 +226,15 @@ char bspCmdInternalFlash(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_
 
 #endif
 	
-		return MUX_FALSE;
+		return EXT_FALSE;
 	}
 	else
 	{
-		index += snprintf(outBuffer+index, bufferLen-index, "'%s'"MUX_NEW_LINE, cmd->helpString );
+		index += snprintf(outBuffer+index, bufferLen-index, "'%s'"EXT_NEW_LINE, cmd->helpString );
 	}
 
-//	index += snprintf(outBuffer+index, bufferLen-index, "%s"MUX_NEW_LINE, "Internal Flash Testing" );
+//	index += snprintf(outBuffer+index, bufferLen-index, "%s"EXT_NEW_LINE, "Internal Flash Testing" );
 
-	return MUX_FALSE;
+	return EXT_FALSE;
 }
 

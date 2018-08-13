@@ -31,7 +31,7 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 	if (bytes_left <= 0)
 	{
 		/* We reached the end of the file so this request is done. */
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("End of file."));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
 		mhttpConnEof( mhc);
 		return 0;
 	}
@@ -75,13 +75,13 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 		/* Did we get a send buffer? If not, return immediately. */
 		if (mhc->buf == NULL)
 		{
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("No buff"));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("No buff"));
 			return 0;
 		}
 	}
 
 	/* Read a block of data from the file. */
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Trying to read %d bytes.", count));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Trying to read %d bytes.", count));
 
 #if	MHTTPD_FS_ASYNC_READ
 	count = mfsReadAsync(mhc->handle, mhc->buf, count, mhttpContinue, mhc);
@@ -98,13 +98,13 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 
 		/* We reached the end of the file so this request is done.
 		* @todo: close here for HTTP/1.1 when reading file fails */
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("End of file."));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
 		mhttpConnEof( mhc);
 		return 0;
 	}
 
 	/* Set up to send the block of data we just read */
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Read %d bytes.", count));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Read %d bytes.", count));
 	mhc->left = count;
 	mhc->file = mhc->buf;
 
@@ -116,7 +116,7 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 	}
 #endif
 #else
-	MUX_ASSERT(("SSI and DYNAMIC_HEADERS turned off but eof not reached"), 0);
+	EXT_ASSERT(("SSI and DYNAMIC_HEADERS turned off but eof not reached"), 0);
 #endif
 
 	return 1;
@@ -133,7 +133,7 @@ static u8_t _mHttpSendFile( MuxHttpConn *mhc)
 	u16_t len;
 	u8_t data_to_send = MHTTP_NO_DATA_TO_SEND;
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("pcb=%p mhc=%p left=%d", (void*)mhc->pcb, (void*)mhc, mhc != NULL ? (int)mhc->left : 0));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("pcb=%p mhc=%p left=%d", (void*)mhc->pcb, (void*)mhc, mhc != NULL ? (int)mhc->left : 0));
 #if 	MHTTPD_POST_MANUAL_WND
 	if (mhc->unrecved_bytes != 0)
 	{
@@ -172,7 +172,7 @@ TRACE();
 TRACE();
 		len = (u16_t)LWIP_MIN(mhc->left, 0xffff);
 
-		err = muxHttpWrite(mhc, mhc->file, &len, MHTTP_IS_DATA_VOLATILE(mhc));
+		err = extHttpWrite(mhc, mhc->file, &len, MHTTP_IS_DATA_VOLATILE(mhc));
 		if (err == ERR_OK)
 		{
 			data_to_send = 1;
@@ -184,7 +184,7 @@ TRACE();
 	if((mhc->left == 0) && (mfsBytesLeft(mhc->handle) <= 0))
 	{
 		/* We reached the end of the file so this request is done. This adds the FIN flag right into the last data segment. */
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("End of file."));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
 		mhttpConnEof( mhc);
 TRACE();
 		return 0;
@@ -205,14 +205,14 @@ static unsigned short _mhttpSendOneHeader(MuxHttpConn *mhc, const void *hdr, uns
 
 	if( len > sndBufSize)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("HDR length %d is more than snd buf length %d", len, sndBufSize) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("HDR length %d is more than snd buf length %d", len, sndBufSize) );
 		return 0;
 	}
 	
-	err = muxHttpWrite(mhc, (const void *)hdr, &_len, apiflags);
+	err = extHttpWrite(mhc, (const void *)hdr, &_len, apiflags);
 	if ((err == ERR_OK) )
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("HDR '%s' , length %d", (char *)hdr, len) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("HDR '%s' , length %d", (char *)hdr, len) );
 		return _len;
 	}
 
@@ -227,7 +227,7 @@ static char	_mHttpSendRest(MuxHttpConn *mhc)
 	err_t err;
 	u16_t len, sndBufSize;
 
-	MUX_ASSERT(("HMC is not REST conn"), HTTPREQ_IS_REST(mhc) );
+	EXT_ASSERT(("HMC is not REST conn"), HTTPREQ_IS_REST(mhc) );
 
 	sndBufSize = tcp_sndbuf(mhc->pcb);
 
@@ -238,7 +238,7 @@ static char	_mHttpSendRest(MuxHttpConn *mhc)
 
 	if(mhc->dataSendIndex == 0)
 	{/* first packet for this response, so header first */
-		const char *hdr = muxHttpFindStatusHeader( mhc->httpStatusCode);
+		const char *hdr = extHttpFindStatusHeader( mhc->httpStatusCode);
 			/* How much do we have to send from the current header? */
 		len = (u16_t)strlen(hdr);
 		sndBufSize -= _mhttpSendOneHeader(mhc, hdr, len, sndBufSize);
@@ -251,20 +251,20 @@ static char	_mHttpSendRest(MuxHttpConn *mhc)
 	}
 	
 	len = mhc->contentLength-mhc->dataSendIndex;
-	err = muxHttpWrite(mhc, mhc->data+mhc->dataSendIndex, &len, MHTTP_IS_DATA_VOLATILE(mhc));
+	err = extHttpWrite(mhc, mhc->data+mhc->dataSendIndex, &len, MHTTP_IS_DATA_VOLATILE(mhc));
 	if (err != ERR_OK)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG,("Output Failed: Content %d bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("Output Failed: Content %d bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
 		return EXIT_FAILURE;
 	}
 	
-	MUX_DEBUGF(MUX_HTTPD_DEBUG,("Output Content %d bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("Output Content %d bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
 	CONSOLE_DEBUG_MEM(mhc->data+mhc->dataSendIndex, (uint32_t)len, (uint32_t)mhc->dataSendIndex, "HTTP Output Data");
 	mhc->dataSendIndex += len;
 
 	if((mhc->contentLength == mhc->dataSendIndex) )
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("%d byte data sent, End of REST HMC", mhc->dataSendIndex));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%d byte data sent, End of REST HMC", mhc->dataSendIndex));
 		mhttpConnEof( mhc);
 TRACE();
 	}
@@ -277,12 +277,12 @@ TRACE();
  * Try to send more data on this pcb.
  * This function can be called multiple time, and start write data from last time
  */
-u8_t muxHttpSend( MuxHttpConn *mhc)
+u8_t extHttpSend( MuxHttpConn *mhc)
 {
 	u8_t ret = MHTTP_DATA_TO_SEND_CONTINUE;
 
 	/* If we were passed a NULL state structure pointer, ignore the call. */
-	MUX_ASSERT(("MHC is null"), mhc != NULL);
+	EXT_ASSERT(("MHC is null"), mhc != NULL);
 	
 	if( HTTPREQ_IS_REST(mhc) && HTTP_IS_FINISHED(mhc) )
 	{
@@ -300,7 +300,7 @@ u8_t muxHttpSend( MuxHttpConn *mhc)
 		if(mhc->httpStatusCode == WEB_RES_REQUEST_OK)
 		{
 			unsigned short len = mhc->dataSendIndex;
-			muxHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
+			extHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
 			if(len != mhc->dataSendIndex)
 			{
 				ret = MHTTP_DATA_TO_SEND_CONTINUE;
@@ -313,9 +313,9 @@ u8_t muxHttpSend( MuxHttpConn *mhc)
 	}
 	else if( HTTPREQ_IS_CGI(mhc) )
 	{
-		MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("send CGI web page data (%d)%s", mhc->contentLength, mhc->data));
+		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send CGI web page data (%d)%s", mhc->contentLength, mhc->data));
 		unsigned short len = mhc->contentLength - mhc->dataSendIndex;
-		muxHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
+		extHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
 		if(len < (mhc->contentLength - mhc->dataSendIndex) )
 		{
 			ret = MHTTP_DATA_TO_SEND_CONTINUE;
@@ -330,10 +330,10 @@ u8_t muxHttpSend( MuxHttpConn *mhc)
 	else if( (HTTPREQ_IS_UPLOAD(mhc) && mhc->uploadStatus >= _UPLOAD_STATUS_COPY) )
 	{
 		unsigned short len = mhc->updateLength - mhc->updateIndex;
-		MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("send Update progress web page, %d bytes %s", len, mhc->updateProgress));
+		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send Update progress web page, %d bytes %s", len, mhc->updateProgress));
 		if(len > 0)
 		{
-			muxHttpWrite(mhc, mhc->updateProgress, &len, TCP_WRITE_FLAG_COPY);
+			extHttpWrite(mhc, mhc->updateProgress, &len, TCP_WRITE_FLAG_COPY);
 			if(len < (mhc->updateLength - mhc->updateIndex) )
 			{
 				ret = MHTTP_DATA_TO_SEND_CONTINUE;
@@ -352,7 +352,7 @@ u8_t muxHttpSend( MuxHttpConn *mhc)
 		ret = MHTTP_NO_DATA_TO_SEND;
 	}
 	
-	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("send_data end: %d", ret));
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send_data end: %d", ret));
 	return ret;
 }
 

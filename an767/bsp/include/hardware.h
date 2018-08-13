@@ -87,61 +87,61 @@
 #define	FLASH_ERASE_COUNT			(IFLASH_LOCK_REGION_SIZE/IFLASH_PAGE_SIZE)
 
 /***** button and switch pins ****/
-#define	MUX_BUTTON_STRING            			"SW2"
+#define	EXT_BUTTON_STRING            			"SW2"
 
 /* pins */
 #if 0
 /* when with ISR to monitor these pins */
-#define	MUX_PIN_DIP_SW_01				PIO_PA26
-#define	MUX_PIN_DIP_SW_02				PIO_PA27
-#define	MUX_PIN_DIP_SW_03				PIO_PA28
-#define	MUX_PIN_DIP_SW_04				PIO_PA29
+#define	EXT_PIN_DIP_SW_01				PIO_PA26
+#define	EXT_PIN_DIP_SW_02				PIO_PA27
+#define	EXT_PIN_DIP_SW_03				PIO_PA28
+#define	EXT_PIN_DIP_SW_04				PIO_PA29
 #else
 /* when only read status of these pins */
-#define	MUX_PIN_DIP_SW_01				PIO_PA26_IDX
-#define	MUX_PIN_DIP_SW_02				PIO_PA27_IDX
-#define	MUX_PIN_DIP_SW_03				PIO_PA28_IDX
-#define	MUX_PIN_DIP_SW_04				PIO_PA29_IDX
+#define	EXT_PIN_DIP_SW_01				PIO_PA26_IDX
+#define	EXT_PIN_DIP_SW_02				PIO_PA27_IDX
+#define	EXT_PIN_DIP_SW_03				PIO_PA28_IDX
+#define	EXT_PIN_DIP_SW_04				PIO_PA29_IDX
 #endif
-#define	MUX_PIN_SOFTWARE_RESET		PIO_PA30
+#define	EXT_PIN_SOFTWARE_RESET		PIO_PA30
 
 
-#define	MUX_DIP_SW_STATUS(dip)		\
+#define	EXT_DIP_SW_STATUS(dip)		\
 			gpio_pin_is_low((dip))
 			
-#define	MUX_DIP_STATUS_SW1()	\
-			MUX_DIP_SW_STATUS(MUX_PIN_DIP_SW_01)
+#define	EXT_DIP_STATUS_SW1()	\
+			EXT_DIP_SW_STATUS(EXT_PIN_DIP_SW_01)
 
-#define	MUX_DIP_STATUS_SW2()	\
-			MUX_DIP_SW_STATUS(MUX_PIN_DIP_SW_02)
+#define	EXT_DIP_STATUS_SW2()	\
+			EXT_DIP_SW_STATUS(EXT_PIN_DIP_SW_02)
 
-#define	MUX_DIP_STATUS_SW3()	\
-			MUX_DIP_SW_STATUS(MUX_PIN_DIP_SW_03)
+#define	EXT_DIP_STATUS_SW3()	\
+			EXT_DIP_SW_STATUS(EXT_PIN_DIP_SW_03)
 
-#define	MUX_DIP_STATUS_SW4()	\
-			MUX_DIP_SW_STATUS(MUX_PIN_DIP_SW_04)
+#define	EXT_DIP_STATUS_SW4()	\
+			EXT_DIP_SW_STATUS(EXT_PIN_DIP_SW_04)
 
 
 /** Push button pin definition */
-#define	MUX_PUSH_BUTTON_PIO          			PIOA
-#define	MUX_PUSH_BUTTON_ID           			ID_PIOA
-#define	MUX_PUSH_BUTTON_PIN_MSK				(MUX_PIN_SOFTWARE_RESET)
-#define	MUX_PUSH_BUTTON_ATTR         			(PIO_PULLUP | PIO_DEBOUNCE | PIO_IT_RISE_EDGE)
+#define	EXT_PUSH_BUTTON_PIO          			PIOA
+#define	EXT_PUSH_BUTTON_ID           			ID_PIOA
+#define	EXT_PUSH_BUTTON_PIN_MSK				(EXT_PIN_SOFTWARE_RESET)
+#define	EXT_PUSH_BUTTON_ATTR         			(PIO_PULLUP | PIO_DEBOUNCE | PIO_IT_RISE_EDGE)
 
 /*
 * following pins are wrong. J.L. April 11, 2018
-#define	MUX_PIN_FPGA_PROGRAM			PIO_PA0A_PWMC0_PWMH0
-#define	MUX_PIN_FPGA_DONE				PIO_PA2A_PWMC0_PWMH1
-#define	MUX_PIN_PLL_INIT					PIO_PA1A_PWMC0_PWML0	
+#define	EXT_PIN_FPGA_PROGRAM			PIO_PA0A_PWMC0_PWMH0
+#define	EXT_PIN_FPGA_DONE				PIO_PA2A_PWMC0_PWMH1
+#define	EXT_PIN_PLL_INIT					PIO_PA1A_PWMC0_PWML0	
 */
 
-#define	MUX_PIN_FPGA_PROGRAM		PIO_PA0_IDX
-#define	MUX_PIN_FPGA_DONE			PIO_PA2_IDX
-#define	MUX_PIN_PLL_INIT				PIO_PA1_IDX		/* INIT pin of LMH1983 */
+#define	EXT_PIN_FPGA_PROGRAM		PIO_PA0_IDX
+#define	EXT_PIN_FPGA_DONE			PIO_PA2_IDX
+#define	EXT_PIN_PLL_INIT				PIO_PA1_IDX		/* INIT pin of LMH1983 */
 
 #define	PIN_JUMPER_SELECT				AVR32_PIN_PA06
 
-#define	MUX_PIN_POWER_1V_OK			PIO_PA7
+#define	EXT_PIN_POWER_1V_OK			PIO_PA7
 
 
 /********** uart/usart and console *********************/
@@ -170,18 +170,18 @@
 #define	BOARD_TWIHS_CLK				(400000UL)
 
 /* following devices attached on I2C of MCU directly */
-#define	MUX_I2C_PCA9554_ADDRESS				(0xE0 >> 1)
+#define	EXT_I2C_PCA9554_ADDRESS				(0xE0 >> 1)
 
-#define	MUX_I2C_ADDRESS_LM1983				(0xCA >> 1)		/* ADDR pin is Tie low */
-#define	MUX_I2C_ADDRESS_LM1983_FLOAT		(0xCE >> 1)
-#define	MUX_I2C_ADDRESS_FPGA					(0x60 >> 1)
-#define	MUX_I2C_ADDRESS_FPGA_B				(0x62 >> 1)
+#define	EXT_I2C_ADDRESS_LM1983				(0xCA >> 1)		/* ADDR pin is Tie low */
+#define	EXT_I2C_ADDRESS_LM1983_FLOAT		(0xCE >> 1)
+#define	EXT_I2C_ADDRESS_FPGA					(0x60 >> 1)
+#define	EXT_I2C_ADDRESS_FPGA_B				(0x62 >> 1)
 
 /* folllowing devices attached on I2C of LM1983 */
-#define	MUX_I2C_ADDRESS_SENSOR             		(0x30 >> 1)
-#define	MUX_I2C_ADDRESS_AT24MAC             		(0xAE >> 1)
-#define	MUX_I2C_ADDRESS_XC7A75T             		(0xFF >> 1)	/* T.B.D. */
-#define	MUX_I2C_ADDRESS_RTL8035				0x54
+#define	EXT_I2C_ADDRESS_SENSOR             		(0x30 >> 1)
+#define	EXT_I2C_ADDRESS_AT24MAC             		(0xAE >> 1)
+#define	EXT_I2C_ADDRESS_XC7A75T             		(0xFF >> 1)	/* T.B.D. */
+#define	EXT_I2C_ADDRESS_RTL8035				0x54
 
 
 /* address of EEROM */
@@ -198,64 +198,64 @@
 #define	EEPROM_24AA02E48T_PAGE_SIZE			(8)		/* 8bytes/page, total 32 pages */
 
 
-#define	MUX_I2C_PCA9554_CS_MAC				(4)	/* CS0, MAC address; not used */
-#define	MUX_I2C_PCA9554_CS_SENSOR			(5)	/* CS1, sensor and EEPROM  */
-#define	MUX_I2C_PCA9554_CS_FPGA				(6)	/* CS2, FPGA */
-#define	MUX_I2C_PCA9554_CS_BOOTROM			(7)	/* CS3, Ethernet switch */
+#define	EXT_I2C_PCA9554_CS_MAC				(4)	/* CS0, MAC address; not used */
+#define	EXT_I2C_PCA9554_CS_SENSOR			(5)	/* CS1, sensor and EEPROM  */
+#define	EXT_I2C_PCA9554_CS_FPGA				(6)	/* CS2, FPGA */
+#define	EXT_I2C_PCA9554_CS_BOOTROM			(7)	/* CS3, Ethernet switch */
 
-#define	MUX_I2C_PCA9554_CS_NONE				(0xFF) /* connect to I2C of MCU directly */
+#define	EXT_I2C_PCA9554_CS_NONE				(0xFF) /* connect to I2C of MCU directly */
 
-#define	MUX_EEPROM_4K							1
+#define	EXT_EEPROM_4K							1
 
-#if MUXLAB_BOARD
-#if MUX_EEPROM_4K
-#define	MUX_I2C_EEPROM_ADDRESS				EEPROM_AT24C04BN_ADDRESS	/*default, 4K, channel-1*/
-#define	MUX_I2C_EEPROM_CHANNEL				MUX_I2C_PCA9554_CS_SENSOR	/* channel-1 */
-#define	MUX_I2C_EEPROM_SIZE					EEPROM_AT24C04BN_SIZE
-#define	MUX_I2C_EEPROM_PAGE_SIZE				EEPROM_AT24C04BN_PAGE_SIZE
+#if EXTLAB_BOARD
+#if EXT_EEPROM_4K
+#define	EXT_I2C_EEPROM_ADDRESS				EEPROM_AT24C04BN_ADDRESS	/*default, 4K, channel-1*/
+#define	EXT_I2C_EEPROM_CHANNEL				EXT_I2C_PCA9554_CS_SENSOR	/* channel-1 */
+#define	EXT_I2C_EEPROM_SIZE					EEPROM_AT24C04BN_SIZE
+#define	EXT_I2C_EEPROM_PAGE_SIZE				EEPROM_AT24C04BN_PAGE_SIZE
 #else
-#define	MUX_I2C_EEPROM_ADDRESS				EEPROM_24AA02E48T_ADDRESS
-#define	MUX_I2C_EEPROM_CHANNEL				MUX_I2C_PCA9554_CS_MAC	/* channel-0 */
-#define	MUX_I2C_EEPROM_SIZE					EEPROM_24AA02E48T_SIZE
-#define	MUX_I2C_EEPROM_PAGE_SIZE				EEPROM_24AA02E48T_PAGE_SIZE
+#define	EXT_I2C_EEPROM_ADDRESS				EEPROM_24AA02E48T_ADDRESS
+#define	EXT_I2C_EEPROM_CHANNEL				EXT_I2C_PCA9554_CS_MAC	/* channel-0 */
+#define	EXT_I2C_EEPROM_SIZE					EEPROM_24AA02E48T_SIZE
+#define	EXT_I2C_EEPROM_PAGE_SIZE				EEPROM_24AA02E48T_PAGE_SIZE
 #endif
 #else
-#define	MUX_I2C_EEPROM_ADDRESS				EEPROM_AT24MAC402_ADDRESS
-#define	MUX_I2C_EEPROM_CHANNEL				MUX_I2C_PCA9554_CS_SENSOR	/* not used in XPLD board */
-#define	MUX_I2C_EEPROM_SIZE					EEPROM_AT24MAC402_SIZE
-#define	MUX_I2C_EEPROM_PAGE_SIZE			EEPROM_AT24MAC402_PAGE_SIZE
+#define	EXT_I2C_EEPROM_ADDRESS				EEPROM_AT24MAC402_ADDRESS
+#define	EXT_I2C_EEPROM_CHANNEL				EXT_I2C_PCA9554_CS_SENSOR	/* not used in XPLD board */
+#define	EXT_I2C_EEPROM_SIZE					EEPROM_AT24MAC402_SIZE
+#define	EXT_I2C_EEPROM_PAGE_SIZE			EEPROM_AT24MAC402_PAGE_SIZE
 #endif
 
-#define	MUX_I2C_EEPROM_PAGE_NUMBER			(MUX_I2C_EEPROM_SIZE/MUX_I2C_EEPROM_PAGE_SIZE)
+#define	EXT_I2C_EEPROM_PAGE_NUMBER			(EXT_I2C_EEPROM_SIZE/EXT_I2C_EEPROM_PAGE_SIZE)
 
 
 /* registers for LM95245 sensor */
-#define	MUX_I2C_SENSOR_LOCAL_TEMP_MSB		0x00
-#define	MUX_I2C_SENSOR_LOCAL_TEMP_LSB		0x30
-#define	MUX_I2C_SENSOR_MANUFACTURE_ID		0xFE
-#define	MUX_I2C_SENSOR_REVISION_ID			0xFF
+#define	EXT_I2C_SENSOR_LOCAL_TEMP_MSB		0x00
+#define	EXT_I2C_SENSOR_LOCAL_TEMP_LSB		0x30
+#define	EXT_I2C_SENSOR_MANUFACTURE_ID		0xFE
+#define	EXT_I2C_SENSOR_REVISION_ID			0xFF
 
 
 typedef	enum
 {
-	MUX_EEPROM_TYPE_4K = 0,
-	MUX_EEPROM_TYPE_2K,
-}MUX_EEPROM_TYPE;
+	EXT_EEPROM_TYPE_4K = 0,
+	EXT_EEPROM_TYPE_2K,
+}EXT_EEPROM_TYPE;
 
 
 /********************* SPI ******************/
 /** SPI0 pins definition */
-#define	MUX_SPI_MISO_GPIO				PIO_PD20_IDX
-#define	MUX_SPI_MISO_FLAGS			(IOPORT_MODE_MUX_B)
-#define	MUX_SPI_MOSI_GPIO				PIO_PD21_IDX
-#define	MUX_SPI_MOSI_FLAGS			(IOPORT_MODE_MUX_B)
-#define	MUX_SPI_NPCS0_GPIO			PIO_PB2_IDX
-#define	MUX_SPI_NPCS0_FLAGS			(IOPORT_MODE_MUX_D)
-#define	MUX_SPI_NPCS1_GPIO			PIO_PD25_IDX
-#define	MUX_SPI_NPCS1_FLAGS			(IOPORT_MODE_MUX_B)
+#define	EXT_SPI_MISO_GPIO				PIO_PD20_IDX
+#define	EXT_SPI_MISO_FLAGS			(IOPORT_MODE_MUX_B)
+#define	EXT_SPI_MOSI_GPIO				PIO_PD21_IDX
+#define	EXT_SPI_MOSI_FLAGS			(IOPORT_MODE_MUX_B)
+#define	EXT_SPI_NPCS0_GPIO			PIO_PB2_IDX
+#define	EXT_SPI_NPCS0_FLAGS			(IOPORT_MODE_MUX_D)
+#define	EXT_SPI_NPCS1_GPIO			PIO_PD25_IDX
+#define	EXT_SPI_NPCS1_FLAGS			(IOPORT_MODE_MUX_B)
 
-#define	MUX_SPI_SPCK_GPIO				PIO_PD22_IDX
-#define	MUX_SPI_SPCK_FLAGS			(IOPORT_MODE_MUX_B)
+#define	EXT_SPI_SPCK_GPIO				PIO_PD22_IDX
+#define	EXT_SPI_SPCK_FLAGS			(IOPORT_MODE_MUX_B)
 
 
 /** SPI base address for SPI master mode*/
@@ -280,25 +280,25 @@ typedef	enum
 
 /* configuration options for SPI controller */
 /* Clock polarity. */
-#define MUX_SPI_CLK_POLARITY			0
+#define EXT_SPI_CLK_POLARITY			0
 
 /* Clock phase. */
-#define MUX_SPI_CLK_PHASE				1
+#define EXT_SPI_CLK_PHASE				1
 
 /* Delay Before SPCK. */
-#define MUX_SPI_DLYBS					0//0x40
+#define EXT_SPI_DLYBS					0//0x40
 
 /* Delay Between Consecutive Transfers. */
-#define MUX_SPI_DLYBCT					0//0x10
+#define EXT_SPI_DLYBCT					0//0x10
 
 /* Chip select. */
-#define	MUX_SPI_CHIP_SEL						1
-#define	MUX_SPI_CHIP_PCS						spi_get_pcs(MUX_SPI_CHIP_SEL)
+#define	EXT_SPI_CHIP_SEL						1
+#define	EXT_SPI_CHIP_PCS						spi_get_pcs(EXT_SPI_CHIP_SEL)
 
-#define	MUX_SPI_MASTER_DUMMY				0xFF
+#define	EXT_SPI_MASTER_DUMMY				0xFF
 
 
-#define	SPI_RESELECT(a)							{ muxBspSpiUnselectChip(a); muxBspSpiSelectChip(a); }
+#define	SPI_RESELECT(a)							{ extBspSpiUnselectChip(a); extBspSpiSelectChip(a); }
 
 
 
@@ -348,40 +348,40 @@ typedef	enum
 #define TEST_PAGE_ADDRESS		(IFLASH_ADDR + IFLASH_SIZE - IFLASH_PAGE_SIZE * 4)
 
 
-#define	MUX_FPGA_REG_ENABLE					3
+#define	EXT_FPGA_REG_ENABLE					3
 
 
-#define	MUX_FPGA_REG_ETHERNET_RESET			0
+#define	EXT_FPGA_REG_ETHERNET_RESET			0
 
 
 /* for both TX/RX */
-#define	MUX_FPGA_REG_VERSION						38
-#define	MUX_FPGA_REG_REVISION					39
-#define	MUX_FPGA_REG_MODEL						40
+#define	EXT_FPGA_REG_VERSION						38
+#define	EXT_FPGA_REG_REVISION					39
+#define	EXT_FPGA_REG_MODEL						40
 
-#define	MUX_FPGA_REG_YEAR						41
-#define	MUX_FPGA_REG_MONTH						42
-#define	MUX_FPGA_REG_DAY							43
-#define	MUX_FPGA_REG_HOUR						44
-#define	MUX_FPGA_REG_MINUTE						45
+#define	EXT_FPGA_REG_YEAR						41
+#define	EXT_FPGA_REG_MONTH						42
+#define	EXT_FPGA_REG_DAY							43
+#define	EXT_FPGA_REG_HOUR						44
+#define	EXT_FPGA_REG_MINUTE						45
 
 
-#define	MUX_FPGA_REG_IP							52
-#define	MUX_FPGA_REG_MAC							56
-#define	MUX_FPGA_REG_PORT_VIDEO					62
-#define	MUX_FPGA_REG_PORT_AUDIO					76
+#define	EXT_FPGA_REG_IP							52
+#define	EXT_FPGA_REG_MAC							56
+#define	EXT_FPGA_REG_PORT_VIDEO					62
+#define	EXT_FPGA_REG_PORT_AUDIO					76
 
-#define	MUX_FPGA_REG_PORT_ANC_DT				80
-#define	MUX_FPGA_REG_PORT_ANC_ST				84
+#define	EXT_FPGA_REG_PORT_ANC_DT				80
+#define	EXT_FPGA_REG_PORT_ANC_ST				84
 
 /* for only TX */
-#define	MUX_FPGA_REG_DEST_IP						64
-#define	MUX_FPGA_REG_DEST_MAC					68
-#define	MUX_FPGA_REG_DEST_PORT_VIDEO			74
-#define	MUX_FPGA_REG_DEST_PORT_AUDIO			78
+#define	EXT_FPGA_REG_DEST_IP						64
+#define	EXT_FPGA_REG_DEST_MAC					68
+#define	EXT_FPGA_REG_DEST_PORT_VIDEO			74
+#define	EXT_FPGA_REG_DEST_PORT_AUDIO			78
 
-#define	MUX_FPGA_REG_DEST_PORT_ANC_DT			82
-#define	MUX_FPGA_REG_DEST_PORT_ANC_ST			86
+#define	EXT_FPGA_REG_DEST_PORT_ANC_DT			82
+#define	EXT_FPGA_REG_DEST_PORT_ANC_ST			86
 
 
 #endif

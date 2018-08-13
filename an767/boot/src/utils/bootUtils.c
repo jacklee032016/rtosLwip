@@ -34,7 +34,7 @@ int atoiMinMax(const char *str, int min, int max)
 		return 0;
 	if (value < min || value > max)
 	{
-		printf("The number have to be between %d and %d"MUX_NEW_LINE, min, max);
+		printf("The number have to be between %d and %d"EXT_NEW_LINE, min, max);
 		return 0;
 	}
 
@@ -69,7 +69,7 @@ int atohex(const char *str)
 				}
 				else
 				{
-					printf("'%s' is not a hexa character!"MUX_NEW_LINE, str);
+					printf("'%s' is not a hexa character!"EXT_NEW_LINE, str);
 					return 0;
 				}
 			}

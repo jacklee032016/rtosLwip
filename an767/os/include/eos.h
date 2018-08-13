@@ -3,8 +3,8 @@
 * Header for OS and its applications
 */
 
-#ifndef	__MUX_OS_H__
-#define	__MUX_OS_H__
+#ifndef	__EXT_OS_H__
+#define	__EXT_OS_H__
 
 #include "compact.h"
 
@@ -33,23 +33,19 @@
 
 /********** build options **************/
 
-#define	PING_USE_SOCKETS						0
+
+#define 	EXT_OS_MILL_SECOND(ms)				((ms)/portTICK_PERIOD_MS)
 
 
+#define EXT_TASK_LED_PRIORITY             			(tskIDLE_PRIORITY + 2)
+
+#define EXT_TASK_CONSOLE_PRIORITY				(tskIDLE_PRIORITY + 2)
+#define EXT_TASK_ETHERNET_PRIORITY			(tskIDLE_PRIORITY + 2)
 
 
-#define 	MUX_OS_MILL_SECOND(ms)				((ms)/portTICK_PERIOD_MS)
-
-
-#define MUX_TASK_LED_PRIORITY             			(tskIDLE_PRIORITY + 2)
-
-#define MUX_TASK_CONSOLE_PRIORITY				(tskIDLE_PRIORITY + 2)
-#define MUX_TASK_ETHERNET_PRIORITY			(tskIDLE_PRIORITY + 2)
-
-
-#define	MUX_TASK_LED_STACK_SIZE				(configMINIMAL_STACK_SIZE)
-#define	MUX_TASK_CONSOLE_STACK_SIZE			(configMINIMAL_STACK_SIZE*5)
-#define	MUX_TASK_ETHERNET_STACK_SIZE		(configMINIMAL_STACK_SIZE*10)
+#define	EXT_TASK_LED_STACK_SIZE				(configMINIMAL_STACK_SIZE)
+#define	EXT_TASK_CONSOLE_STACK_SIZE			(configMINIMAL_STACK_SIZE*5)
+#define	EXT_TASK_ETHERNET_STACK_SIZE		(configMINIMAL_STACK_SIZE*10)
 
 
 /* following commands are implemented in MuxLab library, not RTOS */
@@ -69,7 +65,7 @@
  * is made to provide any mutual exclusion mechanism on the output buffer.
  *
  */
-char *muxBspCLIGetOutputBuffer( void );
+char *extBspCLIGetOutputBuffer( void );
 
 
 /* commands */
@@ -84,7 +80,7 @@ void vApplicationTickHook( void );
 
 
 void vMuxUartCmdConsoleStart( uint16_t usStackSize, unsigned long uxPriority );
-void muxBspUartConsoleConfig(void);
+void extBspUartConsoleConfig(void);
 
 void vMuxConsoleOutput( const char *pcMessage );
 
@@ -92,38 +88,41 @@ void vMuxUartPutString( const char *pcString, unsigned short usStringLength );
 
 
 /* EFC flash interfacec */
-void muxBspEfcFlashReadInfo(void);
-void muxBspEfcFlashTestWrite(void);
+void extBspEfcFlashReadInfo(void);
+void extBspEfcFlashTestWrite(void);
 
 
 /************** LwIP ************/
 
 
-void muxNetShellInit(void);
-void muxNetTelnetInit(void);
-void muxNetHttpConnAPIThread(void *arg);
+void extNetShellInit(void);
+void extNetTelnetInit(void);
+void extNetHttpConnAPIThread(void *arg);
 
 void ethernet_task(void);
 
-void muxBspNetStackInit(MUX_RUNTIME_CFG *runCfg);
-char muxBspRtl8305Config(void);
+void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg);
+char extBspRtl8305Config(void);
 
-void muxFpgaInit(void);
-char  muxBspFpgaReload(void);
+void extFpgaInit(void);
+char  extBspFpgaReload(void);
 
 
-char	muxFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size);
-//void	muxFpgaEnable(char	isEnable);
+char	extFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size);
+//void	extFpgaEnable(char	isEnable);
 
-void muxFgpaRegisterDebug(void);
+void extFgpaRegisterDebug(void);
 
 
 
 /************** ATMEL and others ************/
 
-void muxEtherDebug(void);
+void sys_init_timing(void);
+uint32_t sys_get_ms(void);
 
-void muxJobPeriod(MUX_RUNTIME_CFG *runCfg);
+void extEtherDebug(void);
+
+void extJobPeriod(EXT_RUNTIME_CFG *runCfg);
 
 #endif
 

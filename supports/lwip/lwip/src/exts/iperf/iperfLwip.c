@@ -486,11 +486,11 @@ static err_t lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, e
 
 	conn->poll_count = 0;
 
-#if MUX_LWIP_DEBUG
-	MUX_LWIP_DEBUG_PBUF(p);
+#if EXT_LWIP_DEBUG
+	EXT_LWIP_DEBUG_PBUF(p);
 	if(p->next)
 	{
-		MUX_LWIP_DEBUG_PBUF(p->next);
+		EXT_LWIP_DEBUG_PBUF(p->next);
 	}
 #endif
 

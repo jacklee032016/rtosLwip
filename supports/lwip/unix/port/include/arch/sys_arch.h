@@ -41,7 +41,12 @@ typedef u32_t sys_prot_t;
 
 struct sys_sem;
 typedef struct sys_sem * sys_sem_t;
-#define sys_sem_valid(sem)       (((sem) != NULL) && (*(sem) != NULL))
+#if 0
+#define sys_sem_valid(sem)			(((sem) != NULL) && (*(sem) != NULL))
+#else
+#define sys_sem_valid(sem)      	((int)(*sem))
+#endif
+
 #define sys_sem_set_invalid(sem) do { if((sem) != NULL) { *(sem) = NULL; }}while(0)
 
 struct sys_mutex;
@@ -51,7 +56,7 @@ typedef struct sys_mutex * sys_mutex_t;
 
 struct sys_mbox;
 typedef struct sys_mbox * sys_mbox_t;
-#define sys_mbox_valid(mbox)       sys_sem_valid(mbox)
+#define sys_mbox_valid(_mbox)       sys_sem_valid((_mbox))
 #define sys_mbox_set_invalid(mbox) sys_sem_set_invalid(mbox)
 
 struct sys_thread;

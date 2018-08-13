@@ -31,7 +31,7 @@ int32 reg_read(uint32 unit, rtk_reg_list_t reg, uint32 *value)
 
 	unit = 0;   /* kill compiler warning */       
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	if(RTL8307H_I2C_READ(REG_ADDR(unit, reg), value) == RT_ERR_OK)
 	{
 		DEBUG_INFO(DBG_REG, "Read Addr: %x %x\n", REG_ADDR(unit, reg), *value);   
@@ -58,7 +58,7 @@ int32 reg_write(uint32 unit, rtk_reg_list_t reg, uint32 value)
 	unit = 0;   /* kill compiler warning */  
 	DEBUG_INFO(DBG_REG, "Write Addr: %x %x\n", REG_ADDR(unit, reg), value);       
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	if(RTL8307H_I2C_WRITE(REG_ADDR(unit, reg), value) == RT_ERR_OK)
 	{
 		return SUCCESS;

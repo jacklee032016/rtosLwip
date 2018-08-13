@@ -675,7 +675,7 @@ int32 rtl8307h_vlan_tpid_set(uint32 tpid)
     return RT_ERR_OK;
 }
 
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
 int32 rtl83107h_vlan_tpid_get(uint32* pTpid)
 {
     uint32 fieldval;

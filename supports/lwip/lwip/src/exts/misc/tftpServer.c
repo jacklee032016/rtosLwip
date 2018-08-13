@@ -102,7 +102,7 @@ static void _tftpSendError(const ip_addr_t *addr, u16_t port, enum tftp_error co
 	u16_t* payload;
 
 //	LWIP_DEBUGF(TFTP_DEBUG | LWIP_DBG_STATE, ("tftp reply error:%s(%d)"LWIP_NEW_LINE, str, code) );
-	MUX_INFOF( ("tftp reply error:%s(%d)"LWIP_NEW_LINE, str, code) );
+	EXT_INFOF( ("tftp reply error:%s(%d)"LWIP_NEW_LINE, str, code) );
 
 	p = pbuf_alloc(PBUF_TRANSPORT, (u16_t)(TFTP_HEADER_LENGTH + str_length + 1), PBUF_RAM);
 	if(p == NULL)
@@ -211,14 +211,14 @@ static void _tftpTmr(void* arg)
 	{
 		if ((_tftpState.last_data != NULL) && (_tftpState.retries < TFTP_MAX_RETRIES))
 		{
-			LWIP_DEBUGF(TFTP_DEBUG | LWIP_DBG_STATE, ("tftp: timeout, retrying"MUX_NEW_LINE));
+			LWIP_DEBUGF(TFTP_DEBUG | LWIP_DBG_STATE, ("tftp: timeout, retrying"EXT_NEW_LINE));
 			_tftpResendData();
 			_tftpState.retries++;
 		}
 		else
 		{
-			LWIP_DEBUGF(TFTP_DEBUG | LWIP_DBG_STATE, ("tftp: timeout"MUX_NEW_LINE));
-			CANCEL_UPDATE(&muxRun);
+			LWIP_DEBUGF(TFTP_DEBUG | LWIP_DBG_STATE, ("tftp: timeout"EXT_NEW_LINE));
+			CANCEL_UPDATE(&extRun);
 			_tftpCloseHandle();
 		TRACE();
 		}
@@ -290,10 +290,10 @@ static void _tftpRecv(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_
 			}
 			pbuf_copy_partial(p, mode, mode_end_offset-filename_end_offset, filename_end_offset+1);
 
-#if MUXLAB_BOARD
-			if(! IS_STRING_EQUAL(filename, MUX_TFTP_IMAGE_OS_NAME) && !IS_STRING_EQUAL(filename, MUX_TFTP_IMAGE_FPGA_NAME) )
+#if EXTLAB_BOARD
+			if(! IS_STRING_EQUAL(filename, EXT_TFTP_IMAGE_OS_NAME) && !IS_STRING_EQUAL(filename, EXT_TFTP_IMAGE_FPGA_NAME) )
 			{
-				_tftpSendError(addr, port, TFTP_ERROR_ACCESS_VIOLATION, "Only '"MUX_TFTP_IMAGE_OS_NAME"' or '"MUX_TFTP_IMAGE_FPGA_NAME"' can be put or get");
+				_tftpSendError(addr, port, TFTP_ERROR_ACCESS_VIOLATION, "Only '"EXT_TFTP_IMAGE_OS_NAME"' or '"EXT_TFTP_IMAGE_FPGA_NAME"' can be put or get");
 				break;
 			}
 #endif
@@ -356,14 +356,14 @@ static void _tftpRecv(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_
 			/* only used in RCV data, so add to track blknum. J.L. Aug.7th, 2018 */
 			if(blknum == _tftpState.blknum)
 			{
-				MUX_INFOF( ("tftp: recv replicated block#%d, resend ACK"LWIP_NEW_LINE, blknum));
+				EXT_INFOF( ("tftp: recv replicated block#%d, resend ACK"LWIP_NEW_LINE, blknum));
 				_tftpSendAck(blknum);
 				break;
 			}
 
 			if(blknum != _tftpState.blknum+1)
 			{
-				MUX_ERRORF( ("tftp: recv block#%d is out of order, should be #%d"LWIP_NEW_LINE, blknum, _tftpState.blknum+1) );
+				EXT_ERRORF( ("tftp: recv block#%d is out of order, should be #%d"LWIP_NEW_LINE, blknum, _tftpState.blknum+1) );
 				_tftpSendError(addr, port, TFTP_ERROR_ACCESS_VIOLATION, "error writing file");
 				_tftpCloseHandle();
 				break;

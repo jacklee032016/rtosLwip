@@ -222,7 +222,7 @@ static void mqtt_output_send(struct mqtt_ringbuf_t *rb, struct tcp_pcb *tpcb)
 		return;
 	}
 
-	LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_output_send: tcp_sndbuf: %d bytes, ringbuf_linear_available: %d, get %d, put %d"MUX_NEW_LINE,
+	LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_output_send: tcp_sndbuf: %d bytes, ringbuf_linear_available: %d, get %d, put %d"EXT_NEW_LINE,
 		send_len, ringbuf_lin_len, ((rb)->get & MQTT_RINGBUF_IDX_MASK), ((rb)->put & MQTT_RINGBUF_IDX_MASK)));
 
 	if (send_len > ringbuf_lin_len)
@@ -771,7 +771,7 @@ static mqtt_connection_status_t  mqtt_message_received(mqtt_client_t *client, u8
 			payload_length = length - after_topic;
 			payload_offset = after_topic;
 
-			LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_incomming_publish: Received message with QoS %d at topic: %s, payload length %d\n",
+			LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_incomming_publish: Received message with QoS %d at topic: %s, payload length %"FOR_U32"\n",
 				qos, topic, remaining_length + payload_length));
 			if (client->pub_cb != NULL)
 			{
@@ -895,7 +895,7 @@ static mqtt_connection_status_t mqtt_parse_incoming(mqtt_client_t *client, struc
 				msg_rem_len |= (u32_t)(b & 0x7f) << ((fixed_hdr_idx - 2) * 7);
 				if ((b & 0x80) == 0)
 				{
-					LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_parse_incoming: Remaining length after fixed header: %d\n", msg_rem_len));
+					LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_parse_incoming: Remaining length after fixed header: %"FOR_U32"\n", msg_rem_len));
 					if (msg_rem_len == 0)
 					{
 						/* Complete message with no extra headers of payload received */
@@ -933,7 +933,7 @@ static mqtt_connection_status_t mqtt_parse_incoming(mqtt_client_t *client, struc
 			in_offset += cpy_len;
 			msg_rem_len -= cpy_len;
 
-			LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_parse_incoming: msg_idx: %d, cpy_len: %d, remaining %d\n", client->msg_idx, cpy_len, msg_rem_len));
+			LWIP_DEBUGF(MQTT_DEBUG_TRACE,("mqtt_parse_incoming: msg_idx: %"FOR_U32", cpy_len: %d, remaining %"FOR_U32"\n", client->msg_idx, cpy_len, msg_rem_len));
 			if (msg_rem_len == 0 || cpy_len == buffer_space)
 			{
 				/* Whole message received or buffer is full */

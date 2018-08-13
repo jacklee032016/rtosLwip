@@ -8,12 +8,9 @@
 
 void board_init(void);
 
-char	 bspCmdFactory(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
+char	 bspCmdFactory(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsigned int bufferLen );
 
-char cmnCmdUpdate(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
-
-char cmnCmdHelp(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char cmnCmdVersion(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char cmnCmdUpdate(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen );
 
 
 void bspSpiFlashInit(unsigned int startSector, unsigned int startAddress, char isWrite);
@@ -22,14 +19,14 @@ int	bspSpiFlashWrite(unsigned char *data, unsigned int size);
 int	bspSpiFlashFlush(void);
 
 
-char bspCmdInternalFlash(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen);
-char	bspCmdSpiFlashRead(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
-char	bspCmdSpiFlashErase(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
+char bspCmdInternalFlash(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsigned int bufferLen);
+char	bspCmdSpiFlashRead(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsigned int bufferLen );
+char	bspCmdSpiFlashErase(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsigned int bufferLen );
 
-char bspCmdSpiFlashXmodemLoad(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen);
-char bspCmdSpiFlashYmodemLoad(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen);
+char bspCmdSpiFlashXmodemLoad(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsigned int bufferLen);
+char bspCmdSpiFlashYmodemLoad(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsigned int bufferLen);
 
-int	bspBootUpdateFpga(MUX_RUNTIME_CFG *runCfg);
+int	bspBootUpdateFpga(EXT_RUNTIME_CFG *runCfg);
 
 extern uint32_t SystemCoreClock; /* System Clock Frequency (Core Clock) */
 
@@ -65,9 +62,9 @@ void console_disable_rx_interrupt(void);
 void bspConsoleDumpFrame(uint8_t *frame, uint32_t size);
 void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address);
 
-#ifndef __MUX_RELEASE__
+#ifndef __EXT_RELEASE__
 #define	CONSOLE_DEBUG_MEM(buffer, size, address, msg)	\
-	{printf("[%s-%u.%s()]-%s: "MUX_NEW_LINE, __FILE__, __LINE__, __FUNCTION__, (msg) );bspConsoleDumpMemory((buffer), (size), (address));}
+	{printf("[%s-%u.%s()]-%s: "EXT_NEW_LINE, __FILE__, __LINE__, __FUNCTION__, (msg) );bspConsoleDumpMemory((buffer), (size), (address));}
 
 #else
 #define	CONSOLE_DEBUG_MEM(buffer, size, address, msg)	
@@ -100,34 +97,34 @@ char efcFlashProgram(uint32_t pageNo, const uint8_t* buffer, uint32_t size);
 
 char	efcFlashInit(void);
 
-char bspCfgRead( MUX_RUNTIME_CFG *cfg, MUX_CFG_TYPE cfgType);
-//char bspCfgSave( MUX_RUNTIME_CFG *cfg, MUX_CFG_TYPE cfgType );
+char bspCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType);
+//char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 
 char bspHwI2cInit(void);
 
-char muxI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize, unsigned char *regVal, unsigned char regSize);
-char muxI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize,  unsigned char *regVal, unsigned char regSize);
+char extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize, unsigned char *regVal, unsigned char regSize);
+char extI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize,  unsigned char *regVal, unsigned char regSize);
 
 /* 8 bits address, and 8 bit data */
 #define	FPGA_I2C_WRITE(address, val, size)		\
-	muxI2CWrite(MUX_I2C_PCA9554_CS_NONE, MUX_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+	extI2CWrite(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
 #define	FPGA_I2C_READ(address, val, size)		\
-	muxI2CRead(MUX_I2C_PCA9554_CS_NONE, MUX_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+	extI2CRead(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
 
 
-void muxEepromWrite(unsigned char startAddress, unsigned char *value, unsigned int size);
-void muxEepromRead(unsigned char startAddress, unsigned char *value, unsigned int size);
+void extEepromWrite(unsigned char startAddress, unsigned char *value, unsigned int size);
+void extEepromRead(unsigned char startAddress, unsigned char *value, unsigned int size);
 
 
-char muxBspSpiSelectChip(uint32_t pcs);
-char muxBspSpiUnselectChip(uint32_t pcs);
-char muxBspSpiReadPacket(unsigned char *data, unsigned int len);
-char muxBspSpiWritePacket(const unsigned char *data, unsigned int len);
+char extBspSpiSelectChip(uint32_t pcs);
+char extBspSpiUnselectChip(uint32_t pcs);
+char extBspSpiReadPacket(unsigned char *data, unsigned int len);
+char extBspSpiWritePacket(const unsigned char *data, unsigned int len);
 
 
-void muxBspSpiMasterTransfer(void *buf, uint32_t size);
+void extBspSpiMasterTransfer(void *buf, uint32_t size);
 
 /* bsp hw interfaces of SPI flash, 5 functions */
 void bspHwSpiFlashInit(void);
@@ -145,9 +142,9 @@ void  bspHwClockSwitchClk( unsigned char  sw);
 
 
 
-void muxBspBoardInit(void);
-void muxBspBIST(void );
-short muxSensorGetTemperatureCelsius(void);
+void extBspBoardInit(void);
+void extBspBIST(void );
+short extSensorGetTemperatureCelsius(void);
 
 unsigned long  bspRandom(void);
 
@@ -161,7 +158,7 @@ void bspButtonConfig(boot_mode bMode);
 void bspSpiMasterInitialize(uint32_t pcs);
 
 
-char bspCmdBIST(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
+char bspCmdBIST(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
 
 char  bspBistSpiFlashReadDeviceID(char *outBuffer, size_t bufferSize);
 char  bspBistSpiFlashReadWrite(char *outBuffer, size_t bufferSize);
@@ -176,54 +173,51 @@ char  bspBistClock(char *outBuffer, size_t bufferSize);
 int bspGetcXModem(void);
 
 
-void muxHwRs232Init(MUX_RUNTIME_CFG *runCfg);
+void extHwRs232Init(EXT_RUNTIME_CFG *runCfg);
 
-void muxHwRs232Config(MUX_RUNTIME_CFG *runCfg);
+void extHwRs232Config(EXT_RUNTIME_CFG *runCfg);
 
 #ifdef	ARM
-int muxRs232Write(unsigned char *data, unsigned short size);
+int extRs232Write(unsigned char *data, unsigned short size);
 
 
-char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, size_t bufferSize );
+char	 bspCmdReboot(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
 
-char	 bspCmdReboot(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
-
-char bspCfgSave( MUX_RUNTIME_CFG *cfg, MUX_CFG_TYPE cfgType );
-char	muxFpgaConfig(MUX_RUNTIME_CFG *runCfg);
-void	muxFpgaEnable(char	isEnable);
-char *muxFgpaReadVersion(void);
+char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg);
+void	extFpgaEnable(char	isEnable);
+char *extFgpaReadVersion(void);
 
 
 #endif
 
-char muxCmdFactory(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char extCmdFactory(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
 extern	int 		argc;
-extern	char		argv[MUX_CMD_MAX_ARGUMENTS][MUX_CMD_MAX_LENGTH];
+extern	char		argv[EXT_CMD_MAX_ARGUMENTS][EXT_CMD_MAX_LENGTH];
 
 #if LWIP_EXT_UDP_TX_PERF
-char	muxCmdUdpTxPerf(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	extCmdUdpTxPerf(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 #endif
-char cmnCmdLwipPing(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
-char cmnCmdLwipIgmp(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
-char	cmnCmdNetInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	cmnCmdMacInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	cmnCmdDestInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	cmnCmdLocalInfo(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
-char	muxCmdChangeName(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char cmnCmdLwipPing(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	cmnCmdMacInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	cmnCmdDestInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	cmnCmdLocalInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	extCmdChangeName(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
-char cmdCmdDebuggable(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
-char cmnCmdParams(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen);
-char cmnCmdTx(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char cmnCmdParams(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen);
+char cmnCmdTx(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
 char bspMultiAddressFromDipSwitch(void);
 
 
-void muxDelayReboot(unsigned short delayMs);
+void extDelayReboot(unsigned short delayMs);
 
-void muxNetPingInit(void);
-void muxNetPingSendNow(unsigned int destIp);
+void extNetPingInit(void);
+void extNetPingSendNow(unsigned int destIp);
 
 
 int	cmnParseGetHexIntValue(char *hexString);

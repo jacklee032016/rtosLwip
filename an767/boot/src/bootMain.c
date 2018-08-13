@@ -8,7 +8,7 @@
 #include <unistd.h>	/* for write() */
 
 
-_CODE char *versionString = MUX_BL_NAME;
+_CODE char *versionString = EXT_BL_NAME;
 
 //CACHE_ALIGNED 
 static char	cmd_buffer[CMD_BUFFER_SIZE];
@@ -17,7 +17,7 @@ static char	outBuffer[MAX_STRING_SIZE];
 static volatile uint32_t inputIndex = 0;
 static volatile bool cmd_complete = false;
 
-static const char * const promptMessage = MUX_NEW_LINE"MuxLab command line, Type 'help' to view a list of commands."MUX_NEW_LINE">";
+static const char * const promptMessage = EXT_NEW_LINE"MuxLab command line, Type 'help' to view a list of commands."EXT_NEW_LINE">";
 
 #define	BOOT_PROMPT()		\
 		write(1,  ( signed char *) promptMessage, strlen(promptMessage))
@@ -37,7 +37,7 @@ static void _consoleHandler(uint8_t key)
 			{
 				bspConsoleEcho(key);
 				cmd_buffer[inputIndex] = '\0';
-				cmd_complete = MUX_TRUE;
+				cmd_complete = EXT_TRUE;
 			}
 			else
 			{
@@ -55,7 +55,7 @@ static void _consoleHandler(uint8_t key)
 			}
 			break;
 		default:
-			if (inputIndex < (MUX_ARRAYSIZE(cmd_buffer) - 1))
+			if (inputIndex < (EXT_ARRAYSIZE(cmd_buffer) - 1))
 			{
 				bspConsoleEcho(key);
 				cmd_buffer[inputIndex] = key;
@@ -79,7 +79,7 @@ static void _ledTestTask(void *param)
 static char _consoleMonitor(void)
 {
 	char key;
-	cmd_complete = MUX_FALSE;
+	cmd_complete = EXT_FALSE;
 	
 
 	key = bspConsoleGetChar();
@@ -89,7 +89,7 @@ static char _consoleMonitor(void)
 	return cmd_complete;
 }
 
-static int	__bootUpdateRtos(MUX_RUNTIME_CFG *runCfg)
+static int	__bootUpdateRtos(EXT_RUNTIME_CFG *runCfg)
 {
 	int	efcFlashStartPage = FLASH_START_PAGE_OS;
 //	int spiOffset = 0;
@@ -100,24 +100,24 @@ static int	__bootUpdateRtos(MUX_RUNTIME_CFG *runCfg)
 	if (efcFlashInit() != EXIT_SUCCESS)
 	{
 		printf("EFC Flash initialization error!");
-		return MUX_FALSE;
+		return EXT_FALSE;
 	}
 
 	/* read from SPI flash and write into EFC flash */
-	bspSpiFlashInit(0, FLASH_N250_SECTOR_ADDRESS(SFLASH_START_SECTOR_TEMP_RTOS), MUX_FALSE);
+	bspSpiFlashInit(0, FLASH_N250_SECTOR_ADDRESS(SFLASH_START_SECTOR_TEMP_RTOS), EXT_FALSE);
 
-	printf( ("Update RTOS"MUX_NEW_LINE));
+	printf( ("Update RTOS"EXT_NEW_LINE));
 	while(total < runCfg->firmUpdateInfo.size )
 	{
 		length = bspSpiFlashRead(runCfg->bufRead, runCfg->bufLength);
 		if(length < 0)
 		{
-			MUX_ERRORF(("Update OS failed after read %d bytes"MUX_NEW_LINE, total) );
+			EXT_ERRORF(("Update OS failed after read %d bytes"EXT_NEW_LINE, total) );
 			break;
 		}
 		if(length != runCfg->bufLength)
 		{
-			MUX_INFOF(("Last read %d bytes from SPI Flash", length) );
+			EXT_INFOF(("Last read %d bytes from SPI Flash", length) );
 		}
 		
 		ret = efcFlashProgram(efcFlashStartPage, runCfg->bufRead, length);
@@ -134,29 +134,29 @@ static int	__bootUpdateRtos(MUX_RUNTIME_CFG *runCfg)
 		
 	}
 
-	printf("" MUX_NEW_LINE);
+	printf("" EXT_NEW_LINE);
 	if( total/runCfg->bufLength != (runCfg->firmUpdateInfo.size+runCfg->bufLength-1)/runCfg->bufLength )
 	{
-		MUX_ERRORF( ("Update OS image with wrong image size: %d bytes(%d)"MUX_NEW_LINE, total, runCfg->firmUpdateInfo.size) )
+		EXT_ERRORF( ("Update OS image with wrong image size: %d bytes(%d)"EXT_NEW_LINE, total, runCfg->firmUpdateInfo.size) )
 	}
 	else
 	{
-		printf( "Update total %d pages of EFC Flash"MUX_NEW_LINE, efcFlashStartPage-FLASH_START_PAGE_OS );
+		printf( "Update total %d pages of EFC Flash"EXT_NEW_LINE, efcFlashStartPage-FLASH_START_PAGE_OS );
 	}	
 
 	return total;
 }
 
 /* update firmware from backup zone in SPI flash */
-static int	_bootUpdate(MUX_RUNTIME_CFG *runCfg)
+static int	_bootUpdate(EXT_RUNTIME_CFG *runCfg)
 {
 	int	length= 0;
 
-	if(runCfg->firmUpdateInfo.type == MUX_FM_TYPE_RTOS)
+	if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS)
 	{
 		length = __bootUpdateRtos(runCfg);
 	}
-	else if(runCfg->firmUpdateInfo.type == MUX_FM_TYPE_FPGA)
+	else if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_FPGA)
 	{
 		length = bspBootUpdateFpga(runCfg);
 	}
@@ -165,25 +165,25 @@ static int	_bootUpdate(MUX_RUNTIME_CFG *runCfg)
 		return 0;
 	}
 	
-	printf("" MUX_NEW_LINE);
+	printf("" EXT_NEW_LINE);
 #if 0
 	if( (unsigned int)length != runCfg->firmUpdateInfo.size )
 	{
-		MUX_ERRORF( ("Update OS image with wrong image size %d bytes, it should be %d"MUX_NEW_LINE, length, runCfg->firmUpdateInfo.size) )
+		EXT_ERRORF( ("Update OS image with wrong image size %d bytes, it should be %d"EXT_NEW_LINE, length, runCfg->firmUpdateInfo.size) )
 	}
 	else
 	{
-		printf( "Update total %d bytes firmware"MUX_NEW_LINE, length );
+		printf( "Update total %d bytes firmware"EXT_NEW_LINE, length );
 	}	
 #endif
 
 	{/* disable update when next bootup */
-		memset(&runCfg->firmUpdateInfo, 0 , sizeof(MUX_FM_UPDATE));
-		bspCfgSave(runCfg, MUX_CFG_MAIN);
+		memset(&runCfg->firmUpdateInfo, 0 , sizeof(EXT_FM_UPDATE));
+		bspCfgSave(runCfg, EXT_CFG_MAIN);
 	}
 
-	MUX_DELAY_MS(500);
-//	MUX_INFOF(("Update RTOS: %d bytes"MUX_NEW_LINE, total));
+	EXT_DELAY_MS(500);
+//	EXT_INFOF(("Update RTOS: %d bytes"EXT_NEW_LINE, total));
 
 	return length;
 }
@@ -197,62 +197,62 @@ int main( void )
 
 	bspHwInit(BOOT_MODE_BOOTLOADER);
 
-	_bootUpdate(&muxRun);
+	_bootUpdate(&extRun);
 	
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)
 	stayInBootloader = gpio_pin_is_low(PIO_PA30_IDX);
 	if(stayInBootloader)
 	{
-		printf("reset button is low, stay in bootloader"MUX_NEW_LINE);
+		printf("reset button is low, stay in bootloader"EXT_NEW_LINE);
 	}
 #if 0
 	else
 	{
-//		printf("reset button is High"MUX_NEW_LINE);
+//		printf("reset button is High"EXT_NEW_LINE);
 	}
 #endif
 
-	if(!muxRun.isUpdate || stayInBootloader == 0)
+	if(!extRun.isUpdate || stayInBootloader == 0)
 #else
-	if(!muxRun.isUpdate )
+	if(!extRun.isUpdate )
 #endif
 	{
-		MUX_LOAD_OS();
+		EXT_LOAD_OS();
 	}
 	
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 	ioport_set_pin_level(LED0_GPIO, 0);
 #endif
 #if 0
-	bspConsoleReset(MUX_SYSTEM_STRING);
+	bspConsoleReset(EXT_SYSTEM_STRING);
 #else
 //	printf(versionString);
 #endif
 
 #if 0
-	puts("Startup.....OK!"MUX_NEW_LINE);
+	puts("Startup.....OK!"EXT_NEW_LINE);
 	
 	printf("Test1...\r\n" );
 	printf("Test11...\n\r" );
-	puts("Startup2.....OK!"MUX_NEW_LINE);
-	printf("Test2..."MUX_NEW_LINE);
-	printf("Test3..."MUX_NEW_LINE);
+	puts("Startup2.....OK!"EXT_NEW_LINE);
+	printf("Test2..."EXT_NEW_LINE);
+	printf("Test3..."EXT_NEW_LINE);
 #endif
-	printf(MUX_NEW_LINE"Bootloader beginning..." MUX_NEW_LINE);
+	printf(EXT_NEW_LINE"Bootloader beginning..." EXT_NEW_LINE);
 	
-//	printf(MUX_SYSTEM_STRING);
+//	printf(EXT_SYSTEM_STRING);
 
 #if 0
 	/* disable reset button in bootloader. J.L. July 25, 2018 */
 	/* delay to wait releasing button */
-	MUX_DELAY_MS(1000);
+	EXT_DELAY_MS(1000);
 
 	bspButtonConfig(BOOT_MODE_RTOS);
 #endif	
 	/* Initialize flash driver */
 
-	cmd_complete = MUX_FALSE;
+	cmd_complete = EXT_FALSE;
 	inputIndex = 0;
 
 //	printf(promptMessage);
@@ -264,12 +264,12 @@ int main( void )
 
 		if (_consoleMonitor())
 		{
-			char continues = MUX_FALSE;
+			char continues = EXT_FALSE;
 			do
 			{
 				continues = cmnCmdLineProcess((const char * const) cmd_buffer, outBuffer, sizeof(outBuffer));
 				printf(outBuffer);
-			}while(continues == MUX_TRUE);
+			}while(continues == EXT_TRUE);
 
 			inputIndex = 0;
 //			printf(promptMessage);

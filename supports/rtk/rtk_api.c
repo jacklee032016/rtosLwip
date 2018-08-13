@@ -104,7 +104,7 @@ rtk_api_ret_t rtk_port_mode_get(rtk_port_t port, rtk_mode_ext_t* mode)
         return rtl8307h_mac6_miiMode_get(mode);        
     else
         return RT_ERR_PORT_ID;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	return RT_ERR_OK;
 #endif
 }
@@ -558,7 +558,7 @@ rtk_api_ret_t rtk_port_linkAbility_get(rtk_port_t port, rtk_port_link_ability_t 
 rtk_api_ret_t rtk_port_linkStatus_get(rtk_port_t port, rtk_port_link_status_t *pStatus)
 {
     uint32 regval;
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
     rtk_port_phy_ability_t ability;
 #endif
 
@@ -1072,7 +1072,7 @@ void rtk_mac6_interface_get(rtk_port_interface_t *mode)
 rtk_api_ret_t rtk_wol_event_set(uint8 event_mask)
 {
     uint32 reg_val;
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
     uint32 mask;
 #endif
 
@@ -1294,7 +1294,7 @@ void rtk_wol_wakup_sample_set(uint8 group, uint8* frame, uint16 len, uint8* mask
 {
     uint16 crc;
     uint8 message[128];
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
     uint8 i;
 #endif
     uint32 regVal;
@@ -1865,7 +1865,7 @@ rtk_api_ret_t rtk_igmp_init(rtk_enable_t igmpEnable, rtk_enable_t mldEnable, rtk
 rtk_api_ret_t rtk_igmp_getInitConfig(rtk_enable_t* igmpEnable, rtk_enable_t* mldEnable, rtk_enable_t* vlanLeakyEnable, rtk_enable_t* fastLeaveEnable)
 {
     ret_t retVal;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*igmpEnable = DISABLED;
@@ -2054,7 +2054,7 @@ rtk_api_ret_t rtk_igmp_defPri_set(rtk_enable_t defIgmpPri, rtk_pri_t igmpPri)
 rtk_api_ret_t rtk_igmp_defPri_get(rtk_enable_t* defIgmpPri, rtk_pri_t* igmpPri)
 {
     ret_t retVal;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*defIgmpPri = DISABLED;
@@ -2140,7 +2140,7 @@ rtk_api_ret_t rtk_stp_mstpState_get(rtk_stp_msti_id_t msti, rtk_port_t portId, r
     if(NULL == pStp_state)
         return RT_ERR_NULL_POINTER;
     
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 	*pStp_state = STP_DISCARDING;
 	if ((retVal = reg_field_read(RTL8307H_UNIT, SPANNING_TREE_PORT_STATE_CONTROL0+msti, PORT0_STATE-portId, &regVal)) != SUCCESS)
@@ -2264,7 +2264,7 @@ rtk_api_ret_t rtk_stp_type_get(rtk_stp_type_t* pStpType)
     if(NULL == pStpType)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*pStpType = STP_TYPE_STP;
@@ -2774,7 +2774,7 @@ rtk_api_ret_t rtk_stp_portEdge_get(rtk_port_t portId, rtk_stp_portEdge_t*pStpPor
     if(NULL == pStpPortEdge)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	if(portId == 6)
@@ -2889,7 +2889,7 @@ rtk_api_ret_t rtk_stp_portP2P_get(rtk_port_t portId, rtk_stp_portP2P_t* pStpPort
     if(NULL == pStpPortP2P)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	if(portId == 6)
@@ -3754,7 +3754,7 @@ rtk_api_ret_t rtk_qos_cvlanRemarkEnable_get(rtk_port_t portId , rtk_enable_t* pR
     if(NULL == pRemarkAbility)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*pRemarkAbility = DISABLED;
@@ -3826,7 +3826,7 @@ rtk_api_ret_t rtk_qos_svlanRemarkEnable_get(rtk_port_t portId , rtk_enable_t* pR
     if(NULL == pRemarkAbility)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*pRemarkAbility = DISABLED;
@@ -3899,7 +3899,7 @@ rtk_api_ret_t rtk_qos_dscpRemarkEnable_get(rtk_port_t portId, rtk_enable_t *pRem
     if(NULL == pRemarkAbility)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*pRemarkAbility = DISABLED;
@@ -4192,7 +4192,7 @@ rtk_api_ret_t rtk_qos_cvlanRemarkTable_set(rtk_port_t portId, rtk_index_t index)
  */
 rtk_api_ret_t rtk_qos_cvlanRemarkTable_get(rtk_port_t portId, rtk_index_t* pIndex)
 {
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
     uint32 fieldVal;
 #endif
     int32 retVal;
@@ -4466,7 +4466,7 @@ rtk_api_ret_t rtk_qos_portScheduler_get(rtk_port_t portId, rtk_queue_scheduleTyp
     if(NULL == pPortSchedule)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 	*pPortSchedule = QOS_WFQ;	
 	if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_QUEUE_SCHEDULE_CONTROL+portId, SCHEDULER_TYPE_SEL, &regVal)) != SUCCESS)
@@ -4570,7 +4570,7 @@ rtk_api_ret_t rtk_qos_queueScheduler_get(rtk_port_t portId, rtk_queue_num_t queu
 {
     uint32 fieldVal;
     int32 retVal;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 tempVal;
 #else
     int32 tempVal;
@@ -4763,7 +4763,7 @@ rtk_api_ret_t rtk_rate_ingressBWCtrl_get(rtk_port_t portId, rtk_ingress_bwCtrl_t
     if(NULL == pIngressBwCtrl )
         return RT_ERR_NULL_POINTER; 
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 	pIngressBwCtrl->bwCtrlEnable = DISABLED;
 	if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_INGRESS_BANDWIDTH_RATE_CONTROL0+portId, INBW0_EN, &regVal)) != SUCCESS)
@@ -4788,7 +4788,7 @@ rtk_api_ret_t rtk_rate_ingressBWCtrl_get(rtk_port_t portId, rtk_ingress_bwCtrl_t
     if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_INGRESS_BANDWIDTH_RATE_CONTROL1+portId, INBW1_RATE, &pIngressBwCtrl->ingressRate1)) != SUCCESS)
         return retVal;  
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	pIngressBwCtrl->flowCtrlEnable0 = DISABLED;
 	if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_INGRESS_BANDWIDTH_RATE_CONTROL0+portId, INBW0_FC_EN, &regVal)) != SUCCESS)
 		return retVal;  
@@ -4875,7 +4875,7 @@ rtk_api_ret_t rtk_rate_egressPortBWCtrl_get(rtk_port_t portId, rtk_enable_t* pEn
     if(NULL == pEnable ||NULL == pPortRate)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 	*pEnable = DISABLED;
 	if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_QUEUE_SCHEDULE_CONTROL+portId, MINLB_EN, &regVal)) != SUCCESS)
@@ -4922,7 +4922,7 @@ rtk_api_ret_t rtk_rate_egressQueueBWCtlrl_set(rtk_port_t portId, rtk_queue_num_t
     if(queueId > RTL8307H_QIDMAX)
         return RT_ERR_QUEUE_ID;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
     if(((rtk_queue_scheduleType_t)enable>= QOS_SCHEDULE_END))
 #else
     if(enable>= QOS_SCHEDULE_END)
@@ -4973,7 +4973,7 @@ rtk_api_ret_t rtk_rate_egressQueueBWCtlrl_get(rtk_port_t portId, rtk_queue_num_t
     if(NULL == pEnable || NULL == pQueueRate)
         return RT_ERR_NULL_POINTER;
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 	*pEnable = DISABLED;
 	if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_QUEUE_SCHEDULE_CONTROL+portId, Q0MAXLB_EN-queueId, &regVal)) != SUCCESS)
@@ -5361,7 +5361,7 @@ rtk_api_ret_t rtk_vlan_get(rtk_vlan_t vid, rtk_portmask_t *pMbrmsk, rtk_portmask
         }        
     }
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	hit_index = hit_index;
 #endif
 
@@ -5803,7 +5803,7 @@ rtk_api_ret_t rtk_vlan_tagAware_set(rtk_port_t port, rtk_enable_t enabled)
  */
 rtk_api_ret_t rtk_vlan_tagAware_get(rtk_port_t port, rtk_enable_t *pEnabled)
 {
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	rtk_api_ret_t retVal = RT_ERR_OK;
 #else
     rtk_api_ret_t retVal;    
@@ -6455,7 +6455,7 @@ rtk_api_ret_t rtk_svlan_portAcceptFrameType_get(rtk_port_t port, rtk_vlan_accept
 rtk_api_ret_t rtk_svlan_tagMode_set(rtk_port_t port, rtk_vlan_tagMode_t tag_mode)
 {
     rtk_api_ret_t retVal;
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
     rtk_vlan_tagMode_t mode;
 #endif
 
@@ -6823,7 +6823,7 @@ rtk_api_ret_t rtk_mirror_portBased_get(rtk_port_t* pMirroring_port, rtk_portmask
     memset(pMirrored_rx_portmask, 0, sizeof(rtk_portmask_t));
     memset(pMirrored_tx_portmask, 0, sizeof(rtk_portmask_t));
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, TRAFFIC_MIRROR_CONTROL1, DP, (uint32 *)&regVal));
 	*pMirroring_port = regVal;
 	      
@@ -6895,7 +6895,7 @@ rtk_api_ret_t rtk_mirror_portIso_get(rtk_enable_t *pEnable)
 {
     if (NULL == pEnable)
         return RT_ERR_NULL_POINTER;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	uint32 regVal;
 
 	*pEnable = DISABLED;
@@ -6924,7 +6924,7 @@ rtk_api_ret_t rtk_mirror_portIso_get(rtk_enable_t *pEnable)
  * Note:
  *      Reset MIB counter of ports. API will use global reset while port mask is all-ports.
  */
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
 rtk_api_ret_t rtk_stat_global_reset(void)
 {
     rtk_api_ret_t retVal;

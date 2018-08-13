@@ -138,7 +138,7 @@ static int dump(const char *js, jsmntok_t *t, size_t count, int indent)
 }
 #endif
 
-MUX_JSON_PARSER  testParser;
+EXT_JSON_PARSER  testParser;
 
 
 char *tokenTypeString(jsmntok_t *token)
@@ -166,7 +166,7 @@ char *tokenTypeString(jsmntok_t *token)
 }
 
 
-int tokenPrintHandle(MUX_JSON_PARSER *parser, int index, jsmntok_t *key, void *data)
+int tokenPrintHandle(EXT_JSON_PARSER *parser, int index, jsmntok_t *key, void *data)
 {
 	jsmntok_t *value = key+1;
 
@@ -175,7 +175,7 @@ int tokenPrintHandle(MUX_JSON_PARSER *parser, int index, jsmntok_t *key, void *d
 #if 0
 	if(value->type==JSMN_STRING)
 	{
-		printf("'%.*s'(%s)\n\r", 	JSON_TOKEN_LENGTH(value), muxParser.currentJSonString+value->start );
+		printf("'%.*s'(%s)\n\r", 	JSON_TOKEN_LENGTH(value), extParser.currentJSonString+value->start );
 	}
 	else if(value->type==JSMN_OBJECT)
 	{
@@ -191,8 +191,8 @@ int tokenPrintHandle(MUX_JSON_PARSER *parser, int index, jsmntok_t *key, void *d
 		printf("ARRAY, size %d\n\r", arraySize);
 		for(i=0; i<arraySize; i++)
 		{
-			printf("\tNo. %d item: '%.*s':'%.*s'\n\r", i, JSON_TOKEN_LENGTH(_key), muxParser.currentJSonString+ _key->start, 
-				JSON_TOKEN_LENGTH(_value), (_value->type==JSMN_STRING)?muxParser.currentJSonString+_value->start:"NoString");
+			printf("\tNo. %d item: '%.*s':'%.*s'\n\r", i, JSON_TOKEN_LENGTH(_key), extParser.currentJSonString+ _key->start, 
+				JSON_TOKEN_LENGTH(_value), (_value->type==JSMN_STRING)?extParser.currentJSonString+_value->start:"NoString");
 			_key +=2;
 			_value += 2;
 		}
@@ -212,7 +212,7 @@ int tokenPrintHandle(MUX_JSON_PARSER *parser, int index, jsmntok_t *key, void *d
 
 
 
-int muxJsonIterate(MUX_JSON_PARSER *parser, token_callback tokenHandle, void *data)
+int extJsonIterate(EXT_JSON_PARSER *parser, token_callback tokenHandle, void *data)
 {
 	int i;
 	int ret = 0;
@@ -227,20 +227,20 @@ int muxJsonIterate(MUX_JSON_PARSER *parser, token_callback tokenHandle, void *da
 		{
 			return 1;
 		}
-//		jsmntok_t *value = &muxParser.tokens[2*i+2];
-//		printf("No. %d item: '%.*s':'%.*s'\n\r", i, JSON_TOKEN_LENGTH(key), muxParser.currentJSonString+ key->start, JSON_TOKEN_LENGTH(value), (key->type==JSMN_STRING)?muxParser.currentJSonString+value->start:"NoString");
+//		jsmntok_t *value = &extParser.tokens[2*i+2];
+//		printf("No. %d item: '%.*s':'%.*s'\n\r", i, JSON_TOKEN_LENGTH(key), extParser.currentJSonString+ key->start, JSON_TOKEN_LENGTH(value), (key->type==JSMN_STRING)?extParser.currentJSonString+value->start:"NoString");
 	}
 
 	return 0;	
 }
 
 
-int testJson(MUX_JSON_PARSER  *parser)
+int testJson(EXT_JSON_PARSER  *parser)
 {
 //	jsmntok_t *key;
 	jsmntok_t *value;
 
-//	muxJsonParse(parser, (char *)jsonGetParamsCmd);
+//	extJsonParse(parser, (char *)jsonGetParamsCmd);
 
 	if(parser->status == JSON_STATUS_OK)
 	{
@@ -256,36 +256,36 @@ int testJson(MUX_JSON_PARSER  *parser)
 	int i;
 		for(i=0; i< JSON_TOKEN_COUNT()/2; i++)
 		{
-			jsmntok_t *key = &muxParser.tokens[2*i+1];
-			jsmntok_t *value = &muxParser.tokens[2*i+2];
-			printf("No. %d item: '%.*s':'%.*s'\n\r", i, JSON_TOKEN_LENGTH(key), muxParser.currentJSonString+ key->start, JSON_TOKEN_LENGTH(value), (key->type==JSMN_STRING)?muxParser.currentJSonString+value->start:"NoString");
+			jsmntok_t *key = &extParser.tokens[2*i+1];
+			jsmntok_t *value = &extParser.tokens[2*i+2];
+			printf("No. %d item: '%.*s':'%.*s'\n\r", i, JSON_TOKEN_LENGTH(key), extParser.currentJSonString+ key->start, JSON_TOKEN_LENGTH(value), (key->type==JSMN_STRING)?extParser.currentJSonString+value->start:"NoString");
 		}
 #endif		
-		muxJsonIterate(parser, tokenPrintHandle, NULL);
+		extJsonIterate(parser, tokenPrintHandle, NULL);
 	}
 	else
 	{
 		printf("JSON parsing failed\n\r" );
 	}
 
-	if(muxJsonFindCommand(parser) )
+	if(extJsonFindCommand(parser) )
 	{
 		printf("JSON command: '%s'\n\r", parser->cmd);
 	}
 
 #if 0
 	printf("\n\r" );
-	muxJsonParse(parser, (char *)jsonReplyParams);
-	muxJsonIterate(parser, tokenPrintHandle, NULL);
+	extJsonParse(parser, (char *)jsonReplyParams);
+	extJsonIterate(parser, tokenPrintHandle, NULL);
 #endif
 
 #if 1
 	printf("\n\r" );
-	muxJsonParse(parser, (char *)testJSon, strlen(testJSon));
-	muxJsonIterate(parser, tokenPrintHandle, NULL);
+	extJsonParse(parser, (char *)testJSon, strlen(testJSon));
+	extJsonIterate(parser, tokenPrintHandle, NULL);
 #endif
 
-	value = muxJsonFindKeyToken(parser, "layers");
+	value = extJsonFindKeyToken(parser, "layers");
 	if(value == NULL)
 	{
 		printf("ERROR can't find 'layers' object");
@@ -297,7 +297,7 @@ int testJson(MUX_JSON_PARSER  *parser)
 		printf("'layers+1' object is %s, size is %d\n\r", tokenTypeString(value), value->size );
 	}
 
-	value = muxJsonFindKeyToken(parser, "data");
+	value = extJsonFindKeyToken(parser, "data");
 	if(value == NULL)
 	{
 		printf("ERROR can't find 'data' object");
@@ -307,7 +307,7 @@ int testJson(MUX_JSON_PARSER  *parser)
 		printf("'data' object is %s, size is %d\n\r", tokenTypeString(value), value->size );
 	}
 
-	value = muxJsonFindKeyToken(parser, "tilesets");
+	value = extJsonFindKeyToken(parser, "tilesets");
 	if(value == NULL)
 	{
 		printf("ERROR can't find 'tilesets' object");
@@ -317,7 +317,7 @@ int testJson(MUX_JSON_PARSER  *parser)
 		printf("'tilesets' object is %s, size is %d\n\r", tokenTypeString(value), value->size );
 	}
 	
-	muxJsonPrint(parser, parser->tokens, JSON_TOKEN_COUNT(parser), 2, "Test");
+	extJsonPrint(parser, parser->tokens, JSON_TOKEN_COUNT(parser), 2, "Test");
 	printf("\n\r" );
 
 	return 0;
@@ -326,40 +326,40 @@ int testJson(MUX_JSON_PARSER  *parser)
 
 int main(int argc, char *argv[])
 {
-	MUX_JSON_PARSER  *parser = &testParser;
-	MUX_RUNTIME_CFG	*runCfg= &muxRun;
+	EXT_JSON_PARSER  *parser = &testParser;
+	EXT_RUNTIME_CFG	*runCfg= &extRun;
 
 //	testJson(parser);
 
 
-	muxJsonInit(parser, NULL, 0);
+	extJsonInit(parser, NULL, 0);
 
-	muxCfgFromFactory(runCfg);
+	extCfgFromFactory(runCfg);
 
 #if 0
 	parser->status = JSON_STATUS_PARSE_ERROR;
 	sprintf(parser->msg, "%s", "Parse JSON string from 811 failed");
-	muxIpCmdResponseReply(parser, runCfg);
+	extIpCmdResponseReply(parser, runCfg);
 	printf("%s\n\r", parser->outBuffer);
 
-	muxUuidGenerate( &parser->uuid, runCfg);
+	extUuidGenerate( &parser->uuid, runCfg);
 
-	muxUuidParse(&parser->uuid, "5da68790-2198-43cb-9321-2951eeb5ee90");
+	extUuidParse(&parser->uuid, "5da68790-2198-43cb-9321-2951eeb5ee90");
 
-	muxJsonResponsePrintConfig(parser, runCfg);
+	extJsonResponsePrintConfig(parser, runCfg);
 	printf("%s\n\r", parser->outBuffer);
 #endif
 
 #if 0
-	muxJsonInit(parser, NULL);
-	if(muxJsonRequestParse(jsonRequest, parser, runCfg) < 0)
+	extJsonInit(parser, NULL);
+	if(extJsonRequestParse(jsonRequest, parser, runCfg) < 0)
 	{
 		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 		printf("parse parameters error %d:%s\n\r", parser->status, parser->msg );
 		return EXIT_FAILURE;
 	}
 
-	muxJsonDebug(parser, runCfg, "");
+	extJsonDebug(parser, runCfg, "");
 #endif
 
 	return EXIT_SUCCESS;

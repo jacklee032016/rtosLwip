@@ -10,11 +10,12 @@
 #include "compact.h"
 #include "lwipExt.h"
 
-//#include "muxOs.h"
 #include "lwip/timeouts.h"
 #include "lwip/inet_chksum.h"
 
-//#include "lwip/ip_addr.h"
+
+#define	PING_USE_SOCKETS						0
+
 
 /**
  * PING_DEBUG: Enable debugging for PING.
@@ -58,9 +59,9 @@ static u32_t ping_time;
 static struct raw_pcb *pingPcb = NULL;
 #endif /* PING_USE_SOCKETS */
 
-#define	MUX_PING_COUNT		3
+#define	EXT_PING_COUNT		3
 
-static int	_muxPingCount;
+static int	_extPingCount;
 
 /** Prepare a echo ICMP request */
 static void ping_prepare_echo( struct icmp_echo_hdr *iecho, u16_t len)
@@ -92,7 +93,7 @@ static err_t ping_send(int s, const ip_addr_t *addr)
 	struct icmp_echo_hdr *iecho;
 	struct sockaddr_storage to;
 	size_t ping_size = sizeof(struct icmp_echo_hdr) + PING_DATA_SIZE;
-	MUX_ASSERT(("ping_size is too big"), ping_size <= 0xffff);
+	EXT_ASSERT(("ping_size is too big"), ping_size <= 0xffff);
 
 #if LWIP_IPV6
 	if(IP_IS_V6(addr) && !ip6_addr_isipv6mappedipv4(ip_2_ip6(addr)))
@@ -172,7 +173,7 @@ static void ping_recv(int s)
 
 			LWIP_DEBUGF( PING_DEBUG, ("ping: recv "));
 			ip_addr_debug_print(PING_DEBUG, addr);
-			LWIP_DEBUGF( PING_DEBUG, (" %"U32_F" ms" MUX_NEW_LINE, (sys_now() - ping_time)));
+			LWIP_DEBUGF( PING_DEBUG, (" %"U32_F" ms" EXT_NEW_LINE, (sys_now() - ping_time)));
 
 			/* todo: support ICMP6 echo */
 #if LWIP_IPV4
@@ -190,7 +191,7 @@ static void ping_recv(int s)
 				}
 				else
 				{
-					LWIP_DEBUGF( PING_DEBUG, ("ping: drop" MUX_NEW_LINE));
+					LWIP_DEBUGF( PING_DEBUG, ("ping: drop" EXT_NEW_LINE));
 				}
 			}
 #endif /* LWIP_IPV4 */
@@ -201,7 +202,7 @@ static void ping_recv(int s)
 
 	if (len == 0)
 	{
-		LWIP_DEBUGF( PING_DEBUG, ("ping: recv - %"U32_F" ms - timeout" MUX_NEW_LINE, (sys_now()-ping_time)));
+		LWIP_DEBUGF( PING_DEBUG, ("ping: recv - %"U32_F" ms - timeout" EXT_NEW_LINE, (sys_now()-ping_time)));
 	}
 
 	/* do some ping result processing */
@@ -240,7 +241,7 @@ static void ping_thread(void *arg)
 	}
 
 	ret = lwip_setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-	MUX_ASSERT(("setting receive timeout failed"), ret == 0);
+	EXT_ASSERT(("setting receive timeout failed"), ret == 0);
 	LWIP_UNUSED_ARG(ret);
 
 	while (1)
@@ -274,7 +275,7 @@ static u8_t pingRawRecv(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip
 	LWIP_UNUSED_ARG(arg);
 	LWIP_UNUSED_ARG(pcb);
 	LWIP_UNUSED_ARG(addr);
-	MUX_ASSERT(("p != NULL"), p != NULL);
+	EXT_ASSERT(("p != NULL"), p != NULL);
 
 	if ((p->tot_len >= (PBUF_IP_HLEN + sizeof(struct icmp_echo_hdr))) && pbuf_header(p, -PBUF_IP_HLEN) == 0)
 	{
@@ -283,11 +284,11 @@ static u8_t pingRawRecv(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip
 		if ((iecho->id == PING_ID) && (iecho->seqno == lwip_htons(ping_seq_num)))
 		{
 #if 0		
-			MUX_INFOF( ("PING recv "));
+			EXT_INFOF( ("PING recv "));
 			ip_addr_debug_print(LWIP_DBG_ON, addr);
-			MUX_INFOF( (" %"U32_F" ms"LWIP_NEW_LINE, (sys_now()-ping_time)));
+			EXT_INFOF( (" %"U32_F" ms"LWIP_NEW_LINE, (sys_now()-ping_time)));
 #else
-			printf("PING recv %s %"U32_F" ms"MUX_NEW_LINE, MUX_LWIP_IPADD_TO_STR(addr), (sys_now()-ping_time) );
+			printf("PING recv %s %"U32_F" ms"EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(addr), (sys_now()-ping_time) );
 #endif
 			/* do some ping result processing */
 			PING_RESULT(1);
@@ -310,13 +311,13 @@ static void pingRawSend(struct raw_pcb *raw, ip_addr_t *addr)
 	size_t ping_size = sizeof(struct icmp_echo_hdr) + PING_DATA_SIZE;
 
 #if 0
-	MUX_INFOF(("PING sent to "));
+	EXT_INFOF(("PING sent to "));
 	ip_addr_debug_print(LWIP_DBG_ON, addr);
-	MUX_INFOF((""LWIP_NEW_LINE));
+	EXT_INFOF((""LWIP_NEW_LINE));
 #else
-	printf("PING sent to %s"MUX_NEW_LINE, MUX_LWIP_IPADD_TO_STR(addr) );
+	printf("PING sent to %s"EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(addr) );
 #endif
-	MUX_ASSERT(("ping_size <= 0xffff"), ping_size <= 0xffff);
+	EXT_ASSERT(("ping_size <= 0xffff"), ping_size <= 0xffff);
 
 	p = pbuf_alloc(PBUF_IP, (u16_t)ping_size, PBUF_RAM);
 	if (!p)
@@ -342,11 +343,11 @@ static void pingRawTimeout(void *arg)
 	struct raw_pcb *pcb = (struct raw_pcb*)arg;
 	ip_addr_t _pingTarget;
 
-	MUX_ASSERT(("ping_timeout: no pcb given!"), pcb != NULL);
+	EXT_ASSERT(("ping_timeout: no pcb given!"), pcb != NULL);
 
 	ip_addr_copy_from_ip4(_pingTarget, _ping_target);
 	
-	if(_muxPingCount++ < MUX_PING_COUNT)
+	if(_extPingCount++ < EXT_PING_COUNT)
 	{
 		pingRawSend(pcb, &_pingTarget);
 		sys_timeout(PING_DELAY, pingRawTimeout, pcb);
@@ -363,7 +364,7 @@ static void pingRawInit(void)
 	if(pingPcb == NULL)
 	{
 		pingPcb = raw_new(IP_PROTO_ICMP);
-		MUX_ASSERT(("ping_pcb != NULL"), pingPcb != NULL);
+		EXT_ASSERT(("ping_pcb != NULL"), pingPcb != NULL);
 
 		raw_recv(pingPcb, pingRawRecv, NULL);
 		raw_bind(pingPcb, IP_ADDR_ANY);
@@ -371,32 +372,32 @@ static void pingRawInit(void)
 	}	
 }
 
-void muxNetPingSendNow(unsigned int destIp)
+void extNetPingSendNow(unsigned int destIp)
 {
 	ip_addr_t _pingTarget;
 	
-	MUX_ASSERT(("pingPcb != NULL"), pingPcb != NULL);
+	EXT_ASSERT(("pingPcb != NULL"), pingPcb != NULL);
 	_ping_target.addr = destIp;
 #if 1	
 	ip_addr_copy_from_ip4(_pingTarget, _ping_target );
 #else
 	pingTarget.addr = destIp;
 #endif
-	_muxPingCount = 0;
+	_extPingCount = 0;
 	pingRawSend(pingPcb, &_pingTarget);
 }
 
 #endif /* PING_USE_SOCKETS */
 
-void muxNetPingInit(void)
-//void muxPingInit(const ip_addr_t* ping_addr)
+void extNetPingInit(void)
+//void extPingInit(const ip_addr_t* ping_addr)
 {
 //	ping_target = &_ping_target;
 //	ping_target->u_addr.ip4.addr = uIP;
 //	ping_target = ping_addr;
 #if PING_USE_SOCKETS
 //	sys_thread_new("ping_thread", ping_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
-	sys_thread_new("pingd", ping_thread, NULL, DEFAULT_THREAD_STACKSIZE, MUX_TASK_ETHERNET_PRIORITY);
+	sys_thread_new("pingd", ping_thread, NULL, DEFAULT_THREAD_STACKSIZE, EXT_TASK_ETHERNET_PRIORITY);
 #else /* PING_USE_SOCKETS */
 	pingRawInit();
 #endif /* PING_USE_SOCKETS */

@@ -46,7 +46,7 @@
 
 #include "lwipExt.h"
 
-#include "muxOs.h"
+#include "eos.h"
 
 
 #define SYS_ARCH_BLOCKING_TICKTIMEOUT    ((portTickType)10000)
@@ -442,14 +442,14 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, 
 	sys_thread_t newthread;
 	portBASE_TYPE result;
 
-//	MUX_INFOF(("Task '%s' creating....."MUX_NEW_LINE, name));
+//	EXT_INFOF(("Task '%s' creating....."EXT_NEW_LINE, name));
 	result = xTaskCreate( thread, (const char * const )name, stacksize, arg, prio, &newthread );
 	if (pdPASS != result)
 	{
 		newthread = NULL;
 	}
 
-	MUX_INFOF(("Task '%s' created", name));
+	EXT_INFOF(("Task '%s' created", name));
 	return(newthread);
 }
 

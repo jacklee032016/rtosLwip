@@ -2,8 +2,8 @@
 * common logics used in booloader, RTOS and simhost. So only ANSI is used in this file
 */
 
-#ifndef	__MUX_SYS_PARAMS_H__
-#define	__MUX_SYS_PARAMS_H__
+#ifndef	__EXT_SYS_PARAMS_H__
+#define	__EXT_SYS_PARAMS_H__
 
 /* defined in stdlib.h */
 #ifndef	EXIT_FAILURE
@@ -14,36 +14,36 @@
 #define	EXIT_SUCCESS 			0
 #endif
 
-#ifndef MUX_FALSE
-#define MUX_FALSE				0
+#ifndef EXT_FALSE
+#define EXT_FALSE				0
 #endif
 
-#ifndef MUX_TRUE
-#define MUX_TRUE				(!MUX_FALSE)
+#ifndef EXT_TRUE
+#define EXT_TRUE				(!EXT_FALSE)
 #endif
 
-#define	MUX_RW_BUFFER_SIZE				1024
+#define	EXT_RW_BUFFER_SIZE				1024
 
 
-#define	MUX_COMMAND_BUFFER_SIZE			1024	/* for output buffer */
+#define	EXT_COMMAND_BUFFER_SIZE			1024	/* for output buffer */
 
-#define	MUX_SC_KEY_MAX_LENGTH			32
-#define	MUX_SC_ID_MAX_LENGTH				8
+#define	EXT_SC_KEY_MAX_LENGTH			32
+#define	EXT_SC_ID_MAX_LENGTH				8
 
-#define	MUX_MAGIC_SIZE					2
+#define	EXT_MAGIC_SIZE					2
 
-#define	MUX_USER_SIZE						16
-#define	MUX_PASSWORD_SIZE				16
+#define	EXT_USER_SIZE						16
+#define	EXT_PASSWORD_SIZE				16
 
 
-#define	MUX_MAGIC_VALUE_A				0xA5
-#define	MUX_MAGIC_VALUE_B				0x5A
+#define	EXT_MAGIC_VALUE_A				0xA5
+#define	EXT_MAGIC_VALUE_B				0x5A
 
-#define	MUX_MAC_ADDRESS_LENGTH			6
+#define	EXT_MAC_ADDRESS_LENGTH			6
 
-#define	MUX_IP_CFG_DHCP_ENABLE			(1<<0)
-#define	MUX_IP_CFG_MC_ENABLE				(1<<1)	/* multicast */
-#define	MUX_IP_CFG_ARP_ENABLE			(1<<2)		
+#define	EXT_IP_CFG_DHCP_ENABLE			(1<<0)
+#define	EXT_IP_CFG_MC_ENABLE				(1<<1)	/* multicast */
+#define	EXT_IP_CFG_ARP_ENABLE			(1<<2)		
 
 
 /* configuration options for 767 board */
@@ -52,7 +52,7 @@
 #define ETHERNET_CONF_ETHADDR1                        0x04
 #define ETHERNET_CONF_ETHADDR2                        0x25
 #define ETHERNET_CONF_ETHADDR3                        0x1C
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #define ETHERNET_CONF_ETHADDR5                        0x01
 #else
 #define ETHERNET_CONF_ETHADDR5                        0x02
@@ -72,7 +72,7 @@
 #define ETHERNET_CONF_IPADDR0					192
 #define ETHERNET_CONF_IPADDR1					168
 #if ARCH_ARM
-	#if MUXLAB_BOARD
+	#if EXTLAB_BOARD
 	#define ETHERNET_CONF_IPADDR2_TX			168
 	#define ETHERNET_CONF_IPADDR2_RX			168
 	#define ETHERNET_CONF_IPADDR3_TX			120
@@ -99,7 +99,7 @@
 #define ETHERNET_CONF_GATEWAY_ADDR0                   192
 #define ETHERNET_CONF_GATEWAY_ADDR1                   168
 #if ARCH_ARM
-	#if MUXLAB_BOARD
+	#if EXTLAB_BOARD
 	#define ETHERNET_CONF_GATEWAY_ADDR2_TX			168
 	#define ETHERNET_CONF_GATEWAY_ADDR2_RX			168
 	#else
@@ -119,44 +119,44 @@
 #define ETHERNET_CONF_NET_MASK2                       255
 #define ETHERNET_CONF_NET_MASK3                       0
 
-#define	MUX_HTTP_SVR_PORT					80
+#define	EXT_HTTP_SVR_PORT					80
 
 
-#define	MUX_MEDIA_PORT_RANGE					10		/* range of RTP port */
+#define	EXT_MEDIA_PORT_RANGE					10		/* range of RTP port */
 
-#define	MUX_MEDIA_PORT_TX_VIDEO				40000
-#define	MUX_MEDIA_PORT_TX_AUDIO				40010
-#define	MUX_MEDIA_PORT_TX_DATA				40020
-#define	MUX_MEDIA_PORT_TX_STREA				40030
+#define	EXT_MEDIA_PORT_TX_VIDEO				40000
+#define	EXT_MEDIA_PORT_TX_AUDIO				40010
+#define	EXT_MEDIA_PORT_TX_DATA				40020
+#define	EXT_MEDIA_PORT_TX_STREA				40030
 
-#define	MUX_MEDIA_PORT_RX_VIDEO				48000
-#define	MUX_MEDIA_PORT_RX_AUDIO				48010
-#define	MUX_MEDIA_PORT_RX_DATA				48020
-#define	MUX_MEDIA_PORT_RX_STREA				48030
+#define	EXT_MEDIA_PORT_RX_VIDEO				48000
+#define	EXT_MEDIA_PORT_RX_AUDIO				48010
+#define	EXT_MEDIA_PORT_RX_DATA				48020
+#define	EXT_MEDIA_PORT_RX_STREA				48030
 
 
-#define	MUX_767_PRODUCT_NAME				"SdiOverIP-767"
+#define	EXT_767_PRODUCT_NAME				"SdiOverIP-767"
 
-#define	MUX_767_MODEL							"500767"
+#define	EXT_767_MODEL							"500767"
 
-#define	MUX_USER								"admin"
-#define	MUX_PASSWORD							"admin"
+#define	EXT_USER								"admin"
+#define	EXT_PASSWORD							"admin"
 
-#define	MUX_SUPER_USER						"muxlab"
-#define	MUX_SUPER_PASSWORD					"muxlab"
+#define	EXT_SUPER_USER						"muxlab"
+#define	EXT_SUPER_PASSWORD					"muxlab"
 
-#define	MUX_MDNS_HOST_NAME					"an767tx"
-#define	MUX_MDNS_SERVICE_NAME				"nmos"
+#define	EXT_MDNS_HOST_NAME					"an767tx"
+#define	EXT_MDNS_SERVICE_NAME				"nmos"
 
 
 #define	EXT_MQTT_CLIENT_ID					"extMqtt"
 #define	EXT_MQTT_USER_NAME					"admin"
 #define	EXT_MQTT_PASSWORD					"admin"
 
-#define	MUX_NEW_LINE							"\r\n"
-//#define	MUX_NEW_LINE							"\r"
+#define	EXT_NEW_LINE							"\r\n"
+//#define	EXT_NEW_LINE							"\r"
 
-#define	MUX_PROMPT							">"
+#define	EXT_PROMPT							">"
 
 
 #define	ASCII_KEY_TAB				( 0x09 )	/* horizontal TAB */
@@ -165,8 +165,8 @@
 /* DEL acts as a backspace. */
 #define	ASCII_KEY_DEL				( 0x7F )
 
-#define	MUX_CMD_MAX_ARGUMENTS		10
-#define	MUX_CMD_MAX_LENGTH			32
+#define	EXT_CMD_MAX_ARGUMENTS		10
+#define	EXT_CMD_MAX_LENGTH			32
 
 
 
@@ -176,97 +176,97 @@
 #define	LWIP_EXT_MQTT_CLIENT			1
 
 /* macros for version */
-#define	MUX_VERSION_DOT(a, b, c)				a ##.## b ##.## c
+#define	EXT_VERSION_DOT(a, b, c)				a ##.## b ##.## c
 
-#define	MUX_VERSION(a, b, c)					MUX_VERSION_DOT(a, b, c)
+#define	EXT_VERSION(a, b, c)					EXT_VERSION_DOT(a, b, c)
 
-#define	MUX_STRINGIFY(s)         					MUX_TOSTRING(s)
-#define	MUX_TOSTRING(s)						#s
+#define	EXT_STRINGIFY(s)         					EXT_TOSTRING(s)
+#define	EXT_TOSTRING(s)						#s
 
 
-#define	MUX_GLUE(a, b)							a ## b
-#define	MUX_JOIN(a, b)							MUX_GLUE(a, b)
+#define	EXT_GLUE(a, b)							a ## b
+#define	EXT_JOIN(a, b)							EXT_GLUE(a, b)
 
-#define	MUX_VERSION_MAJOR					0
-#define	MUX_VERSION_MINOR					1
-#define	MUX_VERSION_REVISION					1
+#define	EXT_VERSION_MAJOR					0
+#define	EXT_VERSION_MINOR					1
+#define	EXT_VERSION_REVISION					1
 
 #define	BL_VERSION_MAJOR						0
 #define	BL_VERSION_MINOR						1
 #define	BL_VERSION_REVISION					1
 
 
-#define	MUX_VERSION_INFO()					((MUX_VERSION_MAJOR<<16)|(MUX_VERSION_MINOR<<8)|(MUX_VERSION_REVISION))
+#define	EXT_VERSION_INFO()					((EXT_VERSION_MAJOR<<16)|(EXT_VERSION_MINOR<<8)|(EXT_VERSION_REVISION))
 
 
 #define	BL_VERSION_INFO()						((BL_VERSION_MAJOR<<16)|(BL_VERSION_MINOR<<8)|(BL_VERSION_REVISION))
 
 
-#define	MUX_VERSION_INTEGER()					((MUX_VERSION_MAJOR)<<16 | (MUX_VERSION_MINOR)<<8 | (MUX_VERSION_REVISION))
+#define	EXT_VERSION_INTEGER()					((EXT_VERSION_MAJOR)<<16 | (EXT_VERSION_MINOR)<<8 | (EXT_VERSION_REVISION))
 
 
-#define	BL_VERSION_TOKEN						MUX_VERSION(BL_VERSION_MAJOR, BL_VERSION_MINOR, BL_VERSION_REVISION)
-#define	MUX_VERSION_TOKEN					MUX_VERSION(MUX_VERSION_MAJOR, MUX_VERSION_MINOR, MUX_VERSION_REVISION)
+#define	BL_VERSION_TOKEN						EXT_VERSION(BL_VERSION_MAJOR, BL_VERSION_MINOR, BL_VERSION_REVISION)
+#define	EXT_VERSION_TOKEN					EXT_VERSION(EXT_VERSION_MAJOR, EXT_VERSION_MINOR, EXT_VERSION_REVISION)
 
 
-/* only call MUX_STRINGFY, can't call MUX_TOSTRING; otherwise return string of 'MUX_VERSION_TOKEN' */
-#define	MUX_VERSION_STRING		\
-			MUX_STRINGIFY(MUX_VERSION_TOKEN)	
+/* only call EXT_STRINGFY, can't call EXT_TOSTRING; otherwise return string of 'EXT_VERSION_TOKEN' */
+#define	EXT_VERSION_STRING		\
+			EXT_STRINGIFY(EXT_VERSION_TOKEN)	
 #define	BL_VERSION_STRING		\
-			MUX_STRINGIFY(BL_VERSION_TOKEN)	
+			EXT_STRINGIFY(BL_VERSION_TOKEN)	
 
 
 #define	BL_SYSTEM_NAME			"500767 Bootloader"
-#define	MUX_SYSTEM_NAME			"MuxLab 500767 SDI over IP"
+#define	EXT_SYSTEM_NAME			"MuxLab 500767 SDI over IP"
 
-//MUX_NEW_LINE MUX_NEW_LINE 
+//EXT_NEW_LINE EXT_NEW_LINE 
 
 #define	BUILD_DATE_TIME			__DATE__" "__TIME__
 
-#define	MUX_SYSTEM_STRING(sysName, verInfo) 		\
-		MUX_NEW_LINE"" sysName" (" \
+#define	EXT_SYSTEM_STRING(sysName, verInfo) 		\
+		EXT_NEW_LINE"" sysName" (" \
 		"Version: " verInfo "; " \
-		"Built: " BUILD_DATE_TIME ")"MUX_NEW_LINE
+		"Built: " BUILD_DATE_TIME ")"EXT_NEW_LINE
 
 
-#define	MUX_OS_NAME		MUX_SYSTEM_STRING(MUX_SYSTEM_NAME, MUX_VERSION_STRING)
+#define	EXT_OS_NAME		EXT_SYSTEM_STRING(EXT_SYSTEM_NAME, EXT_VERSION_STRING)
 
-#define	MUX_BL_NAME		MUX_SYSTEM_STRING(BL_SYSTEM_NAME, BL_VERSION_STRING)
+#define	EXT_BL_NAME		EXT_SYSTEM_STRING(BL_SYSTEM_NAME, BL_VERSION_STRING)
 
 
-#define	MUX_TASK_CONSOLE				"console"
-#define	MUX_TASK_MAC					"macd"	/* GMAC controller */
-#define	MUX_TASK_HTTP					"httpd"
-#define	MUX_TASK_TELNET				"telnetd"
-#define	MUX_TASK_SYS_CTRL				"sysd"
+#define	EXT_TASK_CONSOLE				"console"
+#define	EXT_TASK_MAC					"macd"	/* GMAC controller */
+#define	EXT_TASK_HTTP					"httpd"
+#define	EXT_TASK_TELNET				"telnetd"
+#define	EXT_TASK_SYS_CTRL				"sysd"
 
 
 
 /** Debug level: ALL messages*/
-#define	MUX_DBG_LEVEL_ALL				0x00
-#define	MUX_DBG_LEVEL_INFO			0x01
-#define	MUX_DBG_LEVEL_WARN			0x02
-#define	MUX_DBG_LEVEL_ERROR			0x03
-#define	MUX_DBG_LEVEL_FATAL			0x04
+#define	EXT_DBG_LEVEL_ALL				0x00
+#define	EXT_DBG_LEVEL_INFO			0x01
+#define	EXT_DBG_LEVEL_WARN			0x02
+#define	EXT_DBG_LEVEL_ERROR			0x03
+#define	EXT_DBG_LEVEL_FATAL			0x04
 
 
-#define	MUX_DBG_MASK_LEVEL			0x04
-#define	MUX_DBG_LEVEL_OFF			LWIP_DBG_LEVEL_ALL
+#define	EXT_DBG_MASK_LEVEL			0x04
+#define	EXT_DBG_LEVEL_OFF			LWIP_DBG_LEVEL_ALL
 
 
-#define	MUX_DBG_ON					0x80U
-#define	MUX_DBG_OFF					0x00U
+#define	EXT_DBG_ON					0x80U
+#define	EXT_DBG_OFF					0x00U
 
 
-#define	MUX_DBG_TRACE					0x40U
-#define	MUX_DBG_STATE					0x20U
-#define	MUX_DBG_FRESH					0x10U
-#define	MUX_DBG_HALT					0x08U
+#define	EXT_DBG_TRACE					0x40U
+#define	EXT_DBG_STATE					0x20U
+#define	EXT_DBG_FRESH					0x10U
+#define	EXT_DBG_HALT					0x08U
 
 
 /* level used */
-#define	MUX_DBG_TYPES_ON				MUX_DBG_ON
-#define	MUX_DBG_MIN_LEVEL			MUX_DBG_LEVEL_ALL
+#define	EXT_DBG_TYPES_ON				EXT_DBG_ON
+#define	EXT_DBG_MIN_LEVEL			EXT_DBG_LEVEL_ALL
 
 
 /*
@@ -291,15 +291,15 @@
 #define	INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE"INFO:"
 
 
-#ifndef __MUX_RELEASE__
-	#define	MUX_PRINTF(x)						{printf x ;}
+#ifndef __EXT_RELEASE__
+	#define	EXT_PRINTF(x)						{printf x ;}
 	
-//	#define	MUX_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt MUX_NEW_LINE, __FILE__, __LINE__, ## args);}
-	#define	MUX_DEBUGF(debug, message)		do { \
+//	#define	EXT_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt EXT_NEW_LINE, __FILE__, __LINE__, ## args);}
+	#define	EXT_DEBUGF(debug, message)		do { \
                                if ( \
-                                   ((debug) & MUX_DBG_ON) && \
-                                   ((debug) & MUX_DBG_TYPES_ON) && \
-                                   ((s16_t)((debug) & MUX_DBG_MASK_LEVEL) >= MUX_DBG_MIN_LEVEL)) { \
+                                   ((debug) & EXT_DBG_ON) && \
+                                   ((debug) & EXT_DBG_TYPES_ON) && \
+                                   ((s16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
                                  _TRACE_OUT(message); \
                                  if ((debug) & LWIP_DBG_HALT) { \
                                    while(1); \
@@ -308,41 +308,41 @@
                              } while(0)
 
                              
-	#define	MUX_INFOF(message)		{MUX_PRINTF((ANSI_COLOR_CYAN""));_TRACE_OUT(message);MUX_PRINTF((ANSI_COLOR_RESET));}
+	#define	EXT_INFOF(message)		{EXT_PRINTF((ANSI_COLOR_CYAN""));_TRACE_OUT(message);EXT_PRINTF((ANSI_COLOR_RESET));}
 	
-	#define	MUX_ERRORF(message)		{MUX_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); MUX_PRINTF((ERROR_TEXT_END));}
+	#define	EXT_ERRORF(message)		{EXT_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); EXT_PRINTF((ERROR_TEXT_END));}
 
-//	#define	MUX_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	MUX_ASSERT(msg, x)			{if((x)==0) {MUX_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));printf msg ;MUX_PRINTF((ERROR_TEXT_END MUX_NEW_LINE)); while(0){};}}
-	#define	MUX_ABORT(fmt, args... )		printf("ERROR in " __FILE__ ", line %u:" fmt MUX_NEW_LINE, __LINE__, ##args );while(1){}
+//	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
+	#define	EXT_ASSERT(msg, x)			{if((x)==0) {EXT_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));printf msg ;EXT_PRINTF((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
+	#define	EXT_ABORT(fmt, args... )		printf("ERROR in " __FILE__ ", line %u:" fmt EXT_NEW_LINE, __LINE__, ##args );while(1){}
 #else
-	#define	MUX_PRINTF(x)						{;}
+	#define	EXT_PRINTF(x)						{;}
 
-	#define	MUX_DEBUGF(debug, message)		{}
+	#define	EXT_DEBUGF(debug, message)		{}
 
-	#define	MUX_INFOF(message)				{printf message ;printf(MUX_NEW_LINE);}
+	#define	EXT_INFOF(message)				{printf message ;printf(EXT_NEW_LINE);}
 
-	#define	MUX_ERRORF(message)				{printf message ; printf(MUX_NEW_LINE);}
+	#define	EXT_ERRORF(message)				{printf message ; printf(EXT_NEW_LINE);}
 	
-//	#define	MUX_ASSERT(x)				{while (1);}
-	#define	MUX_ASSERT(msg, x)				{}
-	#define	MUX_ABORT(fmt, args... )		{}
+//	#define	EXT_ASSERT(x)				{while (1);}
+	#define	EXT_ASSERT(msg, x)				{}
+	#define	EXT_ABORT(fmt, args... )		{}
 #endif
 
 #define	_TRACE_OUT(message)	\
-			{MUX_PRINTF(("[%s-%u.%s()]: ", __FILE__, __LINE__, __FUNCTION__) );MUX_PRINTF(message); MUX_PRINTF((MUX_NEW_LINE));}
+			{EXT_PRINTF(("[%s-%u.%s()]: ", __FILE__, __LINE__, __FUNCTION__) );EXT_PRINTF(message); EXT_PRINTF((EXT_NEW_LINE));}
 
-#define	TRACE()						_TRACE_OUT((MUX_NEW_LINE) )
+#define	TRACE()						_TRACE_OUT((EXT_NEW_LINE) )
 
 
 
 
 /* when RELEASE build, only omit the output  */
-#define	MUX_DBG_ERRORF(message, expression, handler) do { if (!(expression)) { \
+#define	EXT_DBG_ERRORF(message, expression, handler) do { if (!(expression)) { \
 		_TRACE_OUT(message); handler;}} while(0)
 
 
-#define MUX_ARRAYSIZE(x)		(sizeof(x)/sizeof((x)[0]))
+#define EXT_ARRAYSIZE(x)		(sizeof(x)/sizeof((x)[0]))
 
 
 #define CFG_MAKEU32(a,b,c,d) (((int)((a) & 0xff) << 24) | \
@@ -358,12 +358,12 @@
 		flags &= ~((value) ) 
 
 
-#define	MUX_DHCP_IS_ENABLE(runCfg)		\
-				((runCfg)->netMode&(MUX_IP_CFG_DHCP_ENABLE))
+#define	EXT_DHCP_IS_ENABLE(runCfg)		\
+				((runCfg)->netMode&(EXT_IP_CFG_DHCP_ENABLE))
 
-#define	MUX_CFG_SET_DHCP(runCfg, value)	\
-				{ if(value==0) {CFG_CLEAR_FLAGS((runCfg)->netMode,(MUX_IP_CFG_DHCP_ENABLE));} \
-				else{CFG_SET_FLAGS((runCfg)->netMode, (MUX_IP_CFG_DHCP_ENABLE));} }
+#define	EXT_CFG_SET_DHCP(runCfg, value)	\
+				{ if(value==0) {CFG_CLEAR_FLAGS((runCfg)->netMode,(EXT_IP_CFG_DHCP_ENABLE));} \
+				else{CFG_SET_FLAGS((runCfg)->netMode, (EXT_IP_CFG_DHCP_ENABLE));} }
 
 
 #define ADD_ELEMENT(header, element)	\
@@ -401,12 +401,12 @@
 
 /* use option of -fpack-struct of GCC command options in Rules.mak. 05.07,2018 */
 
-//#define	MUX_PACK_SET(bytes)		#pragma		pack(bytes)
+//#define	EXT_PACK_SET(bytes)		#pragma		pack(bytes)
 
-//#define	MUX_PACK_RESET()			#pragma		pack()
+//#define	EXT_PACK_RESET()			#pragma		pack()
 
 
-//MUX_PACK_SET(1);
+//EXT_PACK_SET(1);
 #pragma		pack(1)
 
 typedef	enum _boot_mode
@@ -426,9 +426,9 @@ typedef	enum _boot_mode
 
 typedef	enum
 {
-	MUX_CFG_MAIN = 0,		/* main configuration in NVRAM */
-	MUX_CFG_BACKUP		/* backup configuration in NVRAM */
-}MUX_CFG_TYPE;
+	EXT_CFG_MAIN = 0,		/* main configuration in NVRAM */
+	EXT_CFG_BACKUP		/* backup configuration in NVRAM */
+}EXT_CFG_TYPE;
 
 
 typedef	struct
@@ -436,13 +436,13 @@ typedef	struct
 	unsigned char		major;
 	unsigned char		minor;
 	unsigned char		revision;
-}MUX_FM_VERSION;
+}EXT_FM_VERSION;
 
 
 typedef	struct
 {/* must as 'unsigned', otherwise it output FFFFFFFa1 when print as char */
-	unsigned char		address[MUX_MAC_ADDRESS_LENGTH];
-}MUX_MAC_ADDRESS;
+	unsigned char		address[EXT_MAC_ADDRESS_LENGTH];
+}EXT_MAC_ADDRESS;
 
 
 #define	MAC_ADDR_IS_BOARDCAST(macAddr)		\
@@ -474,14 +474,14 @@ typedef	struct
 
 
 
-#define	MUX_UUID_STR_LENGTH		36
+#define	EXT_UUID_STR_LENGTH		36
 /* UUID string  8-4-4-4-12 */
 
 /* 128 bit UUID */
 typedef	struct
 {
 	unsigned char		uuid[16];
-}MUX_UUID_T;
+}EXT_UUID_T;
 
 typedef	struct
 {
@@ -492,30 +492,30 @@ typedef	struct
 
 typedef	struct
 {
-	MUX_UUID_T						uuid;
+	EXT_UUID_T						uuid;
 	MuxNmosVersion					version;
 
 }MuxNmosID;
 
 typedef struct
 {
-	MUX_MAC_ADDRESS		mac;
+	EXT_MAC_ADDRESS		mac;
 	unsigned	int				ip;
 
 	unsigned short			vport;
 	unsigned short			aport;
 	unsigned short			dport;	/* anccilary data port */
 	unsigned short			sport;	/* anccilary strea port */
-}MUX_VIDEO_CONFIG;
+}EXT_VIDEO_CONFIG;
 
 /* firmware update */
 typedef	enum
 {
-	MUX_FM_TYPE_NONE = 0,		/* no update */
-	MUX_FM_TYPE_RTOS,
-	MUX_FM_TYPE_FPGA,	
-	MUX_FM_TYPE_UNKNOWN
-}MUX_FM_T;
+	EXT_FM_TYPE_NONE = 0,		/* no update */
+	EXT_FM_TYPE_RTOS,
+	EXT_FM_TYPE_FPGA,	
+	EXT_FM_TYPE_UNKNOWN
+}EXT_FM_T;
 
 #ifndef	ARM
 #include <stdio.h>		/* FILE * */
@@ -535,75 +535,75 @@ typedef struct
 #ifndef	ARM
 	FILE				*fp;
 #endif
-}MUX_FM_UPDATE;
+}EXT_FM_UPDATE;
 
 
 typedef	enum
 {
-	MUX_RS232_PARITY_NONE = 0,
-	MUX_RS232_PARITY_ODD,
-	MUX_RS232_PARITY_EVEN,
-}MUX_RS232_PARITY;
+	EXT_RS232_PARITY_NONE = 0,
+	EXT_RS232_PARITY_ODD,
+	EXT_RS232_PARITY_EVEN,
+}EXT_RS232_PARITY;
 
-#define	MUX_RS232_PAR_STR_NONE		"none"
-#define	MUX_RS232_PAR_STR_ODD		"odd"
-#define	MUX_RS232_PAR_STR_EVEN		"even"
-
-typedef	enum
-{
-	MUX_RS232_CHAR_LENGTH_5 = 5,
-	MUX_RS232_CHAR_LENGTH_6,
-	MUX_RS232_CHAR_LENGTH_7,
-	MUX_RS232_CHAR_LENGTH_8
-}MUX_RS232_CHAR_LENGTH;
+#define	EXT_RS232_PAR_STR_NONE		"none"
+#define	EXT_RS232_PAR_STR_ODD		"odd"
+#define	EXT_RS232_PAR_STR_EVEN		"even"
 
 typedef	enum
 {
-	MUX_RS232_STOP_BITS_1 = 1,
-	MUX_RS232_STOP_BITS_2,
-	MUX_RS232_STOP_BITS_15,
-}MUX_RS232_STOP_BITS;
-
-#define	MUX_BAUDRATE_9600		9600
-#define	MUX_BAUDRATE_19200		19200
-#define	MUX_BAUDRATE_38400		38400
-#define	MUX_BAUDRATE_57600		57600
-#define	MUX_BAUDRATE_115200		115200
+	EXT_RS232_CHAR_LENGTH_5 = 5,
+	EXT_RS232_CHAR_LENGTH_6,
+	EXT_RS232_CHAR_LENGTH_7,
+	EXT_RS232_CHAR_LENGTH_8
+}EXT_RS232_CHAR_LENGTH;
 
 typedef	enum
 {
-	MUX_V_FRAMERATE_T_23 = 23,
-	MUX_V_FRAMERATE_T_24,
-	MUX_V_FRAMERATE_T_25,
-	MUX_V_FRAMERATE_T_29 = 29,
-	MUX_V_FRAMERATE_T_30,
-	MUX_V_FRAMERATE_T_50 = 50,
-	MUX_V_FRAMERATE_T_59 = 59,
-	MUX_V_FRAMERATE_T_60
-}MUX_V_FRAMERATE;
+	EXT_RS232_STOP_BITS_1 = 1,
+	EXT_RS232_STOP_BITS_2,
+	EXT_RS232_STOP_BITS_15,
+}EXT_RS232_STOP_BITS;
+
+#define	EXT_BAUDRATE_9600		9600
+#define	EXT_BAUDRATE_19200		19200
+#define	EXT_BAUDRATE_38400		38400
+#define	EXT_BAUDRATE_57600		57600
+#define	EXT_BAUDRATE_115200		115200
+
+typedef	enum
+{
+	EXT_V_FRAMERATE_T_23 = 23,
+	EXT_V_FRAMERATE_T_24,
+	EXT_V_FRAMERATE_T_25,
+	EXT_V_FRAMERATE_T_29 = 29,
+	EXT_V_FRAMERATE_T_30,
+	EXT_V_FRAMERATE_T_50 = 50,
+	EXT_V_FRAMERATE_T_59 = 59,
+	EXT_V_FRAMERATE_T_60
+}EXT_V_FRAMERATE;
 
 
 typedef	enum
 {/* value definitions are from FPGA */
-	MUX_V_COLORSPACE_YCBCR_422		= 0,
-	MUX_V_COLORSPACE_YCBCR_444 		= 1,
-	MUX_V_COLORSPACE_RGB			= 2,
-	MUX_V_COLORSPACE_YCBCR_420		= 3,
-	MUX_V_COLORSPACE_XYZ			= 4,
-	MUX_V_COLORSPACE_KEY			= 5,
-	MUX_V_COLORSPACE_CL_YCBCR_422	= 8,
-	MUX_V_COLORSPACE_CL_YCBCR_444	= 9,
-	MUX_V_COLORSPACE_CL_YCBCR_420	= 11
-}MUX_V_COLORSPACE;
+	EXT_V_COLORSPACE_YCBCR_422		= 0,
+	EXT_V_COLORSPACE_YCBCR_444 		= 1,
+	EXT_V_COLORSPACE_RGB			= 2,
+	EXT_V_COLORSPACE_YCBCR_420		= 3,
+	EXT_V_COLORSPACE_XYZ			= 4,
+	EXT_V_COLORSPACE_KEY			= 5,
+	EXT_V_COLORSPACE_CL_YCBCR_422	= 8,
+	EXT_V_COLORSPACE_CL_YCBCR_444	= 9,
+	EXT_V_COLORSPACE_CL_YCBCR_420	= 11
+}EXT_V_COLORSPACE;
 
 
 typedef	enum
 {
-	MUX_V_DEPTH_8		= 8,	
-	MUX_V_DEPTH_10	= 10,	
-	MUX_V_DEPTH_12	= 12,	
-	MUX_V_DEPTH_16	= 16
-}MUX_V_DEPTH;
+	EXT_V_DEPTH_8		= 8,	
+	EXT_V_DEPTH_10	= 10,	
+	EXT_V_DEPTH_12	= 12,	
+	EXT_V_DEPTH_16	= 16
+}EXT_V_DEPTH;
 
 
 
@@ -614,34 +614,34 @@ typedef	enum
 }CMN_STR_TYPE;
 
 
-const char *muxCmnStringFind(CMN_STR_TYPE strType, unsigned short type);
-const short muxCmnTypeFind(CMN_STR_TYPE  strType, char *str);
+const char *extCmnStringFind(CMN_STR_TYPE strType, unsigned short type);
+const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 
 #define	CMN_FIND_RS_PARITY(type)		\
-	muxCmnStringFind(CMN_STR_T_RS_PARITY, (type) )
+	extCmnStringFind(CMN_STR_T_RS_PARITY, (type) )
 
 
 #define	CMN_FIND_V_COLORSPACE(type)		\
-	muxCmnStringFind(CMN_STR_T_V_COLORSPACE, (type) )
+	extCmnStringFind(CMN_STR_T_V_COLORSPACE, (type) )
 
 
 #define	CMN_FIND_STR_RS_PARITY(str)		\
-	muxCmnTypeFind(CMN_STR_T_RS_PARITY, (str) )
+	extCmnTypeFind(CMN_STR_T_RS_PARITY, (str) )
 
 
 #define	CMN_FIND_STR_V_COLORSPACE(str)		\
-	muxCmnTypeFind(CMN_STR_T_V_COLORSPACE, (str) )
+	extCmnTypeFind(CMN_STR_T_V_COLORSPACE, (str) )
 
 
 
-#define	MUX_INVALIDATE_STRING_TYPE			0xFFFF
+#define	EXT_INVALIDATE_STRING_TYPE			0xFFFF
 
 typedef struct
 {
 	const unsigned short		type;
 	const char				*name;
-}MUX_CONST_STR;
+}EXT_CONST_STR;
 
 
 
@@ -682,12 +682,12 @@ typedef	struct
 
 
 /* IP address, port number and state are all defined as unsigned type */
-struct	_MUX_RUNTIME_CFG
+struct	_EXT_RUNTIME_CFG
 {
-	unsigned char			magic[MUX_MAGIC_SIZE];
+	unsigned char			magic[EXT_MAGIC_SIZE];
 
 	/* in order to guanratee the compatible between bootloader and RTOS, put updateInfo at the beginning of this structure */
-	MUX_FM_UPDATE		firmUpdateInfo;
+	EXT_FM_UPDATE		firmUpdateInfo;
 
 	unsigned char			isTx;
 	unsigned char			isMCast;
@@ -696,13 +696,13 @@ struct	_MUX_RUNTIME_CFG
 	unsigned char			netMode;
 
 #if 0
-	MUX_MAC_ADDRESS	macAddress;
+	EXT_MAC_ADDRESS	macAddress;
 	
 	unsigned int			ipAddress;
 	
 	unsigned int			destIp;
-	MUX_MAC_ADDRESS	videoMacLocal;
-	MUX_MAC_ADDRESS	videoMacDest;
+	EXT_MAC_ADDRESS	videoMacLocal;
+	EXT_MAC_ADDRESS	videoMacDest;
 
 	unsigned int			videoIpLocal;
 	unsigned int			videoIpDest;
@@ -712,11 +712,11 @@ struct	_MUX_RUNTIME_CFG
 	unsigned short		audioPortLocal;
 	unsigned short		audioPortDest;
 #else
-	MUX_VIDEO_CONFIG	local;
+	EXT_VIDEO_CONFIG	local;
 	unsigned int			ipMask;
 	unsigned int			ipGateway;
 	
-	MUX_VIDEO_CONFIG	dest;	/* only for TX */
+	EXT_VIDEO_CONFIG	dest;	/* only for TX */
 #endif
 
 #if 0
@@ -727,13 +727,13 @@ struct	_MUX_RUNTIME_CFG
 	/* following fields are not modified by SetParams command */
 	char					name[32];	/* can be modified */
 	char					model[32];
-	MUX_FM_VERSION		version;
+	EXT_FM_VERSION		version;
 
-	char					user[MUX_USER_SIZE];
-	char					password[MUX_PASSWORD_SIZE];
+	char					user[EXT_USER_SIZE];
+	char					password[EXT_PASSWORD_SIZE];
 
-	char					superUser[MUX_USER_SIZE];
-	char					superPassword[MUX_PASSWORD_SIZE];
+	char					superUser[EXT_USER_SIZE];
+	char					superPassword[EXT_PASSWORD_SIZE];
 
 	unsigned char			isStoreDefaultCfg;
 	
@@ -748,7 +748,7 @@ struct	_MUX_RUNTIME_CFG
 
 	/* in order to make old bootloader compatible with new RTOS, all new field must be added after here */
 	
-	unsigned char			endMagic[MUX_MAGIC_SIZE];
+	unsigned char			endMagic[EXT_MAGIC_SIZE];
 
 
 	/* following fields are only for runtime and not save in NVRAM */
@@ -768,21 +768,21 @@ struct	_MUX_RUNTIME_CFG
 	void					*data;
 };//__attribute__((packed));
 
-//MUX_PACK_RESET();
+//EXT_PACK_RESET();
 
 // #pragma		pack()
 
 /* update size by setParams command */
-#define		MUX_RUNTIME_CFG_UPDATE_SIZE		(offsetof(struct _MUX_RUNTIME_CFG, name))
+#define		EXT_RUNTIME_CFG_UPDATE_SIZE		(offsetof(struct _EXT_RUNTIME_CFG, name))
 
-#define		MUX_RUNTIME_CFG_WRITE_SIZE		(offsetof(struct _MUX_RUNTIME_CFG, debugOptions))
+#define		EXT_RUNTIME_CFG_WRITE_SIZE		(offsetof(struct _EXT_RUNTIME_CFG, debugOptions))
 
 
-//#if ( sizeof(MUX_FM_VERSION) != 3 )
+//#if ( sizeof(EXT_FM_VERSION) != 3 )
 //	#error Data structure is packed wrong
 //#endif
 
-typedef char assertion_on_mystruct[( sizeof(MUX_FM_VERSION)==3  )*2-1 ];
+typedef char assertion_on_mystruct[( sizeof(EXT_FM_VERSION)==3  )*2-1 ];
 
 #define DUMB_STATIC_ASSERT(test)	typedef char assertion_on_mystruct[( !!(test) )*2-1 ]
 
@@ -791,61 +791,61 @@ typedef char assertion_on_mystruct[( sizeof(MUX_FM_VERSION)==3  )*2-1 ];
 //DUMB_STATIC_ASSERT( sizeof(my_other_struct)==23 );
 //DUMB_STATIC_ASSERT( sizeof(minimum_size_struct) >= 23 );
 
-//static_assert(sizeof(MUX_FM_VERSION) == 3,   "Check your assumptions");
+//static_assert(sizeof(EXT_FM_VERSION) == 3,   "Check your assumptions");
 
 
-typedef	struct _MUX_RUNTIME_CFG		MUX_RUNTIME_CFG;
+typedef	struct _EXT_RUNTIME_CFG		EXT_RUNTIME_CFG;
 
 
 typedef	char (*MuxDelayJob)(void *data);
 
 
-char muxSysAtoInt8(const char *str, unsigned char *value);
-char	muxMacAddressParse(MUX_MAC_ADDRESS *macAddress, const char *macStr);
+char extSysAtoInt8(const char *str, unsigned char *value);
+char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr);
 
-void muxCfgFromFactory( MUX_RUNTIME_CFG *cfg );
-void muxCfgInitAfterReadFromFlash(MUX_RUNTIME_CFG *runCfg);
+void extCfgFromFactory( EXT_RUNTIME_CFG *cfg );
+void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg);
 
 
-void	muxNmosIdGenerate(MuxNmosID *nmosId, MUX_RUNTIME_CFG *runCfg);
+void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg);
 
 unsigned int cmnMuxCRC32b(void *message, int len);
 
 
-char muxTxMulticastIP2Mac(MUX_RUNTIME_CFG *runCfg);
+char extTxMulticastIP2Mac(EXT_RUNTIME_CFG *runCfg);
 
 
-extern	MUX_RUNTIME_CFG			muxRun;
+extern	EXT_RUNTIME_CFG			extRun;
 
 
-#define	MUX_DEBUG_FLAG_IP_IN					(1<<0)
-#define	MUX_DEBUG_FLAG_IP_OUT				(1<<1)
-#define	MUX_DEBUG_FLAG_UDP_IN				(1<<2)
-#define	MUX_DEBUG_FLAG_UDP_OUT				(1<<3)
-#define	MUX_DEBUG_FLAG_TCP_IN				(1<<4)
-#define	MUX_DEBUG_FLAG_TCP_OUT				(1<<5)
-#define	MUX_DEBUG_FLAG_DHCP					(1<<6)
+#define	EXT_DEBUG_FLAG_IP_IN					(1<<0)
+#define	EXT_DEBUG_FLAG_IP_OUT				(1<<1)
+#define	EXT_DEBUG_FLAG_UDP_IN				(1<<2)
+#define	EXT_DEBUG_FLAG_UDP_OUT				(1<<3)
+#define	EXT_DEBUG_FLAG_TCP_IN				(1<<4)
+#define	EXT_DEBUG_FLAG_TCP_OUT				(1<<5)
+#define	EXT_DEBUG_FLAG_DHCP					(1<<6)
 
 
-#define	MUX_DEBUG_FLAG_IGMP					(1<<8)		
+#define	EXT_DEBUG_FLAG_IGMP					(1<<8)		
 
 /* bit31~16 for software debugging */
-#define	MUX_DEBUG_FLAG_CMD					(1<<16)		/* debug IP CMD */	
+#define	EXT_DEBUG_FLAG_CMD					(1<<16)		/* debug IP CMD */	
 
 
 
-#define	MUX_DEBUG_IS_ENABLE(flag)		\
-				((muxRun.debugOptions&(flag)) )
+#define	EXT_DEBUG_IS_ENABLE(flag)		\
+				((extRun.debugOptions&(flag)) )
 
 
-#define	MUX_DEBUG_SET_DISABLE(_optFlag)	\
-				CFG_CLEAR_FLAGS(muxRun.debugOptions, (_optFlag) )
+#define	EXT_DEBUG_SET_DISABLE(_optFlag)	\
+				CFG_CLEAR_FLAGS(extRun.debugOptions, (_optFlag) )
 
-#define	MUX_DEBUG_SET_ENABLE(_optFlag)	\
-				CFG_SET_FLAGS(muxRun.debugOptions, (_optFlag) )
+#define	EXT_DEBUG_SET_ENABLE(_optFlag)	\
+				CFG_SET_FLAGS(extRun.debugOptions, (_optFlag) )
 
 
-#define	MUX_IS_TX(runCfg)	\
+#define	EXT_IS_TX(runCfg)	\
 			((runCfg)->isTx != 0 )
 
 
@@ -853,43 +853,54 @@ extern	MUX_RUNTIME_CFG			muxRun;
 		((_uuid)->uuid[0]==0 && (_uuid)->uuid[1]==0 && (_uuid)->uuid[2]==0 && (_uuid)->uuid[4]==0 && (_uuid)->uuid[15]==0 )
 
 
-struct _MUX_CLI_CMD;
+struct _EXT_CLI_CMD;
 
 /* return TRUE, more data needed; FALSE: no mor data */
-typedef char (*MUX_CMD_CALLBACK)(const struct _MUX_CLI_CMD *cmd, char *outBuffer, unsigned int bufferSzie );
+typedef char (*EXT_CMD_CALLBACK)(const struct _EXT_CLI_CMD *cmd, char *outBuffer, unsigned int bufferSzie );
 
 /* The structure that defines command line commands.  A command line command
 should be defined by declaring a const structure of this type. */
-struct _MUX_CLI_CMD
+struct _EXT_CLI_CMD
 {
 	const char * const			name;
 	const char * const			helpString;/* String that describes how to use the command.  Should start with the command itself, and end with "\r\n".  For example "help: Returns a list of all the commands\r\n". */
 
-	/* return MUX_TRUE, continue this command again */
-	const MUX_CMD_CALLBACK	callback;
+	/* return EXT_TRUE, continue this command again */
+	const EXT_CMD_CALLBACK	callback;
 	
 //	int8_t					numberOfParams;
 };
 
-typedef struct _MUX_CLI_CMD		MUX_CLI_CMD_T;
+typedef struct _EXT_CLI_CMD		EXT_CLI_CMD_T;
 
 
 /* 3 instances in bootloader, RTOS, and simulator */
-extern const  MUX_CLI_CMD_T muxCmds[];
+extern const  EXT_CLI_CMD_T extCmds[];
 extern const	char *versionString;
+
+char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, unsigned int bufferSize );
+
+char cmnCmdHelp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen);
+char cmnCmdVersion(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen);
 
 
 /* output for used in OS */
 extern	struct netif			guNetIf;
 
-#define	MUX_NET_IGMP_JOIN(groupAddress)	\
-			muxLwipGroupMgr(&guNetIf, (groupAddress), 1)
+#define	EXT_NET_IGMP_JOIN(groupAddress)	\
+			extLwipGroupMgr(&guNetIf, (groupAddress), 1)
 
 
-#define	MUX_NET_IGMP_LEAVE(groupAddress)	\
-			muxLwipGroupMgr(&guNetIf, (groupAddress), 0)
+#define	EXT_NET_IGMP_LEAVE(groupAddress)	\
+			extLwipGroupMgr(&guNetIf, (groupAddress), 0)
 
-char bspCfgSave( MUX_RUNTIME_CFG *cfg, MUX_CFG_TYPE cfgType );
+char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
+
+#ifdef	ARM 
+#define	FOR_U32 	"lu"
+#else
+#define	FOR_U32	"u"
+#endif
 
 #endif
 

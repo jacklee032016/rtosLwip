@@ -49,7 +49,7 @@ typedef uint64                  rtk_u_long_t;
 #ifdef __KERNEL__
 #define rtlglue_printf printk
 #else
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #include <stdio.h> /* printf*/
 //#include "compact.h"
 #endif

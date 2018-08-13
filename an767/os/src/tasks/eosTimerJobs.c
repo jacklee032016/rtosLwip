@@ -13,10 +13,10 @@
 #include "compact.h"
 #include "lwipExt.h"
 
-#include "muxOs.h"
+#include "eos.h"
 
-#define	MUX_PERIOD_JOB_NAME		"muxTimer"
-#define	MUX_PERIOD_JOB_TIME		2000 	/* ms*/
+#define	EXT_PERIOD_JOB_NAME		"extTimer"
+#define	EXT_PERIOD_JOB_TIME		2000 	/* ms*/
 
 
 static TimerHandle_t _timerHdlDelay;
@@ -28,25 +28,25 @@ static void _vTimerDelayExpired(TimerHandle_t pxTimer)
 {
 	if(_delayJob == NULL)
 	{
-		MUX_ERRORF(("Delay Job is not defined"));
+		EXT_ERRORF(("Delay Job is not defined"));
 		return;
 	}
 
-	MUX_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
+	EXT_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
 	(_delayJob)(pvTimerGetTimerID(pxTimer) ); 
 
 	/* remove timer */
 }
 
 
-static void muxJobDelay(const char *name, unsigned short delayMs, MuxDelayJob func, void *data)
+static void extJobDelay(const char *name, unsigned short delayMs, MuxDelayJob func, void *data)
 {
 	_delayJob = func;
 	
 	_timerHdlDelay = xTimerCreate(name, pdMS_TO_TICKS(delayMs), pdFALSE, /* auto reload */ (void*)0, /* timer ID */_vTimerDelayExpired);
 	if (_timerHdlDelay==NULL)
 	{
-		MUX_ERRORF(("Delay Job can not be created"));
+		EXT_ERRORF(("Delay Job can not be created"));
 		return;
 	}
 
@@ -54,7 +54,7 @@ static void muxJobDelay(const char *name, unsigned short delayMs, MuxDelayJob fu
 
 	if (xTimerStart(_timerHdlDelay, 0)!=pdPASS)
 	{
-		MUX_ERRORF(("Delay Job can not be started"));
+		EXT_ERRORF(("Delay Job can not be started"));
 		return;
 	}
 }
@@ -62,42 +62,42 @@ static void muxJobDelay(const char *name, unsigned short delayMs, MuxDelayJob fu
 
 static char _delayReboot(void *data)
 {
-	MUX_REBOOT();
+	EXT_REBOOT();
 	return EXIT_SUCCESS;
 }
 
 
-void muxDelayReboot(unsigned short delayMs)
+void extDelayReboot(unsigned short delayMs)
 {
-	muxJobDelay("reboot", delayMs, _delayReboot, NULL);
+	extJobDelay("reboot", delayMs, _delayReboot, NULL);
 }
 
 static void _periodJobCallback(TimerHandle_t pxTimer)
 {
-	MUX_RUNTIME_CFG *runCfg;
-//	MUX_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
+	EXT_RUNTIME_CFG *runCfg;
+//	EXT_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
 
-	runCfg = (MUX_RUNTIME_CFG *)pvTimerGetTimerID(pxTimer);
+	runCfg = (EXT_RUNTIME_CFG *)pvTimerGetTimerID(pxTimer);
 
 	if(runCfg->isMCast)
 	{
 		unsigned	int	ip = CFG_MAKEU32(bspMultiAddressFromDipSwitch(), MCAST_DEFAULT_IPADDR2, MCAST_DEFAULT_IPADDR1, MCAST_DEFAULT_IPADDR0 );
 		if(ip != runCfg->dest.ip )
 		{
-			MUX_INFOF(("Multicast Address change to '%s'", MUX_LWIP_IPADD_TO_STR(&ip)));
-			muxTxMulticastIP2Mac(runCfg);
+			EXT_INFOF(("Multicast Address change to '%s'", EXT_LWIP_IPADD_TO_STR(&ip)));
+			extTxMulticastIP2Mac(runCfg);
 		}
 	}
 }
 
 
 /* periodical job: check switch button and FPGA register */
-void muxJobPeriod(MUX_RUNTIME_CFG *runCfg)
+void extJobPeriod(EXT_RUNTIME_CFG *runCfg)
 {
-	_timerHdlPeriod = xTimerCreate(MUX_PERIOD_JOB_NAME, pdMS_TO_TICKS(MUX_PERIOD_JOB_TIME), pdTRUE, /* auto reload */ (void*)0, /* timer ID */_periodJobCallback);
+	_timerHdlPeriod = xTimerCreate(EXT_PERIOD_JOB_NAME, pdMS_TO_TICKS(EXT_PERIOD_JOB_TIME), pdTRUE, /* auto reload */ (void*)0, /* timer ID */_periodJobCallback);
 	if (_timerHdlPeriod==NULL)
 	{
-		MUX_ERRORF(("Delay Job can not be created"));
+		EXT_ERRORF(("Delay Job can not be created"));
 		return;
 	}
 
@@ -105,7 +105,7 @@ void muxJobPeriod(MUX_RUNTIME_CFG *runCfg)
 
 	if (xTimerStart(_timerHdlPeriod, 0)!=pdPASS)
 	{
-		MUX_ERRORF(("Delay Job can not be started"));
+		EXT_ERRORF(("Delay Job can not be started"));
 		return;
 	}
 }

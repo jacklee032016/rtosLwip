@@ -56,7 +56,7 @@ static int CYGACC_COMM_IF_GETC_TIMEOUT (char chan, char *c)
 	}
 	return 0;
 #else
-	if( bspConsoleGetCharTimeout(c, xyzModem_CHAR_TIMEOUT) == MUX_TRUE)
+	if( bspConsoleGetCharTimeout(c, xyzModem_CHAR_TIMEOUT) == EXT_TRUE)
 		return 1;
 	return 0;
 #endif

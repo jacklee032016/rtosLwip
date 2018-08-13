@@ -8,7 +8,7 @@
 
 #define	_WITH_PRIMARY_PROTECTION		0
 
-#define	SFLASH_RESELECT()					{ SPI_RESELECT(MUX_SPI_CHIP_SEL); }
+#define	SFLASH_RESELECT()					{ SPI_RESELECT(EXT_SPI_CHIP_SEL); }
 
 
 static void _bspSpiFlashHwSendAddress(unsigned int address, char size, unsigned char *addressSequence)
@@ -40,10 +40,10 @@ static void _bspSpiFlashHwSend(unsigned char val)
 #ifdef	DEBUG_SPI
 		bspSpiDebug(ret);
 #endif
-		MUX_ERRORF(("SPI Write error: %d"MUX_NEW_LINE, ret) );
+		EXT_ERRORF(("SPI Write error: %d"EXT_NEW_LINE, ret) );
 	}
 
-//	muxBspSpiMasterTransfer((void *)&x, 10);
+//	extBspSpiMasterTransfer((void *)&x, 10);
 //	spi_report(err_flag0);
 //	return err_flag0;
 }
@@ -51,16 +51,16 @@ static void _bspSpiFlashHwSend(unsigned char val)
 static char _bspSpiFlashHwIsBusy(void)
 {
 	unsigned char cmd, data;
-	char busy = MUX_FALSE;
+	char busy = EXT_FALSE;
 
 	cmd = NFLASH_CMD_READ_STATUS_REGISTER;
-	muxBspSpiWritePacket(&cmd, 1);
+	extBspSpiWritePacket(&cmd, 1);
 
-	muxBspSpiReadPacket(&data, 1);
+	extBspSpiReadPacket(&data, 1);
 	
 	if(data & SPI_STATUS_IS_BUSY)
 	{
-		busy = MUX_TRUE;
+		busy = EXT_TRUE;
 	}
 	
 	SFLASH_RESELECT();
@@ -72,14 +72,14 @@ static char _bspSpiFlashHwIsBusy(void)
 }
 
 #if 0
-void muxBspFlashReceive(unsigned char *val)
+void extBspFlashReceive(unsigned char *val)
 {
 	unsigned short x = 0xFF; /* 0xFF tends to be good for dummy data */
 	unsigned char pcs;
 
 #if 0
 	unsigned char  d[10] ;
-	muxBspSpiMasterTransfer((void *)&x, 10);
+	extBspSpiMasterTransfer((void *)&x, 10);
 	*val = x & 0xFF;
 #endif
 
@@ -128,7 +128,7 @@ char  bspHwSpiFlashReadID(unsigned char *outBuffer, size_t bufferSize)
 
 	if(bufferSize< 4)
 	{
-		MUX_ERRORF(("buffer is too small for Flash ID: %d"MUX_NEW_LINE, bufferSize));
+		EXT_ERRORF(("buffer is too small for Flash ID: %d"EXT_NEW_LINE, bufferSize));
 		return EXIT_FAILURE;
 	}
 
@@ -137,14 +137,14 @@ char  bspHwSpiFlashReadID(unsigned char *outBuffer, size_t bufferSize)
 	LOCK_SPI();
 	{
 //		_bspFlashSend(NFLASH_CMD_READ_DEVICE_ID); //read device ID.
-		muxBspSpiWritePacket(&cmd, 1);
+		extBspSpiWritePacket(&cmd, 1);
 //		spi_send_address(0);
 
-		muxBspSpiReadPacket(outBuffer, bufferSize);
+		extBspSpiReadPacket(outBuffer, bufferSize);
 
 		if(*outBuffer!=FLASH_N25Q_ID_MANU || *(outBuffer+1)!=FLASH_N25Q_ID_DEVICE || *(outBuffer+2)!=FLASH_N25Q_ID_CAPACITY )
 		{
-			MUX_ERRORF(("Flash Manu ID Wrong:%2x:%2x:%2x"MUX_NEW_LINE, *outBuffer, *(outBuffer+1), *(outBuffer+2) ));
+			EXT_ERRORF(("Flash Manu ID Wrong:%2x:%2x:%2x"EXT_NEW_LINE, *outBuffer, *(outBuffer+1), *(outBuffer+2) ));
 			ret = EXIT_FAILURE;
 		}
 	}
@@ -167,7 +167,7 @@ char bspHwSpiFlashEraseSector(unsigned int sectorNo)
 	*/
 	if (sectorNo < SFLASH_START_SECTOR_SECOND_IMAGE)
 	{
-		MUX_ERRORF(("Sector#%u is in the zone of primary image(%d)"MUX_NEW_LINE, sectorNo, SFLASH_START_SECTOR_SECOND_IMAGE));
+		EXT_ERRORF(("Sector#%u is in the zone of primary image(%d)"EXT_NEW_LINE, sectorNo, SFLASH_START_SECTOR_SECOND_IMAGE));
 		return EXIT_FAILURE;
 	}
 #endif
@@ -175,18 +175,18 @@ char bspHwSpiFlashEraseSector(unsigned int sectorNo)
 	LOCK_SPI();
 	{
 		cmd[0] = NFLASH_CMD_WRITE_ENABLE;
-		muxBspSpiWritePacket(cmd, 1);
+		extBspSpiWritePacket(cmd, 1);
 		SFLASH_RESELECT();
 
 		cmd[0] = NFLASH_CMD_ERASE_SECTOR;
 		_bspSpiFlashHwSendAddress((sectorNo << 16), 3, &cmd[1]);
 		
-		muxBspSpiWritePacket(cmd, 4);
+		extBspSpiWritePacket(cmd, 4);
 		SFLASH_RESELECT();			
 
 		while (_bspSpiFlashHwIsBusy())
 		{
-			MUX_DELAY_MS(10);
+			EXT_DELAY_MS(10);
 		}
 		
 //		spi_send(NFLASH_CMD_EXIT_4B_ADDR);
@@ -237,9 +237,9 @@ char bspHwSpiFlashRead(unsigned int  address, unsigned char *data, unsigned int 
 	bspConsoleDumpFrame(cmd, writeLength);
 #endif
 
-	ret = muxBspSpiWritePacket((const U8 *)&cmd, writeLength);
+	ret = extBspSpiWritePacket((const U8 *)&cmd, writeLength);
 
-	ret = muxBspSpiReadPacket(data, size);
+	ret = extBspSpiReadPacket(data, size);
 	
 	SFLASH_RESELECT();
 
@@ -261,7 +261,7 @@ char bspHwSpiFlashWritePage(unsigned int pageNo, unsigned char *data, unsigned i
 	LOCK_SPI();
 	{
 		cmd[0] = NFLASH_CMD_WRITE_ENABLE;
-		muxBspSpiWritePacket(cmd, 1);
+		extBspSpiWritePacket(cmd, 1);
 		SFLASH_RESELECT();
 		
 		cmd[0] = NFLASH_CMD_PAGE_PROGRAM; //write.
@@ -278,20 +278,20 @@ char bspHwSpiFlashWritePage(unsigned int pageNo, unsigned char *data, unsigned i
 			
 		}
 
-		ret = muxBspSpiWritePacket(cmd, writeLength);
+		ret = extBspSpiWritePacket(cmd, writeLength);
 		if(ret == EXIT_SUCCESS)
 		{
 
 #if 0//def	_DEBUG_SPI_BIST
-			printf("send %d bytes"MUX_NEW_LINE, (int)length);
+			printf("send %d bytes"EXT_NEW_LINE, (int)length);
 #endif
-			ret = muxBspSpiWritePacket(data, length);
+			ret = extBspSpiWritePacket(data, length);
 			
 			SFLASH_RESELECT();
 		
 			while(_bspSpiFlashHwIsBusy() )
 			{
-				MUX_DELAY_MS(10);
+				EXT_DELAY_MS(10);
 			}
 		//		spi_send(NFLASH_CMD_EXIT_4B_ADDR);
 		}
@@ -305,7 +305,7 @@ char bspHwSpiFlashWritePage(unsigned int pageNo, unsigned char *data, unsigned i
 /* only called when system startup. init hw and create mutex  */
 void bspHwSpiFlashInit(void)
 {
-	uint32_t pcs = MUX_SPI_CHIP_SEL;
+	uint32_t pcs = EXT_SPI_CHIP_SEL;
 //	bspSpiMasterInitialize(pcs);
 	
 #ifdef _SPI_MUTEX_
@@ -313,7 +313,7 @@ void bspHwSpiFlashInit(void)
 #endif	
 
 	bspHwSpiFlashReset();
-	muxBspSpiUnselectChip(pcs);
+	extBspSpiUnselectChip(pcs);
 #if 0
 	LOCK_SPI();
 	{

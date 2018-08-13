@@ -76,6 +76,8 @@
 #include "lwip/etharp.h"
 #include "lwip/prot/dhcp.h"
 
+#include "lwipExt.h"
+
 #include <string.h>
 
 /** DHCP_CREATE_RAND_XID: if this is set to 1, the xid is created using
@@ -1026,7 +1028,7 @@ static err_t dhcp_discover(struct netif *netif)
 
 //		dhcp->autoip_coop_state = DHCP_AUTOIP_COOP_STATE_ON;
 
-		netif_set_addr(netif, (const ip4_addr_t *)&muxRun.local.ip, (const ip4_addr_t *)&muxRun.ipMask, (const ip4_addr_t *)&muxRun.ipGateway);
+		netif_set_addr(netif, (const ip4_addr_t *)&extRun.local.ip, (const ip4_addr_t *)&extRun.ipMask, (const ip4_addr_t *)&extRun.ipGateway);
 
 		netif_set_up(netif);
 		result = ERR_OK;

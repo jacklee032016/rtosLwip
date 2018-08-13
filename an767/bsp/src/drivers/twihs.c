@@ -274,8 +274,8 @@ uint32_t twihs_master_read(Twihs *p_twihs, twihs_packet_t *p_packet)
 	uint8_t *buffer = (uint8_t *) p_packet->buffer;
 	uint32_t timeout = TWIHS_TIMEOUT;
 
-#if MUX_DEBUG_WHITS
-	printf(MUX_NEW_LINE"TWIHS read buffer is %x"MUX_NEW_LINE, (unsigned int)buffer);
+#if EXT_DEBUG_WHITS
+	printf(EXT_NEW_LINE"TWIHS read buffer is %x"EXT_NEW_LINE, (unsigned int)buffer);
 #endif
 	/* Check argument */
 	if (cnt == 0)
@@ -321,7 +321,7 @@ uint32_t twihs_master_read(Twihs *p_twihs, twihs_packet_t *p_packet)
 		}
 		
 		*buffer = p_twihs->TWIHS_RHR;
-#if MUX_DEBUG_WHITS
+#if EXT_DEBUG_WHITS
 		printf("%2x (%x)", *buffer, (unsigned int )buffer);
 #endif
 		buffer++;
@@ -330,8 +330,8 @@ uint32_t twihs_master_read(Twihs *p_twihs, twihs_packet_t *p_packet)
 		timeout = TWIHS_TIMEOUT*100;
 	}
 
-#if MUX_DEBUG_WHITS
-	printf(""MUX_NEW_LINE );
+#if EXT_DEBUG_WHITS
+	printf(""EXT_NEW_LINE );
 #endif
 
 	while (!(p_twihs->TWIHS_SR & TWIHS_SR_TXCOMP))

@@ -47,7 +47,7 @@
 uint16 rtl8307h_gpio_mode_set(uint8 group, uint8 io_port, uint8 mode, Intr_mode_t intr_type)
 {
     uint32 reg_val;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
     uint8 bit_addr = 0;
 #else
     uint8 bit_addr;
@@ -177,7 +177,7 @@ uint16 rtl8307h_gpio_mode_set(uint8 group, uint8 io_port, uint8 mode, Intr_mode_
 uint16 rtl8307h_gpio_set(uint8 group, uint8 io_port, uint8 value)
 {
     uint32 reg_val;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
     uint8 bit_addr = 0;
 #else
     uint8 bit_addr;
@@ -220,7 +220,7 @@ uint16 rtl8307h_gpio_set(uint8 group, uint8 io_port, uint8 value)
 uint8 rtl8307h_gpio_get(uint8 group, uint8 io_port)
 {
     uint32 reg_val;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
     uint8 bit_addr = 0;
 #else
     uint8 bit_addr;
@@ -257,7 +257,7 @@ uint8 rtl8307h_gpio_get(uint8 group, uint8 io_port)
 uint16 rtl8307h_gpio_intr_clear(uint8 group, uint8 io_port)
 {
     uint32 reg_val;
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
     uint8 bit_addr = 0;
 #else
     uint8 bit_addr;

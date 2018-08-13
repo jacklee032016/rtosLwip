@@ -9,7 +9,7 @@
 #include "jsmn.h"
 
 
-static const	MUX_CONST_STR	_nmosStringVideoComponents[] =
+static const	EXT_CONST_STR	_nmosStringVideoComponents[] =
 {
 	{
 		type	: NMOS_VIDEO_CMP_TYPE_T_Y,
@@ -56,13 +56,13 @@ static const	MUX_CONST_STR	_nmosStringVideoComponents[] =
 		name	: NMOS_VIDEO_CMP_TYPE_S_DEPTH_MAP
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
-static const	MUX_CONST_STR	_nmosStringColorSpaces[] =
+static const	EXT_CONST_STR	_nmosStringColorSpaces[] =
 {
 	{
 		type	: NMOS_VIDEO_CS_T_BT601,
@@ -81,14 +81,14 @@ static const	MUX_CONST_STR	_nmosStringColorSpaces[] =
 		name	: NMOS_VIDEO_CS_S_BT2100
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
 
-static const	MUX_CONST_STR	_nmosStringTransferCharacters[] =
+static const	EXT_CONST_STR	_nmosStringTransferCharacters[] =
 {
 	{
 		type	: NMOS_VIDEO_TC_T_SDR,
@@ -103,14 +103,14 @@ static const	MUX_CONST_STR	_nmosStringTransferCharacters[] =
 		name	: NMOS_VIDEO_TC_S_PQ
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
 
-static const	MUX_CONST_STR	_nmosStringInterlaceModes[] =
+static const	EXT_CONST_STR	_nmosStringInterlaceModes[] =
 {
 	{
 		type	: NMOS_VIDEO_ILM_T_PROGRESSIVE,
@@ -129,13 +129,13 @@ static const	MUX_CONST_STR	_nmosStringInterlaceModes[] =
 		name	: NMOS_VIDEO_ILM_S_PSF
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
-static const	MUX_CONST_STR	_nmosStringTransports[] =
+static const	EXT_CONST_STR	_nmosStringTransports[] =
 {
 	{
 		type	: NMOS_TRANS_T_RTP,
@@ -154,13 +154,13 @@ static const	MUX_CONST_STR	_nmosStringTransports[] =
 		name	: NMOS_URN_TRANSPORT_DASH
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
-static const	MUX_CONST_STR	_nmosStringSourceFormats[] =
+static const	EXT_CONST_STR	_nmosStringSourceFormats[] =
 {
 	{
 		type	: NMOS_SOURCE_FORMAT_VIDEO,
@@ -179,12 +179,12 @@ static const	MUX_CONST_STR	_nmosStringSourceFormats[] =
 		name	: NMOS_URN_FORMAT_MUX
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
-static const	MUX_CONST_STR	_nmosStringAudioChannelSymbols[] =
+static const	EXT_CONST_STR	_nmosStringAudioChannelSymbols[] =
 {
 	{
 		type	: NMOS_AUDIO_CHAN_T_L,
@@ -284,14 +284,14 @@ static const	MUX_CONST_STR	_nmosStringAudioChannelSymbols[] =
 		name	: "U"
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
 
-static const	MUX_CONST_STR	_nmosStringConnActivates[] =
+static const	EXT_CONST_STR	_nmosStringConnActivates[] =
 {
 	{
 		type	: NMOS_CONN_ACTIVATE_T_IMMEDIATE,
@@ -306,15 +306,15 @@ static const	MUX_CONST_STR	_nmosStringConnActivates[] =
 		name	: NMOS_CONN_ACTIVATE_S_RELATIVE
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
-const char *muxNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type)
+const char *extNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type)
 {
-	const MUX_CONST_STR *_str;
+	const EXT_CONST_STR *_str;
 
 	switch(strType)
 	{
@@ -348,7 +348,7 @@ const char *muxNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type)
 			break;
 	}
 
-	while(_str->type!= MUX_INVALIDATE_STRING_TYPE)
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
 	{
 		if(_str->type == type)
 		{
@@ -361,11 +361,11 @@ const char *muxNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type)
 	return "Unknown String";
 }
 
-void	muxNmosIdGenerate(MuxNmosID *nmosId, MUX_RUNTIME_CFG *runCfg)
+void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg)
 {
 	runCfg->currentTimestamp = 0;//sys_now();
 
-	muxUuidGenerate(&nmosId->uuid, runCfg);
+	extUuidGenerate(&nmosId->uuid, runCfg);
 
 	nmosId->version.seconds = runCfg->currentTimestamp/1000L;
 	nmosId->version.nanoSeconds = runCfg->currentTimestamp * 1000L;

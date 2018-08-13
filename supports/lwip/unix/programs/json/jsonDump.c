@@ -6,12 +6,12 @@
 #include "jsmn.h"
 
 
-#define	MUX_JSON_MESSAGE_SIZE		32
-#define	MUX_JSON_TOKEN_SIZE			50
-#define	MUX_JSON_OUT_BUF_SIZE		512
+#define	EXT_JSON_MESSAGE_SIZE		32
+#define	EXT_JSON_TOKEN_SIZE			50
+#define	EXT_JSON_OUT_BUF_SIZE		512
 
 #define	JSON_TOKEN_COUNT()	\
-		(muxParser.parser.toknext)
+		(extParser.parser.toknext)
 
 
 
@@ -93,14 +93,14 @@ static int dump(const char *js, jsmntok_t *t, size_t count, int indent)
 
 
 jsmn_parser	jsonParser;
-jsmntok_t 	jsonTokens[MUX_JSON_TOKEN_SIZE];
-char			jsonOutBuffer[MUX_JSON_OUT_BUF_SIZE];
+jsmntok_t 	jsonTokens[EXT_JSON_TOKEN_SIZE];
+char			jsonOutBuffer[EXT_JSON_OUT_BUF_SIZE];
 
-size_t tokcount = MUX_JSON_TOKEN_SIZE;
+size_t tokcount = EXT_JSON_TOKEN_SIZE;
 
-MUX_JSON_PARSER  muxParser;
+EXT_JSON_PARSER  extParser;
 
-int _muxJsonPrint(jsmntok_t *t, size_t count)
+int _extJsonPrint(jsmntok_t *t, size_t count)
 {
 	int i, j, k;
 	int indent = 2;
@@ -112,12 +112,12 @@ int _muxJsonPrint(jsmntok_t *t, size_t count)
 	
 	if (t->type == JSMN_PRIMITIVE)
 	{
-		printf("%.*s", t->end - t->start, muxParser.currentJSonString +t->start);
+		printf("%.*s", t->end - t->start, extParser.currentJSonString +t->start);
 		return 1;
 	}
 	else if (t->type == JSMN_STRING)
 	{
-		printf("'%.*s'", t->end - t->start, muxParser.currentJSonString +t->start);
+		printf("'%.*s'", t->end - t->start, extParser.currentJSonString +t->start);
 		return 1;
 	}
 	else if (t->type == JSMN_OBJECT)
@@ -155,14 +155,14 @@ int _muxJsonPrint(jsmntok_t *t, size_t count)
 	return 0;
 }
 
-int	_muxJsonParse( const char *jStr, size_t len )
+int	_extJsonParse( const char *jStr, size_t len )
 {
 	int ret;
 
-	muxParser.currentJSonString = jStr;
-	muxParser.len = len;
+	extParser.currentJSonString = jStr;
+	extParser.len = len;
 	
-	ret = jsmn_parse(&muxParser.parser, jStr, len, muxParser.tokens, muxParser.tokenCount);
+	ret = jsmn_parse(&extParser.parser, jStr, len, extParser.tokens, extParser.tokenCount);
 	if (ret < 0)
 	{
 		if (ret == JSMN_ERROR_NOMEM)
@@ -182,18 +182,18 @@ int	_muxJsonParse( const char *jStr, size_t len )
 	}
 }
 
-void _muxJsonInit(void)
+void _extJsonInit(void)
 {
 	/* Prepare parser */
-	jsmn_init(&muxParser.parser);
+	jsmn_init(&extParser.parser);
 	
-	muxParser.currentJSonString = NULL;
-	muxParser.length = 0;
+	extParser.currentJSonString = NULL;
+	extParser.length = 0;
 	
-	muxParser.tokenCount = MUX_JSON_TOKEN_SIZE;
+	extParser.tokenCount = EXT_JSON_TOKEN_SIZE;
 
-	muxParser.outSize = MUX_JSON_OUT_BUF_SIZE;
-	muxParser.outIndex = 0;
+	extParser.outSize = EXT_JSON_OUT_BUF_SIZE;
+	extParser.outIndex = 0;
 	
 }
 

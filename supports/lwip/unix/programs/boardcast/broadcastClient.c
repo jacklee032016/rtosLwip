@@ -25,107 +25,107 @@ typedef	struct
 	int						socket;
 //	int						peerAddress;
 	struct sockaddr_in			peerAddress;
-	MUX_UUID_T				uuid;
-	MUX_MAC_ADDRESS		macAddress;
+	EXT_UUID_T				uuid;
+	EXT_MAC_ADDRESS		macAddress;
 
 	char						buffer[8192];
 	int						size;
 
-	MUX_JSON_PARSER  		parser;
+	EXT_JSON_PARSER  		parser;
 
-	MUX_RUNTIME_CFG		*clientCfg;
+	EXT_RUNTIME_CFG		*clientCfg;
 
 }UDP_CLIENT;
 
 const char *jsonGetParamsCmd = 
-		"{\""MUX_JSON_KEY_COMMAND"\":\""MUX_JSON_CMD_GET_PARAMS"\", "
-		"\""MUX_JSON_KEY_USER"\":\""MUX_USER"\", "
-		"\""MUX_JSON_KEY_PASSWORD"\":\""MUX_PASSWORD"\", "
-		   "\""MUX_JSON_KEY_ID"\":\"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF\" }";
+		"{\""EXT_JSON_KEY_COMMAND"\":\""EXT_JSON_CMD_GET_PARAMS"\", "
+		"\""EXT_JSON_KEY_USER"\":\""EXT_USER"\", "
+		"\""EXT_JSON_KEY_PASSWORD"\":\""EXT_PASSWORD"\", "
+		   "\""EXT_JSON_KEY_ID"\":\"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF\" }";
 
 const char *jsonGetParamsErrorUser = 
-		"{\""MUX_JSON_KEY_COMMAND"\":\""MUX_JSON_CMD_GET_PARAMS"\", "
-		"\""MUX_JSON_KEY_USER"\":\"muxLab\", "
-		"\""MUX_JSON_KEY_PASSWORD"\":\""MUX_PASSWORD"\", "
-		   "\""MUX_JSON_KEY_ID"\":\"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF\" }";
+		"{\""EXT_JSON_KEY_COMMAND"\":\""EXT_JSON_CMD_GET_PARAMS"\", "
+		"\""EXT_JSON_KEY_USER"\":\"muxLab\", "
+		"\""EXT_JSON_KEY_PASSWORD"\":\""EXT_PASSWORD"\", "
+		   "\""EXT_JSON_KEY_ID"\":\"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF\" }";
 
 
 
 #if 0
-const char *jsonRequestSetParams = "{ \""MUX_JSON_KEY_COMMAND"\":\""MUX_JSON_CMD_SET_PARAMS"\", "
-		   "\""MUX_JSON_KEY_IP"\":\"192.168.167.55\", "
-		   "\""MUX_JSON_KEY_MASK"\":\"255.255.255.0\", "
-		   "\""MUX_JSON_KEY_GATEWAY"\":\"192.168.167.1\", "
-		   "\""MUX_JSON_KEY_DHCP"\":0, "
-		   "\""MUX_JSON_KEY_TX"\":1, "
-		   "\""MUX_JSON_KEY_DEST_IP"\":\"192.168.167.56\", "
-		   "\""MUX_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:11:10\","
-		   "\""MUX_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:11:11\", "
-		   "\""MUX_JSON_KEY_VIDEO_IP_LOCAL"\":\"172.16.4.211\","
-		   "\""MUX_JSON_KEY_VIDEO_IP_DEST"\":\"172.16.4.210\", "
-		   "\""MUX_JSON_KEY_VIDEO_PORT_LOCAL"\":40712, "
-		   "\""MUX_JSON_KEY_VIDEO_PORT_DEST"\":40696, "
-		   "\""MUX_JSON_KEY_AUDIO_PORT_LOCAL"\":40716, "
-		   "\""MUX_JSON_KEY_AUDIO_PORT_DEST"\":40700, "
-		   "\""MUX_JSON_KEY_MC_IP"\":\"239.0.121.1\","
-		   "\""MUX_JSON_KEY_MC_PORT"\":2700, "
-		   "\""MUX_JSON_KEY_IS_CONNECT"\":1," 
-		   "\""MUX_JSON_KEY_IS_MC"\":1, ";
+const char *jsonRequestSetParams = "{ \""EXT_JSON_KEY_COMMAND"\":\""EXT_JSON_CMD_SET_PARAMS"\", "
+		   "\""EXT_JSON_KEY_IP"\":\"192.168.167.55\", "
+		   "\""EXT_JSON_KEY_MASK"\":\"255.255.255.0\", "
+		   "\""EXT_JSON_KEY_GATEWAY"\":\"192.168.167.1\", "
+		   "\""EXT_JSON_KEY_DHCP"\":0, "
+		   "\""EXT_JSON_KEY_TX"\":1, "
+		   "\""EXT_JSON_KEY_DEST_IP"\":\"192.168.167.56\", "
+		   "\""EXT_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:11:10\","
+		   "\""EXT_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:11:11\", "
+		   "\""EXT_JSON_KEY_VIDEO_IP_LOCAL"\":\"172.16.4.211\","
+		   "\""EXT_JSON_KEY_VIDEO_IP_DEST"\":\"172.16.4.210\", "
+		   "\""EXT_JSON_KEY_VIDEO_PORT_LOCAL"\":40712, "
+		   "\""EXT_JSON_KEY_VIDEO_PORT_DEST"\":40696, "
+		   "\""EXT_JSON_KEY_AUDIO_PORT_LOCAL"\":40716, "
+		   "\""EXT_JSON_KEY_AUDIO_PORT_DEST"\":40700, "
+		   "\""EXT_JSON_KEY_MC_IP"\":\"239.0.121.1\","
+		   "\""EXT_JSON_KEY_MC_PORT"\":2700, "
+		   "\""EXT_JSON_KEY_IS_CONNECT"\":1," 
+		   "\""EXT_JSON_KEY_IS_MC"\":1, ";
 
-//		   "\""MUX_JSON_KEY_MAC"\":\"1a:25:23:45:ab:d2\", "
+//		   "\""EXT_JSON_KEY_MAC"\":\"1a:25:23:45:ab:d2\", "
 
 #else
-const char *jsonRequestSetParams = "{ \""MUX_JSON_KEY_COMMAND"\":\""MUX_JSON_CMD_SET_PARAMS"\", "
-		   "\""MUX_JSON_KEY_ID"\":\"39300000-7e16-dcd3-0000-0004251ca002\","
-		   "\""MUX_JSON_KEY_MAC"\":\"1a:25:23:45:ab:d2\", "
+const char *jsonRequestSetParams = "{ \""EXT_JSON_KEY_COMMAND"\":\""EXT_JSON_CMD_SET_PARAMS"\", "
+		   "\""EXT_JSON_KEY_ID"\":\"39300000-7e16-dcd3-0000-0004251ca002\","
+		   "\""EXT_JSON_KEY_MAC"\":\"1a:25:23:45:ab:d2\", "
 #if LWIP_FOR_SIMHOST
-		   "\""MUX_JSON_KEY_IP"\":\"192.168.167.55\", "
-		   "\""MUX_JSON_KEY_MASK"\":\"255.255.255.0\", "
-		   "\""MUX_JSON_KEY_GATEWAY"\":\"192.168.167.1\", "
-		   "\""MUX_JSON_KEY_DEST_IP"\":\"192.168.167.56\", "
+		   "\""EXT_JSON_KEY_IP"\":\"192.168.167.55\", "
+		   "\""EXT_JSON_KEY_MASK"\":\"255.255.255.0\", "
+		   "\""EXT_JSON_KEY_GATEWAY"\":\"192.168.167.1\", "
+		   "\""EXT_JSON_KEY_DEST_IP"\":\"192.168.167.56\", "
 #else
-		   "\""MUX_JSON_KEY_IP"\":\"192.168.168.130\", "
-		   "\""MUX_JSON_KEY_MASK"\":\"255.255.255.0\", "
-		   "\""MUX_JSON_KEY_GATEWAY"\":\"192.168.168.1\", "
-		   "\""MUX_JSON_KEY_DEST_IP"\":\"192.168.168.150\", "
+		   "\""EXT_JSON_KEY_IP"\":\"192.168.168.130\", "
+		   "\""EXT_JSON_KEY_MASK"\":\"255.255.255.0\", "
+		   "\""EXT_JSON_KEY_GATEWAY"\":\"192.168.168.1\", "
+		   "\""EXT_JSON_KEY_DEST_IP"\":\"192.168.168.150\", "
 #endif
-		   "\""MUX_JSON_KEY_DHCP"\":0, "
-		   "\""MUX_JSON_KEY_TX"\":1, "
-		   "\""MUX_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:11:10\","
-		   "\""MUX_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:11:11\", "
-		   "\""MUX_JSON_KEY_VIDEO_IP_LOCAL"\":\"172.16.4.211\","
-		   "\""MUX_JSON_KEY_VIDEO_IP_DEST"\":\"172.16.4.210\", "
-		   "\""MUX_JSON_KEY_VIDEO_PORT_LOCAL"\":40712, "
-		   "\""MUX_JSON_KEY_VIDEO_PORT_DEST"\":40696, "
-		   "\""MUX_JSON_KEY_AUDIO_PORT_LOCAL"\":40716, "
-		   "\""MUX_JSON_KEY_AUDIO_PORT_DEST"\":40700, "
-		   "\""MUX_JSON_KEY_MC_IP"\":\"239.0.121.1\","
-		   "\""MUX_JSON_KEY_MC_PORT"\":2700, "
-		   "\""MUX_JSON_KEY_IS_CONNECT"\":1," 
-		   "\""MUX_JSON_KEY_IS_MC"\":1 }";
+		   "\""EXT_JSON_KEY_DHCP"\":0, "
+		   "\""EXT_JSON_KEY_TX"\":1, "
+		   "\""EXT_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:11:10\","
+		   "\""EXT_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:11:11\", "
+		   "\""EXT_JSON_KEY_VIDEO_IP_LOCAL"\":\"172.16.4.211\","
+		   "\""EXT_JSON_KEY_VIDEO_IP_DEST"\":\"172.16.4.210\", "
+		   "\""EXT_JSON_KEY_VIDEO_PORT_LOCAL"\":40712, "
+		   "\""EXT_JSON_KEY_VIDEO_PORT_DEST"\":40696, "
+		   "\""EXT_JSON_KEY_AUDIO_PORT_LOCAL"\":40716, "
+		   "\""EXT_JSON_KEY_AUDIO_PORT_DEST"\":40700, "
+		   "\""EXT_JSON_KEY_MC_IP"\":\"239.0.121.1\","
+		   "\""EXT_JSON_KEY_MC_PORT"\":2700, "
+		   "\""EXT_JSON_KEY_IS_CONNECT"\":1," 
+		   "\""EXT_JSON_KEY_IS_MC"\":1 }";
 #endif
 
-const char *jsonRequestNoCommand = "{ \""MUX_JSON_KEY_COMMAND"\":\"NoCommand\", "
-		   "\""MUX_JSON_KEY_ID"\":\"5da68790-2198-43cb-9321-2951eeb5ee90\","
-		   "\""MUX_JSON_KEY_MAC"\":\"1a:25:23:45:ab:d2\", "
-		   "\""MUX_JSON_KEY_IP"\":\"192.168.167.55\", "
-		   "\""MUX_JSON_KEY_MASK"\":\"255.255.255.0\", "
-		   "\""MUX_JSON_KEY_GATEWAY"\":\"192.168.167.1\", "
-		   "\""MUX_JSON_KEY_DHCP"\":0, "
-		   "\""MUX_JSON_KEY_TX"\":1, "
-		   "\""MUX_JSON_KEY_DEST_IP"\":\"192.168.167.56\", "
-		   "\""MUX_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:11:10\","
-		   "\""MUX_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:11:11\", "
-		   "\""MUX_JSON_KEY_VIDEO_IP_LOCAL"\":\"172.16.4.211\","
-		   "\""MUX_JSON_KEY_VIDEO_IP_DEST"\":\"172.16.4.210\", "
-		   "\""MUX_JSON_KEY_VIDEO_PORT_LOCAL"\":40712, "
-		   "\""MUX_JSON_KEY_VIDEO_PORT_DEST"\":40696, "
-		   "\""MUX_JSON_KEY_AUDIO_PORT_LOCAL"\":40716, "
-		   "\""MUX_JSON_KEY_AUDIO_PORT_DEST"\":40700, "
-		   "\""MUX_JSON_KEY_MC_IP"\":\"239.0.121.1\","
-		   "\""MUX_JSON_KEY_MC_PORT"\":2700, "
-		   "\""MUX_JSON_KEY_IS_CONNECT"\":1," 
-		   "\""MUX_JSON_KEY_IS_MC"\":1 }";
+const char *jsonRequestNoCommand = "{ \""EXT_JSON_KEY_COMMAND"\":\"NoCommand\", "
+		   "\""EXT_JSON_KEY_ID"\":\"5da68790-2198-43cb-9321-2951eeb5ee90\","
+		   "\""EXT_JSON_KEY_MAC"\":\"1a:25:23:45:ab:d2\", "
+		   "\""EXT_JSON_KEY_IP"\":\"192.168.167.55\", "
+		   "\""EXT_JSON_KEY_MASK"\":\"255.255.255.0\", "
+		   "\""EXT_JSON_KEY_GATEWAY"\":\"192.168.167.1\", "
+		   "\""EXT_JSON_KEY_DHCP"\":0, "
+		   "\""EXT_JSON_KEY_TX"\":1, "
+		   "\""EXT_JSON_KEY_DEST_IP"\":\"192.168.167.56\", "
+		   "\""EXT_JSON_KEY_VIDEO_MAC_LOCAL"\":\"00:A0:E5:00:11:10\","
+		   "\""EXT_JSON_KEY_VIDEO_MAC_DEST"\":\"00:A0:E5:00:11:11\", "
+		   "\""EXT_JSON_KEY_VIDEO_IP_LOCAL"\":\"172.16.4.211\","
+		   "\""EXT_JSON_KEY_VIDEO_IP_DEST"\":\"172.16.4.210\", "
+		   "\""EXT_JSON_KEY_VIDEO_PORT_LOCAL"\":40712, "
+		   "\""EXT_JSON_KEY_VIDEO_PORT_DEST"\":40696, "
+		   "\""EXT_JSON_KEY_AUDIO_PORT_LOCAL"\":40716, "
+		   "\""EXT_JSON_KEY_AUDIO_PORT_DEST"\":40700, "
+		   "\""EXT_JSON_KEY_MC_IP"\":\"239.0.121.1\","
+		   "\""EXT_JSON_KEY_MC_PORT"\":2700, "
+		   "\""EXT_JSON_KEY_IS_CONNECT"\":1," 
+		   "\""EXT_JSON_KEY_IS_MC"\":1 }";
 
 
 #define	_SEND_MODE_LOCAL_PARAM		0x01
@@ -135,10 +135,10 @@ static int getParamsFrom767(UDP_CLIENT *udpClient)
 {
 	unsigned int ipAddress = 0;
 
-	muxJsonParse(&udpClient->parser, udpClient->buffer, strlen(udpClient->buffer));
+	extJsonParse(&udpClient->parser, udpClient->buffer, strlen(udpClient->buffer));
 
 	/* IP address in network byte order */
-	muxJsonParseIpAddress(&udpClient->parser, MUX_JSON_KEY_IP, &ipAddress);
+	extJsonParseIpAddress(&udpClient->parser, EXT_JSON_KEY_IP, &ipAddress);
 	
 	ipAddress = ntohl(ipAddress);
 
@@ -149,15 +149,15 @@ static int getParamsFrom767(UDP_CLIENT *udpClient)
 	
 	udpClient->peerAddress.sin_addr.s_addr = htonl(ipAddress);
 
-	if(muxJsonParseUuid(&udpClient->parser, MUX_JSON_KEY_ID, &udpClient->uuid)<0)
+	if(extJsonParseUuid(&udpClient->parser, EXT_JSON_KEY_ID, &udpClient->uuid)<0)
 	{
-		printf("No '"MUX_JSON_KEY_ID"' in JSON data" );
+		printf("No '"EXT_JSON_KEY_ID"' in JSON data" );
 		return EXIT_FAILURE;
 	}
 
-	if(muxJsonParseMacAddress(&udpClient->parser, MUX_JSON_KEY_MAC, &udpClient->macAddress) < 0)
+	if(extJsonParseMacAddress(&udpClient->parser, EXT_JSON_KEY_MAC, &udpClient->macAddress) < 0)
 	{
-		printf("No '"MUX_JSON_KEY_MAC"' in JSON data" );
+		printf("No '"EXT_JSON_KEY_MAC"' in JSON data" );
 		return EXIT_FAILURE;
 	}
 
@@ -339,25 +339,25 @@ int testBoardcastGetParams(UDP_CLIENT *udpClient)
 	return EXIT_SUCCESS;
 }
 
-char	testJsonSetLocalParamsCmdPrintConfig(char  *buffer, unsigned int size, MUX_RUNTIME_CFG *cfg, MUX_UUID_T *uuid)
+char	testJsonSetLocalParamsCmdPrintConfig(char  *buffer, unsigned int size, EXT_RUNTIME_CFG *cfg, EXT_UUID_T *uuid)
 {
 	int index = 0;
 		
-	index += snprintf(buffer+index, size-index, "{\""MUX_JSON_KEY_COMMAND"\":\"%s\",", MUX_JSON_CMD_SET_PARAMS );
+	index += snprintf(buffer+index, size-index, "{\""EXT_JSON_KEY_COMMAND"\":\"%s\",", EXT_JSON_CMD_SET_PARAMS );
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_NAME"\":\"%s\",", cfg->name );
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_MODEL"\":\"%s-%s\",", cfg->model, MUX_IS_TX(cfg)?"TX":"RX" );
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_VERSION"\":\"%02d.%02d.%02d\",", cfg->version.major, cfg->version.minor, cfg->version.revision);
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_NAME"\":\"%s\",", cfg->name );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_MODEL"\":\"%s-%s\",", cfg->model, EXT_IS_TX(cfg)?"TX":"RX" );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_VERSION"\":\"%02d.%02d.%02d\",", cfg->version.major, cfg->version.minor, cfg->version.revision);
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_MAC"\":" );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_MAC"\":" );
 	MAC_ADDRESS_PRINT(buffer, size, index, &(cfg->macAddress));
 	
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_IP"\":\"%s\",", MUX_LWIP_IPADD_TO_STR(&(cfg->ipAddress)) );
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_MASK"\":\"%s\",", MUX_LWIP_IPADD_TO_STR(&(cfg->ipMask)) );
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_GATEWAY"\":\"%s\",", MUX_LWIP_IPADD_TO_STR(&(cfg->ipGateway)) );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_IP"\":\"%s\",", EXT_LWIP_IPADD_TO_STR(&(cfg->ipAddress)) );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_MASK"\":\"%s\",", EXT_LWIP_IPADD_TO_STR(&(cfg->ipMask)) );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_GATEWAY"\":\"%s\",", EXT_LWIP_IPADD_TO_STR(&(cfg->ipGateway)) );
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_DHCP"\":%d,", MUX_DHCP_IS_ENABLE(cfg)?1:0);
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_TX"\":%d}", MUX_IS_TX(cfg)?1:0);
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_DHCP"\":%d,", EXT_DHCP_IS_ENABLE(cfg)?1:0);
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_TX"\":%d}", EXT_IS_TX(cfg)?1:0);
 
 //	parser->outIndex = index;
 //	printf("output response %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, parser->outBuffer);
@@ -365,24 +365,24 @@ char	testJsonSetLocalParamsCmdPrintConfig(char  *buffer, unsigned int size, MUX_
 }
 
 
-char	testJsonSetMediaParamsCmdPrintConfig(char  *buffer, unsigned int size, MUX_RUNTIME_CFG *cfg, MUX_UUID_T *uuid)
+char	testJsonSetMediaParamsCmdPrintConfig(char  *buffer, unsigned int size, EXT_RUNTIME_CFG *cfg, EXT_UUID_T *uuid)
 {
 	int index = 0;
 		
-	index += snprintf(buffer+index, size-index, "{\""MUX_JSON_KEY_COMMAND"\":\"%s\",", MUX_JSON_CMD_SET_PARAMS );
+	index += snprintf(buffer+index, size-index, "{\""EXT_JSON_KEY_COMMAND"\":\"%s\",", EXT_JSON_CMD_SET_PARAMS );
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_NAME"\":\"%s\",", cfg->name );
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_MODEL"\":\"%s-%s\",", cfg->model, MUX_IS_TX(cfg)?"TX":"RX" );
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_VERSION"\":\"%02d.%02d.%02d\",", cfg->version.major, cfg->version.minor, cfg->version.revision);
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_NAME"\":\"%s\",", cfg->name );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_MODEL"\":\"%s-%s\",", cfg->model, EXT_IS_TX(cfg)?"TX":"RX" );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_VERSION"\":\"%02d.%02d.%02d\",", cfg->version.major, cfg->version.minor, cfg->version.revision);
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_VIDEO_MAC_DEST"\":" );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_VIDEO_MAC_DEST"\":" );
 	MAC_ADDRESS_PRINT(buffer, size, index, &(cfg->dest.mac));
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_VIDEO_IP_DEST"\":\"%s\",", MUX_LWIP_IPADD_TO_STR(&(cfg->dest.ip)) );
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_VIDEO_IP_DEST"\":\"%s\",", EXT_LWIP_IPADD_TO_STR(&(cfg->dest.ip)) );
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_VIDEO_PORT_DEST"\":%d,", cfg->dest.vport);
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_VIDEO_PORT_DEST"\":%d,", cfg->dest.vport);
 
-	index += snprintf(buffer+index, size-index, "\""MUX_JSON_KEY_AUDIO_PORT_DEST"\":%d}", cfg->dest.aport);
+	index += snprintf(buffer+index, size-index, "\""EXT_JSON_KEY_AUDIO_PORT_DEST"\":%d}", cfg->dest.aport);
 
 //	parser->outIndex = index;
 //	printf("output response %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, parser->outBuffer);
@@ -397,10 +397,10 @@ int testUnicastSetLocalParams(UDP_CLIENT *udpClient, int i)
 	int index = 0;
 	int ret = 0;
 	index += snprintf(udpClient->buffer, udpClient->size, "%s",jsonRequestSetParams);
-	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""MUX_JSON_KEY_ID"\":");
+	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""EXT_JSON_KEY_ID"\":");
 	UUID_PRINT(udpClient->buffer, udpClient->size, index, &udpClient->uuid );
 
-	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""MUX_JSON_KEY_MAC"\":");
+	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""EXT_JSON_KEY_MAC"\":");
 	MAC_ADDRESS_PRINT(udpClient->buffer, udpClient->size, index, &udpClient->macAddress);
 
 	index += snprintf(udpClient->buffer+index, udpClient->size-index, "}");
@@ -419,10 +419,10 @@ int testUnicastSetMediaParams(UDP_CLIENT *udpClient, int i)
 	int index = 0;
 	int ret = 0;
 	index += snprintf(udpClient->buffer, udpClient->size, "%s",jsonRequestSetParams);
-	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""MUX_JSON_KEY_ID"\":");
+	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""EXT_JSON_KEY_ID"\":");
 	UUID_PRINT(udpClient->buffer, udpClient->size, index, &udpClient->uuid );
 
-	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""MUX_JSON_KEY_MAC"\":");
+	index += snprintf(udpClient->buffer+index, udpClient->size-index, "\""EXT_JSON_KEY_MAC"\":");
 	MAC_ADDRESS_PRINT(udpClient->buffer, udpClient->size, index, &udpClient->macAddress);
 
 	index += snprintf(udpClient->buffer+index, udpClient->size-index, "}");
@@ -438,32 +438,32 @@ int testClientParseConfig(UDP_CLIENT *udpClient)
 {
 //	int index = 0;
 	char	ret;
-	MUX_JSON_PARSER rawParser;
+	EXT_JSON_PARSER rawParser;
 
 	printf("parse local params..."LWIP_NEW_LINE);
-	ret = muxJsonRequestParseCommand((char *)jsonRequestSetParams, strlen(jsonRequestSetParams), &rawParser);
+	ret = extJsonRequestParseCommand((char *)jsonRequestSetParams, strlen(jsonRequestSetParams), &rawParser);
 	if(ret == EXIT_FAILURE)
 	{
 		printf("Parse raw SetParams failed"LWIP_NEW_LINE);
 		return EXIT_FAILURE;
 	}
 
-	ret = muxJsonRequestParse(&rawParser, udpClient->clientCfg);
+	ret = extJsonRequestParse(&rawParser, udpClient->clientCfg);
 	if(ret == EXIT_FAILURE)
 	{
 		printf("Parse raw cfg of SetParams failed"LWIP_NEW_LINE);
 		return EXIT_FAILURE;
 	}
 
-	sprintf(udpClient->clientCfg->name, "%s", MUX_767_PRODUCT_NAME);
-	sprintf(udpClient->clientCfg->model, "%s", MUX_767_MODEL);
+	sprintf(udpClient->clientCfg->name, "%s", EXT_767_PRODUCT_NAME);
+	sprintf(udpClient->clientCfg->model, "%s", EXT_767_MODEL);
 
 	udpClient->clientCfg->version.major = BL_VERSION_MAJOR;
 	udpClient->clientCfg->version.minor = BL_VERSION_MINOR;
 	udpClient->clientCfg->version.revision = BL_VERSION_REVISION;
 
-	snprintf(udpClient->clientCfg->user, MUX_USER_SIZE, "%s", MUX_USER);
-	snprintf(udpClient->clientCfg->password, MUX_PASSWORD_SIZE, "%s", MUX_PASSWORD);
+	snprintf(udpClient->clientCfg->user, EXT_USER_SIZE, "%s", EXT_USER);
+	snprintf(udpClient->clientCfg->password, EXT_PASSWORD_SIZE, "%s", EXT_PASSWORD);
 
 	return EXIT_SUCCESS;
 }
@@ -473,38 +473,38 @@ int testCompareSetParams(UDP_CLIENT *udpClient, int i, int mode)
 {
 //	int index = 0;
 	char	ret;
-	MUX_JSON_PARSER replyParser;
-	MUX_RUNTIME_CFG replyCfg;
+	EXT_JSON_PARSER replyParser;
+	EXT_RUNTIME_CFG replyCfg;
 
-	memset(&replyCfg, 0, sizeof(MUX_RUNTIME_CFG));
+	memset(&replyCfg, 0, sizeof(EXT_RUNTIME_CFG));
 
 //	printf("\tparse reply params..."LWIP_NEW_LINE);
-	ret = muxJsonRequestParseCommand(udpClient->buffer, strlen(udpClient->buffer), &replyParser);
+	ret = extJsonRequestParseCommand(udpClient->buffer, strlen(udpClient->buffer), &replyParser);
 	if(ret == EXIT_FAILURE)
 	{
 		printf("Parse reply SetParams failed"LWIP_NEW_LINE);
 		return EXIT_FAILURE;
 	}
-	ret = muxJsonRequestParse(&replyParser, &replyCfg);
+	ret = extJsonRequestParse(&replyParser, &replyCfg);
 	if(ret == EXIT_FAILURE)
 	{
 		printf("Parse reply cfg of SetParams failed"LWIP_NEW_LINE);
 		return EXIT_FAILURE;
 	}
 
-//	muxJsonDebug( &rawParser, &rawCfg);
-//	muxJsonDebug( &replyParser, &replyCfg);
+//	extJsonDebug( &rawParser, &rawCfg);
+//	extJsonDebug( &replyParser, &replyCfg);
 
 	if( (mode &0x01) )
 	{
-		ret = muxJsonCompareLocalCfg(udpClient->clientCfg, &replyCfg);
+		ret = extJsonCompareLocalCfg(udpClient->clientCfg, &replyCfg);
 		if(ret == EXIT_FAILURE)
 			return EXIT_FAILURE;
 	}	
 
 	if( (mode & 0x02))
 	{
-		ret = muxJsonComparePeerMediaCfg(udpClient->clientCfg, &replyCfg);
+		ret = extJsonComparePeerMediaCfg(udpClient->clientCfg, &replyCfg);
 		if(ret == EXIT_FAILURE)
 			return EXIT_FAILURE;
 	}	
@@ -515,7 +515,7 @@ int testCompareSetParams(UDP_CLIENT *udpClient, int i, int mode)
 
 int main(int argc, char *argv[])
 {
-	MUX_RUNTIME_CFG _clientCfg;
+	EXT_RUNTIME_CFG _clientCfg;
 
 	UDP_CLIENT client;
 	UDP_CLIENT *udpClient = &client;
@@ -524,8 +524,8 @@ int main(int argc, char *argv[])
 	int	ret = 0;
 
 	memset(udpClient, 0, sizeof(UDP_CLIENT));
-	memset(&_clientCfg, 0 , sizeof(MUX_RUNTIME_CFG));
-	udpClient->port = MUX_CTRL_PORT;
+	memset(&_clientCfg, 0 , sizeof(EXT_RUNTIME_CFG));
+	udpClient->port = EXT_CTRL_PORT;
 	udpClient->size = sizeof(udpClient->buffer);
 	udpClient->clientCfg = &_clientCfg;
 

@@ -327,7 +327,7 @@ extern ret_t rtl8307h_igmp_asicPri_get( uint32* igmpPri);
  * Note:
  *      This API can reset 8051 code when igmp parameters changed.
  */
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 extern ret_t rtl8307h_igmp_paraChanged_reset(void);
 #else
 extern ret_t rtl8307h_igmp_paraChanged_reset();

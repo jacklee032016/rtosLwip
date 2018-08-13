@@ -67,8 +67,8 @@ struct tftp_context
 
 err_t tftp_init(const struct tftp_context* ctx);
 
-#define	MUX_TFTP_IMAGE_OS_NAME			"firmOs"	
-#define	MUX_TFTP_IMAGE_FPGA_NAME		"firmFpga"	
+#define	EXT_TFTP_IMAGE_OS_NAME			"firmOs"	
+#define	EXT_TFTP_IMAGE_FPGA_NAME		"firmFpga"	
 
 #ifdef __cplusplus
 }

@@ -16,7 +16,7 @@ EDITION=debug
 #EDITION=release
 
 ifeq ($(EDITION),release)
-	C_FLAGS += -D__MUX_RELEASE__
+	C_FLAGS += -D__EXT_RELEASE__
 else	
 endif 
 
@@ -36,11 +36,11 @@ endif
 
 ifeq ($(CPU_E70Q20),YES)
 	BOARD_NAME=AN767
-	CFLAGS += -D__SAME70Q20__ -DMUXLAB_BOARD=1
+	CFLAGS += -D__SAME70Q20__ -DEXTLAB_BOARD=1 -DEXT_LAB
 	LINK_SCRIPT =$(OS_HOME)/src/linkers/q20flash.ld
 else
 	BOARD_NAME=E7oXpld
-	CFLAGS += -D__SAME70Q21__ -DMUXLAB_BOARD=0 
+	CFLAGS += -D__SAME70Q21__ -DEXTLAB_BOARD=0 -DEXT_LAB
 	LINK_SCRIPT =$(OS_HOME)/src/linkers/q21flash.ld
 endif
 
@@ -117,7 +117,7 @@ MAIN_HEAD_HOME:=$(ROOT_DIR)/$(MAIN_HOME)
 # macro 'MUXLAB_BOARD' for all modification only for AN767 board;
 
 
-CFLAGS += -DMUX_LAB
+CFLAGS += 
 
 EXE=rtosLwip$(BOARD_NAME).bin
 

@@ -17,7 +17,7 @@ static int _readSerialPort(char *buf, ulong len, char isFirstTime)
 	for (p=buf; p < buf+len; ++p)
 	{
 		ret = bspConsoleGetCharTimeout(p, timeoutMs);
-		if(ret==MUX_FALSE)
+		if(ret==EXT_FALSE)
 		{/* current length */
 			break;
 		}
@@ -51,7 +51,7 @@ int cmdSerialUpload(char *outBuffer, size_t bufferLen )
 	int ret;
 	int startPage = FLASH_START_PAGE_OS;
 
-	printf("## Ready for serial download ...:"MUX_NEW_LINE);
+	printf("## Ready for serial download ...:"EXT_NEW_LINE);
 	
 	size = sizeof(buffer);
 
@@ -59,15 +59,15 @@ int cmdSerialUpload(char *outBuffer, size_t bufferLen )
 	{
 		length = _readSerialPort(buffer, size, (total==0));
 		total += length;
-//		printf("read %d, toal:%d"MUX_NEW_LINE, length, total);
+//		printf("read %d, toal:%d"EXT_NEW_LINE, length, total);
 		if(length <= 0)
 		{/* EOF or timeout */
-			printf("Timeout on serial port"MUX_NEW_LINE);
+			printf("Timeout on serial port"EXT_NEW_LINE);
 			break;
 		}
 		else if(length < sizeof(buffer))
 		{/* EOF */
-			printf("read %lu, total:%lu"MUX_NEW_LINE, length, total);
+			printf("read %lu, total:%lu"EXT_NEW_LINE, length, total);
 			bspConsoleDumpMemory(buffer, length, total);
 		}
 
@@ -90,7 +90,7 @@ int cmdSerialUpload(char *outBuffer, size_t bufferLen )
 
 	printf("download %lu bytes\n", total);
 
-	return MUX_FALSE;
+	return EXT_FALSE;
 }
 #endif
 
@@ -111,13 +111,13 @@ static unsigned int	 _loadSerialYmodem(unsigned int	offset, int mode)
 	res = xyzModem_stream_open(&info, &err);
 	if (!res)
 	{
-		while ((res = xyzModem_stream_read((char *)muxRun.bufRead, muxRun.bufLength, &err)) > 0)
+		while ((res = xyzModem_stream_read((char *)extRun.bufRead, extRun.bufLength, &err)) > 0)
 		{
 //			store_addr = addr + offset;
 			size += res;
 			addr += res;
 
-			ret = efcFlashProgram(startPage, muxRun.bufRead, res);
+			ret = efcFlashProgram(startPage, extRun.bufRead, res);
 			if(ret == EXIT_FAILURE)
 			{
 				break;
@@ -137,136 +137,136 @@ static unsigned int	 _loadSerialYmodem(unsigned int	offset, int mode)
 
 //	flush_cache(offset, ALIGN(size, ARCH_DMA_MINALIGN));
 
-	printf("## Total Size      = 0x%08x = %d Bytes"MUX_NEW_LINE, size, size);
+	printf("## Total Size      = 0x%08x = %d Bytes"EXT_NEW_LINE, size, size);
 //	setenv_hex("filesize", size);
 
 	return offset;
 }
 
 
-static char _cmdSerialXmodemLoad(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen)
+static char _cmdSerialXmodemLoad(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen)
 {
 	unsigned int	 offset = 0;
 
-	printf("## Ready for binary (xmodem) download...:"MUX_NEW_LINE);
+	printf("## Ready for binary (xmodem) download...:"EXT_NEW_LINE);
 	_loadSerialYmodem(offset, xyzModem_xmodem);
 
-	return MUX_FALSE;
+	return EXT_FALSE;
 }
 
 
-static char _cmdSerialYmodemLoad(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen)
+static char _cmdSerialYmodemLoad(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen)
 {
 	unsigned int	 offset = 0;
 //	unsigned int	 addr;
 
-	printf("## Ready for binary (ymodem) download...:"MUX_NEW_LINE );
+	printf("## Ready for binary (ymodem) download...:"EXT_NEW_LINE );
 	_loadSerialYmodem(offset, xyzModem_ymodem);
 
-	return MUX_FALSE;
+	return EXT_FALSE;
 }
 
 
 
-static char	_cmdBoot(const struct _MUX_CLI_CMD *cmd, char *outBuffer, size_t bufferLen )
+static char	_cmdBoot(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen )
 {
 	strncpy( outBuffer, "startup OS.....", bufferLen );
 
-	MUX_LOAD_OS();
-	return MUX_FALSE;
+	EXT_LOAD_OS();
+	return EXT_FALSE;
 }
 
 
 
-_CODE  MUX_CLI_CMD_T muxCmds[] =
+_CODE  EXT_CLI_CMD_T extCmds[] =
 {
 
 #if 0
 	{
-		name	: MUX_CMD_LOAD,
-		helpString: MUX_NEW_LINE MUX_CMD_LOAD" :"MUX_NEW_LINE" load firmware(binary) through serial port  "MUX_NEW_LINE,
+		name	: EXT_CMD_LOAD,
+		helpString: EXT_NEW_LINE EXT_CMD_LOAD" :"EXT_NEW_LINE" load firmware(binary) through serial port  "EXT_NEW_LINE,
 		callback: cmdSerialUpload,
 	},
 #endif
 	{
-		name	: MUX_CMD_LOAD_X,
+		name	: EXT_CMD_LOAD_X,
 		helpString: CMD_HELP_LOADX,
 		callback: _cmdSerialXmodemLoad,
 	},
 
 	{
-		name	: MUX_CMD_LOAD_Y,
+		name	: EXT_CMD_LOAD_Y,
 		helpString: CMD_HELP_LOADY,
 		callback: _cmdSerialYmodemLoad,
 	},
 	
 	{
-		name	: MUX_CMD_LOAD_FPGA_X,
+		name	: EXT_CMD_LOAD_FPGA_X,
 		helpString: CMD_HELP_LOAD_FPGA_X,
 		callback: bspCmdSpiFlashXmodemLoad,
 	},
 
 	{
-		name	: MUX_CMD_LOAD_FPGA_Y,
+		name	: EXT_CMD_LOAD_FPGA_Y,
 		helpString: CMD_HELP_LOAD_FPGA_Y,
 		callback: bspCmdSpiFlashYmodemLoad,
 	},
 
 	{
-		name	: MUX_CMD_BOOT,
-		helpString: MUX_NEW_LINE MUX_CMD_BOOT":"MUX_NEW_LINE" Boot RTOS"MUX_NEW_LINE,
+		name	: EXT_CMD_BOOT,
+		helpString: EXT_NEW_LINE EXT_CMD_BOOT":"EXT_NEW_LINE" Boot RTOS"EXT_NEW_LINE,
 		callback: _cmdBoot,
 	},
 	
 	{
-		name	: MUX_CMD_EFC_FLASH,
+		name	: EXT_CMD_EFC_FLASH,
 		helpString: CMD_HELP_EFC_FLASH,
 		callback: bspCmdInternalFlash,
 	},
 
 	{
-		name	: MUX_CMD_SPI_FLASH_READ,
+		name	: EXT_CMD_SPI_FLASH_READ,
 		helpString: CMD_HELP_SPI_FLASH,
 		callback: bspCmdSpiFlashRead,
 	},
 
 	{
-		name	: MUX_CMD_SPI_FLASH_ERASE,
+		name	: EXT_CMD_SPI_FLASH_ERASE,
 		helpString: CMD_HELP_SPI_FLASH_ERASE,
 		callback: bspCmdSpiFlashErase,
 	},
 
 	{
-		name	: MUX_CMD_BIST,
+		name	: EXT_CMD_BIST,
 		helpString: CMD_HELP_BIST,
 		callback: bspCmdBIST,
 	},
 
 	{
-		name	: MUX_CMD_UPDATE,
+		name	: EXT_CMD_UPDATE,
 		helpString: CMD_HELP_UPDATE,
 		callback: cmnCmdUpdate,
 	},
 	
 	{
-		name	: MUX_CMD_FACTORY,
+		name	: EXT_CMD_FACTORY,
 		helpString: CMD_HELP_FACTORY,
 		callback: bspCmdFactory,
 	},
 
 	{
-		name	: MUX_CMD_REBOOT,
+		name	: EXT_CMD_REBOOT,
 		helpString: CMD_HELP_REBOOT,
 		callback: bspCmdReboot,
 	},
 	
 	{
-		name	: MUX_CMD_VERSION,
+		name	: EXT_CMD_VERSION,
 		helpString: CMD_HELP_VERSION,
 		callback: cmnCmdVersion,
 	},
 	{
-		name	: MUX_CMD_DEFAULT,
+		name	: EXT_CMD_DEFAULT,
 		helpString: CMD_HELP_HELP,
 		callback: cmnCmdHelp,
 	},

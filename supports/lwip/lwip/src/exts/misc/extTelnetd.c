@@ -4,26 +4,26 @@
 
 #include "lwipExt.h"
 
-#define	TELNET_DEBUG						MUX_DBG_OFF
+#define	TELNET_DEBUG						EXT_DBG_OFF
 
-#define	MUX_TELNET_PORT					23
+#define	EXT_TELNET_PORT					23
 
 /* polled once per second (e.g. continue write on memory error) */
-#define	MUX_TELNET_POLL_INTERVAL			2
+#define	EXT_TELNET_POLL_INTERVAL			2
 
-#define	MUX_TELNET_TIMEOUT				30
+#define	EXT_TELNET_TIMEOUT				30
 
 #define	TELNET_PROTOCOL_IAC				0xFF	/* Intepret As Command */
 
 #if LWIP_TCP
 
 
-#define	MUX_CMD_BUFSIZE			1024
-static unsigned char		_telnetCmdBuffer[MUX_CMD_BUFSIZE];
+#define	EXT_CMD_BUFSIZE			1024
+static unsigned char		_telnetCmdBuffer[EXT_CMD_BUFSIZE];
 
-static unsigned char		_telnetResponseBuffer[ MUX_COMMAND_BUFFER_SIZE ];
+static unsigned char		_telnetResponseBuffer[ EXT_COMMAND_BUFFER_SIZE ];
 
-enum	MUX_TELNET_STATE
+enum	EXT_TELNET_STATE
 {
 	TELNET_CS_NONE = 0,
 	TELNET_CS_RECEIVING,
@@ -31,7 +31,7 @@ enum	MUX_TELNET_STATE
 	TELNET_CS_CLOSING /*TELNET_CS_ERROR */
 };
 
-typedef	struct _mux_telnet_conn
+typedef	struct _ext_telnet_conn
 {
 	u8_t				state;
 	u8_t				retries;
@@ -48,18 +48,18 @@ typedef	struct _mux_telnet_conn
 	
 	struct tcp_pcb	*pcb;
 
-}MUX_TELNET_CONN_T;
+}EXT_TELNET_CONN_T;
 
 typedef	struct
 {
 	struct tcp_pcb			*rawPcb;
-	MUX_RUNTIME_CFG		*runCfg;
+	EXT_RUNTIME_CFG		*runCfg;
 
-	MUX_TELNET_CONN_T		*conn;	/* only one connection can support */
+	EXT_TELNET_CONN_T		*conn;	/* only one connection can support */
 }MuxTelnetCtx;	
 
 
-static MuxTelnetCtx  _muxTelnetCtx;
+static MuxTelnetCtx  _extTelnetCtx;
 
 #ifdef	X86
 
@@ -85,7 +85,7 @@ void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address)
 			bspConsolePutChar(*tmp++);
 		}
 #endif		
-		printf(""MUX_NEW_LINE);
+		printf(""EXT_NEW_LINE);
 	}
 	
 	if ((size % 16) != 0)
@@ -110,7 +110,7 @@ void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address)
 			bspConsolePutChar(buffer[j]);
 		}
 #endif		
-		printf(""MUX_NEW_LINE);
+		printf(""EXT_NEW_LINE);
 	}
 }
 
@@ -119,7 +119,7 @@ void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address)
 
 #endif
 
-static void _telnetConnFree(MUX_TELNET_CONN_T *tConn)
+static void _telnetConnFree(EXT_TELNET_CONN_T *tConn)
 {
 	if (tConn != NULL)
 	{
@@ -127,7 +127,7 @@ static void _telnetConnFree(MUX_TELNET_CONN_T *tConn)
 	}
 }
 
-static void _telnetConnClose(struct tcp_pcb *tpcb, MUX_TELNET_CONN_T *tConn)
+static void _telnetConnClose(struct tcp_pcb *tpcb, EXT_TELNET_CONN_T *tConn)
 {
 	tcp_arg(tpcb, NULL);
 	tcp_sent(tpcb, NULL);
@@ -142,7 +142,7 @@ static void _telnetConnClose(struct tcp_pcb *tpcb, MUX_TELNET_CONN_T *tConn)
 
 
 /* send in any state */
-static void _telnetConnSend(struct tcp_pcb *tpcb, MUX_TELNET_CONN_T *tConn, unsigned char *data, unsigned short size)
+static void _telnetConnSend(struct tcp_pcb *tpcb, EXT_TELNET_CONN_T *tConn, unsigned char *data, unsigned short size)
 {
 	err_t wr_err = ERR_OK;
 
@@ -157,7 +157,7 @@ static void _telnetConnSend(struct tcp_pcb *tpcb, MUX_TELNET_CONN_T *tConn, unsi
 	if((wr_err == ERR_OK) && (size >0) &&  (size <= tcp_sndbuf(tpcb)))
 	{
 
-		MUX_DEBUGF(TELNET_DEBUG,("TELNET output :'%.*s'", size, data ));
+		EXT_DEBUGF(TELNET_DEBUG,("TELNET output :'%.*s'", size, data ));
 		/* enqueue data for transmission */
 		wr_err = tcp_write(tpcb, data, size,  1);
 		if (wr_err == ERR_OK)
@@ -166,7 +166,7 @@ static void _telnetConnSend(struct tcp_pcb *tpcb, MUX_TELNET_CONN_T *tConn, unsi
 #if 1		
 			if( tConn)
 			{
-				if( tConn->isContinue == MUX_FALSE)
+				if( tConn->isContinue == EXT_FALSE)
 				{/* we can read more data now */
 				}
 #endif			
@@ -192,11 +192,11 @@ static void _telnetConnSend(struct tcp_pcb *tpcb, MUX_TELNET_CONN_T *tConn, unsi
 	}
 }
 
-static char _telnetMsgPrintout(MUX_TELNET_CONN_T *tConn, char *msg)
+static char _telnetMsgPrintout(EXT_TELNET_CONN_T *tConn, char *msg)
 {
 	tConn->writeIndex = 0;
-	tConn->writeIndex += snprintf(((char *)tConn->response)+tConn->writeIndex, MUX_COMMAND_BUFFER_SIZE- tConn->writeIndex, "%s", msg);
-	tConn->isContinue = MUX_FALSE;
+	tConn->writeIndex += snprintf(((char *)tConn->response)+tConn->writeIndex, EXT_COMMAND_BUFFER_SIZE- tConn->writeIndex, "%s", msg);
+	tConn->isContinue = EXT_FALSE;
 
 	_telnetConnSend(tConn->pcb, tConn, tConn->response, tConn->writeIndex);
 	return EXIT_SUCCESS;
@@ -204,7 +204,7 @@ static char _telnetMsgPrintout(MUX_TELNET_CONN_T *tConn, char *msg)
 //	return EXIT_FAILURE;
 }
 
-static void _telnetMsgPrompt(MUX_TELNET_CONN_T *tConn)
+static void _telnetMsgPrompt(EXT_TELNET_CONN_T *tConn)
 {
 //	_telnetPrintout(versionString, conn);
 	tConn->timeoutSecond = 0;
@@ -214,7 +214,7 @@ static void _telnetMsgPrompt(MUX_TELNET_CONN_T *tConn)
 
 
 
-static char _telnetCommandProcess(MUX_TELNET_CONN_T *tConn )
+static char _telnetCommandProcess(EXT_TELNET_CONN_T *tConn )
 {
 #if 0//def	X86
 	static int count = 0;
@@ -223,63 +223,63 @@ static char _telnetCommandProcess(MUX_TELNET_CONN_T *tConn )
 	
 //	*outBuffer = 0;
 
-	index += snprintf( (char *)tConn->response+index, (MUX_COMMAND_BUFFER_SIZE-index), "Telnet #%d reply: '%s'"MUX_NEW_LINE, count++, (char *)tConn->cmd);
+	index += snprintf( (char *)tConn->response+index, (EXT_COMMAND_BUFFER_SIZE-index), "Telnet #%d reply: '%s'"EXT_NEW_LINE, count++, (char *)tConn->cmd);
 
 	if(count == 3)
 	{
 		count = 0;
-		tConn->isContinue = MUX_FALSE;/* no more data */
+		tConn->isContinue = EXT_FALSE;/* no more data */
 	}
 	else 
 	{
-		tConn->isContinue = MUX_TRUE;/* more data */
+		tConn->isContinue = EXT_TRUE;/* more data */
 	}
 #else
 	/* Get the next output string from the command interpreter. */
-	tConn->isContinue = cmnCmdLineProcess((const char * const)tConn->cmd, (char *)tConn->response, MUX_COMMAND_BUFFER_SIZE );
+	tConn->isContinue = cmnCmdLineProcess((const char * const)tConn->cmd, (char *)tConn->response, EXT_COMMAND_BUFFER_SIZE );
 #endif
 
 	tConn->writeIndex = strlen((char *)tConn->response);
 
 	_telnetConnSend(tConn->pcb, tConn, tConn->response, tConn->writeIndex);
 
-	return MUX_TRUE;
+	return EXT_TRUE;
 }
 
-static char _telnetCommandRead(MUX_TELNET_CONN_T *tConn, struct pbuf *p)
+static char _telnetCommandRead(EXT_TELNET_CONN_T *tConn, struct pbuf *p)
 {
 	u16_t cur_len;
 	unsigned char cmd;
 
 //	err_t ret;
 
-	if(p->tot_len >= MUX_CMD_BUFSIZE)
+	if(p->tot_len >= EXT_CMD_BUFSIZE)
 	{
 		//ret = 
 		_telnetMsgPrintout(tConn, (char *)"Command is longer than maxumum length"LWIP_NEW_LINE );
 		tConn->state = TELNET_CS_CLOSING;
-		return MUX_TRUE;
+		return EXT_TRUE;
 	}
 
 	if(p->tot_len == 0)
 	{
-		return MUX_TRUE;
+		return EXT_TRUE;
 	}
 
 	cmd = *((char*)p->payload);
 	if(( cmd == TELNET_PROTOCOL_IAC) )
 	{
-		return MUX_TRUE;
+		return EXT_TRUE;
 	}
 
 //	CONSOLE_DEBUG_MEM(p->payload, (uint32_t)p->len, 0, "RECV Telnet Data");
 
-	cur_len = pbuf_copy_partial(p, tConn->cmd+tConn->readIndex, MUX_CMD_BUFSIZE - tConn->readIndex, 0);
+	cur_len = pbuf_copy_partial(p, tConn->cmd+tConn->readIndex, EXT_CMD_BUFSIZE - tConn->readIndex, 0);
 //	ptr->payload, ptr->len
 	if(cur_len <= 0)
 	{
-		MUX_ERRORF(("copy buffer failed: pkt:%d; buf size:%d", p->tot_len, MUX_CMD_BUFSIZE - tConn->readIndex));
-		return MUX_TRUE;
+		EXT_ERRORF(("copy buffer failed: pkt:%d; buf size:%d", p->tot_len, EXT_CMD_BUFSIZE - tConn->readIndex));
+		return EXT_TRUE;
 	}
 	//cur_len = p->tot_len;
 	tConn->readIndex += cur_len;
@@ -291,18 +291,18 @@ static char _telnetCommandRead(MUX_TELNET_CONN_T *tConn, struct pbuf *p)
 #if TELNET_DEBUG
 	CONSOLE_DEBUG_MEM(tConn->cmd, tConn->readIndex, 0, "RECV Telnet Data");
 #endif
-	MUX_DEBUGF(TELNET_DEBUG,("copied %d bytes:'%.*s', '0x%x'"LWIP_NEW_LINE, cur_len, tConn->readIndex-2, tConn->cmd, cmd ));
+	EXT_DEBUGF(TELNET_DEBUG,("copied %d bytes:'%.*s', '0x%x'"LWIP_NEW_LINE, cur_len, tConn->readIndex-2, tConn->cmd, cmd ));
 	if ( ( cmd == ASCII_KEY_LF) || (cmd == ASCII_KEY_CR) )
 	{
 		if(tConn->readIndex== 1 || tConn->readIndex == 2)
 		{/* command to short, only LF/CR */
 #if TELNET_DEBUG
-			MUX_DEBUGF(TELNET_DEBUG,("TELNET: only LF/CR received"LWIP_NEW_LINE ));
+			EXT_DEBUGF(TELNET_DEBUG,("TELNET: only LF/CR received"LWIP_NEW_LINE ));
 #endif
 			_telnetMsgPrintout(tConn, (char *)"> " );
 			tConn->readIndex = 0;
 			tConn->timeoutSecond = 0;
-			return MUX_FALSE;
+			return EXT_FALSE;
 		}
 		
 		*(tConn->cmd +tConn->readIndex-1) = 0;
@@ -317,7 +317,7 @@ static char _telnetCommandRead(MUX_TELNET_CONN_T *tConn, struct pbuf *p)
 		}
 #endif
 
-		MUX_DEBUGF(TELNET_DEBUG,("Processing '%s'"LWIP_NEW_LINE, tConn->cmd ));
+		EXT_DEBUGF(TELNET_DEBUG,("Processing '%s'"LWIP_NEW_LINE, tConn->cmd ));
 		tConn->readIndex = 0;
 
 //		if (_cmdBuffer[0] != 0xff && _cmdBuffer[1] != 0xfe)
@@ -326,7 +326,7 @@ static char _telnetCommandRead(MUX_TELNET_CONN_T *tConn, struct pbuf *p)
 			{
 				//ret = 
 				_telnetMsgPrintout(tConn, (char *)"Bye, dear!"LWIP_NEW_LINE );
-				tConn->isContinue = MUX_FALSE;
+				tConn->isContinue = EXT_FALSE;
 				tConn->state = TELNET_CS_CLOSING;
 			}
 			else
@@ -348,14 +348,14 @@ static char _telnetCommandRead(MUX_TELNET_CONN_T *tConn, struct pbuf *p)
 #endif
 		
 //		_telnetMsgPrompt(conn);
-		return MUX_TRUE;
+		return EXT_TRUE;
 	}
 
 	//_telnetMsgPrintout(tConn,(char *) tConn->cmd );
-	MUX_DEBUGF(TELNET_DEBUG,("recv: '%s'", (char *) tConn->cmd) );
+	EXT_DEBUGF(TELNET_DEBUG,("recv: '%s'", (char *) tConn->cmd) );
 		
 
-	return MUX_FALSE;
+	return EXT_FALSE;
 }
 
 
@@ -386,7 +386,7 @@ static err_t _telnetCallbackPoll(void *arg, struct tcp_pcb *tpcb)
 		else
 		{
 			telnetCtx->conn->timeoutSecond++;
-			if(telnetCtx->conn->timeoutSecond >= MUX_TELNET_TIMEOUT)
+			if(telnetCtx->conn->timeoutSecond >= EXT_TELNET_TIMEOUT)
 			{
 				_telnetMsgPrintout(telnetCtx->conn, (char *)"Timeout for MuxLab telnet connection"LWIP_NEW_LINE);
 				telnetCtx->conn->state = TELNET_CS_CLOSING;
@@ -443,7 +443,7 @@ static err_t _telnetCallbackRecv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p
 	MuxTelnetCtx  *telnetCtx;
 	err_t ret_err;
 
-	MUX_ASSERT(("arg != NULL"), arg != NULL);
+	EXT_ASSERT(("arg != NULL"), arg != NULL);
 	telnetCtx = (MuxTelnetCtx  *)(arg);
 	if (p == NULL)
 	{/* remote host closed connection */
@@ -517,9 +517,9 @@ static err_t _telnetCallabckAccept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	if(telnetCtx->conn )
 	{
 		_telnetConnSend(newpcb, NULL, (unsigned char *)_errMsg, strlen(_errMsg));
-//		MUX_DELAY_MS(50);
+//		EXT_DELAY_MS(50);
 		tcp_arg(newpcb, telnetCtx);
-		tcp_poll(newpcb,	_telnetEndConnPoll, MUX_TELNET_POLL_INTERVAL*2);
+		tcp_poll(newpcb,	_telnetEndConnPoll, EXT_TELNET_POLL_INTERVAL*2);
 
 		return ERR_OK;
 	}
@@ -529,7 +529,7 @@ static err_t _telnetCallabckAccept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	new pcbs of higher priority. */
 	tcp_setprio(newpcb, TCP_PRIO_MIN);
 
-	telnetCtx->conn = (MUX_TELNET_CONN_T *)mem_malloc(sizeof(MUX_TELNET_CONN_T));
+	telnetCtx->conn = (EXT_TELNET_CONN_T *)mem_malloc(sizeof(EXT_TELNET_CONN_T));
 	if (telnetCtx->conn != NULL)
 	{
 		telnetCtx->conn->state = TELNET_CS_RECEIVING;
@@ -540,7 +540,7 @@ static err_t _telnetCallabckAccept(void *arg, struct tcp_pcb *newpcb, err_t err)
 		telnetCtx->conn->readIndex = 0;
 		telnetCtx->conn->writeIndex = 0;
 		telnetCtx->conn->timeoutSecond = 0;
-		telnetCtx->conn->isContinue = MUX_FALSE;
+		telnetCtx->conn->isContinue = EXT_FALSE;
 		memset(_telnetCmdBuffer, 0, sizeof(_telnetCmdBuffer));
 		memset(_telnetResponseBuffer, 0, sizeof(_telnetResponseBuffer));
 
@@ -549,7 +549,7 @@ static err_t _telnetCallabckAccept(void *arg, struct tcp_pcb *newpcb, err_t err)
 		
 		tcp_recv(newpcb,	_telnetCallbackRecv);
 		tcp_err(newpcb,		_telnetCallbackError);
-		tcp_poll(newpcb,		_telnetCallbackPoll, MUX_TELNET_POLL_INTERVAL);
+		tcp_poll(newpcb,		_telnetCallbackPoll, EXT_TELNET_POLL_INTERVAL);
 		tcp_sent(newpcb,	_telnetCallbackSent);
 
 #ifndef	X86
@@ -567,33 +567,33 @@ static err_t _telnetCallabckAccept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	return ret_err;
 }
 
-void muxNetRawTelnetInit(MUX_RUNTIME_CFG *runCfg)
+void extNetRawTelnetInit(EXT_RUNTIME_CFG *runCfg)
 {
-	_muxTelnetCtx.rawPcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	_muxTelnetCtx.runCfg = runCfg;
+	_extTelnetCtx.rawPcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
+	_extTelnetCtx.runCfg = runCfg;
 
-	if (_muxTelnetCtx.rawPcb != NULL)
+	if (_extTelnetCtx.rawPcb != NULL)
 	{
 		err_t err;
 
-		err = tcp_bind(_muxTelnetCtx.rawPcb, IP_ANY_TYPE, MUX_TELNET_PORT);
+		err = tcp_bind(_extTelnetCtx.rawPcb, IP_ANY_TYPE, EXT_TELNET_PORT);
 		if (err == ERR_OK)
 		{
-			_muxTelnetCtx.rawPcb = tcp_listen(_muxTelnetCtx.rawPcb);
-			tcp_arg(_muxTelnetCtx.rawPcb, &_muxTelnetCtx);
+			_extTelnetCtx.rawPcb = tcp_listen(_extTelnetCtx.rawPcb);
+			tcp_arg(_extTelnetCtx.rawPcb, &_extTelnetCtx);
 			
-			tcp_accept(_muxTelnetCtx.rawPcb, _telnetCallabckAccept);
+			tcp_accept(_extTelnetCtx.rawPcb, _telnetCallabckAccept);
 		}
 		else
 		{
 		/* abort? output diagnostic? */
-			MUX_ERRORF(("telent bind failed"));
+			EXT_ERRORF(("telent bind failed"));
 		}
 	}
 	else
 	{
 		/* abort? output diagnostic? */
-		MUX_ERRORF(("No RAW TCP for telent"));
+		EXT_ERRORF(("No RAW TCP for telent"));
 	}
 }
 

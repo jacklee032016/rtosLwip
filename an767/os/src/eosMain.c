@@ -13,9 +13,9 @@
 
 #include "lwipExt.h"
 
-#include "muxOs.h"
+#include "eos.h"
 
-_CODE char *versionString = MUX_OS_NAME;
+_CODE char *versionString = EXT_OS_NAME;
 
 
 void vApplicationMallocFailedHook( void )
@@ -64,7 +64,7 @@ void vApplicationTickHook( void )
 {
 }
 
-#if MUXLAB_BOARD
+#if EXTLAB_BOARD
 #else
 static void _consoleTestTask(void *param)
 {
@@ -78,8 +78,8 @@ static void _consoleTestTask(void *param)
 			i=0;
 		}
 		
-		printf("FreeRTOS 10.0.0: Now Iteration number is: %d"MUX_NEW_LINE, i);
-		vTaskDelay(MUX_OS_MILL_SECOND(250));
+		printf("FreeRTOS 10.0.0: Now Iteration number is: %d"EXT_NEW_LINE, i);
+		vTaskDelay(EXT_OS_MILL_SECOND(250));
 		i++;
 	}
 }
@@ -91,7 +91,7 @@ static void _ledTestTask(void *param)
 	{
 //		vMuxConsoleOutput("LED");
 		ioport_toggle_pin_level(LED0_GPIO);
-		vTaskDelay( MUX_OS_MILL_SECOND(250));
+		vTaskDelay( EXT_OS_MILL_SECOND(250));
 	}
 }
 #endif
@@ -112,21 +112,21 @@ int main( void )
 	restoringFactory = gpio_pin_is_low(PIO_PA30_IDX);
 	if(restoringFactory)
 	{
-		MUX_DEBUGF(MUX_DBG_ON, ("RESET button is pressed, check it again"MUX_NEW_LINE));
-		MUX_DELAY_S(RESET_BTN_DELAY_SECONDS);
+		EXT_DEBUGF(EXT_DBG_ON, ("RESET button is pressed, check it again"EXT_NEW_LINE));
+		EXT_DELAY_S(RESET_BTN_DELAY_SECONDS);
 
 		restoringFactory = gpio_pin_is_low(PIO_PA30_IDX);
 		if(restoringFactory)
 		{
-			MUX_DEBUGF(MUX_DBG_ON, ("RESET button is pressed for about %d second"MUX_NEW_LINE, RESET_BTN_DELAY_SECONDS));
-			muxCmdFactory(NULL, NULL, 0);
+			EXT_DEBUGF(EXT_DBG_ON, ("RESET button is pressed for about %d second"EXT_NEW_LINE, RESET_BTN_DELAY_SECONDS));
+			extCmdFactory(NULL, NULL, 0);
 		}
 	}
 
 #if 0
 	else
 	{
-//		printf("reset button is High"MUX_NEW_LINE);
+//		printf("reset button is High"EXT_NEW_LINE);
 	}
 #endif
 	bspButtonConfig(BOOT_MODE_RTOS);
@@ -135,34 +135,34 @@ int main( void )
 
 
 #if 0
-	debugOption = 0xFFFFFFFF;//MUX_DEBUG_FLAG_IP_IN| MUX_DEBUG_FLAG_UDP_IN|MUX_DEBUG_FLAG_IGMP|MUX_DEBUG_FLAG_CMD;
+	debugOption = 0xFFFFFFFF;//EXT_DEBUG_FLAG_IP_IN| EXT_DEBUG_FLAG_UDP_IN|EXT_DEBUG_FLAG_IGMP|EXT_DEBUG_FLAG_CMD;
 #else
 	debugOption = 0;
 #endif
-	MUX_DEBUG_SET_ENABLE(debugOption);
+	EXT_DEBUG_SET_ENABLE(debugOption);
 
-//	printf(ANSI_COLOR_RED "Task initializing..."MUX_NEW_LINE);
-#if MUXLAB_BOARD
+//	printf(ANSI_COLOR_RED "Task initializing..."EXT_NEW_LINE);
+#if EXTLAB_BOARD
 #else
-	printf(ANSI_COLOR_RED"LED Task initializing..."MUX_NEW_LINE);
-	xTaskCreate(_ledTestTask, "ledTask", MUX_TASK_LED_STACK_SIZE, NULL, MUX_TASK_LED_PRIORITY, NULL);
+	printf(ANSI_COLOR_RED"LED Task initializing..."EXT_NEW_LINE);
+	xTaskCreate(_ledTestTask, "ledTask", EXT_TASK_LED_STACK_SIZE, NULL, EXT_TASK_LED_PRIORITY, NULL);
 #endif
 
-	muxBspFpgaReload();
+	extBspFpgaReload();
 
-	muxBspNetStackInit(&muxRun);
+	extBspNetStackInit(&extRun);
 	
-	muxFpgaConfig(&muxRun);
+	extFpgaConfig(&extRun);
 
-	printf(""MUX_NEW_LINE);
+	printf(""EXT_NEW_LINE);
 	
-	vMuxUartCmdConsoleStart(MUX_TASK_CONSOLE_STACK_SIZE, MUX_TASK_CONSOLE_PRIORITY);
+	vMuxUartCmdConsoleStart(EXT_TASK_CONSOLE_STACK_SIZE, EXT_TASK_CONSOLE_PRIORITY);
 
-//	printf("OS Scheduler beginning..."MUX_NEW_LINE);
+//	printf("OS Scheduler beginning..."EXT_NEW_LINE);
 
-	muxRs232Write((unsigned char *)"OS startup", 10);
+	extRs232Write((unsigned char *)"OS startup", 10);
 
-	muxJobPeriod(&muxRun);
+	extJobPeriod(&extRun);
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();

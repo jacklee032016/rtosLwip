@@ -502,7 +502,7 @@ err_t igmp_joingroup_netif(struct netif *netif, const ip4_addr_t *groupaddr)
 			ip4_addr_debug_print(IGMP_DEBUG, groupaddr);
 			LWIP_DEBUGF(IGMP_DEBUG, (""LWIP_NEW_LINE));
 
-			muxLwipIgmpDebugPrint(groupaddr, 1);
+			extLwipIgmpDebugPrint(groupaddr, 1);
 
 			/* If first use of the group, allow the group at the MAC level */
 			if ((group->use==0) && (netif->igmp_mac_filter != NULL))
@@ -600,7 +600,7 @@ err_t igmp_leavegroup_netif(struct netif *netif, const ip4_addr_t *groupaddr)
 		ip4_addr_debug_print(IGMP_DEBUG, groupaddr);
 		LWIP_DEBUGF(IGMP_DEBUG, (""LWIP_NEW_LINE));
 
-		muxLwipIgmpDebugPrint(groupaddr, 0);
+		extLwipIgmpDebugPrint(groupaddr, 0);
 
 		/* If there is no other use of the group */
 		if (group->use <= 1)

@@ -32,15 +32,15 @@ static tWsHandler websocket_cb = NULL;
 static tWsOpenHandler websocket_open_cb = NULL;
 #endif
 
-/* write reply into mhc->data, and wait to muxHttpSend to send it out */
-unsigned short muxHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode)
+/* write reply into mhc->data, and wait to extHttpSend to send it out */
+unsigned short extHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode)
 {
 	unsigned char *buf = mhc->data;
 	unsigned short offset = 2, size;
 //	err_t err;
 
 	/* write frame header for this transfer */
-	buf[0] = MUX_WS_FRAME_FLAG_FIN | opCode;
+	buf[0] = EXT_WS_FRAME_FLAG_FIN | opCode;
 	if (len > 125)
 	{
 		offset = 4;
@@ -56,27 +56,27 @@ unsigned short muxHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint
 	size = len;
 	if( (offset+len) > sizeof(mhc->data) )
 	{
-		MUX_INFOF(("[WS] data is too long (%d) for buffer with length %d", len, sizeof(mhc->data)-offset) );
+		EXT_INFOF(("[WS] data is too long (%d) for buffer with length %d", len, sizeof(mhc->data)-offset) );
 		size = sizeof(mhc->data) - offset;
 	}
 
 #if 0
-	err = muxHttpWrite(mhc, mhc->uri, &offset, TCP_WRITE_FLAG_COPY);
+	err = extHttpWrite(mhc, mhc->uri, &offset, TCP_WRITE_FLAG_COPY);
 	if(err!= ERR_OK)
 	{
-		MUX_ERRORF(("[WS] write frame header failed"));
+		EXT_ERRORF(("[WS] write frame header failed"));
 		return err;
 	}
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] sending frame header :%d", offset) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] sending frame header :%d", offset) );
 	offset = len;
-	err = muxHttpWrite(mhc, data, &offset, TCP_WRITE_FLAG_COPY);
+	err = extHttpWrite(mhc, data, &offset, TCP_WRITE_FLAG_COPY);
 	if(err!= ERR_OK)
 	{
-		MUX_ERRORF(("[WS] write frame data failed"));
+		EXT_ERRORF(("[WS] write frame data failed"));
 		return err;
 	}
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] sending data :%d", offset) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] sending data :%d", offset) );
 #else
 	memcpy(mhc->data+offset, data, size);
 	mhc->dataSendIndex = offset + size;
@@ -91,11 +91,11 @@ unsigned short muxHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint
 /**
  * Send status code 1000 (normal closure).
  */
-err_t muxHttpWebSocketSendClose(MuxHttpConn *mhc)
+err_t extHttpWebSocketSendClose(MuxHttpConn *mhc)
 {
-	const u8_t buf[] = {MUX_WS_FRAME_FLAG_FIN|MUX_WS_CODE_CLOSE, 0x02, 0x03, 0xe8};
+	const u8_t buf[] = {EXT_WS_FRAME_FLAG_FIN|EXT_WS_CODE_CLOSE, 0x02, 0x03, 0xe8};
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] closing connection"));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] closing connection"));
 	return tcp_write(mhc->pcb, buf, (unsigned short )sizeof (buf), TCP_WRITE_FLAG_COPY);
 }
 
@@ -106,17 +106,17 @@ err_t muxHttpWebSocketSendClose(MuxHttpConn *mhc)
  *         ERR_CLSD: close request from client
  *         ERR_VAL: invalid frame.
  */
-err_t muxHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
+err_t extHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
 {
 	u8_t *data = (u8_t *) p->payload;
 	u8_t opcode;
 
 	if (data != NULL && p->tot_len > 1)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] frame received"));
-		if ((data[0] & MUX_WS_FRAME_FLAG_FIN) == 0)
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] frame received"));
+		if ((data[0] & EXT_WS_FRAME_FLAG_FIN) == 0)
 		{
-			MUX_INFOF(("[WS] Warning: continuation frames not supported") );
+			EXT_INFOF(("[WS] Warning: continuation frames not supported") );
 			return ERR_OK;
 		}
 		
@@ -124,9 +124,9 @@ err_t muxHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
 		
 		switch (opcode)
 		{
-			case MUX_WS_CODE_TEXT:
-			case MUX_WS_CODE_BINARY:
-				MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] Opcode: 0x%hX, packet length: %d", opcode, p->tot_len));
+			case EXT_WS_CODE_TEXT:
+			case EXT_WS_CODE_BINARY:
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Opcode: 0x%hX, packet length: %d", opcode, p->tot_len));
 				
 				/* length: 7 bits; 7+16bits; 7+64 bits; only first 2 options are supported */
 				if (p->len > 6 )
@@ -139,13 +139,13 @@ err_t muxHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
 
 					if(! (data[1] & 0x80)  )
 					{
-						MUX_ERRORF(("[WS] frame from client is not masked"));
+						EXT_ERRORF(("[WS] frame from client is not masked"));
 					}
 
 					if (payloadLen == 127)
 					{/* 7+64 bits mode for length field */
 						/* most likely won't happen inside non-fragmented frame */
-						MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] Warning: frame is too long"));
+						EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Warning: frame is too long"));
 						return ERR_OK;
 					}
 					else if (payloadLen == 126)
@@ -159,7 +159,7 @@ err_t muxHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
 
 					if (payloadLen > p->tot_len)
 					{
-						MUX_ERRORF(("[WS] Error: incorrect frame size"));
+						EXT_ERRORF(("[WS] Error: incorrect frame size"));
 						return ERR_VAL;
 					}
 
@@ -172,26 +172,26 @@ err_t muxHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
 					copied = pbuf_copy_partial(p, mhc->data, payloadLen, data_offset);
 					if(copied != payloadLen)
 					{
-						MUX_INFOF(("[WS] frame: only copied %d bytes from %d bytes", copied, payloadLen));
+						EXT_INFOF(("[WS] frame: only copied %d bytes from %d bytes", copied, payloadLen));
 					}
 					
 					mhc->data[copied] = 0;
-					MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] frame (%d):'%s'", copied, mhc->data) );
+					EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] frame (%d):'%s'", copied, mhc->data) );
 					CONSOLE_DEBUG_MEM(mhc->data, copied, 0, "[WS] Frame");
 
-					muxHttpWebSocketWrite(mhc, mhc->data, payloadLen, TCP_WRITE_FLAG_COPY);
+					extHttpWebSocketWrite(mhc, mhc->data, payloadLen, TCP_WRITE_FLAG_COPY);
 
 					/* user callback */
 					// websocket_cb(pcb, &data[data_offset], payloadLen, opcode);
 				}
 				break;
 				
-			case MUX_WS_CODE_CLOSE:
-				MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] close request"));
+			case EXT_WS_CODE_CLOSE:
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] close request"));
 				return ERR_CLSD;
 
 			default:
-				MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] Unsupported opcode 0x%hX", opcode));
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Unsupported opcode 0x%hX", opcode));
 				break;
 		}
 		
@@ -207,7 +207,7 @@ err_t muxHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
 * check the websocket header and reply with web socket header when connection is web socket
 * SUCESS: this is web socket; FAILURE: this is not web socket, continue to other process 
 */
-char muxHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
+char extHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	char *keyStart, *keyEnd;
 	int	keyLen;
@@ -218,13 +218,13 @@ char muxHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 		return EXIT_FAILURE;
 	}
 	
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] opening handshake"));
-	mhc->reqType = MUX_HTTP_REQ_T_WEBSOCKET;
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] opening handshake"));
+	mhc->reqType = EXT_HTTP_REQ_T_WEBSOCKET;
 	
 	keyStart = strcasestr((char *)data, WEBSOCKET_KEY);
 	if(! keyStart)
 	{
-		MUX_ERRORF(("[WS] malformed packet: can't find Key header"));
+		EXT_ERRORF(("[WS] malformed packet: can't find Key header"));
 		goto badWebSocketReq;
 	}
 	
@@ -233,7 +233,7 @@ char muxHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 	keyEnd = strstr(keyStart, MHTTP_CRLF);
 	if (! keyEnd)
 	{
-		MUX_ERRORF( ("[WS] malformed packet: Key header is not correct"));
+		EXT_ERRORF( ("[WS] malformed packet: Key header is not correct"));
 		goto badWebSocketReq;
 	}
 	
@@ -253,7 +253,7 @@ char muxHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 
 		/* Get SHA1 */
 		keyLen += sizeof(WEBSOCKET_GUID) - 1;
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] Resulting key(%d): '%s'", keyLen, mhc->uri) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Resulting key(%d): '%s'", keyLen, mhc->uri) );
 		sha1((unsigned char *)mhc->uri, keyLen, sha1sum);
 
 		/* Base64 encode */
@@ -264,7 +264,7 @@ char muxHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 			index = snprintf((char *)mhc->data, sizeof(mhc->data), "%s%s"MHTTP_CRLF MHTTP_CRLF, WEBSOCKET_RESPONSE_HEADER, mhc->uri);
 
 			/* Send response */
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] Sending (%d):'%s'", index, mhc->data));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Sending (%d):'%s'", index, mhc->data));
 			tcp_write(mhc->pcb, mhc->data, index, TCP_WRITE_FLAG_COPY);
 		}
 
@@ -272,11 +272,11 @@ char muxHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 		
 	}
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("[WS] Key overflow"));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Key overflow"));
 
 badWebSocketReq:
 
-	muxHttpWebSocketSendClose(mhc);
+	extHttpWebSocketSendClose(mhc);
 	return EXIT_SUCCESS;
 	
 }

@@ -118,7 +118,7 @@ static int32 _rtl8307h_lut_hash_group_index_get(const rtl8307h_lut_group_param_t
     return index;
 }
 
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
 static int32 _rtl8307h_lut_hash0_index_get(const rtl8307h_lut_param_t* param, rtl8307h_lut_4way_idx_t idx)
 {
     if (param->type == LUT_UNICAST)
@@ -173,7 +173,7 @@ static void _rtl8307h_addrTbl_hash0_multi_restore(uint16 index, rtl8307h_lut_mul
 {
     uint16 restore_bits;
     uint16 key[7];
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
     uint16 tmp;
 #endif
 
@@ -301,7 +301,7 @@ static int32 _rtl8307h_lut_hash1_ip_index_get(const rtl8307h_lut_ipMulti_param_t
     return index;
 }
 
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
 static int32 _rtl8307h_lut_hash1_index_get(const rtl8307h_lut_param_t* param, rtl8307h_lut_4way_idx_t idx)
 {
     if (param->type == LUT_UNICAST)
@@ -490,7 +490,7 @@ static int32 _rtl8307h_addrTbl_unicast_param2entry(rtk_table_list_t table, rtl83
 
 static int32 _rtl8307h_addrTbl_unicast_entry2param(uint32 hashAlg, rtk_table_list_t table, uint32 index, rtl8307h_lut_uni_param_t* param, const rtl8307h_tblasic_entry_t *entry)
 {
-#ifndef	MUX_LAB
+#ifndef	EXT_LAB
     uint8 fid; 
 #endif
 

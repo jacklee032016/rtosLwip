@@ -70,4 +70,4 @@ TARGET_LIB_STATIC:=$(TARGET_LIB).a
 		 
 LOCAL_ALL:=
 
-include $(ROOT_DIR)/Makefile.post
+include $(RULE_DIR)/Makefile.post

@@ -3,8 +3,8 @@
 * header only for http service
 */
 
-#ifndef	__MUX_HTTP_H__
-#define	__MUX_HTTP_H__
+#ifndef	__EXT_HTTP_H__
+#define	__EXT_HTTP_H__
 
 /**
  *
@@ -110,19 +110,19 @@ enum
 	WS_BIN_MODE	= 0x02,
 }WS_MODE;
 
-#define	MUX_WS_FRAME_FLAG_FIN				0x80
+#define	EXT_WS_FRAME_FLAG_FIN				0x80
 
 
 /* low 4 bits in of firast byte in WS frame */
 enum
 {
-	MUX_WS_CODE_TEXT		= 0x01,
-	MUX_WS_CODE_BINARY	= 0x02,
+	EXT_WS_CODE_TEXT		= 0x01,
+	EXT_WS_CODE_BINARY	= 0x02,
 	
-	MUX_WS_CODE_CLOSE	= 0x08,
-	MUX_WS_CODE_PING		= 0x09,
-	MUX_WS_CODE_PONG	= 0x0A,
-}MUX_WS_CODE_T;
+	EXT_WS_CODE_CLOSE	= 0x08,
+	EXT_WS_CODE_PING		= 0x09,
+	EXT_WS_CODE_PONG	= 0x0A,
+}EXT_WS_CODE_T;
 
 typedef void (*tWsHandler)(struct tcp_pcb *pcb, uint8_t *data, u16_t data_len, uint8_t mode);
 typedef void (*tWsOpenHandler)(struct tcp_pcb *pcb, const char *uri);
@@ -174,7 +174,7 @@ void websocket_register_callbacks(tWsOpenHandler ws_open_cb, tWsHandler ws_cb);
 #define	MHTTPD_MAX_CONTENT_LEN_SIZE   (9 + MHTTPD_MAX_CONTENT_LEN_OFFSET)
 #endif
 
-#define	MUX_NMOS_MAX_HTTP_DHRS				4
+#define	EXT_NMOS_MAX_HTTP_DHRS				4
 
 
 #if	MHTTPD_SSI
@@ -224,12 +224,12 @@ typedef	enum
 
 typedef	enum
 {
-	MUX_HTTP_REQ_T_REST = 0,
-	MUX_HTTP_REQ_T_FILE,
-	MUX_HTTP_REQ_T_WEBSOCKET,
-	MUX_HTTP_REQ_T_CGI,		/* web page of info/status, which are created dynamically*/
-	MUX_HTTP_REQ_T_UPLOAD,	/* POST data for upload */
-}MUX_HTTP_REQ_T;
+	EXT_HTTP_REQ_T_REST = 0,
+	EXT_HTTP_REQ_T_FILE,
+	EXT_HTTP_REQ_T_WEBSOCKET,
+	EXT_HTTP_REQ_T_CGI,		/* web page of info/status, which are created dynamically*/
+	EXT_HTTP_REQ_T_UPLOAD,	/* POST data for upload */
+}EXT_HTTP_REQ_T;
 
 
 
@@ -243,7 +243,7 @@ typedef	struct
 	unsigned char		resourceCount;
 	char				resources[NMOS_URI_RESOURCE_MAX][NMOS_URI_RESOURCE_LENGTH];
 	
-	MUX_UUID_T		uuid;
+	EXT_UUID_T		uuid;
 
 	void				*priv;
 }MuxNmosApiReq;
@@ -305,7 +305,7 @@ typedef struct _MuxHttpConn
 	unsigned short			recvLength;
 	struct _MuxUploadContext  *uploadCtx;
 
-	MUX_HTTP_REQ_T			reqType;
+	EXT_HTTP_REQ_T			reqType;
 	unsigned char				data[MHTTPD_MAX_REQ_LENGTH];		/* used for request and response both */
 
 	unsigned short			dataSendIndex;
@@ -383,20 +383,20 @@ typedef struct _MuxHttpConn
 
 
 #define	HTTPREQ_IS_REST(mhc)	\
-			( (mhc)->reqType == MUX_HTTP_REQ_T_REST )
+			( (mhc)->reqType == EXT_HTTP_REQ_T_REST )
 
 #define	HTTPREQ_IS_FILE(mhc)	\
-			( (mhc)->reqType == MUX_HTTP_REQ_T_FILE )
+			( (mhc)->reqType == EXT_HTTP_REQ_T_FILE )
 
 #define	HTTPREQ_IS_WEBSOCKET(mhc)	\
-			( (mhc)->reqType == MUX_HTTP_REQ_T_WEBSOCKET )
+			( (mhc)->reqType == EXT_HTTP_REQ_T_WEBSOCKET )
 
 
 #define	HTTPREQ_IS_CGI(mhc)	\
-			( (mhc)->reqType == MUX_HTTP_REQ_T_CGI )
+			( (mhc)->reqType == EXT_HTTP_REQ_T_CGI )
 
 #define	HTTPREQ_IS_UPLOAD(mhc)	\
-			( (mhc)->reqType == MUX_HTTP_REQ_T_UPLOAD )
+			( (mhc)->reqType == EXT_HTTP_REQ_T_UPLOAD )
 
 
 
@@ -420,16 +420,16 @@ typedef struct
 
 
 
-#define	MUX_WEBPAGE_INFO						"/info"
-#define	MUX_WEBPAGE_MEDIA					"/media"
-#define	MUX_WEBPAGE_UPDATE_MCU				"/mcuUpdate"
-#define	MUX_WEBPAGE_UPDATE_FPGA			"/fpgaUpdate"
+#define	EXT_WEBPAGE_INFO						"/info"
+#define	EXT_WEBPAGE_MEDIA					"/media"
+#define	EXT_WEBPAGE_UPDATE_MCU				"/mcuUpdate"
+#define	EXT_WEBPAGE_UPDATE_FPGA			"/fpgaUpdate"
 
-#define	MUX_WEBPAGE_REBOOT					"/reboot"
+#define	EXT_WEBPAGE_REBOOT					"/reboot"
 
 
-#define	MUX_WEBPAGE_UPDATE_MCU_HTML		"/upgradeMcu.html"
-#define	MUX_WEBPAGE_UPDATE_FPGA_HTML		"/upgradeFpga.html"
+#define	EXT_WEBPAGE_UPDATE_MCU_HTML		"/upgradeMcu.html"
+#define	EXT_WEBPAGE_UPDATE_FPGA_HTML		"/upgradeFpga.html"
 
 
 #if MHTTPD_USE_MEM_POOL
@@ -458,7 +458,7 @@ void mhttpConnFree(MuxHttpConn *mhc);
 
 err_t mhttpConnClose(MuxHttpConn *mhc, struct tcp_pcb *pcb);
 
-err_t muxHttpFileFind(MuxHttpConn *mhc);
+err_t extHttpFileFind(MuxHttpConn *mhc);
 
 err_t mhttpPoll(void *arg, struct tcp_pcb *pcb);
 
@@ -467,9 +467,9 @@ void mhttpContinue(void *connection);
 #endif
 
 
-u8_t muxHttpSend(MuxHttpConn *mhc);
+u8_t extHttpSend(MuxHttpConn *mhc);
 
-err_t muxHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags);
+err_t extHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags);
 
 void mhttpConnEof(MuxHttpConn *mhc);
 
@@ -478,7 +478,7 @@ void mhttpConnEof(MuxHttpConn *mhc);
 extern char mhttpUriBuf[MHTTPD_URI_BUF_LEN+1];
 #endif
 
-err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp);
+err_t extHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp);
 
 
 #if	MHTTPD_SUPPORT_EXTSTATUS
@@ -488,37 +488,37 @@ err_t mhttpFindErrorFile(MuxHttpConn *mhc, u16_t error_nr);
 #endif
 
 
-err_t muxHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p);
+err_t extHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p);
 
-char muxHttpHandleRequest(MuxHttpConn *mhc);
+char extHttpHandleRequest(MuxHttpConn *mhc);
 
-char muxHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t data_len);
-err_t muxHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p);
+char extHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t data_len);
+err_t extHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p);
 
-err_t muxHttpWebSocketSendClose(MuxHttpConn *mhc);
-unsigned short  muxHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode);
-
-
-const char *muxHttpFindStatusHeader(unsigned short httpStatusCode);
-
-char	muxHttpRestError(MuxHttpConn *mhc, unsigned short httpErrorCode, const char *debug);
+err_t extHttpWebSocketSendClose(MuxHttpConn *mhc);
+unsigned short  extHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode);
 
 
-char muxHttpWebPageRootHander(MuxHttpConn  *mhc, void *data);
+const char *extHttpFindStatusHeader(unsigned short httpStatusCode);
 
-char muxHttpWebService(MuxHttpConn *mhc, void *data);
-char muxHttpWebPageResult(MuxHttpConn  *mhc, char *title, char *msg);
-
-
-int	 muxHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endHeader);
-
-char muxHttpPostDataBegin(MuxHttpConn *mhc, unsigned char *data, unsigned short len, unsigned char *postAutoWnd);
-void muxHttpPostDataFinished(MuxHttpConn *mhc);
-char muxHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len);
+char	extHttpRestError(MuxHttpConn *mhc, unsigned short httpErrorCode, const char *debug);
 
 
-char muxNmosRootApHander(MuxHttpConn  *mhc, void *data);
-char muxNmosNodeDumpHander(MuxHttpConn  *mhc, void *data);
+char extHttpWebPageRootHander(MuxHttpConn  *mhc, void *data);
+
+char extHttpWebService(MuxHttpConn *mhc, void *data);
+char extHttpWebPageResult(MuxHttpConn  *mhc, char *title, char *msg);
+
+
+int	 extHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endHeader);
+
+char extHttpPostDataBegin(MuxHttpConn *mhc, unsigned char *data, unsigned short len, unsigned char *postAutoWnd);
+void extHttpPostDataFinished(MuxHttpConn *mhc);
+char extHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len);
+
+
+char extNmosRootApHander(MuxHttpConn  *mhc, void *data);
+char extNmosNodeDumpHander(MuxHttpConn  *mhc, void *data);
 
 
 extern	const char *httpCommonHeader;

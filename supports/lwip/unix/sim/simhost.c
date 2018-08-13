@@ -155,7 +155,7 @@ static struct option longopts[] =
 
 #define NUM_OPTS ((sizeof(longopts) / sizeof(struct option)) - 1)
 
-static void init_netifs(MUX_RUNTIME_CFG *runCfg);
+static void init_netifs(EXT_RUNTIME_CFG *runCfg);
 
 static void usage(void)
 {
@@ -198,7 +198,7 @@ sntp_set_system_time(u32_t sec)
 static void simhost_tcpip_init_done(void *arg)
 {
 	sys_sem_t *sem;
-	MUX_RUNTIME_CFG *runCfg = (MUX_RUNTIME_CFG *)arg;
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
 	LWIP_ASSERT(("runCfg is NULL"), (runCfg!= NULL));
 	sem = (sys_sem_t *)runCfg->data;
@@ -236,7 +236,7 @@ static void simhost_tcpip_init_done(void *arg)
 #endif /* LWIP_SNMP */
 
 
-	muxLwipStartup(&guNetIf, &muxRun);
+	extLwipStartup(&guNetIf, &extRun);
 
 	sys_sem_signal(sem);
 }
@@ -394,7 +394,7 @@ static void netif_status_callback(struct netif *nif)
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
 
-static void init_netifs(MUX_RUNTIME_CFG *runCfg)
+static void init_netifs(EXT_RUNTIME_CFG *runCfg)
 {
 #if LWIP_HAVE_SLIPIF
 #if SLIP_PTY_TEST
@@ -511,9 +511,9 @@ static void main_thread(void *arg)
 {
 	sys_sem_t sem;
 
-	MUX_RUNTIME_CFG *runCfg = (MUX_RUNTIME_CFG *)arg;
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
-	muxSysParamsInit(runCfg);
+	extSysParamsInit(runCfg);
 
 
 #if 0
@@ -522,9 +522,9 @@ static void main_thread(void *arg)
 	IP_ADDR4(&ipaddr,  192, 168, 166, 2);
 #else
 
-	MUX_LWIP_INT_TO_IP(&ipaddr,  runCfg->local.ip);
-	MUX_LWIP_INT_TO_IP(&netmask,  runCfg->ipMask);
-	MUX_LWIP_INT_TO_IP(&gw,  runCfg->ipGateway);
+	EXT_LWIP_INT_TO_IP(&ipaddr,  runCfg->local.ip);
+	EXT_LWIP_INT_TO_IP(&netmask,  runCfg->ipMask);
+	EXT_LWIP_INT_TO_IP(&gw,  runCfg->ipGateway);
 #endif
 
 	fprintf(stderr, " %s\n\r", ip4addr_ntoa(&ipaddr));
@@ -590,16 +590,16 @@ int main(int argc, char **argv)
 	debug_flags = LWIP_DBG_ON;
 
 #if 0	
-	muxRun.isTx = 0; /* run as RX default, 192.168.166.3 */
+	extRun.isTx = 0; /* run as RX default, 192.168.166.3 */
 #else
-	muxRun.isTx = 1; /* run as TX default, 192.168.166.2 */
+	extRun.isTx = 1; /* run as TX default, 192.168.166.2 */
 #endif
 	while ((ch = getopt_long(argc, argv, "rdhg:i:m:p:", longopts, NULL)) != -1)
 	{
 		switch (ch)
 		{
 			case 'r':
-				muxRun.isTx = 0;	/* 192.168.166.3 */
+				extRun.isTx = 0;	/* 192.168.166.3 */
 				break;
 			case 'd':
 				debug_flags |= (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|LWIP_DBG_FRESH|LWIP_DBG_HALT);
@@ -631,7 +631,7 @@ int main(int argc, char **argv)
 				break;
 		}
 	}
-	printf("System initialized, '%s' run as '%s'"LWIP_NEW_LINE, argv[0], MUX_IS_TX(&muxRun)?"TX":"RX");
+	printf("System initialized, '%s' run as '%s'"LWIP_NEW_LINE, argv[0], EXT_IS_TX(&extRun)?"TX":"RX");
 	
 	argc -= optind;
 	argv += optind;
@@ -643,7 +643,7 @@ int main(int argc, char **argv)
 #endif /* PERF */
 
 
-	sys_thread_new("main_thread", main_thread, &muxRun, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+	sys_thread_new("main_thread", main_thread, &extRun, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 	pause();
 	return 0;
 }

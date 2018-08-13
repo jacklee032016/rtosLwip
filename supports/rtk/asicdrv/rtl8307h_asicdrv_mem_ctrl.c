@@ -386,7 +386,7 @@ void __spi_flash_waitWEL(void)
   
     __spi_flash_waitRdy();
 
-#ifdef	MUX_LAB
+#ifdef	EXT_LAB
 	while (!(__spi_flash_readSR() & SPI_FLASH_WEL) );
 #else
     while (!__spi_flash_readSR() & SPI_FLASH_WEL);

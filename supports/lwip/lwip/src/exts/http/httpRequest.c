@@ -19,7 +19,7 @@ static char _mHttpParseUrl(MuxHttpConn *mhc, unsigned char *data, u16_t data_len
 	char		*sp;
 	u16_t uri_len;
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("parsing URI(%d):'%s'", data_len, data));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("parsing URI(%d):'%s'", data_len, data));
 	sp = lwip_strnstr((char *)data, " ", data_len);
 #if	MHTTPD_SUPPORT_V09
 	if (sp == NULL)
@@ -39,7 +39,7 @@ static char _mHttpParseUrl(MuxHttpConn *mhc, unsigned char *data, u16_t data_len
 	uri_len = (u16_t)(sp - (char *)(data));
 	if ((sp == 0) || uri_len <= 0 ) /* validate URL parsing */
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("invalid URI:'%s'", data));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%s'", data));
 		return EXIT_SUCCESS;
 	}
 
@@ -65,13 +65,13 @@ static char _mHttpParseUrl(MuxHttpConn *mhc, unsigned char *data, u16_t data_len
 		memset(mhc->uri, 0, sizeof(mhc->uri));
 		uri_len = LWIP_MIN(sizeof(mhc->uri), uri_len);
 		memcpy(mhc->uri, data, uri_len );
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received request URI(%hu): '%s'", uri_len, mhc->uri));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received request URI(%hu): '%s'", uri_len, mhc->uri));
 //		snprintf(mhc->uri, sizeof(mhc->uri), "%s", uri);
 		return EXIT_SUCCESS;
 	}
 	else
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("invalid URI:'%s'", data));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%s'", data));
 	}
 
 	return EXIT_FAILURE;
@@ -81,41 +81,41 @@ static char _mHttpParseUrl(MuxHttpConn *mhc, unsigned char *data, u16_t data_len
 static int _mHttpParseMethod(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	int ret = 0;
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("CRLF received, parsing request"));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CRLF received, parsing request"));
 
 	/* parse method */
 	if (!strncmp((char *)data, "GET ", 4)) 
 	{
 		/* received GET request */
 		mhc->method = HTTP_METHOD_GET;
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received GET request"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received GET request"));
 		ret = 4;
 	}
 	else if (!strncmp((char *)data, "PUT ", 4)) 
 	{
 		mhc->method = HTTP_METHOD_PUT;
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received PUT request"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received PUT request"));
 		ret = 4;
 	}
 	else if (!strncmp((char *)data, "POST ", 5))
 	{
 		/* store request type */
 		mhc->method = HTTP_METHOD_POST;
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received POST request"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received POST request"));
 		ret = 5;
 	}
 	else if (!strncmp((char *)data, "DELETE ", 7))
 	{
 		/* store request type */
 		mhc->method = HTTP_METHOD_DELETE;
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received DELETE request"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received DELETE request"));
 		ret = 7;
 	}
 	else if (!strncmp((char *)data, "PATCH ", 6))
 	{
 		/* store request type */
 		mhc->method = HTTP_METHOD_PATCH;
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received PATCH request"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received PATCH request"));
 		ret = 6;
 	}
 	else
@@ -123,7 +123,7 @@ static int _mHttpParseMethod(MuxHttpConn *mhc, unsigned char *data, u16_t data_l
 		/* null-terminate the METHOD (pbuf is freed anyway wen returning) */
 		data[4] = 0;
 		/* unsupported method! */
-		MUX_ERRORF( ("Unsupported request method (not implemented): \"%s\"", data));
+		EXT_ERRORF( ("Unsupported request method (not implemented): \"%s\"", data));
 		//mhttpFindErrorFile(mhc, WEB_RES_NOT_IMP);
 //		return 0;
 	}
@@ -152,10 +152,10 @@ static char _mHttpParseRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data
 
 	if (HTTP_IS_POST(mhc) )
 	{
-		return muxHttpPostRequest(mhc, data, data_len);
+		return extHttpPostRequest(mhc, data, data_len);
 	}
 
-	if(muxHttpHandleRequest(mhc) == EXIT_FAILURE)
+	if(extHttpHandleRequest(mhc) == EXIT_FAILURE)
 	{
 //		err = ERR_ARG;
 		return EXIT_FAILURE;
@@ -170,7 +170,7 @@ static char _mHttpParseRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data
  *         ERR_INPROGRESS if request was OK so far but not fully received
  *         another err_t otherwise
  */
-err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
+err_t extHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 {
 	unsigned char *data;
 	char *crlf;
@@ -179,21 +179,21 @@ err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 	u16_t clen;
 //	err_t err;
 
-	MUX_ASSERT(("p != NULL"), p != NULL);
-	MUX_ASSERT(("mhc != NULL"), mhc != NULL);
+	EXT_ASSERT(("p != NULL"), p != NULL);
+	EXT_ASSERT(("mhc != NULL"), mhc != NULL);
 
 	if ((mhc->handle != NULL) || (mhc->file != NULL))
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received data while sending a file"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received data while sending a file"));
 		/* already sending a file */
 		/* @todo: abort? */
 		return ERR_USE;
 	}
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Received %"U16_F" bytes", p->tot_len));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received %"U16_F" bytes", p->tot_len));
 #if 0
 	pbuf_copy_partial(p, mhc->data, p->tot_len, 0);
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("recv:'%s'", mhc->data) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%s'", mhc->data) );
 	CONSOLE_DEBUG_MEM(mhc->data, p->tot_len, 0, "Request Data");
 #endif
 
@@ -202,12 +202,12 @@ err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 	/* enqueue the pbuf */
 	if (mhc->req == NULL)
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("First pbuf"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("First pbuf"));
 		mhc->req = p;
 	}
 	else
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("pbuf enqueued"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("pbuf enqueued"));
 		pbuf_cat(mhc->req, p);
 	}
 	
@@ -227,11 +227,11 @@ err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 		data_len = p->len;
 		if (p->len != p->tot_len)
 		{
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("Warning: incomplete header due to chained pbufs"));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Warning: incomplete header due to chained pbufs"));
 		}
 	}
 
-	MUX_DEBUGF(MUX_HTTPD_DEBUG, ("data %d:'%s'", data_len, data ));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data %d:'%s'", data_len, data ));
 
 	/* received enough data for minimal request? */
 	if (data_len >= MHTTP_MIN_REQ_LEN)
@@ -243,7 +243,7 @@ err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 			goto badrequest;
 		}
 
-		if( muxHttpWebSocketParseHeader(mhc, data, data_len) == EXIT_SUCCESS)
+		if( extHttpWebSocketParseHeader(mhc, data, data_len) == EXIT_SUCCESS)
 		{
 			return ERR_OK;
 		}
@@ -263,7 +263,7 @@ err_t muxHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 	else
 	{
 badrequest:
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("bad request"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("bad request"));
 		/* could not parse request */
 		return mhttpFindErrorFile(mhc, WEB_RES_BAD_REQUEST);
 	}
@@ -273,7 +273,7 @@ badrequest:
 
 
 /* *data: current pointer of data handled; endHeader: the end of HTTP header */
-int	 muxHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endHeader)
+int	 extHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endHeader)
 {
 	char *scontent_len_end, *scontent_len;
 	char *content_len_num;
@@ -289,16 +289,16 @@ int	 muxHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endH
 	{
 		/* If we come here, headers are fully received (double-crlf), but Content-Length
 		was not included. Since this is currently the only supported method, we have to fail in this case! */
-		MUX_ERRORF(("Error when parsing Content-Length"));
-		muxHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		EXT_ERRORF(("Error when parsing Content-Length"));
+		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
 		return -1;
 	}
 	
 	scontent_len_end = lwip_strnstr(scontent_len + HTTP_HDR_CONTENT_LEN_LEN, MHTTP_CRLF, HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN);
 	if (scontent_len_end == NULL)
 	{
-		MUX_ERRORF( ("Error when parsing number in Content-Length: '%s'",scontent_len+HTTP_HDR_CONTENT_LEN_LEN ));
-		muxHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		EXT_ERRORF( ("Error when parsing number in Content-Length: '%s'",scontent_len+HTTP_HDR_CONTENT_LEN_LEN ));
+		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
 		return -1;
 	}
 
@@ -316,12 +316,12 @@ int	 muxHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endH
 			
 	if (contentLen < 0)
 	{
-		MUX_ERRORF( ("POST received invalid Content-Length: %s", content_len_num));
-		muxHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		EXT_ERRORF( ("POST received invalid Content-Length: %s", content_len_num));
+		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
 		return -1;
 	}
 
-	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("Parsing content length: %d bytes", contentLen));
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("Parsing content length: %d bytes", contentLen));
 
 	return contentLen;
 }

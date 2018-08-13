@@ -305,73 +305,73 @@ IoT_Error_t parseStringValue(char *buf, const char *jsonString, jsmntok_t *token
 
 
 
-#define	MUX_JSON_KEY_STATUS					"code" //"status"
+#define	EXT_JSON_KEY_STATUS					"code" //"status"
 
-#define	MUX_JSON_KEY_ERROR					"error"
-#define	MUX_JSON_KEY_DEBUG					"debug"
+#define	EXT_JSON_KEY_ERROR					"error"
+#define	EXT_JSON_KEY_DEBUG					"debug"
 
 /* only used in response */
-#define	MUX_JSON_KEY_NAME					"name"
-#define	MUX_JSON_KEY_MODEL					"model"
-#define	MUX_JSON_KEY_VERSION					"version"
+#define	EXT_JSON_KEY_NAME					"name"
+#define	EXT_JSON_KEY_MODEL					"model"
+#define	EXT_JSON_KEY_VERSION					"version"
 
 /* used both in request and response */
-#define	MUX_JSON_KEY_COMMAND				"cmd"
+#define	EXT_JSON_KEY_COMMAND				"cmd"
 
-#define	MUX_JSON_KEY_USER					"user"
-#define	MUX_JSON_KEY_PASSWORD				"pwd"
+#define	EXT_JSON_KEY_USER					"user"
+#define	EXT_JSON_KEY_PASSWORD				"pwd"
 
-#define	MUX_JSON_KEY_ID						"uuid"
-#define	MUX_JSON_KEY_MAC						"mac"
-#define	MUX_JSON_KEY_IP						"ip"
-#define	MUX_JSON_KEY_MASK					"mask"
-#define	MUX_JSON_KEY_GATEWAY				"gw"
-#define	MUX_JSON_KEY_DHCP					"dhcp"
-#define	MUX_JSON_KEY_TX						"tx"
-#define	MUX_JSON_KEY_DEST_IP					"destIp"
-#define	MUX_JSON_KEY_VIDEO_MAC_LOCAL		"videoMacLocal"
-#define	MUX_JSON_KEY_VIDEO_MAC_DEST		"videoMacDest"
-#define	MUX_JSON_KEY_VIDEO_IP_LOCAL			"videoIpLocal"
-#define	MUX_JSON_KEY_VIDEO_IP_DEST			"videoIpDest"
-#define	MUX_JSON_KEY_VIDEO_PORT_LOCAL		"videoPortLocal"
-#define	MUX_JSON_KEY_VIDEO_PORT_DEST		"videoPortDest"
+#define	EXT_JSON_KEY_ID						"uuid"
+#define	EXT_JSON_KEY_MAC						"mac"
+#define	EXT_JSON_KEY_IP						"ip"
+#define	EXT_JSON_KEY_MASK					"mask"
+#define	EXT_JSON_KEY_GATEWAY				"gw"
+#define	EXT_JSON_KEY_DHCP					"dhcp"
+#define	EXT_JSON_KEY_TX						"tx"
+#define	EXT_JSON_KEY_DEST_IP					"destIp"
+#define	EXT_JSON_KEY_VIDEO_MAC_LOCAL		"videoMacLocal"
+#define	EXT_JSON_KEY_VIDEO_MAC_DEST		"videoMacDest"
+#define	EXT_JSON_KEY_VIDEO_IP_LOCAL			"videoIpLocal"
+#define	EXT_JSON_KEY_VIDEO_IP_DEST			"videoIpDest"
+#define	EXT_JSON_KEY_VIDEO_PORT_LOCAL		"videoPortLocal"
+#define	EXT_JSON_KEY_VIDEO_PORT_DEST		"videoPortDest"
 
-#define	MUX_JSON_KEY_AUDIO_PORT_LOCAL		"audioPortLocal"
-#define	MUX_JSON_KEY_AUDIO_PORT_DEST		"audioPortDest"
+#define	EXT_JSON_KEY_AUDIO_PORT_LOCAL		"audioPortLocal"
+#define	EXT_JSON_KEY_AUDIO_PORT_DEST		"audioPortDest"
 
-#define	MUX_JSON_KEY_ANC_DT_PORT_LOCAL		"dataPortLocal"
-#define	MUX_JSON_KEY_ANC_DT_PORT_DEST		"dataPortDest"
+#define	EXT_JSON_KEY_ANC_DT_PORT_LOCAL		"dataPortLocal"
+#define	EXT_JSON_KEY_ANC_DT_PORT_DEST		"dataPortDest"
 
-#define	MUX_JSON_KEY_ANC_ST_PORT_LOCAL		"streaPortLocal"
-#define	MUX_JSON_KEY_ANC_ST_PORT_DEST		"streaPortDest"
+#define	EXT_JSON_KEY_ANC_ST_PORT_LOCAL		"streaPortLocal"
+#define	EXT_JSON_KEY_ANC_ST_PORT_DEST		"streaPortDest"
 
 
-#define	MUX_JSON_KEY_MC_IP					"mcIp"
-#define	MUX_JSON_KEY_MC_PORT				"mcPort"
+#define	EXT_JSON_KEY_MC_IP					"mcIp"
+#define	EXT_JSON_KEY_MC_PORT				"mcPort"
 
-#define	MUX_JSON_KEY_IS_CONNECT				"isConnect"
-#define	MUX_JSON_KEY_IS_MC					"isMc"
+#define	EXT_JSON_KEY_IS_CONNECT				"isConnect"
+#define	EXT_JSON_KEY_IS_MC					"isMc"
 
 /* following is just configuration items, never send/receive */
-#define	MUX_JSON_KEY_HTTP_PORT				"HttpPort"
+#define	EXT_JSON_KEY_HTTP_PORT				"HttpPort"
 
 
-#define	MUX_JSON_CMD_GET_PARAMS				"getParams"
-#define	MUX_JSON_CMD_SET_PARAMS				"setParams"
+#define	EXT_JSON_CMD_GET_PARAMS				"getParams"
+#define	EXT_JSON_CMD_SET_PARAMS				"setParams"
 
-#define	MUX_JSON_CMD_TRANSFER				"transfer"
-
-
-#define	MUX_JSON_KEY_ACTION					"action"
-
-#define	MUX_JSON_KEY_ACTION_START			"start"
-#define	MUX_JSON_KEY_ACTION_STOP			"stop"
+#define	EXT_JSON_CMD_TRANSFER				"transfer"
 
 
+#define	EXT_JSON_KEY_ACTION					"action"
 
-#define	MUX_JSON_MESSAGE_SIZE		64		/* it is also used in parsing request, the most length of request is UUID, 36 */
-#define	MUX_JSON_TOKEN_SIZE			50*2
-#define	MUX_JSON_OUT_BUF_SIZE		512*2
+#define	EXT_JSON_KEY_ACTION_START			"start"
+#define	EXT_JSON_KEY_ACTION_STOP			"stop"
+
+
+
+#define	EXT_JSON_MESSAGE_SIZE		64		/* it is also used in parsing request, the most length of request is UUID, 36 */
+#define	EXT_JSON_TOKEN_SIZE			50*2
+#define	EXT_JSON_OUT_BUF_SIZE		512*2
 
 
 #define	JSON_TOKEN_COUNT(mParser)	\
@@ -419,8 +419,8 @@ typedef	struct
 	unsigned char		isFeedBack;
 	unsigned short	waitMs;
 
-	char				scKey[MUX_SC_KEY_MAX_LENGTH];
-	char				scID[MUX_SC_ID_MAX_LENGTH];
+	char				scKey[EXT_SC_KEY_MAX_LENGTH];
+	char				scID[EXT_SC_ID_MAX_LENGTH];
 }MuxSetupData;
 
 typedef struct
@@ -431,79 +431,79 @@ typedef struct
 	int				outSize;
 	int				outIndex;
 	
-	char				outBuffer[MUX_JSON_OUT_BUF_SIZE];
-	char				msg[MUX_JSON_MESSAGE_SIZE];
+	char				outBuffer[EXT_JSON_OUT_BUF_SIZE];
+	char				msg[EXT_JSON_MESSAGE_SIZE];
 
-	MUX_UUID_T		uuid;
+	EXT_UUID_T		uuid;
 
-	MUX_MAC_ADDRESS	target;
+	EXT_MAC_ADDRESS	target;
 	char					cmd[32];
 
 	char					*currentJSonString;
 	int					jsonLength;	
 
-	jsmntok_t 			tokens[MUX_JSON_TOKEN_SIZE];
+	jsmntok_t 			tokens[EXT_JSON_TOKEN_SIZE];
 	int					tokenCount;
 
-	MUX_RUNTIME_CFG	*runCfg;
+	EXT_RUNTIME_CFG	*runCfg;
 	MuxSetupData		setupData;
-}MUX_JSON_PARSER;
+}EXT_JSON_PARSER;
 
 
-typedef int (* token_callback)(MUX_JSON_PARSER *parser, int index, jsmntok_t  *key, void *data);
+typedef int (* token_callback)(EXT_JSON_PARSER *parser, int index, jsmntok_t  *key, void *data);
 
 
 #define	PARSE_IS_OK(parser)		\
 			(parser->status == JSON_STATUS_OK)
 
 
-const char *muxJsonErrorMsg(short code);
+const char *extJsonErrorMsg(short code);
 
-void muxJsonInit(MUX_JSON_PARSER  *parser, char *jsonStr, unsigned short size);
+void extJsonInit(EXT_JSON_PARSER  *parser, char *jsonStr, unsigned short size);
 
-int	muxJsonParse(MUX_JSON_PARSER  *parser, char *jStr, unsigned short size );
+int	extJsonParse(EXT_JSON_PARSER  *parser, char *jStr, unsigned short size );
 
-int muxJsonEqual(MUX_JSON_PARSER  *parser, int index, jsmntok_t *token, void *data);
-jsmntok_t *muxJsonFindKeyToken(MUX_JSON_PARSER  *parser, const char *key);
-
-
-int muxJsonParseUnsignedChar(MUX_JSON_PARSER *parser, const char *key, unsigned char *value);
-int muxJsonParseUnsignedShort(MUX_JSON_PARSER *parser, const char *key, unsigned short *value);
-int muxJsonParseUnsignedInteger(MUX_JSON_PARSER *parser, const char *key, unsigned int *value);
-
-int muxJsonParseString(MUX_JSON_PARSER *parser, const char *key, char *retVal, int size);
-
-int muxJsonFindCommand(MUX_JSON_PARSER  *parser);
-
-int muxJsonParseIpAddress(MUX_JSON_PARSER *parser, const char *key, unsigned int *ipAddress);
-int muxJsonParseMacAddress(MUX_JSON_PARSER *parser, const char *key, MUX_MAC_ADDRESS *macAddress);
-
-int muxJsonParseUuid(MUX_JSON_PARSER *parser, const char *key, MUX_UUID_T *guid);
+int extJsonEqual(EXT_JSON_PARSER  *parser, int index, jsmntok_t *token, void *data);
+jsmntok_t *extJsonFindKeyToken(EXT_JSON_PARSER  *parser, const char *key);
 
 
+int extJsonParseUnsignedChar(EXT_JSON_PARSER *parser, const char *key, unsigned char *value);
+int extJsonParseUnsignedShort(EXT_JSON_PARSER *parser, const char *key, unsigned short *value);
+int extJsonParseUnsignedInteger(EXT_JSON_PARSER *parser, const char *key, unsigned int *value);
+
+int extJsonParseString(EXT_JSON_PARSER *parser, const char *key, char *retVal, int size);
+
+int extJsonFindCommand(EXT_JSON_PARSER  *parser);
+
+int extJsonParseIpAddress(EXT_JSON_PARSER *parser, const char *key, unsigned int *ipAddress);
+int extJsonParseMacAddress(EXT_JSON_PARSER *parser, const char *key, EXT_MAC_ADDRESS *macAddress);
+
+int extJsonParseUuid(EXT_JSON_PARSER *parser, const char *key, EXT_UUID_T *guid);
 
 
-unsigned char  muxJsonParseDataArray(MUX_JSON_PARSER *parser);
-
-char muxJsonRequestParseCommand(char *jsonRequest, unsigned short size, MUX_JSON_PARSER *parser);
 
 
-void	muxUuidGenerate(MUX_UUID_T *uuid, MUX_RUNTIME_CFG *runCfg);
-char muxUuidParse(MUX_UUID_T *uuid, char *strUuid);
-char muxUuidEqual(MUX_UUID_T *dest, MUX_UUID_T *src);
-char *muxUuidToString(MUX_UUID_T *uuid);
+unsigned char  extJsonParseDataArray(EXT_JSON_PARSER *parser);
+
+char extJsonRequestParseCommand(char *jsonRequest, unsigned short size, EXT_JSON_PARSER *parser);
 
 
-char muxJsonHandle(MUX_JSON_PARSER  *parser);
+void	extUuidGenerate(EXT_UUID_T *uuid, EXT_RUNTIME_CFG *runCfg);
+char extUuidParse(EXT_UUID_T *uuid, char *strUuid);
+char extUuidEqual(EXT_UUID_T *dest, EXT_UUID_T *src);
+char *extUuidToString(EXT_UUID_T *uuid);
+
+
+char extJsonHandle(EXT_JSON_PARSER  *parser);
 
 
 #ifdef	X86
 
-int muxJsonPrint(MUX_JSON_PARSER *parser, jsmntok_t *t, size_t count, int indent, const char *prompt);
-void muxJsonDebug(MUX_JSON_PARSER *parser , MUX_RUNTIME_CFG *runCfg, const char *prompt);
-void	muxDebugCfg(MUX_RUNTIME_CFG *cfg, const char *prompt);
+int extJsonPrint(EXT_JSON_PARSER *parser, jsmntok_t *t, size_t count, int indent, const char *prompt);
+void extJsonDebug(EXT_JSON_PARSER *parser , EXT_RUNTIME_CFG *runCfg, const char *prompt);
+void	extDebugCfg(EXT_RUNTIME_CFG *cfg, const char *prompt);
 
-char	muxSysParamsInit(MUX_RUNTIME_CFG *runCfg);
+char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg);
 #endif
 
 
@@ -511,9 +511,9 @@ extern	const char *jsonGetParamsCmd;
 //extern	const char *jsonErrorStatus;
 
 extern	const char *jsonReplyParams;
-extern	MUX_JSON_PARSER  muxParser;
+extern	EXT_JSON_PARSER  extParser;
 
-//extern	MUX_JSON_PARSER  *parser;
+//extern	EXT_JSON_PARSER  *parser;
 
 
 #endif /* __JSMN_H_ */

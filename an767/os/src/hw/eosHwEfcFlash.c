@@ -2,14 +2,14 @@
 * This module is not used now, only bspHwEfcFlash is used
 */
 
-#include "muxOs.h"
+#include "eos.h"
 
 /** Flash wait state number. */
 #define	IFLASH_WAIT_STATE_NBR		(6)
 #define 	__BUFFER_SIZE            (IFLASH_PAGE_SIZE / 4)
 
 
-void muxBspEfcFlashReadInfo(void)
+void extBspEfcFlashReadInfo(void)
 {
 	uint32_t ul_rc;
 	uint32_t unique_id[4];
@@ -44,7 +44,7 @@ void muxBspEfcFlashReadInfo(void)
 
 
 
-static char muxBspEfcFlashWrite(uint32_t pageAddress,  const void *buffer, uint32_t size)
+static char extBspEfcFlashWrite(uint32_t pageAddress,  const void *buffer, uint32_t size)
 {
 //	volatile	uint32_t *p_test_page_data;
 	uint32_t ret;
@@ -110,7 +110,7 @@ static char muxBspEfcFlashWrite(uint32_t pageAddress,  const void *buffer, uint3
 }
 
 #if 0
-static void muxBspEfcFlashRead(uint32_t address,  const void *buffer, uint32_t size)
+static void extBspEfcFlashRead(uint32_t address,  const void *buffer, uint32_t size)
 {
 	unsigned int i;
 	uint32_t *pageBuffer= (uint32_t *)buffer;
@@ -130,7 +130,7 @@ static void muxBspEfcFlashRead(uint32_t address,  const void *buffer, uint32_t s
 }
 #endif
 
-void muxBspEfcFlashTestWrite(void)
+void extBspEfcFlashTestWrite(void)
 {
 	unsigned int i;
 	uint32_t pageBuffer[__BUFFER_SIZE];
@@ -144,7 +144,7 @@ void muxBspEfcFlashTestWrite(void)
 		pageBuffer[i] = 1 << (i % MAX_SHIFTING_NUMBER);
 	}
 
-	muxBspEfcFlashWrite(TEST_PAGE_ADDRESS, pageBuffer, IFLASH_PAGE_SIZE);
+	extBspEfcFlashWrite(TEST_PAGE_ADDRESS, pageBuffer, IFLASH_PAGE_SIZE);
 
 	/* Validate page */
 	printf("-I- Checking page contents ");

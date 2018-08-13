@@ -562,13 +562,12 @@ sys_mutex_free(struct sys_mutex **mutex)
 
 /*-----------------------------------------------------------------------------------*/
 /* Time */
-u32_t
-sys_now(void)
+u32_t sys_now(void)
 {
-  struct timespec ts;
+	struct timespec ts;
 
-  get_monotonic_time(&ts);
-  return (u32_t)(ts.tv_sec * 1000L + ts.tv_nsec / 1000000L);
+	get_monotonic_time(&ts);
+	return (u32_t)(ts.tv_sec * 1000L + ts.tv_nsec / 1000000L);
 }
 
 u32_t

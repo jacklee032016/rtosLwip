@@ -811,8 +811,8 @@ u8_t pbuf_free(struct pbuf *p)
 		else
 		{
 			LWIP_DEBUGF( PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_free: %p has ref %"U16_F", ending here."LWIP_NEW_LINE, (void *)p, ref));
-#if MUX_LWIP_DEBUG
-			MUX_LWIP_DEBUG_PBUF(p);
+#if EXT_LWIP_DEBUG
+			EXT_LWIP_DEBUG_PBUF(p);
 #endif
 			/* stop walking through the chain */
 			p = NULL;

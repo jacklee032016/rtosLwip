@@ -15,7 +15,7 @@
 #define BYTE_ORDER	LITTLE_ENDIAN
 #endif
 
-#ifndef		MUX_LAB
+#ifndef		EXT_LAB
 /* following options can not be used with LwIP, instead arch.h. J.L. */
 /* Types based on stdint.h */
 typedef uint8_t            u8_t;

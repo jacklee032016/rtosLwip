@@ -8,23 +8,23 @@
 #include "http.h"
 #include "jsmn.h"
 
-static int __muxHttpWebPagePrintHeader(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPagePrintHeader(char *data, unsigned int size, MuxHttpConn *mhc)
 {
 	int index = 0;
 	
-	index += snprintf(data+index, size-index, "HTTP/1.0 200 OK"MUX_NEW_LINE );
-	index += snprintf(data+index, size-index, "Server: "MHTTPD_SERVER_AGENT"" MUX_NEW_LINE);
-	index += snprintf(data+index, size-index, "Content-type: text/html" MUX_NEW_LINE );
-	index += snprintf(data+index, size-index, "Content-Length: 955 " MUX_NEW_LINE MUX_NEW_LINE );
+	index += snprintf(data+index, size-index, "HTTP/1.0 200 OK"EXT_NEW_LINE );
+	index += snprintf(data+index, size-index, "Server: "MHTTPD_SERVER_AGENT"" EXT_NEW_LINE);
+	index += snprintf(data+index, size-index, "Content-type: text/html" EXT_NEW_LINE );
+	index += snprintf(data+index, size-index, "Content-Length: 955 " EXT_NEW_LINE EXT_NEW_LINE );
 	
 	return index;
 }
 
 
-static int __muxHttpWebPageReboot(char *data, unsigned int size, MuxHttpConn *mhc, int seconds)
+static int __extHttpWebPageReboot(char *data, unsigned int size, MuxHttpConn *mhc, int seconds)
 {
 	int index = 0;
-//	MUX_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+//	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
 
 #if 1
 	index += snprintf(data+index, size-index, "<DIV class=\"title\"><H2>Reboot</H2></DIV>"); 
@@ -39,16 +39,16 @@ static int __muxHttpWebPageReboot(char *data, unsigned int size, MuxHttpConn *mh
 	return index;
 }
 
-static char _muxHttpWebPageReboot(MuxHttpConn  *mhc, void *data)
+static char _extHttpWebPageReboot(MuxHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
 	int contentLength = 0;
 	
-	index += __muxHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	index += __extHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 	headerLength = index;
 
-	contentLength = __muxHttpWebPageReboot((char *)mhc->data+index, sizeof(mhc->data)-index, mhc, 3);
+	contentLength = __extHttpWebPageReboot((char *)mhc->data+index, sizeof(mhc->data)-index, mhc, 3);
 
 	index += snprintf((char *)mhc->data+headerLength-8, 5, "%d", contentLength);
 
@@ -58,25 +58,25 @@ static char _muxHttpWebPageReboot(MuxHttpConn  *mhc, void *data)
 	mhc->httpStatusCode = WEB_RES_REQUEST_OK;
 
 #ifdef	ARM
-//	MUX_DELAY_MS(1500);
-//	MUX_REBOOT();
-	muxDelayReboot(1000);
+//	EXT_DELAY_MS(1500);
+//	EXT_REBOOT();
+	extDelayReboot(1000);
 #endif
 
 	return EXIT_SUCCESS;
 }
 
 
-static int __muxHttpWebPageMedia(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPageMedia(char *data, unsigned int size, MuxHttpConn *mhc)
 {
 	int index = 0;
-	MUX_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
 	
 	/* device */
 	index += snprintf(data+index, size-index, "<DIV class=\"title\"><H2>Video/Audio</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Multicast:</LABEL><DIV class=\"label\">%s</DIV></DIV>",
 		STR_BOOL_VALUE(runCfg->isMCast) );
 
-	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Media IP Address:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", MUX_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
+	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Media IP Address:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
 
 	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Video Port:</LABEL><DIV class=\"label\">%d</DIV></DIV>", runCfg->dest.vport );
 	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Audio Port:</LABEL><DIV class=\"label\">%d</DIV></DIV>", runCfg->dest.aport );
@@ -103,17 +103,17 @@ static int __muxHttpWebPageMedia(char *data, unsigned int size, MuxHttpConn *mhc
 }
 
 
-static char _muxHttpWebPageMediaHander(MuxHttpConn  *mhc, void *data)
+static char _extHttpWebPageMediaHander(MuxHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
 	int contentLength = 0;
 
 	
-	index += __muxHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	index += __extHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 	headerLength = index;
 
-	contentLength = __muxHttpWebPageMedia((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	contentLength = __extHttpWebPageMedia((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 
 	index += snprintf((char *)mhc->data+headerLength-8, 5, "%d", contentLength);
 
@@ -128,19 +128,19 @@ static char _muxHttpWebPageMediaHander(MuxHttpConn  *mhc, void *data)
 //_CODE char *versionString;
 #endif
 
-static int __muxHttpWebPageInfo(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPageInfo(char *data, unsigned int size, MuxHttpConn *mhc)
 {
 	int index = 0;
-	MUX_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
 	
 	/* device */
 	index += snprintf(data+index, size-index, "<DIV class=\"title\"><H2>Device</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Product Name:</LABEL><DIV class=\"label\">%s</DIV></DIV>",
-		MUX_767_PRODUCT_NAME);
-	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Model:</LABEL><DIV class=\"label\">%s-%s</DIV></DIV>"MUX_NEW_LINE, MUX_767_MODEL, MUX_IS_TX(runCfg)?"TX":"RX" );
+		EXT_767_PRODUCT_NAME);
+	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Model:</LABEL><DIV class=\"label\">%s-%s</DIV></DIV>"EXT_NEW_LINE, EXT_767_MODEL, EXT_IS_TX(runCfg)?"TX":"RX" );
 	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Custom Name:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", runCfg->name);
 #ifdef	ARM
-	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Firmware Version:</LABEL><DIV class=\"label\">%s(Build %s)</DIV></DIV>",  MUX_VERSION_STRING, BUILD_DATE_TIME );
-	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >FPGA Version:</LABEL><DIV class=\"label\">%s</DIV></DIV>",  muxFgpaReadVersion() );
+	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Firmware Version:</LABEL><DIV class=\"label\">%s(Build %s)</DIV></DIV>",  EXT_VERSION_STRING, BUILD_DATE_TIME );
+	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >FPGA Version:</LABEL><DIV class=\"label\">%s</DIV></DIV>",  extFgpaReadVersion() );
 #else
 	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >Firmware Version:</LABEL><DIV class=\"label\">%02d.%02d.%02d</DIV></DIV>",
 		runCfg->version.major, runCfg->version.minor, runCfg->version.revision);
@@ -152,11 +152,11 @@ static int __muxHttpWebPageInfo(char *data, unsigned int size, MuxHttpConn *mhc)
 	MAC_ADDRESS_PRINT(data, size, index, &(runCfg->local.mac));
 	index += snprintf(data+index, size-index, "</DIV></DIV>");
 
-	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >IP Address:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", MUX_LWIP_IPADD_TO_STR(&(runCfg->local.ip)) );
+	index += snprintf(data+index, size-index, "<DIV class=\"field\"><LABEL >IP Address:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", EXT_LWIP_IPADD_TO_STR(&(runCfg->local.ip)) );
 
-	index += snprintf(data+index, size-index, " <DIV class=\"field\"><LABEL >Subnet Mask:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", MUX_LWIP_IPADD_TO_STR(&(runCfg->ipMask)) );
+	index += snprintf(data+index, size-index, " <DIV class=\"field\"><LABEL >Subnet Mask:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", EXT_LWIP_IPADD_TO_STR(&(runCfg->ipMask)) );
 
-	index += snprintf(data+index, size-index, " <DIV class=\"field\"><LABEL >Gateway:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", MUX_LWIP_IPADD_TO_STR(&(runCfg->ipGateway)) );
+	index += snprintf(data+index, size-index, " <DIV class=\"field\"><LABEL >Gateway:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway)) );
 	index += snprintf(data+index, size-index, " <DIV class=\"field\"><LABEL >DHCP:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", STR_BOOL_VALUE(runCfg->netMode) );
 	index += snprintf(data+index, size-index, " <DIV class=\"field\"><LABEL >Dipswitch:</LABEL><DIV class=\"label\" >%s</DIV></DIV></DIV>", STR_BOOL_VALUE(runCfg->isDipOn) );
 
@@ -177,17 +177,17 @@ static int __muxHttpWebPageInfo(char *data, unsigned int size, MuxHttpConn *mhc)
 }
 
 
-static char _muxHttpWebPageInfoHander(MuxHttpConn  *mhc, void *data)
+static char _extHttpWebPageInfoHander(MuxHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
 	int contentLength = 0;
 
 	
-	index += __muxHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	index += __extHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 	headerLength = index;
 
-	contentLength = __muxHttpWebPageInfo((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	contentLength = __extHttpWebPageInfo((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 
 	index += snprintf((char *)mhc->data+headerLength-8, 5, "%d", contentLength);
 
@@ -200,30 +200,30 @@ static char _muxHttpWebPageInfoHander(MuxHttpConn  *mhc, void *data)
 
 
 
-static int __muxHttpWebPageRoot(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPageRoot(char *data, unsigned int size, MuxHttpConn *mhc)
 {
 	int index = 0;
 	
-	index += snprintf(data+index, size-index, "<HTML><HEAD><TITLE>Muxlab %s-500767</TITLE>", MUX_IS_TX(&muxRun)?"TX":"RX" );
-	index += snprintf(data+index, size-index, "<LINK href=\"/styles.css\" type=\"text/css\" rel=\"stylesheet\"><SCRIPT type=\"text/javascript\" src=\"/load_html.js\"></SCRIPT></HEAD>"MUX_NEW_LINE );
+	index += snprintf(data+index, size-index, "<HTML><HEAD><TITLE>Muxlab %s-500767</TITLE>", EXT_IS_TX(&extRun)?"TX":"RX" );
+	index += snprintf(data+index, size-index, "<LINK href=\"/styles.css\" type=\"text/css\" rel=\"stylesheet\"><SCRIPT type=\"text/javascript\" src=\"/load_html.js\"></SCRIPT></HEAD>"EXT_NEW_LINE );
 	index += snprintf(data+index, size-index, "<BODY onload=\"JavaScript:load_http_doc('%s', 'content','')\"><DIV id=\"body\"><DIV id=\"header\"><a id=\"logo\" href=\"/\"><img alt=\"Muxlab Control Panel\" src=\"/logo.jpg\"></a><br />",
-		MUX_WEBPAGE_INFO);
+		EXT_WEBPAGE_INFO);
 	index += snprintf(data+index, size-index, "<div data-text=\"dt_productName\" id=\"id_mainProductName\">500767-%s-UTP 3G-SDI/ST2110 over IP Uncompressed Extender %s, UTP</div></DIV>" , 
-		MUX_IS_TX(&muxRun)?"TX":"RX", MUX_IS_TX(&muxRun)?"TX":"RX"   );
+		EXT_IS_TX(&extRun)?"TX":"RX", EXT_IS_TX(&extRun)?"TX":"RX"   );
 	index += snprintf(data+index, size-index, "<DIV id=\"nav\"><a data-text=\"Info\" id=\"nav_info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Info</a>", 
-		MUX_WEBPAGE_INFO);
+		EXT_WEBPAGE_INFO);
 	index += snprintf(data+index, size-index, "<a id=\"nav_media\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Media</a>", 
-		MUX_WEBPAGE_MEDIA);
+		EXT_WEBPAGE_MEDIA);
 
 	index += snprintf(data+index, size-index, "<a id=\"nav_upgrade_mcu\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Upgrade MCU</a>", 
-		MUX_WEBPAGE_UPDATE_MCU_HTML);
+		EXT_WEBPAGE_UPDATE_MCU_HTML);
 
 	index += snprintf(data+index, size-index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Upgrade FPGA</a>",
-		MUX_WEBPAGE_UPDATE_FPGA_HTML);
+		EXT_WEBPAGE_UPDATE_FPGA_HTML);
 
 	index += snprintf(data+index, size-index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:reboot_device()\">Reboot</a></DIV>");
 
-	index += snprintf(data+index, size-index, "<DIV id=\"message\"></DIV><DIV id=\"content\"></DIV><DIV id=\"footer\">&copy; MuxLab Inc. %s</DIV></DIV>", MUX_OS_NAME );
+	index += snprintf(data+index, size-index, "<DIV id=\"message\"></DIV><DIV id=\"content\"></DIV><DIV id=\"footer\">&copy; MuxLab Inc. %s</DIV></DIV>", EXT_OS_NAME );
 
 
 	index += snprintf(data+index, size-index, "<SCRIPT type=\"text/javascript\">function submit_firmware(chip)	{ var form = document.getElementById('formFirmware'); ");
@@ -235,7 +235,7 @@ static int __muxHttpWebPageRoot(char *data, unsigned int size, MuxHttpConn *mhc)
 	index += snprintf(data+index, size-index, " function reboot_device(){var response = confirm(\"Do you want to reboot?\"); "
 		"if (response){ "
 		"load_http_doc('%s', 'content',''); "
-		"setTimeout(function(){window.location.reload(1);}, 3000); } }", MUX_WEBPAGE_REBOOT);
+		"setTimeout(function(){window.location.reload(1);}, 3000); } }", EXT_WEBPAGE_REBOOT);
 
 	index += snprintf(data+index, size-index, "</SCRIPT></BODY></HTML>");
 	
@@ -243,7 +243,7 @@ static int __muxHttpWebPageRoot(char *data, unsigned int size, MuxHttpConn *mhc)
 }
 
 
-char muxHttpWebPageRootHander(MuxHttpConn  *mhc, void *data)
+char extHttpWebPageRootHander(MuxHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
@@ -251,10 +251,10 @@ char muxHttpWebPageRootHander(MuxHttpConn  *mhc, void *data)
 
 	TRACE();
 	
-	index += __muxHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	index += __extHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 	headerLength = index;
 
-	contentLength = __muxHttpWebPageRoot((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	contentLength = __extHttpWebPageRoot((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 
 	index += snprintf((char *)mhc->data+headerLength-8, 5, "%d", contentLength);
 
@@ -273,25 +273,25 @@ static const MuxHttpHandle	_webpages[] =
 	{
 		uri 		: 	"/",
 		method	: 	HTTP_METHOD_GET,
-		handler	:	muxHttpWebPageRootHander
+		handler	:	extHttpWebPageRootHander
 	},
 	
 	{
-		uri 		: 	MUX_WEBPAGE_INFO,
+		uri 		: 	EXT_WEBPAGE_INFO,
 		method	: 	HTTP_METHOD_GET,
-		handler	:	_muxHttpWebPageInfoHander
+		handler	:	_extHttpWebPageInfoHander
 	},
 	
 	{
-		uri 		: 	MUX_WEBPAGE_MEDIA,
+		uri 		: 	EXT_WEBPAGE_MEDIA,
 		method	: 	HTTP_METHOD_GET,
-		handler	:	_muxHttpWebPageMediaHander
+		handler	:	_extHttpWebPageMediaHander
 	},
 
 	{
-		uri 		: 	MUX_WEBPAGE_REBOOT,
+		uri 		: 	EXT_WEBPAGE_REBOOT,
 		method	: 	HTTP_METHOD_GET,
-		handler	:	_muxHttpWebPageReboot
+		handler	:	_extHttpWebPageReboot
 	},
 
 	{
@@ -302,27 +302,27 @@ static const MuxHttpHandle	_webpages[] =
 };
 
 
-char muxHttpWebService(MuxHttpConn *mhc, void *data)
+char extHttpWebService(MuxHttpConn *mhc, void *data)
 {
 	const MuxHttpHandle	*page = _webpages;
 	char		ret;
 
-	mhc->reqType = MUX_HTTP_REQ_T_CGI;
+	mhc->reqType = EXT_HTTP_REQ_T_CGI;
 	
 	while(page->uri )
 	{
-		MUX_DEBUGF(MUX_HTTPD_DEBUG, ("API:'%s' :: REQ:'%s'", page->uri, mhc->uri));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("API:'%s' :: REQ:'%s'", page->uri, mhc->uri));
 		if( IS_STRING_EQUAL(page->uri, mhc->uri))
 		{
 			ret = page->handler(mhc, (void *)page);
 			if(ret == EXIT_FAILURE)
 			{
 			}	
-			if(MUX_DEBUG_IS_ENABLE(MUX_DEBUG_FLAG_CMD))
+			if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 			{
 //				printf("output RES12 %p, %d bytes: '%s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outBuffer);
 			}
-			MUX_DEBUGF(MUX_HTTPD_DEBUG, ("return value of web page %s handler:%d", page->uri, ret) );
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("return value of web page %s handler:%d", page->uri, ret) );
 
 			return ret;
 		}
@@ -334,14 +334,14 @@ char muxHttpWebService(MuxHttpConn *mhc, void *data)
 }
 
 
-char muxHttpWebPageResult(MuxHttpConn  *mhc, char *title, char *msg)
+char extHttpWebPageResult(MuxHttpConn  *mhc, char *title, char *msg)
 {
 	int index = 0;
 	int headerLength = 0;
 	int contentLength = 0;
 
 	memset(mhc->data, 0, sizeof(mhc->data));
-	index += __muxHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
+	index += __extHttpWebPagePrintHeader((char *)mhc->data+index, sizeof(mhc->data)-index, mhc);
 	headerLength = index;
 
 	contentLength += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "<DIV class=\"title\"><H2>%s</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV></DIV>",

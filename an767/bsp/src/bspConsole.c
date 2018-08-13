@@ -43,8 +43,8 @@ void bspConsoleReset(const char *name)
 
 	CONSOLE_RESET_CURSOR();
 
-	printf("-- %s --"MUX_NEW_LINE, name);
-	bspConsolePutString(MUX_NEW_LINE);
+	printf("-- %s --"EXT_NEW_LINE, name);
+	bspConsolePutString(EXT_NEW_LINE);
 }
 
 
@@ -138,21 +138,21 @@ char bspConsoleGetCharTimeout(char *c, unsigned int timeoutMs)
 		if (bspConsoleIsRxReady() )
 		{
 			*c = bspConsoleGetChar();
-			return MUX_TRUE;
+			return EXT_TRUE;
 		}
 		
-		MUX_DELAY_US(1);
+		EXT_DELAY_US(1);
 		count++;
 		if(count == 500)
 		{
 			timeoutMs--;
 			count = 0;
 		}
-//		printf("Timeout %d"MUX_NEW_LINE, timeoutMs);
+//		printf("Timeout %d"EXT_NEW_LINE, timeoutMs);
 	}
 	
-	printf("Timeout on serial read"MUX_NEW_LINE);
-	return MUX_FALSE;
+	printf("Timeout on serial read"EXT_NEW_LINE);
+	return EXT_FALSE;
 }
 
 void bspConsoleDumpFrame(uint8_t *frame, uint32_t size)
@@ -162,7 +162,7 @@ void bspConsoleDumpFrame(uint8_t *frame, uint32_t size)
 	{
 		printf("%02x ", frame[i]);
 	}
-	bspConsolePutString(MUX_NEW_LINE);
+	bspConsolePutString(EXT_NEW_LINE);
 }
 
 void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address)
@@ -187,7 +187,7 @@ void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address)
 			bspConsolePutChar(*tmp++);
 		}
 #endif		
-		printf(""MUX_NEW_LINE);
+		printf(""EXT_NEW_LINE);
 	}
 	
 	if ((size % 16) != 0)
@@ -212,7 +212,7 @@ void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address)
 			bspConsolePutChar(buffer[j]);
 		}
 #endif		
-		printf(""MUX_NEW_LINE);
+		printf(""EXT_NEW_LINE);
 	}
 }
 

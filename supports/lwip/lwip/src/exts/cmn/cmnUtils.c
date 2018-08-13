@@ -36,77 +36,77 @@ unsigned int cmnMuxCRC32b(void *message, int len)
 
 
 
-static const	MUX_CONST_STR	_ipcmdStringRsParities[] =
+static const	EXT_CONST_STR	_ipcmdStringRsParities[] =
 {
 	{
-		type	: MUX_RS232_PARITY_NONE,
-		name	: MUX_RS232_PAR_STR_NONE
+		type	: EXT_RS232_PARITY_NONE,
+		name	: EXT_RS232_PAR_STR_NONE
 	},
 	{
-		type	: MUX_RS232_PARITY_ODD,
-		name	: MUX_RS232_PAR_STR_ODD
+		type	: EXT_RS232_PARITY_ODD,
+		name	: EXT_RS232_PAR_STR_ODD
 	},
 	{
-		type	: MUX_RS232_PARITY_EVEN,
-		name	: MUX_RS232_PAR_STR_EVEN
+		type	: EXT_RS232_PARITY_EVEN,
+		name	: EXT_RS232_PAR_STR_EVEN
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
-static const	MUX_CONST_STR	_videoColorSpaces[] =
+static const	EXT_CONST_STR	_videoColorSpaces[] =
 {
 	{
-		type	: MUX_V_COLORSPACE_YCBCR_422,
+		type	: EXT_V_COLORSPACE_YCBCR_422,
 		name	: "YCbCr-422"
 	},
 	{
-		type	: MUX_V_COLORSPACE_YCBCR_444,
+		type	: EXT_V_COLORSPACE_YCBCR_444,
 		name	: "YCbCr-444"
 	},
 	
 	{
-		type	: MUX_V_COLORSPACE_RGB,
+		type	: EXT_V_COLORSPACE_RGB,
 		name	: "RGB"
 	},
 
 	{
-		type	: MUX_V_COLORSPACE_YCBCR_420,
+		type	: EXT_V_COLORSPACE_YCBCR_420,
 		name	: "YCbCr-420"
 	},
 	{
-		type	: MUX_V_COLORSPACE_XYZ,
+		type	: EXT_V_COLORSPACE_XYZ,
 		name	: "XYZ"
 	},
 	{
-		type	: MUX_V_COLORSPACE_KEY,
+		type	: EXT_V_COLORSPACE_KEY,
 		name	: "KEY"
 	},
 	{
-		type	: MUX_V_COLORSPACE_CL_YCBCR_422,
+		type	: EXT_V_COLORSPACE_CL_YCBCR_422,
 		name	: "CLYCbCr-422"
 	},
 	{
-		type	: MUX_V_COLORSPACE_CL_YCBCR_444,
+		type	: EXT_V_COLORSPACE_CL_YCBCR_444,
 		name	: "CLYCbCr-444"
 	},
 
 	{
-		type	: MUX_V_COLORSPACE_CL_YCBCR_420,
+		type	: EXT_V_COLORSPACE_CL_YCBCR_420,
 		name	: "CLYCbCr-420"
 	},
 	{
-		type	: MUX_INVALIDATE_STRING_TYPE,
+		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
 	}
 };
 
 
-const char *muxCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
+const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 {
-	const MUX_CONST_STR *_str;
+	const EXT_CONST_STR *_str;
 
 	switch(strType)
 	{
@@ -121,7 +121,7 @@ const char *muxCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 			break;
 	}
 
-	while(_str->type!= MUX_INVALIDATE_STRING_TYPE)
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
 	{
 		if(_str->type == type)
 		{
@@ -135,9 +135,9 @@ const char *muxCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 }
 
 
-const short muxCmnTypeFind(CMN_STR_TYPE  strType, char *str)
+const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 {
-	const MUX_CONST_STR *_str;
+	const EXT_CONST_STR *_str;
 
 	switch(strType)
 	{
@@ -152,7 +152,7 @@ const short muxCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 			break;
 	}
 
-	while(_str->type!= MUX_INVALIDATE_STRING_TYPE)
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
 	{
 		if(IS_STRING_EQUAL(_str->name, str) )
 		{

@@ -88,7 +88,7 @@ extern unsigned char debug_flags;
 #define	LWIP_SOCKET					0	// (NO_SYS==0)
 #define	LWIP_NETCONN				0	// (NO_SYS==0)
 
-#define	MUX_WITH_OS				(NO_SYS == 0)
+#define	EXT_WITH_OS				(NO_SYS == 0)
 
 #define SO_REUSE                   1
 #define IP_SOF_BROADCAST_RECV      1

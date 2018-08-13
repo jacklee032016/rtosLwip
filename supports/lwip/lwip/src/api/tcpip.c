@@ -302,23 +302,23 @@ tcpip_timeout(u32_t msecs, sys_timeout_handler h, void *arg)
  * @param arg argument to pass to timeout function h
  * @return ERR_MEM on memory error, ERR_OK otherwise
  */
-err_t
-tcpip_untimeout(sys_timeout_handler h, void *arg)
+err_t tcpip_untimeout(sys_timeout_handler h, void *arg)
 {
-  struct tcpip_msg *msg;
+	struct tcpip_msg *msg;
 
-  LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
+	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
-  msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
-  if (msg == NULL) {
-    return ERR_MEM;
-  }
+	msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
+	if (msg == NULL)
+	{
+		return ERR_MEM;
+	}
 
-  msg->type = TCPIP_MSG_UNTIMEOUT;
-  msg->msg.tmo.h = h;
-  msg->msg.tmo.arg = arg;
-  sys_mbox_post(&mbox, msg);
-  return ERR_OK;
+	msg->type = TCPIP_MSG_UNTIMEOUT;
+	msg->msg.tmo.h = h;
+	msg->msg.tmo.arg = arg;
+	sys_mbox_post(&mbox, msg);
+	return ERR_OK;
 }
 #endif /* LWIP_TCPIP_TIMEOUT && LWIP_TIMERS */
 

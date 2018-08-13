@@ -48,9 +48,9 @@ static void _udpRxTimer(void* arg)
 	struct ExtUdpRxPerfStats *_st = (struct ExtUdpRxPerfStats *)arg;
 	unsigned int endTime = sys_now();
 
-	MUX_DEBUGF(MUX_DBG_ON, ("UdpRxPerf don't receive packets within %u ms", UDP_RX_PERF_TIMER_MSECS));
-	MUX_DEBUGF(MUX_DBG_ON, ("RECV: %u, Drop: %u", _st->recved, _st->recvId-_st->firstId-_st->recved));
-	MUX_DEBUGF(MUX_DBG_ON, ("Time: %u ms, Traffic: %u", endTime-_st->startTime-UDP_RX_PERF_TIMER_MSECS, _st->traffic));
+	EXT_DEBUGF(EXT_DBG_ON, ("UdpRxPerf don't receive packets within %u ms", UDP_RX_PERF_TIMER_MSECS));
+	EXT_DEBUGF(EXT_DBG_ON, ("RECV: %u, Drop: %u", _st->recved, _st->recvId-_st->firstId-_st->recved));
+	EXT_DEBUGF(EXT_DBG_ON, ("Time: %u ms, Traffic: %u", endTime-_st->startTime-UDP_RX_PERF_TIMER_MSECS, _st->traffic));
 
 	memset(_st, 0 , sizeof(struct ExtUdpRxPerfStats));
 }
@@ -64,7 +64,7 @@ static void _udpRxPerfRecv(void *arg, struct udp_pcb *tpcb, struct pbuf *p, cons
 	
 	/* first, see if the datagram is received in order */
 	recv_id =  lwip_htonl(*(int *)(p->payload));
-	MUX_ASSERT(("Pbuf is null"), (p!=NULL));
+	EXT_ASSERT(("Pbuf is null"), (p!=NULL));
 	
 	if (_st->recved == 0)
 	{
@@ -77,7 +77,7 @@ static void _udpRxPerfRecv(void *arg, struct udp_pcb *tpcb, struct pbuf *p, cons
 		sys_untimeout(_udpRxTimer, _st);
 		if(recv_id != _st->recvId +1 )
 		{
-//			MUX_INFOF(("Missed %d datagrams", recv_id-_st->recvId));
+//			EXT_INFOF(("Missed %d datagrams", recv_id-_st->recvId));
 			_st->dropped += recv_id-_st->recvId;
 		}
 		_st->recvId = recv_id;
@@ -86,14 +86,14 @@ static void _udpRxPerfRecv(void *arg, struct udp_pcb *tpcb, struct pbuf *p, cons
 	_st->recved++;
 //	_st->recvId = recv_id;
 	_st->traffic += p->tot_len;
-//	MUX_DEBUGF(MUX_DBG_ON, ("RECV: %u, firstId: %u, recvId: %u, time: %u", _st->recved, _st->firstId, _st->recvId, (unsigned int)(sys_now()-_st->startTime)));
+//	EXT_DEBUGF(EXT_DBG_ON, ("RECV: %u, firstId: %u, recvId: %u, time: %u", _st->recved, _st->firstId, _st->recvId, (unsigned int)(sys_now()-_st->startTime)));
 	printf(".");
 
-#if 0//MUX_LWIP_DEBUG
-	MUX_LWIP_DEBUG_PBUF(p);
+#if 0//EXT_LWIP_DEBUG
+	EXT_LWIP_DEBUG_PBUF(p);
 	if(p->next)
 	{
-		MUX_LWIP_DEBUG_PBUF(p->next);
+		EXT_LWIP_DEBUG_PBUF(p->next);
 	}
 #endif
 
@@ -110,7 +110,7 @@ char extUdpRxPerfStart(void)
 	pcb = udp_new();
 	if (!pcb)
 	{
-		MUX_ERRORF(("OOM when creating PCB for UDP RX Perf"MUX_NEW_LINE));
+		EXT_ERRORF(("OOM when creating PCB for UDP RX Perf"EXT_NEW_LINE));
 		return EXIT_FAILURE;
 	}
 
@@ -118,12 +118,12 @@ char extUdpRxPerfStart(void)
 	err = udp_bind(pcb, IP_ADDR_ANY, LWIPERF_TCP_PORT_DEFAULT);
 	if (err != ERR_OK)
 	{
-		MUX_ERRORF(("Unable to bind to UDP Perf port: err = %d"MUX_NEW_LINE, err));
+		EXT_ERRORF(("Unable to bind to UDP Perf port: err = %d"EXT_NEW_LINE, err));
 		return EXIT_FAILURE;
 	}
 
 	memset(&_stats, 0 , sizeof(struct ExtUdpRxPerfStats));
-	MUX_DEBUGF(MUX_DBG_ON, ("RECV: %u, Drop: %u", _stats.recved, _stats.recvId-_stats.firstId-_stats.recved));
+	EXT_DEBUGF(EXT_DBG_ON, ("RECV: %u, Drop: %u", _stats.recved, _stats.recvId-_stats.firstId-_stats.recved));
 	udp_recv(pcb, _udpRxPerfRecv, &_stats);
 
  //     rxperf_server_running = 1;
@@ -176,7 +176,7 @@ static void _udpTxTimer(void* arg)
 
 	_txTask->isStop = 1;
 
-	MUX_DEBUGF(MUX_DBG_ON, ("UdpTxTask timeout"));
+	EXT_DEBUGF(EXT_DBG_ON, ("UdpTxTask timeout"));
 
 }
 
@@ -199,13 +199,13 @@ static void _udpTxPerTask(void *arg)
 
 		sys_timeout(UDP_TX_PERF_TIMER_MSECS, _udpTxTimer, _txTask);
 
-		MUX_DEBUGF(MUX_DBG_ON, ("UdpTxTask start..."));
+		EXT_DEBUGF(EXT_DBG_ON, ("UdpTxTask start..."));
 		while (1)//count < 1000*10)
 		{
 			_txTask->sendBuf = pbuf_alloc(PBUF_TRANSPORT, 1450, PBUF_POOL);
 			if (!_txTask->sendBuf)
 			{
-				MUX_ERRORF(("error allocating pbuf to send"MUX_NEW_LINE));
+				EXT_ERRORF(("error allocating pbuf to send"EXT_NEW_LINE));
 				_txTask->oomCount++;
 				break;
 			}
@@ -224,7 +224,7 @@ static void _udpTxPerTask(void *arg)
 			err = udp_send(_txTask->pcb, _txTask->sendBuf);
 			if (err != ERR_OK)
 			{
-//				MUX_ERRORF(("Error on udp_send packet %d: %d"MUX_NEW_LINE, id, err));
+//				EXT_ERRORF(("Error on udp_send packet %d: %d"EXT_NEW_LINE, id, err));
 				_txTask->failedCount++;
 	//			pbuf_free(pbuf_to_be_sent);
 	//			return EXIT_FAILURE;
@@ -241,14 +241,14 @@ static void _udpTxPerTask(void *arg)
 
 			if(_txTask->isStop )
 			{
-				printf("Ended!"MUX_NEW_LINE);
+				printf("Ended!"EXT_NEW_LINE);
 				break;
 			}
 		}
 		
-		printf(MUX_NEW_LINE);
+		printf(EXT_NEW_LINE);
 
-		MUX_DEBUGF(MUX_DBG_ON, ("UdpTxTask Stop, Send %d; failed:%d; OOM: %d", _txTask->sendCount, _txTask->failedCount, _txTask->oomCount));
+		EXT_DEBUGF(EXT_DBG_ON, ("UdpTxTask Stop, Send %d; failed:%d; OOM: %d", _txTask->sendCount, _txTask->failedCount, _txTask->oomCount));
 
 		udp_disconnect(_txTask->pcb);
 		
@@ -271,7 +271,7 @@ char extUdpTxPerfStart(unsigned int svrIpAddress)
 	err = udp_connect(_txTask->pcb, &ipaddr, LWIPERF_TCP_PORT_DEFAULT);
 	if (err != ERR_OK)
 	{
-		MUX_ERRORF(("error on udp_connect for UDP TX Perf: %x"MUX_NEW_LINE, err));
+		EXT_ERRORF(("error on udp_connect for UDP TX Perf: %x"EXT_NEW_LINE, err));
 		return EXIT_FAILURE;
 	}
 
@@ -291,14 +291,14 @@ char extUdpTxPerfTask(void)
 	_udpTxTask.pcb = udp_new();
 	if (!_udpTxTask.pcb)
 	{
-		MUX_ERRORF(("OOM for UDP TX Perf"MUX_NEW_LINE));
+		EXT_ERRORF(("OOM for UDP TX Perf"EXT_NEW_LINE));
 		return EXIT_FAILURE;
 	}
 
 	/* bind local address */
 	if ((err = udp_bind(_udpTxTask.pcb, IP_ADDR_ANY, 0)) != ERR_OK)
 	{
-		MUX_ERRORF(("error on udp_bind for UDP TX Perf: %x"MUX_NEW_LINE, err));
+		EXT_ERRORF(("error on udp_bind for UDP TX Perf: %x"EXT_NEW_LINE, err));
 		return EXIT_FAILURE;
 	}
 	
@@ -311,7 +311,7 @@ char extUdpTxPerfTask(void)
 	err = sys_sem_new(&_udpTxTask.sema, 0);
 	if (err == ERR_MEM)
 	{
-		MUX_ERRORF(("Can't create semaphore: %x"MUX_NEW_LINE, err));
+		EXT_ERRORF(("Can't create semaphore: %x"EXT_NEW_LINE, err));
 		return ERR_MEM;
 	}
 

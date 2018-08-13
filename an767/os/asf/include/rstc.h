@@ -205,7 +205,7 @@
  * @{
  */
 
-#include "muxOs.h"
+#include "eos.h"
 
 /// @cond
 /**INDENT-OFF**/
