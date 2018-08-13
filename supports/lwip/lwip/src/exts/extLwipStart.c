@@ -11,10 +11,6 @@
 
 extern	const struct tftp_context		extTftp;
 
-#if LWIP_EXT_MQTT_CLIENT
-static mqtt_client_t *_mqttClient;
-#endif
-
 EXT_JSON_PARSER  extParser;
 
 
@@ -129,9 +125,7 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 #endif
 
 #if LWIP_EXT_MQTT_CLIENT
-	ip4_addr_t ipAddr;
-	IP4_ADDR( &ipAddr, 192, 168,  168,   102 );
-//	mqttClientConnect(_mqttClient, ipAddr.addr);
+	mqttClientConnect(PP_HTONL(LWIP_MAKEU32(192,168,168,102)));
 #endif
 
 

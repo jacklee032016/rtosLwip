@@ -204,7 +204,7 @@ void gmacEnableWakeOnLan(unsigned int ipAddr);
 char cmnCmdLwipStats(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
 #if LWIP_EXT_MQTT_CLIENT
-void mqttClientConnect(mqtt_client_t * client, unsigned int svrIp);
+void mqttClientConnect(unsigned int svrIp);
 #endif
 
 #endif
