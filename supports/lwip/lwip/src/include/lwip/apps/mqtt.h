@@ -49,7 +49,7 @@ typedef struct mqtt_client_t mqtt_client_t;
 
 /** @ingroup mqtt
  * Default MQTT port */
-#define MQTT_PORT 1883
+#define MQTT_PORT		1883
 
 /*---------------------------------------------------------------------------------------------- */
 /* Connection with server */
@@ -57,20 +57,24 @@ typedef struct mqtt_client_t mqtt_client_t;
 /**
  * @ingroup mqtt
  * Client information and connection parameters */
-struct mqtt_connect_client_info_t {
-  /** Client identifier, must be set by caller */
-  const char *client_id;
-  /** User name and password, set to NULL if not used */
-  const char* client_user;
-  const char* client_pass;
-  /** keep alive time in seconds, 0 to disable keep alive functionality*/
-  u16_t keep_alive;
-  /** will topic, set to NULL if will is not to be used,
-      will_msg, will_qos and will retain are then ignored */
-  const char* will_topic;
-  const char* will_msg;
-  u8_t will_qos;
-  u8_t will_retain;
+struct mqtt_connect_client_info_t
+{
+	/** Client identifier, must be set by caller */
+	const char *client_id;
+
+	/** User name and password, set to NULL if not used */
+	const char* client_user;
+	const char* client_pass;
+
+	/** keep alive time in seconds, 0 to disable keep alive functionality*/
+	u16_t		keep_alive;
+	
+	/** will topic, set to NULL if will is not to be used,
+	will_msg, will_qos and will retain are then ignored */
+	const char	*will_topic;
+	const char	*will_msg;
+	u8_t			will_qos;
+	u8_t			will_retain;
 };
 
 /**
@@ -78,14 +82,14 @@ struct mqtt_connect_client_info_t {
  * Connection status codes */
 typedef enum
 {
-  MQTT_CONNECT_ACCEPTED                 = 0,
-  MQTT_CONNECT_REFUSED_PROTOCOL_VERSION = 1,
-  MQTT_CONNECT_REFUSED_IDENTIFIER       = 2,
-  MQTT_CONNECT_REFUSED_SERVER           = 3,
-  MQTT_CONNECT_REFUSED_USERNAME_PASS    = 4,
-  MQTT_CONNECT_REFUSED_NOT_AUTHORIZED_  = 5,
-  MQTT_CONNECT_DISCONNECTED             = 256,
-  MQTT_CONNECT_TIMEOUT                  = 257
+	MQTT_CONNECT_ACCEPTED                 = 0,
+	MQTT_CONNECT_REFUSED_PROTOCOL_VERSION = 1,
+	MQTT_CONNECT_REFUSED_IDENTIFIER       = 2,
+	MQTT_CONNECT_REFUSED_SERVER           = 3,
+	MQTT_CONNECT_REFUSED_USERNAME_PASS    = 4,
+	MQTT_CONNECT_REFUSED_NOT_AUTHORIZED_  = 5,
+	MQTT_CONNECT_DISCONNECTED             = 256,
+	MQTT_CONNECT_TIMEOUT                  = 257
 } mqtt_connection_status_t;
 
 /**
@@ -154,54 +158,65 @@ typedef void (*mqtt_request_cb_t)(void *arg, err_t err);
  */
 struct mqtt_request_t
 {
-  /** Next item in list, NULL means this is the last in chain,
-      next pointing at itself means request is unallocated */
-  struct mqtt_request_t *next;
-  /** Callback to upper layer */
-  mqtt_request_cb_t cb;
-  void *arg;
-  /** MQTT packet identifier */
-  u16_t pkt_id;
-  /** Expire time relative to element before this  */
-  u16_t timeout_diff;
+	/** Next item in list, NULL means this is the last in chain,
+	next pointing at itself means request is unallocated */
+	struct mqtt_request_t		*next;
+
+	/** Callback to upper layer */
+	mqtt_request_cb_t			cb;
+	void *arg;
+
+	/** MQTT packet identifier */
+	u16_t		pkt_id;
+	/** Expire time relative to element before this  */
+	u16_t		timeout_diff;
 };
 
 /** Ring buffer */
-struct mqtt_ringbuf_t {
-  u16_t put;
-  u16_t get;
-  u8_t buf[MQTT_OUTPUT_RINGBUF_SIZE];
+struct mqtt_ringbuf_t
+{
+	u16_t	put;
+	u16_t	get;
+	u8_t		buf[MQTT_OUTPUT_RINGBUF_SIZE];
 };
 
 /** MQTT client */
 struct mqtt_client_t
 {
-  /** Timers and timeouts */
-  u16_t cyclic_tick;
-  u16_t keep_alive;
-  u16_t server_watchdog;
-  /** Packet identifier generator*/
-  u16_t pkt_id_seq;
-  /** Packet identifier of pending incoming publish */
-  u16_t inpub_pkt_id;
-  /** Connection state */
-  u8_t conn_state;
-  struct tcp_pcb *conn;
-  /** Connection callback */
-  void *connect_arg;
-  mqtt_connection_cb_t connect_cb;
-  /** Pending requests to server */
-  struct mqtt_request_t *pend_req_queue;
-  struct mqtt_request_t req_list[MQTT_REQ_MAX_IN_FLIGHT];
-  void *inpub_arg;
-  /** Incoming data callback */
-  mqtt_incoming_data_cb_t data_cb;
-  mqtt_incoming_publish_cb_t pub_cb;
-  /** Input */
-  u32_t msg_idx;
-  u8_t rx_buffer[MQTT_VAR_HEADER_BUFFER_LEN];
-  /** Output ring-buffer */
-  struct mqtt_ringbuf_t output;
+	/** Timers and timeouts */
+	u16_t	cyclic_tick;
+	u16_t	keep_alive;
+	u16_t	server_watchdog;
+	
+	/** Packet identifier generator*/
+	u16_t	pkt_id_seq;
+	
+	/** Packet identifier of pending incoming publish */
+	u16_t	inpub_pkt_id;
+	
+	/** Connection state */
+	u8_t				conn_state;
+	struct tcp_pcb	*conn;
+	
+	/** Connection callback */
+	void						*connect_arg;
+	mqtt_connection_cb_t		connect_cb;
+	
+	/** Pending requests to server */
+	struct mqtt_request_t		*pend_req_queue;
+	struct mqtt_request_t		req_list[MQTT_REQ_MAX_IN_FLIGHT];
+	void						*inpub_arg;
+	
+	/** Incoming data callback */
+	mqtt_incoming_data_cb_t		data_cb;
+	mqtt_incoming_publish_cb_t		pub_cb;
+	
+	/** Input */
+	u32_t						msg_idx;
+	u8_t							rx_buffer[MQTT_VAR_HEADER_BUFFER_LEN];
+	
+	/** Output ring-buffer */
+	struct						mqtt_ringbuf_t output;
 };
 
 
@@ -242,3 +257,4 @@ err_t mqtt_publish(mqtt_client_t *client, const char *topic, const void *payload
 #endif
 
 #endif /* LWIP_HDR_APPS_MQTT_CLIENT_H */
+

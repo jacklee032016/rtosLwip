@@ -545,7 +545,7 @@ sntp_init(void)
 
   if (sntp_pcb == NULL) {
     sntp_pcb = udp_new_ip_type(IPADDR_TYPE_ANY);
-    LWIP_ASSERT("Failed to allocate udp pcb for sntp client", sntp_pcb != NULL);
+    LWIP_ASSERT(("Failed to allocate udp pcb for sntp client"), sntp_pcb != NULL);
     if (sntp_pcb != NULL) {
       udp_recv(sntp_pcb, sntp_recv, NULL);
 
@@ -596,8 +596,8 @@ u8_t sntp_enabled(void)
 void
 sntp_setoperatingmode(u8_t operating_mode)
 {
-  LWIP_ASSERT("Invalid operating mode", operating_mode <= SNTP_OPMODE_LISTENONLY);
-  LWIP_ASSERT("Operating mode must not be set while SNTP client is running", sntp_pcb == NULL);
+  LWIP_ASSERT(("Invalid operating mode"), operating_mode <= SNTP_OPMODE_LISTENONLY);
+  LWIP_ASSERT(("Operating mode must not be set while SNTP client is running"), sntp_pcb == NULL);
   sntp_opmode = operating_mode;
 }
 

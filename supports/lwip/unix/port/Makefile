@@ -18,6 +18,8 @@ UNIX_PORT_SRC += \
 	perf.c \
 	simCmds.c \
 	netif/tapif.c \
+
+NOT_USED += \
 	netif/tunif.c \
 	netif/unixif.c \
 	netif/list.c \

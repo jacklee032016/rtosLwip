@@ -44,6 +44,10 @@
 #include "lwip/nd6.h"
 #endif
 
+#if LWIP_EXT_MQTT_CLIENT
+#include "lwip/apps/mqtt.h"
+#endif
+
 #include "lwip/ip_addr.h"
 #include "lwip/inet.h"
 
@@ -199,6 +203,9 @@ void gmacEnableWakeOnLan(unsigned int ipAddr);
 
 char cmnCmdLwipStats(const struct _MUX_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
+#if LWIP_EXT_MQTT_CLIENT
+void mqttClientConnect(mqtt_client_t * client, unsigned int svrIp);
+#endif
 
 #endif
 

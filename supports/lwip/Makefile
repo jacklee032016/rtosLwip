@@ -41,7 +41,7 @@ TESTS += unix/programs/json
 TESTS += unix/programs/boardcast
 TESTS += unix/programs/multicast
 
-SUBDIRS += unix/programs/client
+# SUBDIRS += unix/programs/client
 
 # SUBDIRS += $(TESTS)
 

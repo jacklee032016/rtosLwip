@@ -59,13 +59,16 @@
 #include "lwip/sockets.h"
 
 #include "netif/tapif.h"
+
+
 #include "netif/tunif.h"
 
+#if 0
 #include "netif/unixif.h"
 #include "netif/dropif.h"
 #include "netif/pcapif.h"
-
 #include "netif/tcpdump.h"
+#endif
 
 #ifndef LWIP_HAVE_SLIPIF
 #define LWIP_HAVE_SLIPIF 0
@@ -85,10 +88,12 @@
 #include "lwip/ip_addr.h"
 #include "arch/perf.h"
 
+#if 0
 #include "apps/udpecho/udpecho.h"
+#include "apps/ping/ping.h"
+#endif
 #include "apps/chargen/chargen.h"
 #include "apps/netio/netio.h"
-//#include "apps/ping/ping.h"
 #include "lwip/apps/netbiosns.h"
 #include "lwip/apps/mdns.h"
 #include "lwip/apps/sntp.h"

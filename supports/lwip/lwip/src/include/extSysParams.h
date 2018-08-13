@@ -149,6 +149,9 @@
 #define	MUX_MDNS_SERVICE_NAME				"nmos"
 
 
+#define	EXT_MQTT_CLIENT_ID					"extMqtt"
+#define	EXT_MQTT_USER_NAME					"admin"
+#define	EXT_MQTT_PASSWORD					"admin"
 
 #define	MUX_NEW_LINE							"\r\n"
 //#define	MUX_NEW_LINE							"\r"
@@ -167,8 +170,10 @@
 
 
 
-#define LWIP_EXT_UDP_RX_PERF			1
-#define LWIP_EXT_UDP_TX_PERF			1	/* extend for UDP TX Perf testing */
+#define	LWIP_EXT_UDP_RX_PERF			1
+#define	LWIP_EXT_UDP_TX_PERF			1	/* extend for UDP TX Perf testing */
+
+#define	LWIP_EXT_MQTT_CLIENT			1
 
 /* macros for version */
 #define	MUX_VERSION_DOT(a, b, c)				a ##.## b ##.## c
@@ -883,6 +888,8 @@ extern	struct netif			guNetIf;
 
 #define	MUX_NET_IGMP_LEAVE(groupAddress)	\
 			muxLwipGroupMgr(&guNetIf, (groupAddress), 0)
+
+char bspCfgSave( MUX_RUNTIME_CFG *cfg, MUX_CFG_TYPE cfgType );
 
 #endif
 

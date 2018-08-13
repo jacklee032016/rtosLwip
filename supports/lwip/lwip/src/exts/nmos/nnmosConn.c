@@ -88,8 +88,8 @@ static char _connSingleReceiverActiveHander(MuxHttpConn  *mhc, void *data)
 	/*activation */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION"\":{");
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_MODE"\":\"%s\",", NMOS_FIND_CONN_ACTIVATE(NMOS_CONN_ACTIVATE_T_IMMEDIATE));
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%ld:%d\",",  sys_now(), 0 );
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%ld:%d\"},", sys_now(), 0);
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%u:%d\",",  sys_now(), 0 );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%u:%d\"},", sys_now(), 0);
 
 	/* transport_params */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_TRANSPORT_PARAMS"\":[{");
@@ -366,8 +366,8 @@ static char _connSingleSenderActiveHander(MuxHttpConn  *mhc, void *data)
 	/*activation */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION"\":{");
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_MODE"\":\"%s\",", NMOS_FIND_CONN_ACTIVATE(NMOS_CONN_ACTIVATE_T_IMMEDIATE));
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%ld:%d\",",  sys_now(), 0 );
-	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%ld:%d\"},", sys_now(), 0);
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_REQUESTED_TIME"\":\"%u:%d\",",  sys_now(), 0 );
+	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_ACTIVATION_TIME"\":\"%u:%d\"},", sys_now(), 0);
 
 	/* transport_params */
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""NMOS_LABEL_TRANSPORT_PARAMS"\":[{");

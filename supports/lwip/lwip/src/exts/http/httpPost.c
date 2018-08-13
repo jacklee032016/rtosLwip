@@ -475,7 +475,7 @@ err_t muxHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
 	err_t err;
 	unsigned char ret;
 
-	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("p->len:%d; p->tot_len:%d(postDataLeft:%ld);", p->len, p->tot_len, mhc->postDataLeft ) );
+	MUX_DEBUGF(MUX_HTTPD_DATA_DEBUG, ("p->len:%d; p->tot_len:%d(postDataLeft:%u);", p->len, p->tot_len, mhc->postDataLeft ) );
 
 	if (p != NULL)
 	{

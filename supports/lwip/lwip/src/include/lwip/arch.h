@@ -88,8 +88,11 @@
  */
 #ifndef LWIP_PLATFORM_ASSERT
 /* not used, instead cc.h */
+/*
 #define LWIP_PLATFORM_ASSERT(x) do {printf("Assertion \"%s\" failed at line %d in %s\n", \
-                                     x, __LINE__, __FILE__); fflush(NULL); abort();} while(0)
+                                   x, __LINE__, __FILE__); fflush(NULL); abort();} while(0)
+*/                                     
+#define LWIP_PLATFORM_ASSERT(x)	{printf (ANSI_COLOR_RED"Assertion "); printf x; printf(" failed at line %d in %s" LWIP_NEW_LINE ERROR_TEXT_END, __LINE__, __FILE__); fflush(NULL);while(0);}
 #include <stdio.h>
 #include <stdlib.h>
 #endif

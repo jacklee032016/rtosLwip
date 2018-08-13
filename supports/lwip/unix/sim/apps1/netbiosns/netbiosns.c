@@ -322,7 +322,7 @@ void
 netbiosns_init(void)
 {
 #ifdef NETBIOS_LWIP_NAME
-  LWIP_ASSERT("NetBIOS name is too long!", strlen(NETBIOS_LWIP_NAME) < NETBIOS_NAME_LEN);
+  LWIP_ASSERT(("NetBIOS name is too long!"), strlen(NETBIOS_LWIP_NAME) < NETBIOS_NAME_LEN);
 #endif
 
   netbiosns_pcb = udp_new_ip_type(IPADDR_TYPE_ANY);
@@ -343,7 +343,7 @@ void
 netbiosns_set_name(const char* hostname)
 {
   size_t copy_len = strlen(hostname);
-  LWIP_ASSERT("NetBIOS name is too long!", copy_len < NETBIOS_NAME_LEN);
+  LWIP_ASSERT(("NetBIOS name is too long!"), copy_len < NETBIOS_NAME_LEN);
   if (copy_len >= NETBIOS_NAME_LEN) {
     copy_len = NETBIOS_NAME_LEN - 1;
   }

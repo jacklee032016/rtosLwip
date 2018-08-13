@@ -23,7 +23,7 @@ ifdef CODE_SUBDIRS
 endif
 
 $(BIN_DIR):
-	-if [ -d $(BIN_DIR) ] ; then : ; else $(MKDIR) $(BIN_DIR)/sbin;$(MKDIR) $(BIN_DIR)/lib;$(MKDIR) $(BIN_DIR)/usr/bin;fi
+	-if [ -d $(BIN_DIR) ] ; then : ; else $(MKDIR) $(BIN_DIR)/bin;$(MKDIR) $(BIN_DIR)/lib;fi
 #	$(ROOT_DIR)/scripting/installdir.sh $(BIN_DIR); fi
 #ifdef CODE_SUBDIRS
 #	-@ for subdir in $(CODE_SUBDIRS) ; do ( mkdir -p $(BIN_DIR)/$$subdir ) ; done

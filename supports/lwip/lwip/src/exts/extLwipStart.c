@@ -11,6 +11,10 @@
 
 extern	const struct tftp_context		muxTftp;
 
+#if LWIP_EXT_MQTT_CLIENT
+static mqtt_client_t *_mqttClient;
+#endif
+
 MUX_JSON_PARSER  muxParser;
 
 
@@ -54,11 +58,11 @@ static void srv_txt(struct mdns_service *service, void *txt_userdata)
 
 	snprintf(name, sizeof(name), "%s=%s", NMOS_API_NAME_PROTOCOL, NMOS_API_PROTOCOL_HTTP);
 	res = mdns_resp_add_service_txtitem(service, name, (u8_t)strlen(name) );
-	LWIP_ERROR("mdns add API protocol failed\n", (res == ERR_OK), return);
+	LWIP_ERROR(("mdns add API protocol failed"), (res == ERR_OK), return);
 
 	snprintf(name, sizeof(name), "%s=%s,%s,%s", NMOS_API_NAME_VERSION, NMOS_API_VERSION_10, NMOS_API_VERSION_11, NMOS_API_VERSION_12);
 	res = mdns_resp_add_service_txtitem(service, name, (u8_t)strlen(name) );
-	LWIP_ERROR("mdns add API version failed\n", (res == ERR_OK), return);
+	LWIP_ERROR(("mdns add API version failed"), (res == ERR_OK), return);
 
 }
 
@@ -123,6 +127,13 @@ char muxLwipStartup(struct netif *netif, MUX_RUNTIME_CFG *runCfg)
 #if LWIP_EXT_UDP_TX_PERF
 	extUdpTxPerfTask();
 #endif
+
+#if LWIP_EXT_MQTT_CLIENT
+	ip4_addr_t ipAddr;
+	IP4_ADDR( &ipAddr, 192, 168,  168,   102 );
+	mqttClientConnect(_mqttClient, ipAddr.addr);
+#endif
+
 
 	if(!MUX_IS_TX(runCfg))
 	{

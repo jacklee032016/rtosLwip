@@ -1,8 +1,12 @@
+
 #include "lwip/apps/mqtt.h"
 #include <string.h>
 
-#include "board.h"
+#include "lwipExt.h"
 
+#if LWIP_EXT_MQTT_CLIENT
+
+#define	MQTT_CLIENT_DEBUG		MUX_DBG_OFF
 
 /* The idea is to demultiplex topic and create some reference to be used in data callbacks
    Example here uses a global variable, better would be to use a member in arg
@@ -11,9 +15,34 @@
 */
 static int inpub_id;
 
+/* Called when publish is complete either with sucess or failure */
+static void _mqttClientPublishRequestCb(void *arg, err_t result)
+{
+	if(result != ERR_OK)
+	{
+		MUX_ERRORF(("Publish result: %d", result));
+	}
+}
+
+void mqttClientPublish(mqtt_client_t *client, void *arg)
+{
+	//const char *pub_payload= "Hola mundo de mierda!";
+	const char *pub_payload= arg;
+	err_t err;
+	u8_t qos = 0; /* 0 1 or 2, see MQTT specification */
+	u8_t retain = 0; /* No don't retain such crappy payload... */
+	
+	err = mqtt_publish(client, "placa", pub_payload, strlen(pub_payload), qos, retain, _mqttClientPublishRequestCb, arg);
+	if(err != ERR_OK)
+	{
+		MUX_ERRORF(("Publish err: %d", err));
+	}
+}
+
+
 static void _mqttClientIncomingPublishCb(void *arg, const char *topic, u32_t tot_len)
 {
-	printf("Incoming publish at topic %s with total length %u\n", topic, (unsigned int)tot_len);
+	MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("Incoming publish at topic %s with total length %u", topic, (unsigned int)tot_len) );
 
 	/* Decode topic string into a user defined reference */
 	if(strcmp(topic, "print_payload") == 0)
@@ -43,9 +72,8 @@ static void _mqttClientIncomingPublishCb(void *arg, const char *topic, u32_t tot
 
 static void _mqttClientIncomingDataCb(void *arg, const u8_t *data, u16_t len, u8_t flags)
 {
-	printf("Incoming publish payload with length %d, flags %u\n", len, (unsigned int)flags);
+	MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("Incoming publish payload with length %d, flags %u", len, (unsigned int)flags));
 
-	// }
 	if(flags & MQTT_DATA_FLAG_LAST)
 	{
 		/* Last fragment of payload received (or whole part if payload fits receive buffer See MQTT_VAR_HEADER_BUFFER_LEN)  */
@@ -56,7 +84,7 @@ static void _mqttClientIncomingDataCb(void *arg, const u8_t *data, u16_t len, u8
 			/* Don't trust the publisher, check zero termination */
 			if(data[len-1] == 0)
 			{
-				printf("mqtt_incoming_data_cb: %s\n", (const char *)data);
+				MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_incoming_data: '%s'", (const char *)data));
 			}
 		}
 		else if(inpub_id == 1)
@@ -65,51 +93,30 @@ static void _mqttClientIncomingDataCb(void *arg, const u8_t *data, u16_t len, u8
 		}
 		else if(inpub_id == 2)
 		{
-			if(strcmp(data, "0") == 0){ //Then, turn off LED3
-			Board_LED_Set(LEDS_LED3, true);
-			}else if (strcmp(data, "1" == 0)){ //Then turn on LED3
-			Board_LED_Set(LEDS_LED3, false);
+			if(strcmp((const char *)data, "0") == 0)
+			{ //Then, turn off LED3
+			}
+			else if (strcmp((const char *)data, "1") == 0)
+			{ //Then turn on LED3
 			}
 			/* Call an 'A' function... */
 		}
 		else if(inpub_id == 3)
 		{
 			/* Not yet done. It's suppossed to turn on/off */
-			if(strcmp(data, "0") == 0)
+			if(strcmp((const char *)data, "0") == 0)
 			{ //Then, turn off LED2
-				Board_LED_Set(LEDS_LED1, true);
-				Board_LED_Set(LEDS_LED2, true);
-				Board_LED_Set(LEDS_LED3, true);
-				Board_LED_Set(LEDS_LED4, true);
-				Board_LED_Set(LEDS_LED5, true);
-				Board_LED_Set(LEDS_LED6, true);
-				Board_LED_Set(LEDS_LED7, true);
-				Board_LED_Set(LEDS_LED8, true);
 			}
-			else if(strcmp(data, "1") == 0){ //Then turn on LED2
-				Board_LED_Set(LEDS_LED1, false);
-				Board_LED_Set(LEDS_LED2, true);
-				Board_LED_Set(LEDS_LED3, true);
-				Board_LED_Set(LEDS_LED4, true);
-				Board_LED_Set(LEDS_LED5, true);
-				Board_LED_Set(LEDS_LED6, true);
-				Board_LED_Set(LEDS_LED7, true);
-				Board_LED_Set(LEDS_LED8, true);
+			else if(strcmp((const char *)data, "1") == 0)
+			{ //Then turn on LED2
 			}
-			else if(strcmp(data, "2") == 0){ //Then turn on LED2
-				Board_LED_Set(LEDS_LED1, false);
-				Board_LED_Set(LEDS_LED2, false);
-				Board_LED_Set(LEDS_LED3, true);
-				Board_LED_Set(LEDS_LED4, true);
-				Board_LED_Set(LEDS_LED5, true);
-				Board_LED_Set(LEDS_LED6, true);
-				Board_LED_Set(LEDS_LED7, true);
-				Board_LED_Set(LEDS_LED8, true);
+			else if(strcmp((const char *)data, "2") == 0)
+			{ //Then turn on LED2
 			}
 		}
 		else
 		{
-			printf("mqtt_incoming_data_cb: Ignoring payload...\n");
+			MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_incoming_data_cb: Ignoring payload..."));
 		}
 	}
 	else
@@ -125,7 +132,7 @@ static void _mqttClientSubscribeRequestCb(void *arg, err_t result)
 	/* Just print the result code here for simplicity,
 	 normal behaviour would be to take some action if subscribe fails like
 	 notifying user, retry subscribe or disconnect from server */
-	printf("Subscribe result: %d\n", result);
+	MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("Subscribe result: %d", result));
 }
 
 
@@ -134,10 +141,11 @@ static void _mqttClientConnectionCb(mqtt_client_t * client, void * arg, mqtt_con
 {
 	err_t err;
 	const char * topico = arg;
+	ip4_addr_t *brokerIp = (ip4_addr_t *)arg;
 
 	if (status == MQTT_CONNECT_ACCEPTED)
 	{
-		printf("mqtt_connection_cb: Successfully connected\n");
+		MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_connection: Successfully connected"));
 
 		/* Setup callback for incoming publish requests */
 		mqtt_set_inpub_callback(client, _mqttClientIncomingPublishCb, _mqttClientIncomingDataCb, arg);
@@ -146,73 +154,49 @@ static void _mqttClientConnectionCb(mqtt_client_t * client, void * arg, mqtt_con
 		err = mqtt_subscribe(client, topico, 1, _mqttClientSubscribeRequestCb, arg);
 		if (err != ERR_OK)
 		{
-			printf("mqtt_subscribe return: %d\n", err);
+			MUX_ERRORF(("mqtt_subscribe return failed: %d", err));
 		}
 	}
 	else
 	{
-		printf("mqtt_connection_cb: Disconnected, reason: %d\n", status);
+		MUX_DEBUGF(MQTT_CLIENT_DEBUG, ("mqtt_connection: Disconnected, reason: %d", status));
 		/* Its more nice to be connected, so try to reconnect */
 		//mqtt_do_connect(client);
-		mqttClientConnect(client);
+		mqttClientConnect(client, brokerIp->addr);
 	}
 }
 
 
 /* connect and register callback for connection */
-void mqttClientConnect(mqtt_client_t * client)
+void mqttClientConnect(mqtt_client_t * client, unsigned int svrIp)
 {
-	ip4_addr_t broker_ipaddr;
+	ip4_addr_t brokerIp;
 	struct mqtt_connect_client_info_t ci;
 	err_t err;
 
-	IP4_ADDR( & broker_ipaddr, configBroker_ADDR0, configBroker_ADDR1, configBroker_ADDR2, configBroker_ADDR3);
-	IP4_ADDR(&broker_ipaddr, 192, 168, 1, 50);
+	brokerIp.addr = svrIp;
 
 	/* Setup an empty client info structure */
 	memset( & ci, 0, sizeof(ci));
 
 	/* Minimal amount of information required is client identifier, so set it here */
-	ci.client_id = configMQTT_CLIENT_NAME;
-	ci.client_user = configMQTT_CLIENT_USER;
-	ci.client_pass = configMQTT_CLIENT_PWD;
+	ci.client_id = EXT_MQTT_CLIENT_ID;
+	ci.client_user = EXT_MQTT_USER_NAME;
+	ci.client_pass = EXT_MQTT_PASSWORD;
 
 	/* Initiate client and connect to server, if this fails immediately an error code is returned
 	otherwise mqtt_connection_cb will be called with connection result after attempting
 	to establish a connection with the server.
 	For now MQTT version 3.1.1 is always used */
 
-	err = mqtt_client_connect(client, & broker_ipaddr, MQTT_PORT, _mqttClientConnectionCb, 0, & ci);
+	err = mqtt_client_connect(client, &brokerIp, MQTT_PORT, _mqttClientConnectionCb, &brokerIp, & ci);
 	/* For now just print the result code if something goes wrong */
 	if (err != ERR_OK)
 	{
-		printf("mqtt_connect return %d\n", err);
+		MUX_ERRORF(("mqtt_connect return failed %d", err));
 	}
 
 }
 
-
-/* Called when publish is complete either with sucess or failure */
-static void _mqttClientPublishRequestCb(void *arg, err_t result)
-{
-	if(result != ERR_OK)
-	{
-		printf("Publish result: %d\n", result);
-	}
-}
-
-void mqttClientPublish(mqtt_client_t *client, void *arg)
-{
-	//const char *pub_payload= "Hola mundo de mierda!";
-	const char *pub_payload= arg;
-	err_t err;
-	u8_t qos = 0; /* 0 1 or 2, see MQTT specification */
-	u8_t retain = 0; /* No don't retain such crappy payload... */
-	err = mqtt_publish(client, "placa", pub_payload, strlen(pub_payload), qos, retain, _mqttClientPublishRequestCb, arg);
-	if(err != ERR_OK)
-	{
-		printf("Publish err: %d\n", err);
-	}
-}
-
+#endif
 

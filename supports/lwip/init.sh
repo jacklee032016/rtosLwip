@@ -7,7 +7,7 @@ echo $PWD
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/Linux.bin.X86/lib
 export LD_LIBRARY_PATH
 
-PATH=$PWD/Linux.bin.X86/usr/bin:$PATH
+PATH=$PWD/Linux.bin.X86/bin:$PATH
 export PATH
 
 echo $LD_LIBRARY_PATH

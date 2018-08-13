@@ -521,7 +521,7 @@ static char _muxVideoConfigParse(char *outBuffer, size_t bufferLen, MUX_VIDEO_CO
 	
 			if(argc >= 4 )
 			{
-				ret = sscanf(argv[3], "%"PRIu16, &vCfg->vport);
+				ret = sscanf(argv[3], "%hu", &vCfg->vport);
 				if (1 != ret )
 				{
 					index += snprintf(outBuffer+index, bufferLen-index, "\tParam:'%s' is invalidate 16bit integer"MUX_NEW_LINE, argv[3]);
@@ -530,7 +530,7 @@ static char _muxVideoConfigParse(char *outBuffer, size_t bufferLen, MUX_VIDEO_CO
 
 				if(argc >= 5 )
 				{
-					ret = sscanf(argv[4], "%"PRIu16, &vCfg->aport);
+					ret = sscanf(argv[4], "%hu", &vCfg->aport);
 					if (1 != ret )
 					{
 						index += snprintf(outBuffer+index, bufferLen-index, "\tParam:'%s' is invalidate 16bit integer"MUX_NEW_LINE, argv[4]);

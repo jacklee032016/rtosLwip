@@ -34,7 +34,7 @@ static int _nmosSdpSessionTimeHander(char *data, unsigned int size, MuxNmosSende
 	/* resource core fields */
 	index += snprintf(data+index, size-index, "v=0\n" );	/* version*/
 	/* original */
-	index += snprintf(data+index, size-index, "o=%s %ld %ld IN IP4 %s\n", 
+	index += snprintf(data+index, size-index, "o=%s %u %u IN IP4 %s\n", 
 		snd->device->node->runCfg->user, sys_now()/* sess ID*/, sys_now()/* sess ver */, MUX_LWIP_IPADD_TO_STR(&snd->device->node->runCfg->local.ip) );
 	/* session name */
 	index += snprintf(data+index, size-index, "s=NMOS %s stream\n", (snd->flow->format==NMOS_SOURCE_FORMAT_AUDIO)?"audio":"video" );
@@ -62,7 +62,7 @@ static int _nmosSdpMediaHander(char *data, unsigned int size, MuxNmosSender *snd
 		index += snprintf(data+index, size-index, "a=readonly\n" );
 		/* packet time */
 		index += snprintf(data+index, size-index, "a=ptime:1\n" );
-		index += snprintf(data+index, size-index, "a=mediaclk:direct=%ld\n", sys_now());
+		index += snprintf(data+index, size-index, "a=mediaclk:direct=%u\n", sys_now());
 		index += snprintf(data+index, size-index, "a=ts-refclk:ptp=IEEE1588-2008:%x-%x-%x-%x-%x-%x-%x-%x:domain-nmbr=0\n", 
 			snd->resourceId.nmosId.uuid.uuid[0], snd->resourceId.nmosId.uuid.uuid[1],snd->resourceId.nmosId.uuid.uuid[2],snd->resourceId.nmosId.uuid.uuid[3],
 			snd->resourceId.nmosId.uuid.uuid[4],snd->resourceId.nmosId.uuid.uuid[5],snd->resourceId.nmosId.uuid.uuid[6],snd->resourceId.nmosId.uuid.uuid[7]);	
