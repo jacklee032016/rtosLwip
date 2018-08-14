@@ -124,7 +124,7 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	extUdpTxPerfTask();
 #endif
 
-#if LWIP_EXT_MQTT_CLIENT
+#if LWIP_EXT_MQTT_CLIENT && defined(X86)
 	mqttClientConnect(PP_HTONL(LWIP_MAKEU32(192,168,168,102)));
 #endif
 
@@ -143,11 +143,15 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 
 	extIpCmdAgentInit(&extParser);
 
-
+#if 0
 	extNmosNodeInit(&nmosNode, runCfg);
 	mHttpSvrMain(runCfg);
+#endif
 
+#if LWIP_EXT_TCP_PERF
 	lwiperf_start_tcp_server_default(NULL, NULL);
+#endif
+
 #ifdef	X86
 #endif
 

@@ -170,8 +170,11 @@
 
 
 
-#define	LWIP_EXT_UDP_RX_PERF			1
-#define	LWIP_EXT_UDP_TX_PERF			1	/* extend for UDP TX Perf testing */
+#define	LWIP_EXT_UDP_RX_PERF			0
+#define	LWIP_EXT_UDP_TX_PERF			0	/* extend for UDP TX Perf testing */
+
+#define	LWIP_EXT_TCP_PERF				0	/* extend for TCP Perf testing */
+
 
 #define	LWIP_EXT_MQTT_CLIENT			1
 
@@ -308,12 +311,12 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(message)		{EXT_PRINTF((ANSI_COLOR_CYAN""));_TRACE_OUT(message);EXT_PRINTF((ANSI_COLOR_RESET));}
+	#define	EXT_INFOF(message)		{printf((ANSI_COLOR_CYAN""));_TRACE_OUT(message);printf((ANSI_COLOR_RESET));}
 	
-	#define	EXT_ERRORF(message)		{EXT_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); EXT_PRINTF((ERROR_TEXT_END));}
+	#define	EXT_ERRORF(message)		{printf((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); printf((ERROR_TEXT_END));}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(msg, x)			{if((x)==0) {EXT_PRINTF((ERROR_TEXT_BEGIN"ERROR: "));printf msg ;EXT_PRINTF((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
+	#define	EXT_ASSERT(msg, x)			{if((x)==0) {printf((ERROR_TEXT_BEGIN"ERROR: "));printf msg ;printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
 	#define	EXT_ABORT(fmt, args... )		printf("ERROR in " __FILE__ ", line %u:" fmt EXT_NEW_LINE, __LINE__, ##args );while(1){}
 #else
 	#define	EXT_PRINTF(x)						{;}

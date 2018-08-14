@@ -207,5 +207,21 @@ char cmnCmdLwipStats(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 void mqttClientConnect(unsigned int svrIp);
 #endif
 
+struct MAC_STATS
+{
+	uint32_t	isrCount;
+	
+	uint32_t	txPackets;
+	uint32_t	txFailed;
+
+	uint32_t	rxPackets;
+	
+	uint32_t	rxErrOverrun;	/* RX buffer overrun */
+	uint32_t	rxErrOwnership;
+	uint32_t	rxErrOOM;
+
+	uint32_t	rxErrFrame;	/* not frame we are interested */
+};
+
 #endif
 

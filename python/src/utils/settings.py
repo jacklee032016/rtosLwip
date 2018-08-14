@@ -25,7 +25,6 @@ FIRMWARE_URL_OS="/mcuUpdate"
 FIRMWARE_URL_FPGA="/fpgaUpdate"
 
 STATIC_PAGES=[
-    "/",
     "/upgradeFpga.html",
     "/upgradeMcu.html",
     "/styles.css",
@@ -34,6 +33,24 @@ STATIC_PAGES=[
     "/header_bg.png",
     "/loading.gif",
     "/404.html"
+]
+
+DYNAMIC_PAGES=[
+    "/",
+    "/info",
+    "/media",
+    "/",
+    "/info",
+    "/media",
+    "/",
+    "/info",
+    "/media"
+]
+
+DYNAMIC_PAGES2=[
+    "/mcuUpdate",
+    "/fpgaUpdate",
+    "/reboot"
 ]
 
 SIMULATOR_GATEWAT="192.168.166.1"

@@ -160,7 +160,6 @@ static u8_t _mHttpSendFile( MuxHttpConn *mhc)
 		}
 	}
 
-TRACE();
 #if	MHTTPD_SSI
 	if(mhc->ssi)
 	{
@@ -169,7 +168,6 @@ TRACE();
 	else
 #endif
 	{
-TRACE();
 		len = (u16_t)LWIP_MIN(mhc->left, 0xffff);
 
 		err = extHttpWrite(mhc, mhc->file, &len, MHTTP_IS_DATA_VOLATILE(mhc));
@@ -186,7 +184,6 @@ TRACE();
 		/* We reached the end of the file so this request is done. This adds the FIN flag right into the last data segment. */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
 		mhttpConnEof( mhc);
-TRACE();
 		return 0;
 	}
 	

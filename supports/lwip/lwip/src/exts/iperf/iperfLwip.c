@@ -55,6 +55,8 @@
 
 #include "lwipExt.h"
 
+#if LWIP_EXT_TCP_PERF
+
 
 /* Currently, only TCP-over-IPv4 is implemented (does iperf support IPv6 anyway?) */
 #if LWIP_IPV4 && LWIP_TCP && LWIP_CALLBACK_API
@@ -758,4 +760,6 @@ void *lwiperf_start_tcp_server_default(lwiperf_report_fn report_fn, void* report
 }
 
 #endif /* LWIP_IPV4 && LWIP_TCP && LWIP_CALLBACK_API */
+
+#endif
 

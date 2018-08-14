@@ -16,10 +16,13 @@ from cmds.node import createNode, Node
 from utils import ColorMsg
 from utils import settings
 
-
+import requests
 import logging
 import logging.config
 
+#import httplib
+
+# Debug logging
 #logging.config.fileConfig('logging.conf')
 # create logger
 #logger = logging.getLogger('simpleExample')
@@ -48,6 +51,7 @@ The most commonly used commands are:
    httpOs       Update OS firmware through HTTP
    httpFpga     Update FPGA firmware through HTTP
    page         Access one web page
+   pages        Access multiple pages 
    tftpOs       Update OS firmware through TFTP
    tftpFpga     Update FPGA firmware through TFTP
    bandwidth    Test bandwidth to one node
@@ -64,6 +68,7 @@ The most commonly used commands are:
             exit(1)
         # use dispatch pattern to invoke method with same name
         getattr(self, args.command)()
+
 
     def _addDefaultOptions(self, parser, name="http"):
         parser.add_argument("-d", "--debug", action="store_true", help="debug option")
@@ -203,7 +208,8 @@ The most commonly used commands are:
         webClient = WebClient(ip=args.ip, simGateway=args.gateway, debug=args.debug)
         res = webClient.uploadFirmwareOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
         if res is not None and res.status_code == 200:
-            webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+            #webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+            pass
         else:
             ColorMsg.error_msg("uploading %s failed"%(args.file) )
 
@@ -252,6 +258,22 @@ The most commonly used commands are:
         webClient = WebClient(uri=args.uri, ip=args.ip, simGateway=args.gateway, debug=args.debug)
         webClient.accessUri(uri=args.uri, ip=args.ip, simGateway=args.gateway, debug=args.debug)
 
+    def pages(self):
+        parser = argparse.ArgumentParser( description='Access web pages')
+
+        parser.add_argument("-t", "--type", action="store", help="static/dynamic")
+
+        # ip is second position parameter, the second and optional one in command line
+        self._addDefaultIp(parser=parser)
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,ip=%s, type=%s debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.type, args.debug, args.gateway), args.debug )
+        pages = settings.STATIC_PAGES
+        if args.type == "1":
+            pages = settings.DYNAMIC_PAGES
+        for page in pages:
+            webClient = WebClient(uri=page, ip=args.ip, simGateway=args.gateway, debug=args.debug)
+            webClient.accessUri(uri=page, ip=args.ip, simGateway=args.gateway, debug=args.debug)
 
     """
     3. Following are commands from other protocol: TFTP, iperf

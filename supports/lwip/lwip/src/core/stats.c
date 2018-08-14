@@ -47,6 +47,10 @@
 
 #include <string.h>
 
+#ifdef ARM
+#include "lwipExt.h"
+#endif
+
 struct stats_ lwip_stats;
 
 void stats_init(void)
@@ -145,7 +149,7 @@ void stats_display_sys(struct stats_sys *sys)
 
 #define	STATS_OUT_MEM(mem, name) \
 	{	index += snprintf( outBuffer+index, (bufferLen-index), \
-		"%s\t%"U32_F"\t%"U32_F"\t%"U32_F"\t%"U32_F""EXT_NEW_LINE, name, \
+		"%s\t%s%"U32_F"\t%"U32_F"\t%"U32_F"\t%"U32_F""EXT_NEW_LINE, name, (strlen(name)<=7)?"\t":"", \
 		(u32_t)(mem)->avail, (u32_t)(mem)->used, (u32_t)(mem)->max, (u32_t)(mem)->err); }
 
 
@@ -155,15 +159,20 @@ void stats_display_sys(struct stats_sys *sys)
 		(u32_t)(sys)->used, (u32_t)(sys)->max, (u32_t)(sys)->err); }
 
 
+#ifdef	ARM
+extern	struct MAC_STATS	macStats;
+#endif
+
 void stats_display(char *outBuffer, size_t bufferLen)
 {
 	s16_t i;
 	int index = 0;
 	struct stats_igmp *igmp = &lwip_stats.igmp;
 	struct stats_mem *mem;
+#if 0	
 	struct stats_syselem *sys;
-
-	index += snprintf( outBuffer+index, (bufferLen-index), "PROTOCOLS:"EXT_NEW_LINE"\txmit\trecv\tfw\tdrop\tchkerr\tlenerr\tmemerr\trterr\tproterr\topterr\terr\tcachehit"EXT_NEW_LINE);
+#endif
+	index += snprintf( outBuffer+index, (bufferLen-index), "PROTOCOLS:"EXT_NEW_LINE"\tXmit\tRecv\tFw\tDrop\tChkErr\tLenErr\tMemErr\tRtErr\tProtErr\tOptErr\tErr\tCacheHit"EXT_NEW_LINE);
 	STATS_OUT_PROTOCOL((&lwip_stats.link), "LINK");
 	STATS_OUT_PROTOCOL((&lwip_stats.etharp), "ETHARP");
 	STATS_OUT_PROTOCOL((&lwip_stats.ip_frag), "IP_FRAG");
@@ -173,23 +182,30 @@ void stats_display(char *outBuffer, size_t bufferLen)
 	STATS_OUT_PROTOCOL((&lwip_stats.udp), "UDP");
 	STATS_OUT_PROTOCOL((&lwip_stats.tcp), "TCP");
 
-	index += snprintf( outBuffer+index, (bufferLen-index),"IGMP:\txmit:%"STAT_COUNTER_F"; recv:%"STAT_COUNTER_F"; drop:%"\
-		STAT_COUNTER_F"; chkerr:%"STAT_COUNTER_F"; lenerr: %"STAT_COUNTER_F"; memerr: %"STAT_COUNTER_F"; " \
-		"proterr:%"STAT_COUNTER_F"; rx_v1:%"STAT_COUNTER_F"; rx_group:%"STAT_COUNTER_F"; rx_general:%"\
-		STAT_COUNTER_F"; rx_report:%"STAT_COUNTER_F"; tx_join:%"STAT_COUNTER_F"; tx_leave:%"STAT_COUNTER_F"; tx_report:%"STAT_COUNTER_F""LWIP_NEW_LINE LWIP_NEW_LINE LWIP_NEW_LINE,
+	index += snprintf( outBuffer+index, (bufferLen-index),"IGMP:\tXmit:%"STAT_COUNTER_F";\tRecv:%"STAT_COUNTER_F";\t\tDrop:%"\
+		STAT_COUNTER_F";\tChkErr:%"STAT_COUNTER_F";\tLenErr:%"STAT_COUNTER_F";\tMemErr:%"STAT_COUNTER_F";\t" \
+		"ProtErr:%"STAT_COUNTER_F ";"LWIP_NEW_LINE"\tRxV1:%"STAT_COUNTER_F";\tRxGroup:%"STAT_COUNTER_F";\tRxGeneral:%"\
+		STAT_COUNTER_F";\tRxReport:%"STAT_COUNTER_F";\tTxJoin:%"STAT_COUNTER_F";\tTxLeave:%"STAT_COUNTER_F";\tTxReport:%"STAT_COUNTER_F""LWIP_NEW_LINE LWIP_NEW_LINE LWIP_NEW_LINE,
 		igmp->xmit, igmp->recv, igmp->drop, igmp->chkerr, igmp->lenerr, igmp->memerr, igmp->proterr, 
 		igmp->rx_v1, igmp->rx_group, igmp->rx_general, igmp->rx_report, igmp->tx_join, igmp->tx_leave, igmp->tx_report);
 
 
-	index += snprintf( outBuffer+index, (bufferLen-index), "MEMORY:"LWIP_NEW_LINE"\t\tavail \tused \tmax \terr"LWIP_NEW_LINE);
+	index += snprintf( outBuffer+index, (bufferLen-index), "MEMORY:"LWIP_NEW_LINE"\t\tAvail \tUsed \tMax \tErr"LWIP_NEW_LINE);
 
-	STATS_OUT_MEM((&lwip_stats.mem), "HEAP\t");
+	STATS_OUT_MEM((&lwip_stats.mem), "HEAP");
 	for (i = 0; i < MEMP_MAX; i++)
 	{
 		mem = lwip_stats.memp[i];
 		STATS_OUT_MEM(mem, mem->name);
 	}
 
+#ifdef	ARM
+	index += snprintf( outBuffer+index, (bufferLen-index), LWIP_NEW_LINE"MAC:"LWIP_NEW_LINE"\tIRQ: %"FOR_U32";"LWIP_NEW_LINE"\tTX: packets:%"FOR_U32"; Failed:%"FOR_U32 LWIP_NEW_LINE"\tRX: packets:%"
+		FOR_U32"; Error:frame: %"FOR_U32"; Mem:%"FOR_U32"; Overrun:%"FOR_U32"; Ownership:%"FOR_U32""LWIP_NEW_LINE,
+		macStats.isrCount, macStats.txPackets, macStats.txFailed, macStats.rxPackets, macStats.rxErrFrame, macStats.rxErrOOM, macStats.rxErrOverrun, macStats.rxErrOwnership);
+#endif
+
+#if 0
 	index += snprintf( outBuffer+index, (bufferLen-index),EXT_NEW_LINE EXT_NEW_LINE"SYSTEM:"EXT_NEW_LINE"\tused\tmax\terr"EXT_NEW_LINE);
 	sys = &lwip_stats.sys.sem;
 	STATS_OUT_SYS((sys), "Sem");
@@ -197,6 +213,7 @@ void stats_display(char *outBuffer, size_t bufferLen)
 	STATS_OUT_SYS((sys), "Mutex");
 	sys = &lwip_stats.sys.mbox;
 	STATS_OUT_SYS((sys), "mbox");
+#endif
 
 #ifdef X86
 TRACE();

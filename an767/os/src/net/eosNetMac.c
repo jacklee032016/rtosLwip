@@ -43,8 +43,10 @@
 		#define INT_PRIORITY_GMAC     12
 
 		/** The GMAC interrupts to enable: only RECV INTs are used. Aug.8th, 2018. J.L. */
-#if 0		
+#if 1		
 		#define GMAC_INT_GROUP (GMAC_ISR_RCOMP | GMAC_ISR_ROVR | GMAC_ISR_HRESP | GMAC_ISR_TCOMP | GMAC_ISR_TUR | GMAC_ISR_TFC)
+
+		#define GMAC_INT_RECV (GMAC_ISR_RCOMP | GMAC_ISR_ROVR | GMAC_ISR_HRESP )
 #else
 		#define GMAC_INT_GROUP (GMAC_ISR_RCOMP | GMAC_ISR_ROVR | GMAC_ISR_HRESP )
 #endif
@@ -100,6 +102,8 @@ struct gmac_device
 	/** RX task notification semaphore. */
 	sys_sem_t rx_sem;
 #endif
+
+	struct MAC_STATS *macStats;
 };
 
 /**
@@ -108,6 +112,8 @@ struct gmac_device
 //COMPILER_ALIGNED(8)
 static struct gmac_device gs_gmac_dev;
 
+
+struct MAC_STATS	macStats;
 
 #if LWIP_STATS
 /** Used to compute lwIP bandwidth. */
@@ -159,8 +165,11 @@ void GMAC_Handler(void)
 	_extGMacStatus(GMAC);
 #endif
 
+#if LWIP_STATS
+	gs_gmac_dev.macStats->isrCount++;
+#endif
 	/* RX interrupts. */
-	if(ul_isr & GMAC_INT_GROUP)
+	if(ul_isr & GMAC_INT_RECV)
 	{
 		xSemaphoreGiveFromISR(gs_gmac_dev.rx_sem, &xGMACTaskWoken);
 	}
@@ -184,7 +193,7 @@ void GMAC_Handler(void)
  *
  * \param p_gmac_dev Pointer to driver data structure.
  */
-static void gmac_rx_populate_queue(struct gmac_device *p_gmac_dev)
+static void gmac_rx_populate_queue(struct gmac_device *macDev)
 {
 	uint32_t ul_index = 0;
 	struct pbuf *p = 0;
@@ -192,7 +201,7 @@ static void gmac_rx_populate_queue(struct gmac_device *p_gmac_dev)
 	/* Set up the RX descriptors. */
 	for (ul_index = 0; ul_index < GMAC_RX_BUFFERS; ul_index++)
 	{
-		if (p_gmac_dev->rx_pbuf[ul_index] == 0)
+		if (macDev->rx_pbuf[ul_index] == 0)
 		{
 			/* Allocate a new pbuf with the maximum size. */
 			p = pbuf_alloc(PBUF_RAW, (u16_t) GMAC_FRAME_LENTGH_MAX, PBUF_POOL);
@@ -200,6 +209,10 @@ static void gmac_rx_populate_queue(struct gmac_device *p_gmac_dev)
 			{
 				EXT_DEBUGF(NETIF_DEBUG, ("gmac_rx_populate_queue: pbuf allocation failure"));
 				EXT_ERRORF(("gmac_rx_populate_queue: pbuf allocation failure") );
+#if LWIP_STATS
+				macDev->macStats->rxErrOOM++;
+#endif
+				LINK_STATS_INC(link.memerr);
 				break;
 			}
 #if EXT_LWIP_DEBUG
@@ -217,19 +230,19 @@ static void gmac_rx_populate_queue(struct gmac_device *p_gmac_dev)
 			EXT_ASSERT(("gmac_rx_populate_queue: unaligned p->payload buffer address"), (((uint32_t)p->payload & 0xFFFFFFFC) == (uint32_t)p->payload));
 
 			if (ul_index == GMAC_RX_BUFFERS - 1)
-				p_gmac_dev->rx_desc[ul_index].addr.val = (u32_t) p->payload | GMAC_RXD_WRAP;
+				macDev->rx_desc[ul_index].addr.val = (u32_t) p->payload | GMAC_RXD_WRAP;
 			else
-				p_gmac_dev->rx_desc[ul_index].addr.val = (u32_t) p->payload;
+				macDev->rx_desc[ul_index].addr.val = (u32_t) p->payload;
 
 			/* make is can be used by DMA.  August 9, 2018 J.L.*/
-			p_gmac_dev->rx_desc[ul_index].addr.val &= ~(GMAC_RXD_OWNERSHIP);
+			macDev->rx_desc[ul_index].addr.val &= ~(GMAC_RXD_OWNERSHIP);
 
 
 			/* Reset status value. */
-			p_gmac_dev->rx_desc[ul_index].status.val = 0;
+			macDev->rx_desc[ul_index].status.val = 0;
 
 			/* Save pbuf pointer to be sent to lwIP upper layer. */
-			p_gmac_dev->rx_pbuf[ul_index] = p;
+			macDev->rx_pbuf[ul_index] = p;
 
 //			EXT_DEBUGF(NETIF_DEBUG|PBUF_DEBUG, ("gmac_rx_populate_queue: new pbuf allocated: %p [idx=%u]", p, (int)ul_index));
 		}
@@ -442,7 +455,7 @@ static void _gmac_low_level_init(struct netif *netif)
  */
 static err_t _gmac_low_level_output(struct netif *netif, struct pbuf *p)
 {
-	struct gmac_device *ps_gmac_dev = netif->state;
+	struct gmac_device *_macDev = netif->state;
 	struct pbuf *q = NULL;
 	uint8_t *buffer = 0;
 
@@ -457,17 +470,20 @@ static err_t _gmac_low_level_output(struct netif *netif, struct pbuf *p)
 		LINK_STATS_INC(link.drop);
 
 		/* Reinit TX descriptors. */
-		gmac_tx_init(ps_gmac_dev);
+		gmac_tx_init(_macDev);
 
 		/* Clear error status. */
 		gmac_clear_tx_status(GMAC, GMAC_TX_ERRORS);
 
 		gmac_enable_transmit(GMAC, true);
 
+#if LWIP_STATS
+		_macDev->macStats->txFailed++;
+#endif
 		return ERR_OK;
 	}
 
-	buffer = (uint8_t*)ps_gmac_dev->tx_desc[ps_gmac_dev->us_tx_idx].addr;
+	buffer = (uint8_t*)_macDev->tx_desc[_macDev->us_tx_idx].addr;
 
 	/* Copy pbuf chain into TX buffer. */
 	for (q = p; q != NULL; q = q->next)
@@ -477,18 +493,19 @@ static err_t _gmac_low_level_output(struct netif *netif, struct pbuf *p)
 	}
 
 	/* Set len and mark the buffer to be sent by GMAC. */
-	ps_gmac_dev->tx_desc[ps_gmac_dev->us_tx_idx].status.bm.b_len = p->tot_len;
-	ps_gmac_dev->tx_desc[ps_gmac_dev->us_tx_idx].status.bm.b_used = 0;
+	_macDev->tx_desc[_macDev->us_tx_idx].status.bm.b_len = p->tot_len;
+	_macDev->tx_desc[_macDev->us_tx_idx].status.bm.b_used = 0;
 
-	EXT_DEBUGF(NETIF_DEBUG, ("gmac_low_level_output: DMA buffer sent, size=%d [idx=%u]", p->tot_len,(int) ps_gmac_dev->us_tx_idx));
+	EXT_DEBUGF(NETIF_DEBUG, ("gmac_low_level_output: DMA buffer sent, size=%d [idx=%u]", p->tot_len,(int) _macDev->us_tx_idx));
 
-	ps_gmac_dev->us_tx_idx = (ps_gmac_dev->us_tx_idx + 1) % GMAC_TX_BUFFERS;
+	_macDev->us_tx_idx = (_macDev->us_tx_idx + 1) % GMAC_TX_BUFFERS;
 
 	/* Now start to transmission. */
 	gmac_start_transmission(GMAC);
 
 #if LWIP_STATS
 	lwip_tx_count += p->tot_len;
+	_macDev->macStats->txPackets++;
 #endif
 	LINK_STATS_INC(link.xmit);
 
@@ -500,22 +517,23 @@ static err_t _gmac_low_level_output(struct netif *netif, struct pbuf *p)
  *
  * \param netif the lwIP network interface structure for this ethernetif.
  *
- * \return a pbuf filled with the received packet (including MAC header).
+ * \return a pbuf filled with the received packet (including MAC header). 
  * 0 on memory error.
  */
 static struct pbuf *_gmac_low_level_input(struct netif *netif)
 {
-	struct gmac_device *ps_gmac_dev = netif->state;
+	struct gmac_device *_macDev = netif->state;
 	struct pbuf *p = 0;
 	uint32_t length = 0;
 	uint32_t ul_index = 0;
-	gmac_rx_descriptor_t *p_rx = &ps_gmac_dev->rx_desc[ps_gmac_dev->us_rx_idx];
+	gmac_rx_descriptor_t *p_rx = &_macDev->rx_desc[_macDev->us_rx_idx];
+	uint32_t status = gmac_get_rx_status(GMAC);
 
 #if MUXLAB_GMAC_TEST
-	printf("RX Status:0x%"PRIx32""EXT_NEW_LINE, gmac_get_rx_status(GMAC) );
+	printf("RX Status:0x%"PRIx32""EXT_NEW_LINE, status );
 #endif
 	/* Handle GMAC overrun or AHB errors. */
-	if (gmac_get_rx_status(GMAC) & GMAC_RX_ERRORS)
+	if (status & GMAC_RX_ERRORS)
 	{
 		gmac_enable_receive(GMAC, false);
 		
@@ -527,24 +545,31 @@ static struct pbuf *_gmac_low_level_input(struct netif *netif)
 		/* Free all RX pbufs. */
 		for (ul_index = 0; ul_index < GMAC_RX_BUFFERS; ul_index++)
 		{
-			if (ps_gmac_dev->rx_pbuf[ul_index] != 0)
+			if (_macDev->rx_pbuf[ul_index] != 0)
 			{
-				pbuf_free(ps_gmac_dev->rx_pbuf[ul_index]);
-				ps_gmac_dev->rx_pbuf[ul_index] = 0;
+				pbuf_free(_macDev->rx_pbuf[ul_index]);
+				_macDev->rx_pbuf[ul_index] = 0;
 			}
 		}
 
 		/* Reinit RX descriptors. */
-		gmac_rx_init(ps_gmac_dev);
+		gmac_rx_init(_macDev);
 
 		/* Clear error status. */
 		gmac_clear_rx_status(GMAC, GMAC_RX_ERRORS| GMAC_RSR_BNA|GMAC_RSR_REC);
 
 		gmac_enable_receive(GMAC, true);
+#if LWIP_STATS
+		_macDev->macStats->rxErrOverrun++;
+#endif
 
 		return NULL;
 	}
 
+	if((status & (GMAC_RSR_REC|GMAC_RSR_BNA)) == 0)
+	{
+		return NULL;
+	}
 
 #if MUXLAB_GMAC_TEST
 	printf("RX frame address:0x%"PRIx32"; describer status:0x%"PRIx32""EXT_NEW_LINE, p_rx->addr.val, p_rx->status.val );
@@ -556,13 +581,13 @@ static struct pbuf *_gmac_low_level_input(struct netif *netif)
 		length = p_rx->status.val & GMAC_RXD_LEN_MASK;
 
 		/* Fetch pre-allocated pbuf. */
-		p = ps_gmac_dev->rx_pbuf[ps_gmac_dev->us_rx_idx];
+		p = _macDev->rx_pbuf[_macDev->us_rx_idx];
 		p->len = length;
 
 		/* Remove this pbuf from its desriptor. */
-		ps_gmac_dev->rx_pbuf[ps_gmac_dev->us_rx_idx] = 0;
+		_macDev->rx_pbuf[_macDev->us_rx_idx] = 0;
 
-		EXT_DEBUGF(NETIF_DEBUG, ("gmac_low_level_input: DMA(From ISR) buffer %p received, size=%u [idx=%u]"EXT_NEW_LINE, p, (int)length, (int)ps_gmac_dev->us_rx_idx));
+		EXT_DEBUGF(NETIF_DEBUG, ("gmac_low_level_input: DMA(From ISR) buffer %p received, size=%u [idx=%u]"EXT_NEW_LINE, p, (int)length, (int)_macDev->us_rx_idx));
 #if EXT_LWIP_DEBUG
 		EXT_LWIP_DEBUG_PBUF(p);
 		if(p->next)
@@ -576,28 +601,32 @@ static struct pbuf *_gmac_low_level_input(struct netif *netif)
 		LINK_STATS_INC(link.recv);
 
 		/* Fill empty descriptors with new pbufs. */
-		gmac_rx_populate_queue(ps_gmac_dev);
+		gmac_rx_populate_queue(_macDev);
 
 		/* Mark the descriptor ready for transfer. */
 		p_rx->addr.val &= ~(GMAC_RXD_OWNERSHIP);
 
-		ps_gmac_dev->us_rx_idx = (ps_gmac_dev->us_rx_idx + 1) % GMAC_RX_BUFFERS;
+		_macDev->us_rx_idx = (_macDev->us_rx_idx + 1) % GMAC_RX_BUFFERS;
 
 		/* clear these bits as data sheet. Aug,9,2018 J.L.*/
 		gmac_clear_rx_status(GMAC, GMAC_RSR_BNA|GMAC_RSR_REC);
 
 #if LWIP_STATS
 		lwip_rx_count += length;
+		_macDev->macStats->rxPackets++;
 #endif
 	}
 	else
 	{
-		EXT_ERRORF(("ownership: %"PRIx32", RECV buffer index:%ld", (p_rx->addr.val & GMAC_RXD_OWNERSHIP), ps_gmac_dev->us_rx_idx));
-		p_rx->addr.val &= ~(GMAC_RXD_OWNERSHIP);
+		EXT_ERRORF(("ownership: %"PRIx32", RECV buffer index:%ld", (p_rx->addr.val & GMAC_RXD_OWNERSHIP), _macDev->us_rx_idx));
+///		p_rx->addr.val &= ~(GMAC_RXD_OWNERSHIP);
 //		ps_gmac_dev->us_rx_idx = (ps_gmac_dev->us_rx_idx + 1) % GMAC_RX_BUFFERS;
 
 		/* clear these bits as data sheet. Aug.9,2018 J.L.*/
 		gmac_clear_rx_status(GMAC, GMAC_RSR_BNA|GMAC_RSR_REC);
+#if LWIP_STATS
+		_macDev->macStats->rxErrOwnership++;
+#endif
 	}
 
 	return p;
@@ -617,6 +646,7 @@ static struct pbuf *_gmac_low_level_input(struct netif *netif)
 
 void ethernetif_input(struct netif *netif)
 {
+	struct gmac_device *_macDev = netif->state;
 	struct eth_hdr *ethhdr;
 	struct pbuf *p;
 
@@ -649,6 +679,10 @@ void ethernetif_input(struct netif *netif)
 
 		default:
 			/* Free buffer. */
+			LINK_STATS_INC(link.drop);
+#if LWIP_STATS
+			_macDev->macStats->rxErrFrame ++;
+#endif			
 			pbuf_free(p);
 			break;
 	}
@@ -668,7 +702,6 @@ static void gmac_task(void *pvParameters)
 
 	while (1)
 	{
-
 		/* Wait for the RX notification semaphore. */
 		sys_arch_sem_wait(&ps_gmac_dev->rx_sem, 0);
 
@@ -695,7 +728,9 @@ err_t ethernetif_init(struct netif *netif)
 {
 	EXT_ASSERT(("netif != NULL"), (netif != NULL));
 
+	memset(&macStats, 0, sizeof(struct MAC_STATS) );
 	gs_gmac_dev.netif = netif;
+	gs_gmac_dev.macStats = &macStats;
 
 #if EXT_LWIP_DEBUG
 	EXT_DEBUGF(NETIF_DEBUG, ("Initializing ethernetif_init"EXT_NEW_LINE ) );
@@ -739,7 +774,7 @@ err_t ethernetif_init(struct netif *netif)
 	if (err == ERR_MEM)
 		return ERR_MEM;
 	
-	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, netifINTERFACE_TASK_STACK_SIZE, netifINTERFACE_TASK_PRIORITY-1);
+	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, netifINTERFACE_TASK_STACK_SIZE, netifINTERFACE_TASK_PRIORITY);
 //	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, netifINTERFACE_TASK_STACK_SIZE*4, EXT_TASK_ETHERNET_PRIORITY);
 	EXT_ASSERT(("ethernetif_init: GMAC Task allocation ERROR!"), (id != 0));
 	if (id == 0)

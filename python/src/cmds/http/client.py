@@ -13,6 +13,10 @@ from utils import ColorMsg
 import copy
 import re
 
+import logging
+import http.client
+
+log = logging.getLogger('http.client')
 
 class HttpClient(object):
 
@@ -20,6 +24,19 @@ class HttpClient(object):
         self.client = requests.Session()
         self.debug = kwargs.get("debug", False)
         self.totalTests = 0
+
+    def debug_on(self):
+        logging.basicConfig(level=logging.DEBUG)
+        #httplib.HTTPConnection.debuglevel = 1
+        http.client.HTTPConnection.debuglevel = 2
+        requests.packages.urllib3.add_stderr_logger()
+
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.DEBUG)
+        req_log = logging.getLogger('requests.packages.urllib3')
+        req_log.setLevel(logging.DEBUG)
+        req_log.propagate = True
+
 
     def _html_data(self, kwargs):
         if 'data' in kwargs:
@@ -83,10 +100,12 @@ class HttpClient(object):
                 # print("passed kwargs %s" % (kwargs2))
                 done = True
             except TypeError as err:  # for: TypeError: request() got an unexpected keyword argument 'uri'
-                ColorMsg.debug_msg("TypeError output:{0}".format(err), self.debug)
+                #ColorMsg.debug_msg("TypeError output:{0}".format(err), self.debug)
+                log.debug("TypeError output:{0}".format(err), self.debug)
                 # re.findall() return a list, so get first item in list
                 key = re.findall("\'(\w+)\'", format(err))[0]
-                ColorMsg.debug_msg("Method \"%s\" removing \"%s\"" % (method.__name__, str(key)), self.debug )
+                #ColorMsg.debug_msg("Method \"%s\" removing \"%s\"" % (method.__name__, str(key)), self.debug )
+                log.debug("Method \"%s\" removing \"%s\"" % (method.__name__, str(key)), self.debug )
                 del kwargs2[key]  # Remove offending key
             except requests.exceptions.ConnectionError as err:
                 ColorMsg.error_msg("ConnectionError output:{0}".format(err))

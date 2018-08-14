@@ -105,6 +105,7 @@ static void  _extUploadClose(struct _MuxHttpConn *mhc)
 	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
 	
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("File finished:'%s' %d bytes", mhc->filename, runCfg->firmUpdateInfo.size ));
+	printf(EXT_NEW_LINE);fflush(stdout);
 	_firmwareUpdateEnd(runCfg);
 
 }
@@ -125,6 +126,7 @@ static unsigned short _extUploadWrite(struct _MuxHttpConn *mhc, void *data, unsi
 #else
 	len = fwrite(data, 1, (unsigned int)size, runCfg->firmUpdateInfo.fp );
 #endif
+	printf(".");fflush(stdout);
 	
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("File:'%s' written %d bytes", mhc->filename, len ));
 
@@ -156,6 +158,7 @@ static unsigned short __extTftpWriteData(EXT_RUNTIME_CFG	*runCfg, void *data, un
 	}
 #endif
 
+	printf(".");fflush(stdout);
 	runCfg->firmUpdateInfo.size += len;
 //	EXT_DEBUGF(TFTP_DEBUG, ("TFTP Write: %d bytes, total %d bytes", len, runCfg->firmUpdateInfo.size) );
 
@@ -204,6 +207,8 @@ static void  _extTftpClose(void* handle)
 	}
 	
 	_firmwareUpdateEnd(runCfg);
+
+	printf(EXT_NEW_LINE);fflush(stdout);
 
 	EXT_DEBUGF(TFTP_DEBUG, ("Closed, total %d bytes", runCfg->firmUpdateInfo.size) );
 }
