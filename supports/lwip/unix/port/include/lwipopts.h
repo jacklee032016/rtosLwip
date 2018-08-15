@@ -141,7 +141,7 @@ a lot of data that needs to be copied, this should be set high. */
    for sequential API communication and incoming packets. Used in
    src/api/tcpip.c. */
 #define MEMP_NUM_TCPIP_MSG_API   16
-#define MEMP_NUM_TCPIP_MSG_INPKT 16
+#define MEMP_NUM_TCPIP_MSG_INPKT		128
 
 #define MEMP_OVERFLOW_CHECK      1
 

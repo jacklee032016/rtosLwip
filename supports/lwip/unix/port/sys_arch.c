@@ -44,6 +44,7 @@
  *    will block until there is more room instead of just
  *    leaking messages.
  */
+#define _GNU_SOURCE       
 #include "lwip/debug.h"
 
 #include <string.h>
@@ -64,8 +65,9 @@
 #include "lwip/opt.h"
 #include "lwip/stats.h"
 
-static void
-get_monotonic_time(struct timespec *ts)
+#include "lwipExt.h"
+
+static void get_monotonic_time(struct timespec *ts)
 {
 #ifdef LWIP_UNIX_MACH
   /* darwin impl (no CLOCK_MONOTONIC) */
@@ -151,55 +153,55 @@ introduce_thread(pthread_t id)
   return thread;
 }
 
-sys_thread_t
-sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksize, int prio)
+sys_thread_t sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksize, int prio)
 {
-  int code;
-  pthread_t tmp;
-  struct sys_thread *st = NULL;
-  LWIP_UNUSED_ARG(name);
-  LWIP_UNUSED_ARG(stacksize);
-  LWIP_UNUSED_ARG(prio);
+	int code;
+	pthread_t tmp;
+	struct sys_thread *st = NULL;
+	LWIP_UNUSED_ARG(name);
+	LWIP_UNUSED_ARG(stacksize);
+	LWIP_UNUSED_ARG(prio);
 
-  code = pthread_create(&tmp,
-                        NULL, 
-                        (void *(*)(void *)) 
-                        function, 
-                        arg);
-  
-  if (0 == code) {
-    st = introduce_thread(tmp);
-  }
-  
-  if (NULL == st) {
-    LWIP_DEBUGF(SYS_DEBUG, ("sys_thread_new: pthread_create %d, st = 0x%lx",
-                       code, (unsigned long)st));
-    abort();
-  }
-  return st;
+	code = pthread_create(&tmp, NULL,  (void *(*)(void *)) function, arg);
+	if (0 == code)
+	{
+		if( pthread_setname_np(tmp, name) != 0)
+		{
+			EXT_INFOF(("Error in set thread name '%s'", name ));
+			return NULL;
+		}
+
+		st = introduce_thread(tmp);
+	}
+
+	if (NULL == st)
+	{
+		LWIP_DEBUGF(SYS_DEBUG, ("sys_thread_new: pthread_create %d, st = 0x%lx", code, (unsigned long)st));
+		abort();
+	}
+	return st;
 }
 
 /*-----------------------------------------------------------------------------------*/
 /* Mailbox */
-err_t
-sys_mbox_new(struct sys_mbox **mb, int size)
+err_t sys_mbox_new(struct sys_mbox **mb, int size)
 {
-  struct sys_mbox *mbox;
-  LWIP_UNUSED_ARG(size);
+	struct sys_mbox *mbox;
+	LWIP_UNUSED_ARG(size);
 
-  mbox = (struct sys_mbox *)malloc(sizeof(struct sys_mbox));
-  if (mbox == NULL) {
-    return ERR_MEM;
-  }
-  mbox->first = mbox->last = 0;
-  mbox->not_empty = sys_sem_new_internal(0);
-  mbox->not_full = sys_sem_new_internal(0);
-  mbox->mutex = sys_sem_new_internal(1);
-  mbox->wait_send = 0;
+	mbox = (struct sys_mbox *)malloc(sizeof(struct sys_mbox));
+	if (mbox == NULL) {
+		return ERR_MEM;
+	}
+	mbox->first = mbox->last = 0;
+	mbox->not_empty = sys_sem_new_internal(0);
+	mbox->not_full = sys_sem_new_internal(0);
+	mbox->mutex = sys_sem_new_internal(1);
+	mbox->wait_send = 0;
 
-  SYS_STATS_INC_USED(mbox);
-  *mb = mbox;
-  return ERR_OK;
+	SYS_STATS_INC_USED(mbox);
+	*mb = mbox;
+	return ERR_OK;
 }
 
 void
@@ -219,8 +221,7 @@ sys_mbox_free(struct sys_mbox **mb)
   }
 }
 
-err_t
-sys_mbox_trypost(struct sys_mbox **mb, void *msg)
+err_t sys_mbox_trypost(struct sys_mbox **mb, void *msg)
 {
   u8_t first;
   struct sys_mbox *mbox;
@@ -256,8 +257,7 @@ sys_mbox_trypost(struct sys_mbox **mb, void *msg)
   return ERR_OK;
 }
 
-void
-sys_mbox_post(struct sys_mbox **mb, void *msg)
+void sys_mbox_post(struct sys_mbox **mb, void *msg)
 {
   u8_t first;
   struct sys_mbox *mbox;

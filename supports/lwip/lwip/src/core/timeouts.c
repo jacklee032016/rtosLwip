@@ -405,12 +405,15 @@ void sys_timeouts_mbox_fetch(sys_mbox_t *mbox, void **msg)
 {
 	u32_t sleeptime;
 
+//TRACE();
+
 again:
 	if (!next_timeout)
 	{
 		sys_arch_mbox_fetch(mbox, msg, 0);
 		return;
 	}
+//	TRACE();
 
 	sleeptime = sys_timeouts_sleeptime();
 	if (sleeptime == 0 || sys_arch_mbox_fetch(mbox, msg, sleeptime) == SYS_ARCH_TIMEOUT)
@@ -421,6 +424,8 @@ again:
 		/* We try again to fetch a message from the mbox. */
 		goto again;
 	}
+
+//	TRACE();
 }
 
 #endif /* NO_SYS */

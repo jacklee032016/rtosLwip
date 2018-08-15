@@ -87,6 +87,7 @@ static void _extEthernetInterfaceConfigure(struct netif *netif, EXT_RUNTIME_CFG 
 //	printf("Add netif %d(%p)..."EXT_NEW_LINE, netif->hwaddr_len, netif);
 //	netif->flags |= NETIF_FLAG_IGMP;
 	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_ETHERNET;
+	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_IGMP;
 	/* Add data to netif */
 #if 0
 	if (NULL == netif_add(netif, &x_ip_addr, &x_net_mask, &x_gateway, NULL, ethernetif_init, ethernet_input))

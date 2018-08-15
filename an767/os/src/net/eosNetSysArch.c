@@ -224,12 +224,15 @@ err_t sys_mbox_new(sys_mbox_t *mBoxNew, int size )
 	err_t err_mbox = ERR_MEM;
 
 	/* Sanity check */
-	if (mBoxNew != NULL) {
+	if (mBoxNew != NULL)
+	{
 		*mBoxNew = xQueueCreate( size, sizeof(void *));
   #if SYS_STATS
-		if (SYS_MBOX_NULL != *mBoxNew) {
+		if (SYS_MBOX_NULL != *mBoxNew)
+		{
 			lwip_stats.sys.mbox.used++;
-			if (lwip_stats.sys.mbox.used > lwip_stats.sys.mbox.max) {
+			if (lwip_stats.sys.mbox.used > lwip_stats.sys.mbox.max)
+			{
 				lwip_stats.sys.mbox.max	= lwip_stats.sys.mbox.used;
 			}
 		}
@@ -252,8 +255,10 @@ err_t sys_mbox_new(sys_mbox_t *mBoxNew, int size )
 void sys_mbox_free(sys_mbox_t *mbox)
 {
 	/* Sanity check */
-	if (mbox != NULL) {
-		if (SYS_MBOX_NULL != *mbox) {
+	if (mbox != NULL)
+	{
+		if (SYS_MBOX_NULL != *mbox)
+		{
   #if SYS_STATS
 			lwip_stats.sys.mbox.used--;
   #endif /* SYS_STATS */
@@ -272,9 +277,20 @@ void sys_mbox_free(sys_mbox_t *mbox)
 void sys_mbox_post(sys_mbox_t *mbox, void *msg)
 {
 	/* Sanit check */
-	if (mbox != NULL) {
-		while (pdTRUE != xQueueSend( *mbox, &msg, SYS_ARCH_BLOCKING_TICKTIMEOUT )) {
+	if (mbox != NULL)
+	{
+		while (pdTRUE != xQueueSend( *mbox, &msg, SYS_ARCH_BLOCKING_TICKTIMEOUT ))
+		{
+			EXT_ERRORF(("wait mbox"));
 		}
+
+  #if SYS_STATS
+		lwip_stats.sys.mbox.used++;
+		if (lwip_stats.sys.mbox.used > lwip_stats.sys.mbox.max)
+		{
+			lwip_stats.sys.mbox.max	= lwip_stats.sys.mbox.used;
+		}
+  #endif /* SYS_STATS */
 	}
 }
 
@@ -291,9 +307,22 @@ err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
 	err_t err_mbox = ERR_MEM;
 
 	/* Sanity check */
-	if (mbox != NULL) {
-		if (errQUEUE_FULL != xQueueSend( *mbox, &msg, 0 )) {
+	if (mbox != NULL)
+	{
+		if (errQUEUE_FULL != xQueueSend( *mbox, &msg, 0 ))
+		{
 			err_mbox = ERR_OK;
+  #if SYS_STATS
+			lwip_stats.sys.mbox.used++;
+			if (lwip_stats.sys.mbox.used > lwip_stats.sys.mbox.max)
+			{
+				lwip_stats.sys.mbox.max	= lwip_stats.sys.mbox.used;
+			}
+  #endif /* SYS_STATS */
+		}
+		else
+		{
+			EXT_ERRORF(("mbox is full"));
 		}
 	}
 
@@ -322,26 +351,32 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 	/* Express the timeout in OS tick. */
 	portTickType TickElapsed = (portTickType)(timeout / portTICK_RATE_MS);
 
-	if (timeout && !TickElapsed) {
+	if (timeout && !TickElapsed)
+	{
 		TickElapsed = 1; /* Wait at least one tick */
 	}
 
-	if (msg == NULL) {
+	if (msg == NULL)
+	{
 		msg = &tempoptr;
 	}
 
 	/* NOTE: INCLUDE_xTaskGetSchedulerState must be set to 1 in
 	 * FreeRTOSConfig.h for xTaskGetTickCount() to be available */
-	if (0 == TickElapsed) {
+	if (0 == TickElapsed)
+	{
 		TickStart = xTaskGetTickCount();
-		/* If "timeout" is 0, the thread should be blocked until
-		 * a message arrives */
-		while (pdFALSE == xQueueReceive( *mbox, &(*msg),
-				SYS_ARCH_BLOCKING_TICKTIMEOUT )) {
+		
+		/* If "timeout" is 0, the thread should be blocked until a message arrives */
+		while (pdFALSE == xQueueReceive( *mbox, &(*msg), SYS_ARCH_BLOCKING_TICKTIMEOUT ))
+		{
 		}
-	} else {
+	}
+	else
+	{
 		TickStart = xTaskGetTickCount();
-		if (pdFALSE == xQueueReceive( *mbox, &(*msg), TickElapsed )) {
+		if (pdFALSE == xQueueReceive( *mbox, &(*msg), TickElapsed ))
+		{
 			*msg = NULL;
 			/* if the function times out, it should return
 			 * SYS_ARCH_TIMEOUT. */
@@ -349,16 +384,22 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 		}
 	}
 
-	/* If the function gets a msg, it should return the number of ms
-	 * spent waiting. */
+	/* If the function gets a msg, it should return the number of ms spent waiting. */
 	TickStop = xTaskGetTickCount();
 	/* Take care of wrap-around. */
-	if (TickStop >= TickStart) {
+	if (TickStop >= TickStart)
+	{
 		TickElapsed = TickStop - TickStart;
-	} else {
+	}
+	else
+	{
 		TickElapsed = portMAX_DELAY - TickStart + TickStop;
 	}
 
+#if SYS_STATS
+	lwip_stats.sys.mbox.used--;
+#endif /* SYS_STATS */
+  
 	return(TickElapsed * portTICK_RATE_MS);
 }
 
@@ -380,21 +421,30 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
 	void *tempoptr;
 
 	/* Sanity check */
-	if (mbox != NULL) {
-		if (msg == NULL) {
+	if (mbox != NULL)
+	{
+		if (msg == NULL)
+		{
 			msg = &tempoptr;
 		}
 
-		if (pdFALSE == xQueueReceive( *mbox, &(*msg), 0 )) {
+		if (pdFALSE == xQueueReceive( *mbox, &(*msg), 0 ))
+		{
 			/* if a message is not present in the mailbox, it
 			 * immediately returns with */
 			/* the code SYS_MBOX_EMPTY. */
 			return(SYS_MBOX_EMPTY);
 		}
 
+  #if SYS_STATS
+		lwip_stats.sys.mbox.used--;
+  #endif /* SYS_STATS */
+
 		/* On success 0 is returned. */
 		return(0);
-	} else {
+	}
+	else
+	{
 		return(SYS_MBOX_EMPTY);
 	}
 }

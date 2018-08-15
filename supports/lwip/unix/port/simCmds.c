@@ -23,8 +23,8 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 		helpString: EXT_NEW_LINE EXT_CMD_UDP_PERF" <ipaddress of UDP Perf server>:"EXT_NEW_LINE" for example, 192.168.168.102"EXT_NEW_LINE,
 		callback: extCmdUdpTxPerf,
 	},
-
 #endif
+
 	{
 		name	: EXT_CMD_PING,
 		helpString: EXT_NEW_LINE EXT_CMD_PING" <ipaddress>:"EXT_NEW_LINE" for example, ping 192.168.168.1"EXT_NEW_LINE,

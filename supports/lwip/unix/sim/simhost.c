@@ -239,6 +239,8 @@ static void simhost_tcpip_init_done(void *arg)
 	extLwipStartup(&guNetIf, &extRun);
 
 	sys_sem_signal(sem);
+
+	EXT_DEBUGF(EXT_DBG_ON, ("TCPIP initialization done"));
 }
 
 
@@ -492,12 +494,6 @@ static void init_netifs(EXT_RUNTIME_CFG *runCfg)
 #if LWIP_TCP
 	netio_init();
 #endif
-#if LWIP_TCP && LWIP_NETCONN
-	tcpecho_init();
-#endif
-#if LWIP_UDP && LWIP_NETCONN  
-	udpecho_init();
-#endif
 
 
 #if LWIP_SOCKET
@@ -553,7 +549,7 @@ static void main_thread(void *arg)
 #if 0
 	stats_display(NULL, 0);
 #endif
-	printf("Applications started.\n");
+	printf("Applications started"LWIP_NEW_LINE);
 
 #ifdef MEM_PERF
 	mem_perf_init("/tmp/memstats.client");
@@ -564,6 +560,9 @@ static void main_thread(void *arg)
 	sys_thread_new("pppos_rx_thread", pppos_rx_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 	sys_sem_wait(&sem);
 #endif
+
+	printf("main thread quit"LWIP_NEW_LINE);
+
 }
 
 
@@ -643,7 +642,7 @@ int main(int argc, char **argv)
 #endif /* PERF */
 
 
-	sys_thread_new("main_thread", main_thread, &extRun, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+	sys_thread_new("simMain", main_thread, &extRun, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 	pause();
 	return 0;
 }

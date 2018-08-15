@@ -169,7 +169,7 @@ void stats_display(char *outBuffer, size_t bufferLen)
 	int index = 0;
 	struct stats_igmp *igmp = &lwip_stats.igmp;
 	struct stats_mem *mem;
-#if 0	
+#if 1	
 	struct stats_syselem *sys;
 #endif
 	index += snprintf( outBuffer+index, (bufferLen-index), "PROTOCOLS:"EXT_NEW_LINE"\tXmit\tRecv\tFw\tDrop\tChkErr\tLenErr\tMemErr\tRtErr\tProtErr\tOptErr\tErr\tCacheHit"EXT_NEW_LINE);
@@ -205,7 +205,7 @@ void stats_display(char *outBuffer, size_t bufferLen)
 		macStats.isrCount, macStats.txPackets, macStats.txFailed, macStats.rxPackets, macStats.rxErrFrame, macStats.rxErrOOM, macStats.rxErrOverrun, macStats.rxErrOwnership);
 #endif
 
-#if 0
+#if 1
 	index += snprintf( outBuffer+index, (bufferLen-index),EXT_NEW_LINE EXT_NEW_LINE"SYSTEM:"EXT_NEW_LINE"\tused\tmax\terr"EXT_NEW_LINE);
 	sys = &lwip_stats.sys.sem;
 	STATS_OUT_SYS((sys), "Sem");

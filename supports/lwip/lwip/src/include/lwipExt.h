@@ -57,7 +57,7 @@
 #include "http.h"
 
 #ifndef	TRACE
-	#define	TRACE()						printf(__FILE__", line %u\r\n", __LINE__)
+	#define	TRACE()						printf(__FILE__", line %u"EXT_NEW_LINE, __LINE__)
 #endif
 
 

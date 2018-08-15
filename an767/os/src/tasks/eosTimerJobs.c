@@ -26,6 +26,7 @@ MuxDelayJob _delayJob = NULL;
 
 static void _vTimerDelayExpired(TimerHandle_t pxTimer)
 {
+#if configUSE_TIMERS
 	if(_delayJob == NULL)
 	{
 		EXT_ERRORF(("Delay Job is not defined"));
@@ -34,13 +35,14 @@ static void _vTimerDelayExpired(TimerHandle_t pxTimer)
 
 	EXT_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
 	(_delayJob)(pvTimerGetTimerID(pxTimer) ); 
-
+#endif
 	/* remove timer */
 }
 
 
 static void extJobDelay(const char *name, unsigned short delayMs, MuxDelayJob func, void *data)
 {
+#if configUSE_TIMERS
 	_delayJob = func;
 	
 	_timerHdlDelay = xTimerCreate(name, pdMS_TO_TICKS(delayMs), pdFALSE, /* auto reload */ (void*)0, /* timer ID */_vTimerDelayExpired);
@@ -57,6 +59,9 @@ static void extJobDelay(const char *name, unsigned short delayMs, MuxDelayJob fu
 		EXT_ERRORF(("Delay Job can not be started"));
 		return;
 	}
+#else
+	(func)(data);
+#endif	
 }
 
 
@@ -74,6 +79,7 @@ void extDelayReboot(unsigned short delayMs)
 
 static void _periodJobCallback(TimerHandle_t pxTimer)
 {
+#if configUSE_TIMERS
 	EXT_RUNTIME_CFG *runCfg;
 //	EXT_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
 
@@ -88,12 +94,14 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 			extTxMulticastIP2Mac(runCfg);
 		}
 	}
+#endif	
 }
 
 
 /* periodical job: check switch button and FPGA register */
 void extJobPeriod(EXT_RUNTIME_CFG *runCfg)
 {
+#if configUSE_TIMERS
 	_timerHdlPeriod = xTimerCreate(EXT_PERIOD_JOB_NAME, pdMS_TO_TICKS(EXT_PERIOD_JOB_TIME), pdTRUE, /* auto reload */ (void*)0, /* timer ID */_periodJobCallback);
 	if (_timerHdlPeriod==NULL)
 	{
@@ -108,5 +116,6 @@ void extJobPeriod(EXT_RUNTIME_CFG *runCfg)
 		EXT_ERRORF(("Delay Job can not be started"));
 		return;
 	}
+#endif	
 }
 

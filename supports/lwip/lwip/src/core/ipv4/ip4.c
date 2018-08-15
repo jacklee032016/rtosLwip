@@ -475,7 +475,6 @@ err_t ip4_input(struct pbuf *p, struct netif *inp)
 //		ip4_debug_print(p);
 		extLwipIp4DebugPrint(p, "MULTICAST");
 
-
 		if ((inp->flags & NETIF_FLAG_IGMP) && (igmp_lookfor_group(inp, ip4_current_dest_addr())))
 		{
 			/* IGMP snooping switches need 0.0.0.0 to be allowed as source address (RFC 4541) */

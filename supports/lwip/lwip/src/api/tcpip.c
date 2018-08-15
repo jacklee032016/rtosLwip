@@ -67,7 +67,8 @@ sys_mutex_t lock_tcpip_core;
 
 #if LWIP_TIMERS
 /* wait for a message, timeouts are processed while waiting */
-#define TCPIP_MBOX_FETCH(mbox, msg) sys_timeouts_mbox_fetch(mbox, msg)
+//#define TCPIP_MBOX_FETCH(mbox, msg) sys_timeouts_mbox_fetch(mbox, msg)
+#define TCPIP_MBOX_FETCH(mbox, msg) sys_mbox_fetch(mbox, msg)
 #else /* LWIP_TIMERS */
 /* wait for a message with timers disabled (e.g. pass a timer-check trigger into tcpip_thread) */
 #define TCPIP_MBOX_FETCH(mbox, msg) sys_mbox_fetch(mbox, msg)
@@ -92,6 +93,10 @@ static void tcpip_thread(void *arg)
 	{
 		tcpip_init_done(tcpip_init_done_arg);
 	}
+
+#ifdef	X86
+	return;
+#endif
 
 	LOCK_TCPIP_CORE();
 	while (1)
