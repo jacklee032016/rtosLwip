@@ -22,6 +22,36 @@
 #define EXT_TRUE				(!EXT_FALSE)
 #endif
 
+
+/***************** system options ******************/
+
+#define		LWIP_EXT_TFTP					1
+
+#define		LWIP_EXT_HTTP					1
+
+#define		LWIP_EXT_NMOS					0
+
+/* ---------- MDNS options ---------- */
+#define		LWIP_MDNS_RESPONDER        			1
+#define		LWIP_NUM_NETIF_CLIENT_DATA		(LWIP_MDNS_RESPONDER)
+
+#define		LWIP_EXT_UDP_RX_PERF			0
+#define		LWIP_EXT_UDP_TX_PERF			0	/* extend for UDP TX Perf testing */
+
+#define		LWIP_EXT_TCP_PERF				0	/* extend for TCP Perf testing */
+
+#define		LWIP_EXT_MQTT_CLIENT			1
+
+/* button configuration */
+#define		_RESET_BTN_RESTORE_FACTORY 				1
+#define		_RESET_BTN_STAY_IN_BOOTLOADER			2
+
+#define		RESET_BTN_DELAY_SECONDS					5
+
+#define		RESET_BTN_MODE		_RESET_BTN_STAY_IN_BOOTLOADER
+
+
+
 #define	EXT_RW_BUFFER_SIZE				1024
 
 
@@ -170,13 +200,6 @@
 
 
 
-#define	LWIP_EXT_UDP_RX_PERF			0
-#define	LWIP_EXT_UDP_TX_PERF			0	/* extend for UDP TX Perf testing */
-
-#define	LWIP_EXT_TCP_PERF				0	/* extend for TCP Perf testing */
-
-
-#define	LWIP_EXT_MQTT_CLIENT			1
 
 /* macros for version */
 #define	EXT_VERSION_DOT(a, b, c)				a ##.## b ##.## c
@@ -420,12 +443,6 @@ typedef	enum _boot_mode
 }boot_mode;
 
 
-#define		_RESET_BTN_RESTORE_FACTORY 				1
-#define		_RESET_BTN_STAY_IN_BOOTLOADER			2
-
-#define		RESET_BTN_DELAY_SECONDS					5
-
-#define		RESET_BTN_MODE		_RESET_BTN_RESTORE_FACTORY
 
 typedef	enum
 {

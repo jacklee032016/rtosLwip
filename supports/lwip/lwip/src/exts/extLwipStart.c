@@ -9,11 +9,19 @@
 #include "jsmn.h"
 #include "extUdpCmd.h"
 
+#if LWIP_EXT_NMOS
+#if !LWIP_EXT_HTTP
+#error "sanity_check: WARNING: HTTP cannot be disabled when NMOS is enabled!"
+#endif
+#endif
+
 extern	const struct tftp_context		extTftp;
 
 EXT_JSON_PARSER  extParser;
 
-
+/*
+* Only involving join or leave one group. IGMP has been initialized in protocol stack
+*/
 char	 extLwipGroupMgr(struct netif *netif, unsigned int gAddress, unsigned char isAdd)
 {
 	const ip_addr_t  *ipaddr;
@@ -101,39 +109,41 @@ void extLwipMdsnDestroy(struct netif *netif)
 char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 {
 	extParser.runCfg = runCfg;
+
+	EXT_INFOF(("telnet server start..."));
 	extNetRawTelnetInit(runCfg);
 
+#if 0
+	extLwipGroupMgr(netif, runCfg->mcIp, 1);
+#endif
+
 #if LWIP_MDNS_RESPONDER
+	EXT_INFOF(("MDNS Responder start..."));
 	_extLwipMdnsResponder(netif, runCfg);
 
-
+	EXT_INFOF(("MDNS Client start..."));
 	mdnsClientInit(&_mdnsClient, runCfg);
 #endif
-#if 0
-
-//	shell_init();
-#endif
-//	extLwipGroupMgr(netif, runCfg->mcIp, 1);
-
 
 #if LWIP_EXT_UDP_RX_PERF
+	EXT_INFOF(("UDP RX Perf start..."));
 	extUdpRxPerfStart();
 #endif
 
 #if LWIP_EXT_UDP_TX_PERF
+	EXT_INFOF(("UDP TX Perf start..."));
 	extUdpTxPerfTask();
 #endif
 
 #if LWIP_EXT_MQTT_CLIENT && defined(X86)
+	EXT_INFOF(("MQTT Client start..."));
 	mqttClientConnect(PP_HTONL(LWIP_MAKEU32(192,168,168,102)));
 #endif
-
 
 	if(!EXT_IS_TX(runCfg))
 	{
 //		EXT_DEBUGF(IGMP_DEBUG,("Send IGMP JOIN"LWIP_NEW_LINE));
 //		extLwipGroupMgr(netif, runCfg->dest.ip, 1);
-
 		
 		extIpCmdSendMediaData(&extParser);
 	}
@@ -141,14 +151,21 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	{
 	}
 
+	EXT_INFOF(("IP Command Daemon start..."));
 	extIpCmdAgentInit(&extParser);
 
-#if 0
+#if LWIP_EXT_NMOS
+	EXT_INFOF(("NMOS node start..."));
 	extNmosNodeInit(&nmosNode, runCfg);
+#endif
+
+#if LWIP_EXT_HTTP
+	EXT_INFOF(("HTTP sever start..."));
 	mHttpSvrMain(runCfg);
 #endif
 
 #if LWIP_EXT_TCP_PERF
+	EXT_INFOF(("TCP Perf server start..."));
 	lwiperf_start_tcp_server_default(NULL, NULL);
 #endif
 
@@ -156,7 +173,8 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 #endif
 
 
-#if LWIP_UDP
+#if LWIP_EXT_TFTP
+	EXT_INFOF(("TFTP server start..."));
 	tftp_init(&extTftp);
 #endif /* LWIP_UDP */
 

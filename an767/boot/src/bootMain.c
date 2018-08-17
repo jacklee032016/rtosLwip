@@ -188,6 +188,10 @@ static int	_bootUpdate(EXT_RUNTIME_CFG *runCfg)
 	return length;
 }
 
+uint32_t sys_get_ms(void)
+{
+	return 0;
+}
 
 int main( void )
 {
@@ -248,7 +252,7 @@ int main( void )
 	/* delay to wait releasing button */
 	EXT_DELAY_MS(1000);
 
-	bspButtonConfig(BOOT_MODE_RTOS);
+	bspButtonConfig(BOOT_MODE_RTOS, EXT_TRUE);
 #endif	
 	/* Initialize flash driver */
 

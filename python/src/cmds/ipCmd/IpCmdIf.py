@@ -40,7 +40,7 @@ class IpCmdSocket(object):
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # Set a timeout so the socket does not block indefinitely when trying to receive data.
-        self.sock.settimeout(2.2)
+        self.sock.settimeout(3.0)
 
         ColorMsg.debug_msg( '%s, %s:%s, gateway:%s'%(self.__class__.__name__, self.server, self.port, self.dev.simGateway), self.debug)
 

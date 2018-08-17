@@ -308,6 +308,12 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 		callback: _cmdRunTimeStatsCommand,
 	},
 #endif /* configGENERATE_RUN_TIME_STATS */
+
+	{
+		name	: EXT_CMD_TIME,
+		helpString: EXT_NEW_LINE EXT_CMD_TIME":"EXT_NEW_LINE" Displays current time"EXT_NEW_LINE,
+		callback: cmnCmdTime,
+	},
 	
 
 #if LWIP_EXT_UDP_TX_PERF

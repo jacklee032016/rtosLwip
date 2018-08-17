@@ -268,9 +268,6 @@ a lot of data that needs to be copied, this should be set high. */
 /* ---------- DNS options ---------- */
 #define LWIP_DNS						1
 
-/* ---------- MDNS options ---------- */
-#define LWIP_MDNS_RESPONDER			0
-#define LWIP_NUM_NETIF_CLIENT_DATA	(LWIP_MDNS_RESPONDER)
 
 /* ---------- UDP options ---------- */
 #define LWIP_UDP						1

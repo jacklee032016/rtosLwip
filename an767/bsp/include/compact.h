@@ -260,6 +260,9 @@ typedef    _CODE unsigned char    cBYTE;
 /* commands in RTOS only */
 #define	EXT_CMD_TASKS					"tasks"
 #define	EXT_CMD_STATS					"stats"
+
+#define	EXT_CMD_TIME					"time"	/* current time */
+
 #define	EXT_CMD_HEAP					"heap"
 
 #define	EXT_CMD_PING					"ping"

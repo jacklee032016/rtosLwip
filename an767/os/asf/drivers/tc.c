@@ -507,27 +507,34 @@ uint32_t tc_find_mck_divisor(
 	uint32_t ul_high, ul_low;
 
 	/*  Satisfy frequency bound. */
-	for (ul_index = 0;
-			ul_index < (sizeof(divisors) / sizeof(divisors[0]));
-			ul_index++) {
+	for (ul_index = 0; ul_index < (sizeof(divisors) / sizeof(divisors[0])); ul_index++)
+	{
 		ul_high = ul_mck / divisors[ul_index];
 		ul_low  = ul_high / TC_DIV_FACTOR;
-		if (ul_freq > ul_high) {
+
+		if (ul_freq > ul_high)
+		{
 			return 0;
-		} else if (ul_freq >= ul_low) {
+		}
+		else if (ul_freq >= ul_low)
+		{
 			break;
 		}
 	}
-	if (ul_index >= (sizeof(divisors) / sizeof(divisors[0]))) {
+	
+	if (ul_index >= (sizeof(divisors) / sizeof(divisors[0])))
+	{
 		return 0;
 	}
 
 	/*  Store results. */
-	if (p_uldiv) {
+	if (p_uldiv)
+	{
 		*p_uldiv = divisors[ul_index];
 	}
 
-	if (p_ultcclks) {
+	if (p_ultcclks)
+	{
 		*p_ultcclks = ul_index;
 	}
 

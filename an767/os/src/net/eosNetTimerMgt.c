@@ -117,8 +117,16 @@ void sys_init_timing(void)
 	tc_find_mck_divisor(1000,
 			sysclk_get_main_hz(), &ul_div, &ul_tcclks,
 			sysclk_get_main_hz());
+//			sysclk_get_main_hz());
+
+	EXT_DEBUGF(EXT_DBG_ON, ("divisor:%"FOR_U32";clks:%"FOR_U32";counter=%"FOR_U32, ul_div, ul_tcclks, ((sysclk_get_main_hz() / ul_div) / 1000) ));
+
 	tc_init(TC0, 0, ul_tcclks | TC_CMR_CPCTRG);
-	tc_write_rc(TC0, 0, (sysclk_get_main_hz() / ul_div) / 1000);
+	
+	/* counter in register */
+	// tc_write_rc(TC0, 0, (sysclk_get_main_hz() /ul_div)/1000);
+	/* J.L. 08.18,2018 */
+	tc_write_rc(TC0, 0, (sysclk_get_main_hz() /ul_div)/1000/2);
 
 	/* Configure and enable interrupt on RC compare. */
 	NVIC_EnableIRQ((IRQn_Type)ID_TC0);

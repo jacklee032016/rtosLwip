@@ -13,18 +13,44 @@
 #define PIN_PIO_MODE_MSK         (matrix_get_system_io() | CCFG_SYSIO_SYSIO12)
 #define PIN_ERASE_MODE_MSK       (matrix_get_system_io() & (~CCFG_SYSIO_SYSIO12))
 
+static unsigned int _firstTime = 0;
+
+#define	BTN_FACTORY_DURATION		3000
+
 /**
  *  Handler for Button 1 rising edge interrupt.
  *  Set button1 event flag (g_button_event).
  */
 static void _buttonHandler(uint32_t id, uint32_t mask)
 {
+
 	if ((EXT_PUSH_BUTTON_ID == id) && (EXT_PUSH_BUTTON_PIN_MSK == mask) )
 	{
 //		g_button_event = 1;
-		EXT_INFOF(("'%s' is pressed, now reboot..."EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING));
-		EXT_PRINTF((EXT_NEW_LINE)); /* reset the color to default before reboot */
-		EXT_REBOOT();
+		if(_firstTime == 0)
+		{
+			bspButtonConfig(BOOT_MODE_RTOS , EXT_FALSE);
+			_firstTime = sys_get_ms();
+//			EXT_INFOF(("'%s' is pressed, "EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING));
+		}
+		else
+		{
+			unsigned int duration = (sys_get_ms()-_firstTime);
+			if(duration > BTN_FACTORY_DURATION)
+			{
+//				EXT_INFOF(("'%s' is unpressed after %d ms, now factory reset..."EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, duration));
+				bspCmdFactory(NULL, NULL, 0);
+
+//				extDelayReboot(1000);
+			}
+			else
+			{
+				EXT_INFOF(("'%s' is pressed, now reboot..."EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING) );
+			}
+			
+			EXT_PRINTF((EXT_NEW_LINE)); /* reset the color to default before reboot */
+			EXT_REBOOT();
+		}
 	}
 }
 
@@ -35,18 +61,22 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
  *  Configure the PIOs as inputs and generate corresponding interrupt when
  *  pressed or released.
  */
-void bspButtonConfig(boot_mode bMode)
+void bspButtonConfig(boot_mode bMode, char isRiseEdge)
 {
 	if(bMode == BOOT_MODE_RTOS)
 	{
+		unsigned int attribute = EXT_PUSH_BUTTON_ATTR_RISE_EDGE;
+		if(isRiseEdge == EXT_TRUE)
+			attribute = EXT_PUSH_BUTTON_ATTR_FALL_EDGE;
+		
 		/* Configure PIO clock. */
 		pmc_enable_periph_clk(EXT_PUSH_BUTTON_ID );
 
 		/* Adjust pio debounce filter parameters, uses 10 Hz filter. */
-		pio_set_debounce_filter(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_PIN_MSK, 10);
+		pio_set_debounce_filter(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_PIN_MSK, 2 );
 
 		/* Initialize pios interrupt handlers, see PIO definition in board.h. */
-		pio_handler_set(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_ID, EXT_PUSH_BUTTON_PIN_MSK, EXT_PUSH_BUTTON_ATTR, _buttonHandler);
+		pio_handler_set(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_ID, EXT_PUSH_BUTTON_PIN_MSK, attribute, _buttonHandler);
 
 		/* Enable PIO controller IRQs. */
 		NVIC_EnableIRQ((IRQn_Type)EXT_PUSH_BUTTON_ID);
@@ -73,7 +103,6 @@ void bspButtonConfig(boot_mode bMode)
 	gpio_configure_pin(EXT_PIN_DIP_SW_04, PIO_TYPE_PIO_INPUT );
 #endif
 }
-
 
 static void _extBspPinsConfig(void)
 {
@@ -179,16 +208,16 @@ void bspHwInit(boot_mode bMode)
 
 	
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)
-	bspButtonConfig(bMode);
+	bspButtonConfig(bMode, EXT_TRUE);
 #elif (RESET_BTN_MODE == _RESET_BTN_RESTORE_FACTORY)
 	/* when RESET is used as restoring factory */
 	if(bMode == BOOT_MODE_RTOS)
 	{/* OS: first only enable INPUT button */
-		bspButtonConfig(BOOT_MODE_BOOTLOADER);
+		bspButtonConfig(BOOT_MODE_BOOTLOADER, EXT_TRUE);
 	}
 	else
 	{/* bootloader: configure button in ISR: reset */
-		bspButtonConfig(BOOT_MODE_RTOS);
+		bspButtonConfig(BOOT_MODE_RTOS, EXT_TRUE);
 	}
 		
 #else

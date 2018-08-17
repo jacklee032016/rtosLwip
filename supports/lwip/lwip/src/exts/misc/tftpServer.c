@@ -23,7 +23,7 @@
 
 #include "lwip/apps/tftp_server.h"
 
-#if LWIP_UDP
+#if LWIP_EXT_TFTP
 
 #include "lwip/udp.h"
 #include "lwip/timeouts.h"

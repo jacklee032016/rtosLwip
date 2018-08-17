@@ -151,7 +151,8 @@ unsigned long  bspRandom(void);
 void bspHwConsoleConfig(void);
 
 void bspHwInit(boot_mode bMode);
-void bspButtonConfig(boot_mode bMode);
+//void bspButtonConfig(boot_mode bMode);
+void bspButtonConfig(boot_mode bMode, char isRiseEdge);
 
 
 
@@ -198,6 +199,9 @@ extern	char		argv[EXT_CMD_MAX_ARGUMENTS][EXT_CMD_MAX_LENGTH];
 #if LWIP_EXT_UDP_TX_PERF
 char	extCmdUdpTxPerf(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 #endif
+
+char cmnCmdTime(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, unsigned int bufferLen);
+
 char cmnCmdLwipPing(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);

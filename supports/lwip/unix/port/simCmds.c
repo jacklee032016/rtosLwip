@@ -11,11 +11,16 @@
 _CODE EXT_CLI_CMD_T extCmds[] =
 {
 	{
+		name	: EXT_CMD_TIME,
+		helpString: EXT_NEW_LINE EXT_CMD_TIME":"EXT_NEW_LINE" Displays current time"EXT_NEW_LINE,
+		callback: cmnCmdTime,
+	},
+
+	{
 		name	: EXT_CMD_STATS,
 		helpString: EXT_NEW_LINE EXT_CMD_STATS":"EXT_NEW_LINE" Displays statistics of LwIP"EXT_NEW_LINE,
 		callback: cmnCmdLwipStats,
 	},
-
 
 #if LWIP_EXT_UDP_TX_PERF
 	{

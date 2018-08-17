@@ -115,6 +115,19 @@ char cmnCmdLwipStats(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 	return EXT_FALSE;
 }
 
+char cmnCmdTime(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, unsigned int bufferLen)
+{
+	u32_t index = 0;
+	u32_t seconds = sys_now()/1000;
+	u32_t minutes  = seconds / 60;
+	u32_t hours    = minutes / 60;
+	u32_t days     = hours   / 24;
+
+	index += snprintf(outBuffer+index,bufferLen-index, "Time :%"FOR_U32"days %"FOR_U32":%"FOR_U32":%"FOR_U32, days, hours, minutes, seconds  );
+
+	return EXT_FALSE;
+}
+
 
 char cmnCmdLwipPing(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
 {

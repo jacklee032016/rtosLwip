@@ -129,7 +129,7 @@ int main( void )
 //		printf("reset button is High"EXT_NEW_LINE);
 	}
 #endif
-	bspButtonConfig(BOOT_MODE_RTOS);
+	bspButtonConfig(BOOT_MODE_RTOS, EXT_TRUE);
 
 #endif
 
