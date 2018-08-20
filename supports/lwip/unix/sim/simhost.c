@@ -180,17 +180,16 @@ tcp_debug_timeout(void *data)
 }
 #endif
 
-void
-sntp_set_system_time(u32_t sec)
+void sntp_set_system_time(u32_t sec)
 {
-  char buf[32];
-  struct tm current_time_val;
-  time_t current_time = (time_t)sec;
+	char buf[32];
+	struct tm current_time_val;
+	time_t current_time = (time_t)sec;
 
-  localtime_r(&current_time, &current_time_val);
-  
-  strftime(buf, sizeof(buf), "%d.%m.%Y %H:%M:%S", &current_time_val);
-  printf("SNTP time: %s\n", buf);
+	localtime_r(&current_time, &current_time_val);
+
+	strftime(buf, sizeof(buf), "%d.%m.%Y %H:%M:%S", &current_time_val);
+	printf("SNTP time: %s\n", buf);
 }
 
 
@@ -204,6 +203,20 @@ static void simhost_tcpip_init_done(void *arg)
 	sem = (sys_sem_t *)runCfg->data;
 
 	init_netifs(runCfg);
+
+	extLwipStartNic(&guNetIf, runCfg);
+
+
+#if LWIP_TCP
+	netio_init();
+#endif
+
+
+#if LWIP_SOCKET
+	chargen_init();
+#endif
+	extLwipStartup(&guNetIf, runCfg);
+
 
 #if LWIP_IPV4
 	netbiosns_set_name("simhost");
@@ -234,9 +247,6 @@ static void simhost_tcpip_init_done(void *arg)
 	snmp_set_mibs(mibs, LWIP_ARRAYSIZE(mibs));
 	snmp_init();
 #endif /* LWIP_SNMP */
-
-
-	extLwipStartup(&guNetIf, &extRun);
 
 	sys_sem_signal(sem);
 
@@ -373,28 +383,6 @@ static u32_t ppp_output_cb(ppp_pcb *pcb, u8_t *data, u32_t len, void *ctx)
 }
 #endif
 
-#if LWIP_NETIF_STATUS_CALLBACK
-static void netif_status_callback(struct netif *nif)
-{
-	printf("NETIF: %c%c%d is %s\n", nif->name[0], nif->name[1], nif->num, netif_is_up(nif) ? "UP" : "DOWN");
-#if LWIP_IPV4
-	printf("IPV4: Host at %s ", ip4addr_ntoa(netif_ip4_addr(nif)));
-	printf("mask %s ", ip4addr_ntoa(netif_ip4_netmask(nif)));
-	printf("gateway %s\n", ip4addr_ntoa(netif_ip4_gw(nif)));
-#endif /* LWIP_IPV4 */
-#if LWIP_IPV6
-	printf("IPV6: Host at %s\n", ip6addr_ntoa(netif_ip6_addr(nif, 0)));
-#endif /* LWIP_IPV6 */
-#if LWIP_NETIF_HOSTNAME
-	printf("FQDN: %s\n", netif_get_hostname(nif));
-#endif /* LWIP_NETIF_HOSTNAME */
-
-#if LWIP_MDNS_RESPONDER
-	mdns_resp_netif_settings_changed(nif);
-#endif
-}
-#endif /* LWIP_NETIF_STATUS_CALLBACK */
-
 
 static void init_netifs(EXT_RUNTIME_CFG *runCfg)
 {
@@ -416,7 +404,7 @@ static void init_netifs(EXT_RUNTIME_CFG *runCfg)
 #endif
 
 #if LWIP_NETIF_STATUS_CALLBACK
-	netif_set_status_callback(&slipif, netif_status_callback);
+	netif_set_status_callback(&slipif, extLwipNetStatusCallback);
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
 	netif_set_link_up(&slipif);
@@ -449,55 +437,13 @@ static void init_netifs(EXT_RUNTIME_CFG *runCfg)
 	ppp_connect(ppp, 0);
 
 #if LWIP_NETIF_STATUS_CALLBACK
-	netif_set_status_callback(&pppos_netif, netif_status_callback);
+	netif_set_status_callback(&pppos_netif, extLwipNetStatusCallback);
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 #endif /* PPP_SUPPORT */
-
-
-/******* this is normal process *********/
-#if LWIP_IPV4
-#if LWIP_DHCP
-	IP_ADDR4(&gw,      0,0,0,0);
-	IP_ADDR4(&ipaddr,  0,0,0,0);
-	IP_ADDR4(&netmask, 0,0,0,0);
-#endif /* LWIP_DHCP */
-	netif_add(&guNetIf, ip_2_ip4(&ipaddr), ip_2_ip4(&netmask), ip_2_ip4(&gw), runCfg, tapif_init, tcpip_input);
-#else /* LWIP_IPV4 */
-	netif_add(&guNetIf, runCfg, tapif_init, tcpip_input);
-#endif /* LWIP_IPV4 */
-
-
-#if LWIP_IPV6
-	netif_create_ip6_linklocal_address(&guNetIf, 1);
-	guNetIf.ip6_autoconfig_enabled = 1;
-#endif
-
-#if LWIP_NETIF_STATUS_CALLBACK
-	netif_set_status_callback(&guNetIf, netif_status_callback);
-#endif /* LWIP_NETIF_STATUS_CALLBACK */
-
-	/* start multicast and IGMP */
-	guNetIf.flags |= NETIF_FLAG_IGMP;
-
-	netif_set_default(&guNetIf);
-	netif_set_up(&guNetIf);
-
-#if LWIP_DHCP
-	dhcp_start(&guNetIf);
-#endif /* LWIP_DHCP */
 
 #if 0
 	/* Only used for testing purposes: */
 	netif_add(&ipaddr, &netmask, &gw, NULL, pcapif_init, tcpip_input);
-#endif
-
-#if LWIP_TCP
-	netio_init();
-#endif
-
-
-#if LWIP_SOCKET
-	chargen_init();
 #endif
 	/*  sys_timeout(5000, tcp_debug_timeout, NULL);*/
 }
@@ -510,22 +456,6 @@ static void main_thread(void *arg)
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
 	extSysParamsInit(runCfg);
-
-
-#if 0
-	IP_ADDR4(&gw,      192, 168,  166,1);
-	IP_ADDR4(&netmask, 255,255,255,0);
-	IP_ADDR4(&ipaddr,  192, 168, 166, 2);
-#else
-
-	EXT_LWIP_INT_TO_IP(&ipaddr,  runCfg->local.ip);
-	EXT_LWIP_INT_TO_IP(&netmask,  runCfg->ipMask);
-	EXT_LWIP_INT_TO_IP(&gw,  runCfg->ipGateway);
-#endif
-
-	fprintf(stderr, " %s\n\r", ip4addr_ntoa(&ipaddr));
-	fprintf(stderr, " %s\n\r", ip4addr_ntoa(&netmask));
-	fprintf(stderr, " %s\n\r", ip4addr_ntoa(&gw));
 
 	if(sys_sem_new(&sem, 0) != ERR_OK)
 	{

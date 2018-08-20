@@ -94,10 +94,6 @@ static void tcpip_thread(void *arg)
 		tcpip_init_done(tcpip_init_done_arg);
 	}
 
-#ifdef	X86
-	return;
-#endif
-
 	LOCK_TCPIP_CORE();
 	while (1)
 	{ /* MAIN Loop */

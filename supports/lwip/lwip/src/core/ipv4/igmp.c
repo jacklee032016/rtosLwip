@@ -825,5 +825,24 @@ static void igmp_send(struct netif *netif, struct igmp_group *group, u8_t type)
 	}
 }
 
+
+
+void extIgmpContent(struct netif *ifp, char *buf, unsigned int len)
+{
+	struct igmp_group *group = netif_igmp_data(ifp);
+	int index = 0;
+
+	while (group != NULL)
+	{
+		index += snprintf(buf+index, len-index, "Group:%"U16_F".%"U16_F".%"U16_F".%3"U16_F"; State: %"FOR_U32";"EXT_NEW_LINE, 
+			ip4_addr1_16(&group->group_address),ip4_addr2_16(&group->group_address), ip4_addr3_16(&group->group_address), ip4_addr4_16(&group->group_address),  
+			group->group_state );
+		group = group->next;
+	}
+	
+	return;
+}
+
+
 #endif /* LWIP_IPV4 && LWIP_IGMP */
 

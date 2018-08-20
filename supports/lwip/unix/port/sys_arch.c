@@ -223,38 +223,42 @@ sys_mbox_free(struct sys_mbox **mb)
 
 err_t sys_mbox_trypost(struct sys_mbox **mb, void *msg)
 {
-  u8_t first;
-  struct sys_mbox *mbox;
-  LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
-  mbox = *mb;
+	u8_t first;
+	struct sys_mbox *mbox;
+	LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
+	mbox = *mb;
 
-  sys_arch_sem_wait(&mbox->mutex, 0);
+	sys_arch_sem_wait(&mbox->mutex, 0);
 
-  LWIP_DEBUGF(SYS_DEBUG, ("sys_mbox_trypost: mbox %p msg %p\n",
-                          (void *)mbox, (void *)msg));
+	LWIP_DEBUGF(SYS_DEBUG, ("sys_mbox_trypost: mbox %p msg %p\n", (void *)mbox, (void *)msg));
 
-  if ((mbox->last + 1) >= (mbox->first + SYS_MBOX_SIZE)) {
-    sys_sem_signal(&mbox->mutex);
-    return ERR_MEM;
-  }
+	if ((mbox->last + 1) >= (mbox->first + SYS_MBOX_SIZE))
+	{
+		sys_sem_signal(&mbox->mutex);
+		return ERR_MEM;
+	}
 
-  mbox->msgs[mbox->last % SYS_MBOX_SIZE] = msg;
+	mbox->msgs[mbox->last % SYS_MBOX_SIZE] = msg;
 
-  if (mbox->last == mbox->first) {
-    first = 1;
-  } else {
-    first = 0;
-  }
+	if (mbox->last == mbox->first)
+	{
+		first = 1;
+	}
+	else
+	{
+		first = 0;
+	}
 
-  mbox->last++;
+	mbox->last++;
 
-  if (first) {
-    sys_sem_signal(&mbox->not_empty);
-  }
+	if (first)
+	{
+		sys_sem_signal(&mbox->not_empty);
+	}
 
-  sys_sem_signal(&mbox->mutex);
+	sys_sem_signal(&mbox->mutex);
 
-  return ERR_OK;
+	return ERR_OK;
 }
 
 void sys_mbox_post(struct sys_mbox **mb, void *msg)

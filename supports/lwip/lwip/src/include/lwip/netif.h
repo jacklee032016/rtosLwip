@@ -487,9 +487,10 @@ err_t netif_add_ip6_address(struct netif *netif, const ip6_addr_t *ip6addr, s8_t
 #define NETIF_SET_HWADDRHINT(netif, hint)
 #endif /* LWIP_NETIF_HWADDRHINT */
 
-#ifdef	EXT_LAB
+
 /* from port of LWIP netIf on E70/extlab */
 err_t ethernetif_init(struct netif *netif);
+#ifdef	EXT_LAB
 void ethernetif_input(struct netif *netif);
 #endif
 

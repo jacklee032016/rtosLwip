@@ -65,6 +65,9 @@ void extLwipHttpSvrInit(void *data);
 
 void mHttpSvrMain(void *data);
 
+void extLwipNetStatusCallback(struct netif *netif);
+void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg);
+
 char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg);
 void extNetRawTelnetInit(EXT_RUNTIME_CFG *runCfg);
 

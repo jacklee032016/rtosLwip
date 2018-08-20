@@ -5,6 +5,7 @@
 #include "lwip/apps/mdns_priv.h"
 #include "lwip/apps/tftp_server.h"
 #include "lwip/apps/lwiperf.h"
+#include "lwip/tcpip.h"
 
 #include "jsmn.h"
 #include "extUdpCmd.h"
@@ -110,7 +111,7 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 {
 	extParser.runCfg = runCfg;
 
-	EXT_INFOF(("telnet server start..."));
+	EXT_INFOF(("TELNET server start..."));
 	extNetRawTelnetInit(runCfg);
 
 #if 0
@@ -220,4 +221,133 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 	return 0;
 }
 #endif
+
+
+void extLwipNetStatusCallback(struct netif *netif)
+{
+	printf("NETIF: %c%c%d is %s\n", netif->name[0], netif->name[1], netif->num, netif_is_up(netif) ? "UP" : "DOWN");
+	if (netif_is_up(netif))
+	{
+//		printf("Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
+#if LWIP_IPV4
+		printf("IPV4: Host at %s ", ip4addr_ntoa(netif_ip4_addr(netif)));
+		printf("mask %s ", ip4addr_ntoa(netif_ip4_netmask(netif)));
+		printf("gateway %s\n", ip4addr_ntoa(netif_ip4_gw(netif)));
+#endif /* LWIP_IPV4 */
+#if LWIP_IPV6
+		printf("IPV6: Host at %s\n", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
+#endif /* LWIP_IPV6 */
+#if LWIP_NETIF_HOSTNAME
+		printf("FQDN: %s\n", netif_get_hostname(netif));
+#endif /* LWIP_NETIF_HOSTNAME */
+
+
+#ifdef	ARM
+		gmacEnableWakeOnLan(netif->ip_addr.addr);
+#endif		
+
+	}
+	else
+	{
+		printf("Network down"EXT_NEW_LINE);
+	}
+
+#if LWIP_MDNS_RESPONDER
+	mdns_resp_netif_settings_changed(netif);
+#endif
+
+}
+
+/** Maximum transfer unit. */
+#define NET_MTU               1500
+
+
+void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
+{
+//	struct ip_addr x_ip_addr, x_net_mask, x_gateway;
+	ip4_addr_t x_ip_addr, x_net_mask, x_gateway;
+
+	/* Set MAC hardware address length. */
+	netif->hwaddr_len = NETIF_MAX_HWADDR_LEN;
+	/* Set MAC hardware address. */
+	netif->hwaddr[0] = runCfg->local.mac.address[0];
+	netif->hwaddr[1] = runCfg->local.mac.address[1];
+	netif->hwaddr[2] = runCfg->local.mac.address[2];
+	netif->hwaddr[3] = runCfg->local.mac.address[3];
+	netif->hwaddr[4] = runCfg->local.mac.address[4];
+	netif->hwaddr[5] = runCfg->local.mac.address[5];
+
+	/* Set maximum transfer unit. */
+	netif->mtu = NET_MTU;
+
+	if(EXT_DHCP_IS_ENABLE(runCfg))
+	{/* DHCP mode. */
+		EXT_LWIP_INT_TO_IP(&x_ip_addr, 0);
+		EXT_LWIP_INT_TO_IP(&x_net_mask, 0);
+		EXT_LWIP_INT_TO_IP(&x_gateway, 0);
+	}	
+	else
+	{/* Fixed IP mode. */
+		EXT_LWIP_INT_TO_IP(&x_ip_addr, runCfg->local.ip);
+		EXT_LWIP_INT_TO_IP(&x_net_mask, runCfg->ipMask);
+		EXT_LWIP_INT_TO_IP(&x_gateway, runCfg->ipGateway);
+	}
+
+
+//	printf("Add netif %d(%p)..."EXT_NEW_LINE, netif->hwaddr_len, netif);
+//	netif->flags |= NETIF_FLAG_IGMP;
+	/* start multicast and IGMP */
+#ifdef X86
+	netif->flags = NETIF_FLAG_IGMP;
+#else
+//	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_ETHERNET;
+	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_IGMP;
+#endif
+
+#if EXT_LWIP_DEBUG
+	EXT_DEBUGF(EXT_DBG_ON, ("before %d(%p), offset %d:%d:%d..."EXT_NEW_LINE, 
+		netif->hwaddr_len, netif , NETIF_HWADDR_OFFSET(), (offsetof(struct netif, rs_count)), (offsetof(struct netif, mtu)) ) );
+	EXT_LWIP_DEBUG_NETIF(netif);
+#endif
+
+#if LWIP_IPV4
+	if (NULL == netif_add(netif, &x_ip_addr, &x_net_mask, &x_gateway, runCfg, ethernetif_init, tcpip_input))
+#else /* LWIP_IPV4 */
+	if(NULL== netif_add(&guNetIf, runCfg, tapif_init, tcpip_input))
+#endif /* LWIP_IPV4 */
+	{
+		EXT_ASSERT(("NULL == netif_add"), 0);
+	}
+
+#if LWIP_IPV6
+	netif_create_ip6_linklocal_address(netif, 1);
+	netif->ip6_autoconfig_enabled = 1;
+#endif
+
+	/* Make it the default interface */
+//	printf("Setup default netif...\r\n");
+	netif_set_default(netif);
+
+	/* Setup callback function for netif status change */
+	netif_set_status_callback(netif, extLwipNetStatusCallback);
+
+	/* Bring it up */
+	if(EXT_DHCP_IS_ENABLE(runCfg))
+	{
+		/* DHCP mode. */
+		EXT_DEBUGF(EXT_DBG_ON, ("DHCP Starting %s..."EXT_NEW_LINE, "test") );
+		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
+		if (ERR_OK != dhcp_start(netif))
+		{
+			EXT_ASSERT(("ERR_OK != dhcp_start"), 0);
+		}
+		EXT_INFOF( ("DHCP Started"EXT_NEW_LINE) );
+	}
+	else
+	{/* Static mode: start up directly */
+		netif_set_up(netif);
+	}
+}
+
+
 

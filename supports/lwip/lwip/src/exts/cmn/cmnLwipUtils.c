@@ -185,7 +185,8 @@ char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 
 	if(argc < 3)
 	{
-		sprintf( outBuffer, "Command '"EXT_CMD_IGMP"' with param of '"EXT_CMD_IGMP_JOIN"|"EXT_CMD_IGMP_LEAVE"' GROUP_ADDRESS" EXT_NEW_LINE);
+		extIgmpContent(&guNetIf, outBuffer, bufferLen);
+		//sprintf( outBuffer, "Command '"EXT_CMD_IGMP"' with param of '"EXT_CMD_IGMP_JOIN"|"EXT_CMD_IGMP_LEAVE"' GROUP_ADDRESS" EXT_NEW_LINE);
 		return EXT_FALSE;
 	}
 	

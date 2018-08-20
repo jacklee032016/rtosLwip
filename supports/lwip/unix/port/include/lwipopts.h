@@ -49,8 +49,9 @@
 
 #define SLIP_DEBUG					LWIP_DBG_OFF
 #define PPP_DEBUG					LWIP_DBG_OFF
-#define MEM_DEBUG					LWIP_DBG_ON
-#define MEMP_DEBUG					LWIP_DBG_ON
+
+#define MEM_DEBUG					LWIP_DBG_OFF
+#define MEMP_DEBUG					LWIP_DBG_OFF
 #define PBUF_DEBUG					LWIP_DBG_OFF
 
 #define API_LIB_DEBUG				LWIP_DBG_OFF
@@ -68,7 +69,7 @@
 #define	RAW_DEBUG					LWIP_DBG_OFF
 
 #define	UDP_DEBUG					LWIP_DBG_OFF
-#define	IGMP_DEBUG					LWIP_DBG_ON
+#define	IGMP_DEBUG				LWIP_DBG_OFF
 
 #define TCP_DEBUG					LWIP_DBG_OFF
 #define TCP_INPUT_DEBUG			LWIP_DBG_OFF
@@ -204,6 +205,18 @@ a lot of data that needs to be copied, this should be set high. */
 /* Maximum number of retransmissions of SYN segments. */
 #define TCP_SYNMAXRTX           4
 
+
+/* J.L. 08.19,2018. Change from lock to mailbox for TCP in simhost */
+/** The mailbox size for the tcpip thread messages */
+#define	TCPIP_MBOX_SIZE					128		/* J.L. from 16 to 128. Aug.15th, 2018 */
+/* following mboxes are used by net_connect APIs */
+#define	DEFAULT_ACCEPTMBOX_SIZE			16/4
+#define	DEFAULT_RAW_RECVMBOX_SIZE		16/4
+#define	DEFAULT_TCP_RECVMBOX_SIZE         	16/4
+
+#define	DEFAULT_UDP_RECVMBOX_SIZE		16/4
+
+
 /* ---------- ARP options ---------- */
 #define LWIP_ARP				1
 #define ARP_TABLE_SIZE			2//10
@@ -233,7 +246,7 @@ a lot of data that needs to be copied, this should be set high. */
 /* ---------- DHCP options ---------- */
 /* Define LWIP_DHCP to 1 if you want DHCP configuration of
    interfaces. */
-#define LWIP_DHCP               0
+#define LWIP_DHCP               		1
 
 #define LWIP_DHCP_GET_NTP_SRV   (LWIP_DHCP)
 

@@ -103,6 +103,8 @@ err_t  igmp_leavegroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr);
 err_t  igmp_leavegroup_netif(struct netif *netif, const ip4_addr_t *groupaddr);
 void   igmp_tmr(void);
 
+void extIgmpContent(struct netif *ifp, char *buf, unsigned int len);
+
 /** @ingroup igmp 
  * Get list head of IGMP groups for netif.
  * Note: The allsystems group IP is contained in the list as first entry.

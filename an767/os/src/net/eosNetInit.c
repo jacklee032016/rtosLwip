@@ -15,126 +15,8 @@
 #include "ethernetPhy.h"
 
 
-/** Maximum transfer unit. */
-#define NET_MTU               1500
-
 
 struct netif		guNetIf;		/* global unique netIf */
-
-
-static void _extNetStatusCallback(struct netif *netif)
-{
-	int8_t c_mess[20];
-	if (netif_is_up(netif))
-	{
-		strcpy((char*)c_mess, "IP=");
-		strcat((char*)c_mess, inet_ntoa(*(struct in_addr *)&(netif->ip_addr)));
-		printf("Network up, IP:%s"EXT_NEW_LINE, inet_ntoa(*(struct in_addr *)&(netif->ip_addr)) );
-
-//		printf("Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
-
-#if 0
-		extNetPingInit();
-		extNetPingSendNow(netif->ip_addr.addr );
-#endif
-
-#ifdef	ARM
-		gmacEnableWakeOnLan(netif->ip_addr.addr);
-#endif		
-
-	}
-	else
-	{
-		printf("Network down"EXT_NEW_LINE);
-	}
-}
-
-
-static void _extEthernetInterfaceConfigure(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
-{
-//	struct ip_addr x_ip_addr, x_net_mask, x_gateway;
-	ip4_addr_t x_ip_addr, x_net_mask, x_gateway;
-
-	{
-		/* Set MAC hardware address length. */
-		netif->hwaddr_len = NETIF_MAX_HWADDR_LEN;
-		/* Set MAC hardware address. */
-		netif->hwaddr[0] = runCfg->local.mac.address[0];
-		netif->hwaddr[1] = runCfg->local.mac.address[1];
-		netif->hwaddr[2] = runCfg->local.mac.address[2];
-		netif->hwaddr[3] = runCfg->local.mac.address[3];
-		netif->hwaddr[4] = runCfg->local.mac.address[4];
-		netif->hwaddr[5] = runCfg->local.mac.address[5];
-
-		/* Set maximum transfer unit. */
-		netif->mtu = NET_MTU;
-	}
-
-	if(EXT_DHCP_IS_ENABLE(runCfg))
-	{/* DHCP mode. */
-		EXT_LWIP_INT_TO_IP(&x_ip_addr, 0);
-		EXT_LWIP_INT_TO_IP(&x_net_mask, 0);
-		EXT_LWIP_INT_TO_IP(&x_gateway, 0);
-	}	
-	else
-	{/* Fixed IP mode. */
-		EXT_LWIP_INT_TO_IP(&x_ip_addr, runCfg->local.ip);
-		EXT_LWIP_INT_TO_IP(&x_net_mask, runCfg->ipMask);
-		EXT_LWIP_INT_TO_IP(&x_gateway, runCfg->ipGateway);
-	}
-
-
-//	printf("Add netif %d(%p)..."EXT_NEW_LINE, netif->hwaddr_len, netif);
-//	netif->flags |= NETIF_FLAG_IGMP;
-	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_ETHERNET;
-	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_IGMP;
-	/* Add data to netif */
-#if 0
-	if (NULL == netif_add(netif, &x_ip_addr, &x_net_mask, &x_gateway, NULL, ethernetif_init, ethernet_input))
-	{
-		EXT_ASSERT(("NULL == netif_add"), 0);
-	}
-#else
-
-#if EXT_LWIP_DEBUG
-	EXT_DEBUGF(EXT_DBG_ON, ("before %d(%p), offset %d:%d:%d..."EXT_NEW_LINE, 
-		netif->hwaddr_len, netif , NETIF_HWADDR_OFFSET(), (offsetof(struct netif, rs_count)), (offsetof(struct netif, mtu)) ) );
-	EXT_LWIP_DEBUG_NETIF(netif);
-#endif
-
-	if (NULL == netif_add(netif, &x_ip_addr, &x_net_mask, &x_gateway, runCfg, ethernetif_init, tcpip_input))
-	{
-		EXT_ASSERT(("NULL == netif_add"), 0);
-	}
-#endif
-
-	/* Make it the default interface */
-//	printf("Setup default netif...\r\n");
-	netif_set_default(netif);
-
-	/* Setup callback function for netif status change */
-	netif_set_status_callback(netif, _extNetStatusCallback);
-
-	/* Bring it up */
-	if(EXT_DHCP_IS_ENABLE(runCfg))
-	{
-		/* DHCP mode. */
-		EXT_DEBUGF(EXT_DBG_ON, ("DHCP Starting %s..."EXT_NEW_LINE, "test") );
-		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
-		if (ERR_OK != dhcp_start(netif))
-		{
-			EXT_ASSERT(("ERR_OK != dhcp_start"), 0);
-		}
-		EXT_DEBUGF(EXT_DBG_ON, ("DHCP Started"EXT_NEW_LINE) );
-	}
-	else
-	{
-		/* Static mode. */
-//		printf("Setup netif...\r\n");
-		netif_set_up(netif);
-//		printf("Static IP Address Assigned\r\n");
-	}
-}
 
 #if	EXT_WITH_OS
 
@@ -251,10 +133,10 @@ void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg)
 //	printf("Initializing LwIP, netif:%d(%p)..."EXT_NEW_LINE, netif->hwaddr_len, netif );
 
 	/* Set hw and IP parameters, initialize MAC too. */
-	_extEthernetInterfaceConfigure(netif, runCfg);
+	extLwipStartNic(netif, runCfg);
 
 	/* Initialize timer. */
-	printf("Initializing timer...\r\n");
+	printf("Initializing timer..."EXT_NEW_LINE);
 	sys_init_timing();
 
 #if EXT_WITH_OS
@@ -263,16 +145,10 @@ void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg)
 //	printf("Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
 //	netif->hwaddr_len = 6;
 //	printf("Set Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
-
-//	extNetShellInit();
-
-//	extNetTelnetInit();
-
-//	_httpThreadInit(runCfg);
 	extLwipStartup(netif, runCfg);
 #else
 
-	printf("Ethernet Task initializing...\n\r");
+	printf("Ethernet Task initializing..."EXT_NEW_LINE);
 	xTaskCreate(_ethernetTask, "ethTask", EXT_TASK_ETHERNET_STACK_SIZE/* 1024*2*/, NULL, EXT_TASK_ETHERNET_PRIORITY, NULL);
 #endif
 

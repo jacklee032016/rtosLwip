@@ -190,7 +190,7 @@ static void tapif_input(struct netif *netif)
 
 	if (netif->input(p, netif) != ERR_OK)
 	{
-		LWIP_DEBUGF(NETIF_DEBUG, ("tapif_input: netif input error\n"));
+		EXT_ERRORF(("TAP Input: netif input error"));
 		pbuf_free(p);
 	}
 }
@@ -389,7 +389,7 @@ static void low_level_init(struct netif *netif)
  * network interface. It calls the function low_level_init() to do the
  * actual setup of the hardware.
  */
-err_t tapif_init(struct netif *netif)
+err_t ethernetif_init(struct netif *netif)
 {
 	void *data = netif->state;
 	struct tapif *tapif = (struct tapif *)mem_malloc(sizeof(struct tapif));
