@@ -225,20 +225,20 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 
 void extLwipNetStatusCallback(struct netif *netif)
 {
-	printf("NETIF: %c%c%d is %s\n", netif->name[0], netif->name[1], netif->num, netif_is_up(netif) ? "UP" : "DOWN");
+	printf("NETIF: %c%c%d is %s"EXT_NEW_LINE, netif->name[0], netif->name[1], netif->num, netif_is_up(netif) ? "UP" : "DOWN");
 	if (netif_is_up(netif))
 	{
 //		printf("Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
 #if LWIP_IPV4
 		printf("IPV4: Host at %s ", ip4addr_ntoa(netif_ip4_addr(netif)));
 		printf("mask %s ", ip4addr_ntoa(netif_ip4_netmask(netif)));
-		printf("gateway %s\n", ip4addr_ntoa(netif_ip4_gw(netif)));
+		printf("gateway %s"EXT_NEW_LINE, ip4addr_ntoa(netif_ip4_gw(netif)));
 #endif /* LWIP_IPV4 */
 #if LWIP_IPV6
-		printf("IPV6: Host at %s\n", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
+		printf("IPV6: Host at %s"EXT_NEW_LINE, ip6addr_ntoa(netif_ip6_addr(netif, 0)));
 #endif /* LWIP_IPV6 */
 #if LWIP_NETIF_HOSTNAME
-		printf("FQDN: %s\n", netif_get_hostname(netif));
+		printf("FQDN: %s"EXT_NEW_LINE, netif_get_hostname(netif));
 #endif /* LWIP_NETIF_HOSTNAME */
 
 

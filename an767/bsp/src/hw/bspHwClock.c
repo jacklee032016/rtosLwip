@@ -51,7 +51,7 @@ void bspHwClockInit(void)
 	}
 	else
 	{
-		EXT_INFOF(("LMH1983 RevisionID OK: %2x", data));
+//		EXT_INFOF(("LMH1983 RevisionID OK: %2x", data));
 	}
 
 	// Errata on poor duty cycle on PLL3

@@ -123,7 +123,7 @@ char cmnCmdTime(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, unsigned int b
 	u32_t hours    = minutes / 60;
 	u32_t days     = hours   / 24;
 
-	index += snprintf(outBuffer+index,bufferLen-index, "Time :%"FOR_U32"days %"FOR_U32":%"FOR_U32":%"FOR_U32, days, hours, minutes, seconds  );
+	index += snprintf(outBuffer+index,bufferLen-index, "Time :%"FOR_U32"days %"FOR_U32":%"FOR_U32":%"FOR_U32, days, hours*days*24, minutes-hours*60, seconds-minutes*60);
 
 	return EXT_FALSE;
 }

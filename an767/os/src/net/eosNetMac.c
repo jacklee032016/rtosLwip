@@ -357,7 +357,7 @@ static void _gmac_low_level_init(struct netif *netif)
 	/* Enable the copy of data into the buffers
 	   ignore broadcasts, and not copy FCS. */
 #if MUXLAB_GMAC_ENABLE_MULTICAST	   
-	gmac_enable_copy_all(GMAC, false);
+	gmac_enable_copy_all(GMAC, true);	/* must be enabled to rx multicast packets. J.L. 08.20,2018 */
 
 	gmac_enable_multicast_hash(GMAC, true);
 #else

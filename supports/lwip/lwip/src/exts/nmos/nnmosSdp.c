@@ -23,6 +23,7 @@
 
 #define	EXT_SDP_DEFAULT_CLOLK_RATE			90000
 
+#if LWIP_EXT_NMOS
 
 /* output session and timing info of SDP */
 static int _nmosSdpSessionTimeHander(char *data, unsigned int size, MuxNmosSender *snd)
@@ -101,4 +102,5 @@ int extNmosSdpMediaHander(char *data, unsigned int size, MuxNmosSender *snd)
 	return index;
 }
 
+#endif
 

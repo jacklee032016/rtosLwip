@@ -7,6 +7,7 @@
 #include "http.h"
 #include "jsmn.h"
 
+#if LWIP_EXT_NMOS
 
 static int _nmosConstraintsHander(char *data, unsigned int size, MuxNmosConstraints *cstrts, unsigned char isSender)
 {
@@ -807,4 +808,5 @@ const ApiAccessPoint	apConnRoot =
 	next		:	NULL
 };
 
+#endif
 

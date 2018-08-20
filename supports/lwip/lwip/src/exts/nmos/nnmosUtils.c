@@ -8,6 +8,7 @@
 #include "http.h"
 #include "jsmn.h"
 
+#if LWIP_EXT_NMOS
 
 static const	EXT_CONST_STR	_nmosStringVideoComponents[] =
 {
@@ -360,6 +361,8 @@ const char *extNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type)
 	
 	return "Unknown String";
 }
+
+#endif
 
 void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg)
 {

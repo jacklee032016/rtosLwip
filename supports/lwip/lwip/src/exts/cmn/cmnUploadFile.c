@@ -53,7 +53,7 @@ static char _firmwareUpdateInit(EXT_RUNTIME_CFG *runCfg, EXT_FM_T fmT, const cha
 #if 0// LWIP_MDNS_RESPONDER
 	extLwipMdsnDestroy(&guNetIf);
 #endif
-
+//	EXT_DEBUGF(EXT_DBG_OFF, ("%s: type:%d", runCfg->name,  runCfg->firmUpdateInfo.type));
 
 	return EXIT_SUCCESS;
 }
@@ -67,8 +67,9 @@ static void _firmwareUpdateEnd(EXT_RUNTIME_CFG	*runCfg)
 	gmacBMCastEnable(EXT_TRUE);
 
 	/* only RTOS updating need saving configuration*/
-	if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS || runCfg->firmUpdateInfo.type == EXT_FM_TYPE_FPGA)
+	if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS || runCfg->firmUpdateInfo.type == EXT_FM_TYPE_FPGA)		
 	{
+		EXT_INFOF(("Update finished, reboot to make it effective"));
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 	}
 
@@ -84,27 +85,34 @@ static void _firmwareUpdateEnd(EXT_RUNTIME_CFG	*runCfg)
 static char _extUploadOpen(struct _MuxHttpConn *mhc)
 {
 //	struct _MuxUploadContext *ctx = mhc->uploadCtx;
-	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 
-	EXT_FM_T	fmT = EXT_FM_TYPE_NONE;
+	EXT_FM_T	fmt = EXT_FM_TYPE_NONE;
 	if( IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_MCU) )
 	{
-		fmT = EXT_FM_TYPE_RTOS;
+		fmt = EXT_FM_TYPE_RTOS;
 	}
 	else if(IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_FPGA) )
 	{
-		fmT = EXT_FM_TYPE_FPGA;
+		fmt = EXT_FM_TYPE_FPGA;
+	}
+	else
+	{	
+		EXT_ERRORF(("Invalidate URI '%s'", mhc->uri));
 	}
 
-	return _firmwareUpdateInit(runCfg, fmT, (const char *)mhc->filename,  1);
+//	EXT_DEBUGF(EXT_DBG_OFF, ("%s: type:%d", runCfg->name,  fmt));
+
+	return _firmwareUpdateInit(runCfg, fmt, (const char *)mhc->filename,  1);
 }
 
 static void  _extUploadClose(struct _MuxHttpConn *mhc)
 {
 //	struct _MuxUploadContext *ctx = mhc->uploadCtx;
-	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 	
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("File finished:'%s' %d bytes", mhc->filename, runCfg->firmUpdateInfo.size ));
+//	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("File finished:'%s' %d bytes", mhc->filename, runCfg->firmUpdateInfo.size ));
+	EXT_DEBUGF(EXT_DBG_ON, ("File finished:'%s' %d bytes", mhc->filename, runCfg->firmUpdateInfo.size ));
 	printf(EXT_NEW_LINE);fflush(stdout);
 	_firmwareUpdateEnd(runCfg);
 
@@ -115,7 +123,7 @@ static unsigned short _extUploadWrite(struct _MuxHttpConn *mhc, void *data, unsi
 {
 	int len;
 //	struct _MuxUploadContext *ctx = mhc->uploadCtx;
-	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 
 #ifdef	ARM
 	len = bspSpiFlashWrite((unsigned char *)data, (unsigned int)size);

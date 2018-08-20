@@ -29,7 +29,7 @@
 
 #define		LWIP_EXT_HTTP					1
 
-#define		LWIP_EXT_NMOS					0
+#define		LWIP_EXT_NMOS					1
 
 /* ---------- MDNS options ---------- */
 #define		LWIP_MDNS_RESPONDER        			1
@@ -326,7 +326,7 @@
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((s16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 _TRACE_OUT(message); \
+                                 _TRACE_OUT(message);printf(EXT_NEW_LINE); \
                                  if ((debug) & LWIP_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -334,9 +334,9 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(message)		{printf((ANSI_COLOR_CYAN""));_TRACE_OUT(message);printf((ANSI_COLOR_RESET));}
+	#define	EXT_INFOF(message)		{printf((ANSI_COLOR_CYAN""));_TRACE_OUT(message);printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
 	
-	#define	EXT_ERRORF(message)		{printf((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); printf((ERROR_TEXT_END));}
+	#define	EXT_ERRORF(message)		{printf((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); printf((ERROR_TEXT_END  EXT_NEW_LINE));}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
 	#define	EXT_ASSERT(msg, x)			{if((x)==0) {printf((ERROR_TEXT_BEGIN"ERROR: "));printf msg ;printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
@@ -356,7 +356,7 @@
 #endif
 
 #define	_TRACE_OUT(message)	\
-			{EXT_PRINTF(("[%s-%u.%s()]: ", __FILE__, __LINE__, __FUNCTION__) );EXT_PRINTF(message); EXT_PRINTF((EXT_NEW_LINE));}
+			{EXT_PRINTF(("[%s-%u.%s()]: ", __FILE__, __LINE__, __FUNCTION__) );EXT_PRINTF(message); }
 
 #define	TRACE()						_TRACE_OUT((EXT_NEW_LINE) )
 

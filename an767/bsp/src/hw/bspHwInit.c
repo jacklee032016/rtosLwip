@@ -13,7 +13,7 @@
 #define PIN_PIO_MODE_MSK         (matrix_get_system_io() | CCFG_SYSIO_SYSIO12)
 #define PIN_ERASE_MODE_MSK       (matrix_get_system_io() & (~CCFG_SYSIO_SYSIO12))
 
-static unsigned int _firstTime = 0;
+static uint32_t _firstTime = 0;
 
 #define	BTN_FACTORY_DURATION		3000
 
@@ -31,21 +31,22 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
 		{
 			bspButtonConfig(BOOT_MODE_RTOS , EXT_FALSE);
 			_firstTime = sys_get_ms();
-//			EXT_INFOF(("'%s' is pressed, "EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING));
+			EXT_INFOF(("'%s' is pressed at %"FOR_U32" ms"EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, _firstTime));
 		}
 		else
 		{
 			unsigned int duration = (sys_get_ms()-_firstTime);
+			EXT_INFOF(("'%s' is unpressed after %d ms"EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, duration));
 			if(duration > BTN_FACTORY_DURATION)
 			{
-//				EXT_INFOF(("'%s' is unpressed after %d ms, now factory reset..."EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, duration));
+				EXT_INFOF(("now factory reset..."EXT_NEW_LINE EXT_NEW_LINE));
 				bspCmdFactory(NULL, NULL, 0);
 
 //				extDelayReboot(1000);
 			}
 			else
 			{
-				EXT_INFOF(("'%s' is pressed, now reboot..."EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING) );
+				EXT_INFOF(("now reboot..."EXT_NEW_LINE EXT_NEW_LINE) );
 			}
 			
 			EXT_PRINTF((EXT_NEW_LINE)); /* reset the color to default before reboot */
@@ -256,6 +257,8 @@ void bspHwInit(boot_mode bMode)
 #ifdef __EXT_RELEASE__
 		/* debug version is disabled */
 		bspConsoleReset(versionString);
+#else
+		printf(versionString);
 #endif
 	}
 	else

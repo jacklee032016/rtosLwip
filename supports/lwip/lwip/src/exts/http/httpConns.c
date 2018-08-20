@@ -11,7 +11,9 @@ static void _mhttpStateInit(MuxHttpConn* mhc)
 	memset(mhc, 0, sizeof(MuxHttpConn));
 
 	mhc->httpStatusCode = WEB_RES_CONTINUE;
+#if LWIP_EXT_NMOS
 	mhc->nodeInfo = &nmosNode;
+#endif
 }
 
 /** Free a MuxHttpConn.
@@ -75,11 +77,6 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 #endif
 			)
 		{
-			/* or move to recv function. J.L. */
-			if(HTTPREQ_IS_UPLOAD(mhc) )
-			{
-				CANCEL_UPDATE(mhc->nodeInfo->runCfg);
-			}
 
 			/* make sure the post code knows that the connection is closed */
 			extHttpPostDataFinished(mhc);
@@ -92,7 +89,7 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 
 	}
 	EXT_ASSERT(("HTTP Connection is null"), mhc!= NULL);
-	runCfg = mhc->nodeInfo->runCfg;
+	runCfg = mhc->runCfg;
 
 
 	tcp_arg(pcb, NULL);
@@ -204,7 +201,7 @@ static void _killOldestConnection(u8_t ssi_required)
 
 
 /** Allocate a MuxHttpConn. */
-MuxHttpConn *mhttpConnAlloc(void)
+MuxHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 {
 	MuxHttpConn *mhc = HTTP_ALLOC_HTTP_STATE();
 #if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
@@ -218,8 +215,11 @@ MuxHttpConn *mhttpConnAlloc(void)
 	if (mhc != NULL)
 	{
 		_mhttpStateInit(mhc);
+		
+		mhc->runCfg = runCfg;
 		_addConnection(mhc);
 	}
+	
 	return mhc;
 }
 

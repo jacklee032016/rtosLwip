@@ -119,7 +119,7 @@ void sys_init_timing(void)
 			sysclk_get_main_hz());
 //			sysclk_get_main_hz());
 
-	EXT_DEBUGF(EXT_DBG_ON, ("divisor:%"FOR_U32";clks:%"FOR_U32";counter=%"FOR_U32, ul_div, ul_tcclks, ((sysclk_get_main_hz() / ul_div) / 1000) ));
+//	EXT_DEBUGF(EXT_DBG_OFF, ("divisor:%"FOR_U32";clks:%"FOR_U32";counter=%"FOR_U32, ul_div, ul_tcclks, ((sysclk_get_main_hz() / ul_div) / 1000) ));
 
 	tc_init(TC0, 0, ul_tcclks | TC_CMR_CPCTRG);
 	

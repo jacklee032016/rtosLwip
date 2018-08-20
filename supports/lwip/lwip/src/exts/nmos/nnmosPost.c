@@ -5,6 +5,7 @@
 #include "http.h"
 #include "jsmn.h"
 
+#if LWIP_EXT_NMOS
 
 char extNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len)
 {
@@ -62,4 +63,6 @@ void extNmosPostDataFinished(void *conn)
 
 	TRACE();
 }
+
+#endif
 

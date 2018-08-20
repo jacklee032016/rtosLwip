@@ -24,7 +24,7 @@ static int __extHttpWebPagePrintHeader(char *data, unsigned int size, MuxHttpCon
 static int __extHttpWebPageReboot(char *data, unsigned int size, MuxHttpConn *mhc, int seconds)
 {
 	int index = 0;
-//	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+//	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 
 #if 1
 	index += snprintf(data+index, size-index, "<DIV class=\"title\"><H2>Reboot</H2></DIV>"); 
@@ -70,7 +70,7 @@ static char _extHttpWebPageReboot(MuxHttpConn  *mhc, void *data)
 static int __extHttpWebPageMedia(char *data, unsigned int size, MuxHttpConn *mhc)
 {
 	int index = 0;
-	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 	
 	/* device */
 	index += snprintf(data+index, size-index, "<DIV class=\"title\"><H2>Video/Audio</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Multicast:</LABEL><DIV class=\"label\">%s</DIV></DIV>",
@@ -131,7 +131,7 @@ static char _extHttpWebPageMediaHander(MuxHttpConn  *mhc, void *data)
 static int __extHttpWebPageInfo(char *data, unsigned int size, MuxHttpConn *mhc)
 {
 	int index = 0;
-	EXT_RUNTIME_CFG	*runCfg = mhc->nodeInfo->runCfg;
+	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 	
 	/* device */
 	index += snprintf(data+index, size-index, "<DIV class=\"title\"><H2>Device</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Product Name:</LABEL><DIV class=\"label\">%s</DIV></DIV>",

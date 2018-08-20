@@ -364,7 +364,10 @@ typedef struct _MuxHttpConn
 	MuxNmosApiReq		apiReq;
 
 //	void					*priv;
+	EXT_RUNTIME_CFG		*runCfg;
+#if LWIP_EXT_NMOS
 	MuxNmosNode			*nodeInfo;
+#endif
 }MuxHttpConn;
 
 
@@ -451,7 +454,7 @@ typedef struct
 	#endif
 #endif
 
-MuxHttpConn *mhttpConnAlloc(void);
+MuxHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
 void mhttpConnFree(MuxHttpConn *mhc);
 
 

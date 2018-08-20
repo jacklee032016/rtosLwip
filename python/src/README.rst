@@ -12,11 +12,33 @@ for example, `./run.py httpOs --help
      
 
 Usage
------
+--------
 
-Search all nodes in LAN:
+1. Search all nodes in LAN:
 ::
- ./run.py search -d
+
+ ./run search -d
+
+2. Lookup one node info:
+::
+
+ run find $IP
+
+
+3. Update firmware 
+ * by HTTP
+::
+
+	run httpOs --help
+	run httpOs 192.168.168.130
+	run httpFpga 192.168.168.130
+
+ * by TFTP
+::
+
+  run tftpOs 192.168.168.130
+  run tftpFpga 192.168.168.130
+
 
 
 Send JSON IP command to node

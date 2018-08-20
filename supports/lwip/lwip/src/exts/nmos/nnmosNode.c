@@ -8,6 +8,8 @@
 #include "http.h"
 #include "jsmn.h"
 
+#if LWIP_EXT_NMOS
+
 #if 0
 /* based on request in MHC, and print response with node info */
 static char	extNmosRestResponse(MuxNmosNode	*node, MuxHttpConn *mhc)
@@ -669,4 +671,5 @@ const ApiAccessPoint	apNodeRoot =
 	next		:	NULL
 };
 
+#endif
 

@@ -79,7 +79,7 @@ static char _updatePageRefresh(MuxHttpConn  *mhc, char *msg)
 //		msg);
 
 	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "<script>");
-	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->nodeInfo->runCfg->firmUpdateInfo.size );
+	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->runCfg->firmUpdateInfo.size );
 	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "</script>");
 
 	mhc->updateLength = (unsigned short)(index);
@@ -141,7 +141,9 @@ static char _updatePageResult(MuxHttpConn  *mhc, char *title, char *msg)
  */
 char extHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
+#if LWIP_EXT_NMOS
 	char	ret;
+#endif
 	int contentLen;
 	char *endOfLine;
 //	struct pbuf *inp =  mhc->req;
@@ -181,11 +183,15 @@ char extHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
 		else
 		{
 			mhc->reqType = EXT_HTTP_REQ_T_REST;
+#if LWIP_EXT_NMOS
 			ret = extNmosPostDataBegin(mhc, data, data_len);
 			if (ret != EXIT_SUCCESS)
 			{/* This is URI is not for POST */
 				return EXIT_SUCCESS;
 			}
+#else
+			return EXIT_FAILURE;
+#endif
 		}
 
 		/* try to pass in data of the first pbuf(s) */
@@ -260,7 +266,7 @@ static char  __findEndingBoundary(MuxHttpConn *mhc)
 //		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("last packet %d bytes:'%.*s'", mhc->dataSendIndex, mhc->dataSendIndex, mhc->data) );
 		mhc->uploadStatus = _UPLOAD_STATUS_END;
 //		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->dataSendIndex, mhc->filename );
-		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->nodeInfo->runCfg->firmUpdateInfo.size, mhc->filename );
+		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->runCfg->firmUpdateInfo.size, mhc->filename );
 		return EXT_TRUE;
 	}
 #if 0	
@@ -342,10 +348,12 @@ static char extHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 	unsigned short len;//, copied;
 	
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("'%s'", (char *)p->payload) );
+#if LWIP_EXT_NMOS
 	if(HTTPREQ_IS_REST(mhc) )
 	{
 		return extNmosPostDataRecv(mhc, p);
 	}
+#endif
 
 	if(mhc->uploadStatus == _UPLOAD_STATUS_INIT )
 	{
@@ -417,10 +425,12 @@ void extHttpPostDataFinished(MuxHttpConn *mhc)
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST request on '%s' ended: '%.*s' bounary:'%s'", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) );
 //	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) ;
 
+#if LWIP_EXT_NMOS
 	if(HTTPREQ_IS_REST(mhc) )
 	{
 		return extNmosPostDataFinished(mhc);
 	}
+#endif
 
 	if(mhc->uploadStatus == _UPLOAD_STATUS_ERROR || mhc->uploadStatus == _UPLOAD_STATUS_END)
 	{
@@ -432,22 +442,36 @@ void extHttpPostDataFinished(MuxHttpConn *mhc)
 
 	if(__findEndingBoundary(mhc) )
 	{
-		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->nodeInfo->runCfg->firmUpdateInfo.size+ mhc->dataSendIndex, mhc->filename );
+		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->runCfg->firmUpdateInfo.size+ mhc->dataSendIndex, mhc->filename );
 	}
 	else
 	{
 		mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
-		snprintf(mhc->uri, sizeof(mhc->uri), "Error %d bytes uploaded for %s, no boundary found", mhc->nodeInfo->runCfg->firmUpdateInfo.size+ mhc->dataSendIndex, mhc->filename );
+		snprintf(mhc->uri, sizeof(mhc->uri), "Error %d bytes uploaded for %s, no boundary found", mhc->runCfg->firmUpdateInfo.size+ mhc->dataSendIndex, mhc->filename );
 	}
 
 	mhc->uploadCtx->write(mhc, mhc->data, mhc->dataSendIndex);
+
+	if (mhc->postDataLeft != 0)
+	{
+		EXT_INFOF( ("POST upload %d byte from file %s, but left %"FOR_U32, mhc->runCfg->firmUpdateInfo.size, mhc->filename, mhc->postDataLeft   ) );
+		/* or move to recv function. J.L. */
+//		if(HTTPREQ_IS_UPLOAD(mhc) )
+		{
+			CANCEL_UPDATE(mhc->runCfg);
+		}
+	}
+	else
+	{
+//		EXT_INFOF( ("POST upload %d byte from file %s, type: %d", mhc->runCfg->firmUpdateInfo.size, mhc->filename, mhc->runCfg->firmUpdateInfo.type ) );
+	}
 
 	mhc->uploadCtx->close(mhc);
 
 #if UPLOAD_PROGRESS_BAR
 	_updatePageEnd(mhc);
 #endif
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST upload %d byte into file %s", mhc->nodeInfo->runCfg->firmUpdateInfo.size, mhc->filename ) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST upload %d byte from file %s", mhc->runCfg->firmUpdateInfo.size, mhc->filename ) );
 	
 //	mhc->uploadCtx->priv = NULL;
 	mhc->uploadCtx = NULL;
@@ -526,6 +550,7 @@ err_t extHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
 		mhc->post_finished = 1;
 #endif
 
+//		EXT_INFOF(("HTTP Post data finished"));
 		extHttpPostDataFinished(mhc);
 		return ERR_OK;
 	}

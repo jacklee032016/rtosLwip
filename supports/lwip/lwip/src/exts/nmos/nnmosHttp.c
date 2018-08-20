@@ -7,6 +7,8 @@
 #include "http.h"
 #include "jsmn.h"
 
+#if LWIP_EXT_NMOS
+
 const	EXT_CONST_STR	nodeRoots[] =
 {
 	{
@@ -280,6 +282,7 @@ static char _extRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 	return EXIT_SUCCESS;
 
 }
+#endif
 
 char extHttpHandleRequest(MuxHttpConn *mhc)
 {
@@ -294,6 +297,7 @@ char extHttpHandleRequest(MuxHttpConn *mhc)
 		return EXIT_SUCCESS;
 	}
 
+#if LWIP_EXT_NMOS
 	if(strstr(mhc->uri, NMOS_API_URI_NODE) )
 	{
 		return _extRestApiHandle(mhc, &apNodeRoot, NMOS_API_T_NODE);
@@ -302,7 +306,10 @@ char extHttpHandleRequest(MuxHttpConn *mhc)
 	{
 		return _extRestApiHandle(mhc, &apConnRoot, NMOS_API_T_CONNECTION);
 	}
-	else if(extHttpWebService(mhc, NULL) == EXIT_SUCCESS)
+	else 
+		
+#endif
+		if(extHttpWebService(mhc, NULL) == EXIT_SUCCESS)
 	{
 		return EXIT_SUCCESS;
 	}

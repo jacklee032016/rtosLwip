@@ -302,7 +302,7 @@ static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	
 	LWIP_UNUSED_ARG(err);
 
-//	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
 //	EXT_ERRORF(("_mhttpAccept %p / total Connection %d", (void*)pcb, runCfg->currentHttpConns ));
 
 	if ((err != ERR_OK) || (pcb == NULL))
@@ -314,7 +314,7 @@ static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
 
 	/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
-	mhc = mhttpConnAlloc();
+	mhc = mhttpConnAlloc(runCfg);
 	if (mhc == NULL)
 	{
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_accept: Out of memory, RST"));

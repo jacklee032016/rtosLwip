@@ -18,6 +18,7 @@
 #define	EXT_VIDEO_FRAME_WIDTH		1080
 #define	EXT_VIDEO_FRAME_HEIGHT		720
 
+#if LWIP_EXT_NMOS
 
 
 static const char	*_interfaceName = "MuxEthernet";
@@ -448,4 +449,5 @@ void	extNmosNodeInit(MuxNmosNode	*node, EXT_RUNTIME_CFG *runCfg)
 
 }
 
+#endif
 
