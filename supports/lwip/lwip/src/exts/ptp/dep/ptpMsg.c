@@ -1,6 +1,6 @@
 /* msg.c */
 
-#include "../ptpd.h"
+#include "ptpd.h"
 
 /* Unpack header message */
 void msgUnpackHeader(const octet_t *buf, MsgHeader *header)

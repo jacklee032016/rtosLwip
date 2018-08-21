@@ -47,7 +47,6 @@ ASM_FLAGS=
 
 
 NETWORK_SRC += \
-	net/eosNetTimerMgt.c \
 	net/eosNetSysArch.c \
 	net/eosNetMac.c \
 	net/eosNetPhy.c \
@@ -66,6 +65,7 @@ TASKS_SRC += \
 HW_SRC += \
 	hw/eosHwRtk.c \
 	hw/eosHwFpgaDrv.c \
+	hw/eosHwTC.c \
 
 	
 

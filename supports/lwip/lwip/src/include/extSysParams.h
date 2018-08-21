@@ -42,6 +42,8 @@
 
 #define		LWIP_EXT_MQTT_CLIENT			1
 
+#define		LWIP_EXT_PTP					1	/* precision time protocol */
+
 /* button configuration */
 #define		_RESET_BTN_RESTORE_FACTORY 				1
 #define		_RESET_BTN_STAY_IN_BOOTLOADER			2
@@ -50,6 +52,11 @@
 
 #define		RESET_BTN_MODE		_RESET_BTN_STAY_IN_BOOTLOADER
 
+
+
+#define		EXT_NET_IF_TASK_STACK_SIZE				256*4
+
+#define		EXT_NET_IF_TASK_PRIORITY					(4)		/* highest priority level in Free RTOS */
 
 
 #define	EXT_RW_BUFFER_SIZE				1024
@@ -921,6 +928,32 @@ char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 #else
 #define	FOR_U32	"u"
 #endif
+
+
+#define	EXT_TIMER_DEBUG	1
+
+typedef enum
+{
+	os_timer_type_once = 0,
+	os_timer_type_reload	
+}os_timer_type;
+
+typedef	void (*sys_time_callback)(void *arg);
+
+
+typedef struct
+{
+#if EXT_TIMER_DEBUG
+	char						name[32];
+#endif
+	void						*timeId;
+	sys_time_callback			callback;
+	os_timer_type				type;
+
+	void						*arg;
+	
+} sys_timer_t;
+
 
 #endif
 

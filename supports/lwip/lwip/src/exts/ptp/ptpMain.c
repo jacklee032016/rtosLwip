@@ -99,7 +99,7 @@ static void _ptpdTask(void *arg)
 			// again and perform the actions required for the new 'port_state'.
 			ptpStateMachine(ptpClock);
 		}
-		while (netSelect(ptpClock->netPath, 0) > 0);
+		while (netSelect(&ptpClock->netPath, 0) > 0);
 		
 		// Wait up to 100ms for something to do, then do something anyway.
 		sys_arch_mbox_fetch(&ptp_alert_queue, &msg, 100);
@@ -123,6 +123,6 @@ void ptpd_init(void)
 	_ptpClock.rtOpts = &rtOpts;
 
 	// Create the PTP daemon thread.
-	sys_thread_new("PTPD", _ptpdTask, &_ptpClock, DEFAULT_THREAD_STACKSIZE * 2,  osPriorityAboveNormal);
+	sys_thread_new("PTPD", _ptpdTask, &_ptpClock, EXT_NET_IF_TASK_STACK_SIZE,  EXT_NET_IF_TASK_PRIORITY-2 );
 }
 

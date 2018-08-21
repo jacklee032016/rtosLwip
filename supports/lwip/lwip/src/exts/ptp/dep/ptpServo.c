@@ -1,4 +1,5 @@
-#include "../ptpd.h"
+
+#include "ptpd.h"
 
 void initClock(PtpClock *ptpClock)
 {

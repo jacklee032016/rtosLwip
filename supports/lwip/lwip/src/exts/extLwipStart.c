@@ -10,6 +10,10 @@
 #include "jsmn.h"
 #include "extUdpCmd.h"
 
+#if LWIP_EXT_PTP
+void ptpd_init(void);
+#endif
+
 #if LWIP_EXT_NMOS
 #if !LWIP_EXT_HTTP
 #error "sanity_check: WARNING: HTTP cannot be disabled when NMOS is enabled!"
@@ -178,6 +182,14 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	EXT_INFOF(("TFTP server start..."));
 	tftp_init(&extTftp);
 #endif /* LWIP_UDP */
+
+#if LWIP_EXT_PTP
+#ifdef	X86
+	EXT_INFOF(("PTP service start..."));
+	ptpd_init();
+#endif	
+#endif
+
 
 	return 0;
 }

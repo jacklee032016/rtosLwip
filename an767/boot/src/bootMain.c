@@ -216,7 +216,7 @@ int main( void )
 	}
 #endif
 
-	if(!extRun.isUpdate || stayInBootloader == 0)
+	if(!extRun.isUpdate && stayInBootloader == 0)
 #else
 	if(!extRun.isUpdate )
 #endif
@@ -244,6 +244,8 @@ int main( void )
 	printf("Test3..."EXT_NEW_LINE);
 #endif
 	printf(EXT_NEW_LINE"Bootloader beginning..." EXT_NEW_LINE);
+
+	bspButtonConfig(BOOT_MODE_BOOTLOADER, EXT_TRUE);
 	
 //	printf(EXT_SYSTEM_STRING);
 

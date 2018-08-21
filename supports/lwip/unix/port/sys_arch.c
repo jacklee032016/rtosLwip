@@ -130,8 +130,7 @@ static int lwprot_count = 0;
 static struct sys_sem *sys_sem_new_internal(u8_t count);
 static void sys_sem_free_internal(struct sys_sem *sem);
 
-static u32_t cond_wait(pthread_cond_t * cond, pthread_mutex_t * mutex,
-                       u32_t timeout);
+static u32_t cond_wait(pthread_cond_t * cond, pthread_mutex_t * mutex, u32_t timeout);
 
 /*-----------------------------------------------------------------------------------*/
 /* Threads */
@@ -521,20 +520,21 @@ sys_sem_free(struct sys_sem **sem)
 /** Create a new mutex
  * @param mutex pointer to the mutex to create
  * @return a new mutex */
-err_t
-sys_mutex_new(struct sys_mutex **mutex)
+err_t sys_mutex_new(struct sys_mutex **mutex)
 {
-  struct sys_mutex *mtx;
+	struct sys_mutex *mtx;
 
-  mtx = (struct sys_mutex *)malloc(sizeof(struct sys_mutex));
-  if (mtx != NULL) {
-    pthread_mutex_init(&(mtx->mutex), NULL);
-    *mutex = mtx;
-    return ERR_OK;
-  }
-  else {
-    return ERR_MEM;
-  }
+	mtx = (struct sys_mutex *)malloc(sizeof(struct sys_mutex));
+	if (mtx != NULL)
+	{
+		pthread_mutex_init(&(mtx->mutex), NULL);
+		*mutex = mtx;
+		return ERR_OK;
+	}
+	else
+	{
+		return ERR_MEM;
+	}
 }
 
 /** Lock a mutex
@@ -574,21 +574,21 @@ u32_t sys_now(void)
 	return (u32_t)(ts.tv_sec * 1000L + ts.tv_nsec / 1000000L);
 }
 
-u32_t
-sys_jiffies(void)
+u32_t sys_jiffies(void)
 {
-  struct timespec ts;
+	struct timespec ts;
 
-  get_monotonic_time(&ts);
-  return (u32_t)(ts.tv_sec * 1000000000L + ts.tv_nsec);
+	get_monotonic_time(&ts);
+	return (u32_t)(ts.tv_sec * 1000000000L + ts.tv_nsec);
 }
 
 /*-----------------------------------------------------------------------------------*/
 /* Init */
+static int _sys_timer_init(void);
 
-void
-sys_init(void)
+void sys_init(void)
 {
+	_sys_timer_init();
 }
 
 /*-----------------------------------------------------------------------------------*/
@@ -649,3 +649,301 @@ sys_arch_unprotect(sys_prot_t pval)
     }
 }
 #endif /* SYS_LIGHTWEIGHT_PROT */
+
+
+void cmn_delay(int ms)
+{
+	int was_error;
+	struct timeval tv;
+
+	/* Set the timeout interval - Linux only needs to do this once */
+	tv.tv_sec = ms/1000;
+	tv.tv_usec = (ms%1000)*1000;
+	do
+	{
+		errno = 0;
+
+#if _POSIX_THREAD_SYSCALL_SOFT
+		pthread_yield_np();
+#endif
+
+		was_error = select(0, NULL, NULL, NULL, &tv);
+
+	} while ( was_error && (errno == EINTR) );
+
+}
+
+/*** sys_timer ***/
+#define CMN_TIMESLICE						10
+
+/* This is the maximum resolution of the timer on all platforms */
+#define CMN_TIMER_RESOLUTION				10	/* Experimentally determined */
+
+#define ROUND_RESOLUTION(X)	\
+	(((X+CMN_TIMER_RESOLUTION-1)/CMN_TIMER_RESOLUTION)*CMN_TIMER_RESOLUTION)
+
+/* used by other applications */
+#define	CMN_TIMER_1_SECOND		1000
+
+typedef struct _sys_timer_id
+{
+#if EXT_TIMER_DEBUG
+	char							name[32];
+#endif
+	int							interval;
+
+	sys_time_callback				callback;
+	void 						*param;
+	
+	int							lastAlarm;
+	
+	struct _sys_timer_id			*next;
+
+}sys_timer_id_t;
+
+typedef	struct cmn_timer
+{
+	/* used in threaded timers */
+	int							numOfTimers;
+	sys_timer_id_t				*timers;
+	
+	sys_mutex_t					*mutex;
+	sys_thread_t					tId;
+
+	int							timersChanged;
+	
+	struct timeval					startTimeStamp;		/* The first ticks value of the application */
+
+}cmn_timer_t;
+
+
+static cmn_timer_t		_timers;
+
+int cmn_get_ticks (void)
+{
+	struct timeval now;
+	int		ticks;
+
+	gettimeofday(&now, NULL);
+	ticks=(now.tv_sec - _timers.startTimeStamp.tv_sec)*1000+(now.tv_usec - _timers.startTimeStamp.tv_usec)/1000;
+
+	return(ticks);
+}
+
+static void __threaded_timer_check(cmn_timer_t *timers)
+{
+	int now, ms;
+	sys_timer_id_t	*t, *prev, *next;
+	int removed;
+	
+	now = cmn_get_ticks( );
+
+	sys_mutex_lock(timers->mutex);
+	
+	for ( prev = NULL, t = timers->timers; t; t = next )
+	{
+		removed = 0;
+		ms = t->interval - CMN_TIMESLICE;
+		next = t->next;
+		
+		if ( (t->lastAlarm < now) && ((now - t->lastAlarm) > ms) )
+		{
+			if ( (now - t->lastAlarm) < t->interval )
+			{
+				t->lastAlarm += t->interval;
+			}
+			else
+			{
+				t->lastAlarm = now;
+			}
+
+			timers->timersChanged = EXT_FALSE;
+
+#if EXT_TIMER_DEBUG
+			EXT_DEBUGF( EXT_DBG_ON, ("Executing timer %s(%p) ", t->name, t ));
+#endif
+			sys_mutex_unlock(timers->mutex );
+
+			t->callback(t->param);
+			
+			sys_mutex_lock(timers->mutex);
+			
+			if ( timers->timersChanged )
+			{/* Abort, list of timers has been modified by other threads */
+				break;
+			}
+
+			if ( ms != t->interval )
+			{
+				if ( ms )
+				{
+					t->interval = ROUND_RESOLUTION(ms);
+				}
+				else
+				{ /* Remove the timer from the linked list */
+
+#if EXT_TIMER_DEBUG
+					EXT_DEBUGF(EXT_DBG_ON, ("Removing timer %s(%p) after it has been executed", t->name, t) );
+#endif
+					if ( prev )
+					{
+						prev->next = next;
+					}
+					else
+					{
+						timers->timers = next;
+					}
+
+					free(t);
+					-- timers->numOfTimers;
+					removed = 1;
+				}
+			}
+		}
+		
+		/* Don't update prev if the timer has disappeared */
+		if ( ! removed )
+		{
+			prev = t;
+		}
+	}
+	
+	sys_mutex_unlock(timers->mutex);
+}
+
+static void _lwip_timer_thread(void *data)
+{
+	cmn_timer_t *timers = (cmn_timer_t *)data;
+	
+	while(1)// _timers.state != CMN_TIMER_STATE_UNINIT )
+	{
+//		if ( _timers.state == CMN_TIMER_STATE_RUNNING)
+		{
+		//	MUX_DEBUG( "wakeup to check timers...");
+			__threaded_timer_check(timers);
+		}
+		
+		cmn_delay(1);
+	}
+	
+	return;
+}
+
+
+static int _sys_timer_init(void)
+{
+	err_t err = ERR_OK;
+
+	memset(&_timers, 0 , sizeof(cmn_timer_t) );
+	
+	gettimeofday(&_timers.startTimeStamp, NULL);
+	
+	err = sys_mutex_new(_timers.mutex);
+	_timers.tId = sys_thread_new("SysTimer", _lwip_timer_thread, &_timers, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
+	if(!_timers.tId || err != ERR_OK )
+	{
+		return (-EXIT_FAILURE);
+	}
+
+	return EXIT_SUCCESS;
+}
+
+/** Create a new timer
+ * @param timer pointer to the timer to create
+ * @param ptimer pointer to timer callback function
+ * @param type timer type
+ * @param argument generic argument type
+ * @return a new mutex */
+err_t sys_timer_new(sys_timer_t *timer, sys_time_callback callback, os_timer_type type, void *argument)
+{
+	timer->callback = callback;
+	timer->type = type;
+	timer->arg = argument;
+
+	return ERR_OK;
+}
+
+/** Start or restart a timer
+ * @param timer the timer to start
+ * @param millisec the value of the timer */
+void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
+{
+	sys_timer_id_t	*t;
+	
+	sys_mutex_lock(_timers.mutex);
+	t = (sys_timer_id_t *)malloc(sizeof( sys_timer_id_t));
+	if ( t )
+	{
+//		t->interval = ROUND_RESOLUTION(millisec);
+		t->interval = millisec;
+		t->callback = timer->callback;
+		t->param = timer->arg;
+		t->lastAlarm = cmn_get_ticks();
+		snprintf(t->name, sizeof(t->name), "%s", "Timer");
+		
+		t->next = _timers.timers;
+		_timers.timers = t;
+		timer->timeId = t;
+
+		++ _timers.numOfTimers;
+		
+		_timers.timersChanged = EXT_TRUE;
+	}
+	
+	EXT_DEBUGF(EXT_DBG_ON, ("Added Timer(%s: %d millisecond) num_timers = %d", t->name, millisec, _timers.numOfTimers ) );
+
+	sys_mutex_unlock(_timers.mutex);
+	return;
+}
+
+/** Stop a timer
+ * @param timer the timer to stop */
+void sys_timer_stop(sys_timer_t *timer)
+{
+	sys_timer_id_t *t, *prev = NULL;
+	int removed = EXT_FALSE;
+	
+	sys_timer_id_t *id = (sys_timer_id_t *)timer->timeId;
+	if(id == NULL)
+	{
+		return;
+	}
+
+	sys_mutex_lock(_timers.mutex);
+	/* Look for id in the linked list of timers */
+	for (t = _timers.timers; t; prev=t, t = t->next )
+	{
+		if ( t == id )
+		{
+			if(prev)
+			{
+				prev->next = t->next;
+			}
+			else
+			{
+				_timers.timers = t->next;
+			}
+			
+			EXT_DEBUGF(EXT_DBG_ON,  ("Timer %s = %d num_timers = %d is removed", t->name, removed, _timers.numOfTimers ) );
+			free(t);
+			
+			-- _timers.numOfTimers;
+			
+			removed = EXT_TRUE;
+			_timers.timersChanged = EXT_TRUE;
+			break;
+		}
+	}
+	
+
+	sys_mutex_unlock(_timers.mutex);
+	return;
+}
+
+
+/** Delete a timer
+ * @param timer the timer to delete */
+void sys_timer_free(sys_timer_t *timer)
+{
+}
+

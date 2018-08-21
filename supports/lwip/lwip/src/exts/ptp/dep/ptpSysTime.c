@@ -1,6 +1,6 @@
 /* sys.c */
 
-#include "../ptpd.h"
+#include "ptpd.h"
 
 void displayStats(const PtpClock *ptpClock)
 {

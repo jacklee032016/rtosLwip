@@ -14,8 +14,10 @@
 
 /* platform dependent */
 
-#define IF_NAMESIZE             2
-#define INET_ADDRSTRLEN         16
+#define IF_NAMESIZE				2
+#ifndef	INET_ADDRSTRLEN
+#define INET_ADDRSTRLEN			16
+#endif
 
 #ifndef TRUE
 #define TRUE true

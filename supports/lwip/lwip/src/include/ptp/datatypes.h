@@ -286,9 +286,10 @@ typedef struct
 
 typedef struct
 {
-		int16_t stepsRemoved;
-		TimeInternal offsetFromMaster;
-		TimeInternal meanPathDelay;
+	int16_t			stepsRemoved;
+	
+	TimeInternal		offsetFromMaster;
+	TimeInternal		meanPathDelay;
 } CurrentDS;
 
 
@@ -299,16 +300,16 @@ typedef struct
 
 typedef struct
 {
-		PortIdentity parentPortIdentity;
-		/* 7.6.4 Parent clock statistics - parentDS */
-		bool  parentStats; /**< spec 7.6.4.2 */
-		int16_t observedParentOffsetScaledLogVariance; /**< spec 7.6.4.3 */
-		int32_t observedParentClockPhaseChangeRate; /**< spec 7.6.4.4 */
+	PortIdentity parentPortIdentity;
+	/* 7.6.4 Parent clock statistics - parentDS */
+	bool  parentStats; /**< spec 7.6.4.2 */
+	int16_t observedParentOffsetScaledLogVariance; /**< spec 7.6.4.3 */
+	int32_t observedParentClockPhaseChangeRate; /**< spec 7.6.4.4 */
 
-		ClockIdentity grandmasterIdentity;
-		ClockQuality grandmasterClockQuality;
-		uint8_t grandmasterPriority1;
-		uint8_t grandmasterPriority2;
+	ClockIdentity grandmasterIdentity;
+	ClockQuality grandmasterClockQuality;
+	uint8_t grandmasterPriority1;
+	uint8_t grandmasterPriority2;
 } ParentDS;
 
 /**
@@ -318,14 +319,15 @@ typedef struct
 
  typedef struct
 {
-		int16_t currentUtcOffset;
-		bool  currentUtcOffsetValid;
-		bool  leap59;
-		bool  leap61;
-		bool  timeTraceable;
-		bool  frequencyTraceable;
-		bool  ptpTimescale;
-		enum8bit_t timeSource; /**< spec 7.6.2.6 */
+	int16_t		currentUtcOffset;
+	
+	bool			currentUtcOffsetValid;
+	bool			leap59;
+	bool			leap61;
+	bool			timeTraceable;
+	bool			frequencyTraceable;
+	bool			ptpTimescale;
+	enum8bit_t	timeSource; /**< spec 7.6.2.6 */
 } TimePropertiesDS;
 
 
@@ -347,7 +349,8 @@ typedef struct
 	
 	enum8bit_t	delayMechanism;
 	int8_t		logMinPdelayReqInterval; /**< spec 7.7.2.5 */
-	uint4bit_t  versionNumber;
+	
+	uint4bit_t	versionNumber;
 } PortDS;
 
 
@@ -358,13 +361,13 @@ typedef struct
 
 typedef struct
 {
-		ForeignMasterRecord *records;
+	ForeignMasterRecord *records;
 
-		/* Other things we need for the protocol */
-		int16_t count;
-		int16_t  capacity;
-		int16_t  i;
-		int16_t  best;
+	/* Other things we need for the protocol */
+	int16_t		count;
+	int16_t		capacity;
+	int16_t		i;
+	int16_t		best;
 } ForeignMasterDS;
 
 /**
@@ -374,11 +377,12 @@ typedef struct
 
 typedef struct
 {
-		bool  noResetClock;
-		bool  noAdjust;
-		int16_t ap, ai;
-		int16_t sDelay;
-		int16_t sOffset;
+	bool		noResetClock;
+	bool		noAdjust;
+	
+	int16_t	ap, ai;
+	int16_t	sDelay;
+	int16_t	sOffset;
 } Servo;
 
 /**
@@ -402,10 +406,12 @@ typedef struct
 	
 	enum8bit_t		stats;
 	octet_t   unicastAddress[NET_ADDRESS_LENGTH];
-	TimeInternal  inboundLatency, outboundLatency;
-	int16_t   maxForeignRecords;
-	enum8bit_t  delayMechanism;
-	Servo servo;
+	TimeInternal		inboundLatency, outboundLatency;
+	
+	int16_t			maxForeignRecords;
+	enum8bit_t		delayMechanism;
+	
+	Servo			servo;
 } RunTimeOpts;
 
 /**

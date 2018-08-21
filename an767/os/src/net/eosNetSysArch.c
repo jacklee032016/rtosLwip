@@ -736,3 +736,56 @@ uint32_t sys_get_ms(void)
 	#endif
 * 
 */
+
+
+/** Create a new timer
+ * @param timer pointer to the timer to create
+ * @param ptimer pointer to timer callback function
+ * @param type timer type
+ * @param argument generic argument type
+ * @return a new mutex */
+err_t sys_timer_new(sys_timer_t *timer, sys_time_callback callback, os_timer_type type, void *argument)
+{
+	timer->callback = callback;
+	timer->type = type;
+	timer->arg = argument;
+
+	return ERR_OK;
+}
+
+/** Start or restart a timer
+ * @param timer the timer to start
+ * @param millisec the value of the timer */
+void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
+{
+	timer->timeId = xTimerCreate(EXT_PERIOD_JOB_NAME, pdMS_TO_TICKS(millisec), (timer->type==os_timer_type_reload)?pdTRUE:pdFALSE/* auto reload */,  timer->arg/* timer ID */, timer->callback);
+
+	if (timer->timeId==NULL)
+	{
+		EXT_ERRORF(("Delay Job can not be created"));
+		return;
+	}
+
+	if (xTimerStart(timer->timeId, 0)!=pdPASS)
+	{
+		EXT_ERRORF(("Timer Job can not be started"));
+		return;
+	}
+}
+
+/** Stop a timer
+ * @param timer the timer to stop */
+void sys_timer_stop(sys_timer_t *timer)
+{
+	if (xTimerStop(timer->timeId) != pdPASS)
+	{
+		EXT_ERRORF(("sys_timer_stop error\n"));
+	}
+}
+
+
+/** Delete a timer
+ * @param timer the timer to delete */
+void sys_timer_free(sys_timer_t *timer) {}
+
+

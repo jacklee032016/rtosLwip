@@ -135,10 +135,6 @@ void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg)
 	/* Set hw and IP parameters, initialize MAC too. */
 	extLwipStartNic(netif, runCfg);
 
-	/* Initialize timer. */
-	printf("Initializing timer..."EXT_NEW_LINE);
-	sys_init_timing();
-
 #if EXT_WITH_OS
 	/*also support RAW */
 

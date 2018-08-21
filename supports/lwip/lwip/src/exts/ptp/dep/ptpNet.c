@@ -1,6 +1,6 @@
 /* net.c */
 
-#include "../ptpd.h"
+#include "ptpd.h"
 
 /* Initialize network queue. */
 static void _netQInit(BufQueue *queue)
@@ -305,7 +305,7 @@ ssize_t netSendPeerEvent(NetPath *netPath, const octet_t *buf, int16_t  length, 
 /* Shut down  the UDP and network stuff */
 bool netShutdown(NetPath *netPath)
 {
-	struct ip_addr multicastAaddr;
+	struct ip4_addr multicastAaddr;
 
 	DBG("netShutdown\n");
 
@@ -340,8 +340,8 @@ bool netShutdown(NetPath *netPath)
 /* Start  all of the UDP stuff */
 bool netInit(NetPath *netPath, PtpClock *ptpClock)
 {
-	struct in_addr netAddr;
-	struct ip_addr interfaceAddr;
+	struct ip4_addr netAddr;
+	struct ip4_addr interfaceAddr;
 	char addrStr[NET_ADDRESS_LENGTH];
 
 	DBG("netInit\n");
@@ -384,7 +384,7 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 		ERROR("netInit: failed to encode multi-cast address: %s\n", addrStr);
 		goto fail04;
 	}
-	netPath->multicastAddr = netAddr.s_addr;
+	netPath->multicastAddr = netAddr.addr;
 
 	/* Join multicast group (for receiving) on specified interface */
 	igmp_joingroup(&interfaceAddr, (struct ip_addr *)&netAddr);
@@ -396,7 +396,7 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 		ERROR("netInit: failed to encode peer multi-cast address: %s\n", addrStr);
 		goto fail04;
 	}
-	netPath->peerMulticastAddr = netAddr.s_addr;
+	netPath->peerMulticastAddr = netAddr.addr;
 
 	/* Join peer multicast group (for receiving) on specified interface */
 	igmp_joingroup(&interfaceAddr, (struct ip_addr *) &netAddr);

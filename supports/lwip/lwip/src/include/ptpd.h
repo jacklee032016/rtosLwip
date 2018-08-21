@@ -32,8 +32,8 @@
 #include <stdbool.h>
 
 #include <limits.h>
-#include "main.h"
-#include "cmsis_os.h"
+//#include "main.h"
+//#include "cmsis_os.h"
 #include "lwip/opt.h"
 #include "lwip/api.h"
 #include "lwip/inet.h"
@@ -41,14 +41,36 @@
 #include "lwip/udp.h"
 #include "lwip/igmp.h"
 #include "lwip/arch.h"
+#include "lwip/ip_addr.h"
+#if 0
 #include "lwip/timers.h"
 #include "ethernetif.h"
+#else
+#include "lwip/timeouts.h"
+#endif
 
-#include "constants.h"
-#include "dep/constants_dep.h"
-#include "dep/datatypes_dep.h"
-#include "datatypes.h"
-#include "dep/ptpd_dep.h"
+#include "ptp/constants.h"
+#include "ptp/constants_dep.h"
+#include "ptp/datatypes_dep.h"
+#include "ptp/datatypes.h"
+#include "ptp/ptpd_dep.h"
+
+#include "lwipExt.h"
+
+
+#if   defined ( __CC_ARM )
+  #define __ASM            __asm                                      /*!< asm keyword for ARM Compiler          */
+  #define __INLINE         __inline                                   /*!< inline keyword for ARM Compiler       */
+  #define __STATIC_INLINE  static __inline
+
+#elif defined ( __GNUC__ )
+  #define __ASM            __asm                                      /*!< asm keyword for GNU Compiler          */
+  #define __INLINE         inline                                     /*!< inline keyword for GNU Compiler       */
+  #define __STATIC_INLINE  static inline
+#endif
+
+#define     __O     volatile             /*!< Defines 'write only' permissions                */
+#define     __IO    volatile             /*!< Defines 'read / write' permissions              */
 
 /** \name arith.c
  * -Timing management and arithmetic */

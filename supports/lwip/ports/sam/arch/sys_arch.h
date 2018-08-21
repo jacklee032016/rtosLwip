@@ -77,5 +77,6 @@ information. This function is only required if your port is supporting an
 operating system. */
 extern void sys_arch_unprotect(sys_prot_t pval);
 
+
 #endif /* __ARCH_SYS_ARCH_H__ */
 

@@ -29,9 +29,16 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
 //		g_button_event = 1;
 		if(_firstTime == 0)
 		{
+			if(extRun.bootMode == BOOT_MODE_BOOTLOADER)
+			{
+				EXT_INFOF(("Bootloader now reboot..."EXT_NEW_LINE EXT_NEW_LINE) );
+				EXT_PRINTF((EXT_NEW_LINE));
+				EXT_REBOOT();
+			}
+
 			bspButtonConfig(BOOT_MODE_RTOS , EXT_FALSE);
 			_firstTime = sys_get_ms();
-			EXT_INFOF(("'%s' is pressed at %"FOR_U32" ms"EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, _firstTime));
+			EXT_INFOF(("'%s' is pressed at %"FOR_U32" ms:%d"EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, _firstTime, extRun.bootMode ));
 		}
 		else
 		{
@@ -61,10 +68,11 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
  *
  *  Configure the PIOs as inputs and generate corresponding interrupt when
  *  pressed or released.
+ * First time, it is initialized in Rise Edge; After btn is pressed, it is initialized in Fall Edge
  */
 void bspButtonConfig(boot_mode bMode, char isRiseEdge)
 {
-	if(bMode == BOOT_MODE_RTOS)
+//	if(bMode == BOOT_MODE_RTOS)
 	{
 		unsigned int attribute = EXT_PUSH_BUTTON_ATTR_RISE_EDGE;
 		if(isRiseEdge == EXT_TRUE)
@@ -86,11 +94,12 @@ void bspButtonConfig(boot_mode bMode, char isRiseEdge)
 		pio_enable_interrupt(EXT_PUSH_BUTTON_PIO, EXT_PUSH_BUTTON_PIN_MSK);
 		gpio_configure_pin(EXT_PIN_SOFTWARE_RESET, IOPORT_DIR_INPUT );
 	}
+#if 0
 	else
 	{/* bootloader */	
 		gpio_configure_pin(PIO_PA30_IDX, PIO_TYPE_PIO_INPUT );
 	}
-
+#endif
 	/*switch buttons */
 #if 0	
 	gpio_configure_pin(EXT_PIN_DIP_SW_01, IOPORT_DIR_INPUT );
@@ -193,6 +202,8 @@ static void _bspHwSpiConfig(void)
 void bspHwInit(boot_mode bMode)
 {
 	EXT_RUNTIME_CFG *runCfg = &extRun;
+	memset(runCfg, 0, sizeof(EXT_RUNTIME_CFG));
+
 	runCfg->bootMode = bMode;
 	
 	sysclk_init();
@@ -236,7 +247,6 @@ void bspHwInit(boot_mode bMode)
 //		return EXT_FALSE;
 	}
 
-	memset(runCfg, 0, sizeof(EXT_RUNTIME_CFG));
 	if(bspCfgRead(runCfg, EXT_CFG_MAIN) == EXIT_FAILURE)
 	{
 		EXT_INFOF(("Use factory configuration"EXT_NEW_LINE));

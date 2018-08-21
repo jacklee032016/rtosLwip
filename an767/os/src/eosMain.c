@@ -148,6 +148,10 @@ int main( void )
 	xTaskCreate(_ledTestTask, "ledTask", EXT_TASK_LED_STACK_SIZE, NULL, EXT_TASK_LED_PRIORITY, NULL);
 #endif
 
+	/* Initialize timer before button configuration */
+	printf("Initializing timer..."EXT_NEW_LINE);
+	sys_init_timing();
+
 	extBspFpgaReload();
 
 	extBspNetStackInit(&extRun);

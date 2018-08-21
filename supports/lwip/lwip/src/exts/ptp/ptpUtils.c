@@ -1,6 +1,10 @@
 
+#include "ptpd.h"
+
+
 bool shell_date(int argc, char **argv)
 {
+#if 0
 	char buffer[32];
 	time_t seconds1900;
 	struct ptptime_t ptptime;
@@ -16,12 +20,13 @@ bool shell_date(int argc, char **argv)
 
 	// Print the string.
 	telnet_puts(buffer);
-
+#endif
 	return true;
 }
 
 bool shell_ptpd(int argc, char **argv)
 {
+#if 0
 	char sign;
 	const char *s;
 	unsigned char *uuid;
@@ -87,6 +92,7 @@ bool shell_ptpd(int argc, char **argv)
 	if (ptpClock.observedDrift < 0) sign = '-';
 
 	telnet_printf("drift: %c%d.%03d ppm\n", sign, abs(ptpClock.observedDrift / 1000), abs(ptpClock.observedDrift % 1000));
+#endif
 
 	return true;
 }

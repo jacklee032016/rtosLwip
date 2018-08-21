@@ -1,6 +1,7 @@
 /* startup.c */
 
-#include "../ptpd.h"
+
+#include "ptpd.h"
 
 void ptpdShutdown(PtpClock *ptpClock)
 {

@@ -1,6 +1,7 @@
 /* timer.c */
 
-#include "../ptpd.h"
+
+#include "ptpd.h"
 
 /* An array to hold the various system timer handles. */
 static sys_timer_t ptpdTimers[TIMER_ARRAY_SIZE];
@@ -29,10 +30,9 @@ void initTimer(void)
 
 	/* Create the various timers used in the system. */
 	for (i = 0; i < TIMER_ARRAY_SIZE; i++)
-	{
-		// Mark the timer as not expired.
+	{// Mark the timer as not expired.
 		// Initialize the timer.
-		sys_timer_new(&ptpdTimers[i], timerCallback, osTimerOnce, (void *) i);
+		sys_timer_new(&ptpdTimers[i], timerCallback, os_timer_type_once, (void *) i);
 		ptpdTimersExpired[i] = FALSE;
 	}
 }
