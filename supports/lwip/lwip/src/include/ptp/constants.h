@@ -81,25 +81,24 @@
 
 /**
  * \brief Domain Number (Table 2 in the spec)*/
-
 enum
 {
-		DFLT_DOMAIN_NUMBER = 0,
-		ALT1_DOMAIN_NUMBER,
-		ALT2_DOMAIN_NUMBER,
-		ALT3_DOMAIN_NUMBER
+	DFLT_DOMAIN_NUMBER = 0,
+	ALT1_DOMAIN_NUMBER,
+	ALT2_DOMAIN_NUMBER,
+	ALT3_DOMAIN_NUMBER
 };
 
 /**
  * \brief Network Protocol  (Table 3 in the spec)*/
 enum
 {
-		UDP_IPV4 = 1,
-		UDP_IPV6,
-		IEE_802_3,
-		DeviceNet,
-		ControlNet,
-		PROFINET
+	UDP_IPV4 = 1,
+	UDP_IPV6,
+	IEE_802_3,
+	DeviceNet,
+	ControlNet,
+	PROFINET
 };
 
 /**
@@ -190,7 +189,6 @@ enum
 /**
  * \brief Output statistics
  */
-
 enum
 {
 	PTP_NO_STATS = 0,
@@ -201,7 +199,6 @@ enum
 /**
  * \brief message flags
  */
-
 enum
 {
 	FLAG0_ALTERNATE_MASTER = 0x01,
@@ -215,8 +212,7 @@ enum
 /**
  * \brief message flags
  */
-
- enum
+enum
 {
 	FLAG1_LEAP61 = 0x01,
 	FLAG1_LEAP59 = 0x02,
@@ -229,7 +225,6 @@ enum
 /**
  * \brief ptp stack events
  */
-
 enum
 {
 	POWERUP = 0x0001,
@@ -250,7 +245,6 @@ enum
 /**
  * \brief ptp time scale
  */
-
 enum
 {
 	ARB_TIMESCALE,
@@ -258,3 +252,4 @@ enum
 };
 
 #endif /* CONSTANTS_H_*/
+

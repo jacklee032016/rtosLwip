@@ -50,6 +50,9 @@
 #include "lwip/etharp.h"
 #include "netif/ethernet.h"
 
+#include "lwipExt.h"
+
+
 #define TCPIP_MSG_VAR_REF(name)     API_VAR_REF(name)
 #define TCPIP_MSG_VAR_DECLARE(name) API_VAR_DECLARE(struct tcpip_msg, name)
 #define TCPIP_MSG_VAR_ALLOC(name)   API_VAR_ALLOC(struct tcpip_msg, MEMP_TCPIP_MSG_API, name, ERR_MEM)
@@ -471,8 +474,10 @@ tcpip_trycallback(struct tcpip_callback_msg* msg)
  */
 void tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 {
+	TRACE();
 	lwip_init();
 
+	TRACE();
 	tcpip_init_done = initfunc;
 	tcpip_init_done_arg = arg;
 	if (sys_mbox_new(&mbox, TCPIP_MBOX_SIZE) != ERR_OK)
@@ -485,6 +490,8 @@ void tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 		LWIP_ASSERT(("failed to create lock_tcpip_core"), 0);
 	}
 #endif /* LWIP_TCPIP_CORE_LOCKING */
+
+	TRACE();
 
 	sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO );
 }

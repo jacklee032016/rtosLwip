@@ -153,6 +153,7 @@ EXTS_PTPD_SRC += \
 	$(EXT_HOME)/ptp/dep/ptpStartup.c \
 	$(EXT_HOME)/ptp/dep/ptpSysTime.c \
 	$(EXT_HOME)/ptp/dep/ptpTimer.c \
+	$(EXT_HOME)/ptp/extPtp.c \
 
 
 EXTS_LWIP_SRC += \

@@ -143,7 +143,7 @@ static ssize_t _netRecv(octet_t *buf, TimeInternal *time, BufQueue *msgQueue)
 	}
 
 	/* Verify that we have enough space to store the contents. */
-	if (p->tot_len > PACKET_SIZE)
+	if (p->tot_len > PTP_PACKET_SIZE)
 	{
 		ERROR("netRecv: received truncated message\n");
 		pbuf_free(p);

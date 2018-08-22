@@ -197,8 +197,10 @@ void sntp_set_system_time(u32_t sec)
 static void simhost_tcpip_init_done(void *arg)
 {
 	sys_sem_t *sem;
+TRACE();
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
+TRACE();
 	LWIP_ASSERT(("runCfg is NULL"), (runCfg!= NULL));
 	sem = (sys_sem_t *)runCfg->data;
 
@@ -455,26 +457,25 @@ static void main_thread(void *arg)
 
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
+TRACE();
 	extSysParamsInit(runCfg);
 
+TRACE();
 	if(sys_sem_new(&sem, 0) != ERR_OK)
 	{
 		LWIP_ASSERT(("Failed to create semaphore"), 0);
 	}
 
 	runCfg->data = &sem;
+TRACE();
 	tcpip_init(simhost_tcpip_init_done, runCfg);
+TRACE();
 	
 	sys_sem_wait(&sem);
 
+TRACE();
 	printf("TCP/IP initialized.\n");
 
-#if LWIP_SOCKET
-	if (ping_flag)
-	{
-//		ping_init(&ping_addr);
-	}
-#endif
 
 #if 0
 	stats_display(NULL, 0);
@@ -518,6 +519,7 @@ int main(int argc, char **argv)
 	/* use debug flags defined by debug.h */
 	debug_flags = LWIP_DBG_ON;
 
+	memset(&extRun, 0, sizeof(EXT_RUNTIME_CFG) );
 #if 0	
 	extRun.isTx = 0; /* run as RX default, 192.168.166.3 */
 #else

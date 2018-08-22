@@ -69,10 +69,17 @@ void displayStats(const PtpClock *ptpClock)
 
 void getTime(TimeInternal *time)
 {
+#ifdef ARM	
 	struct ptptime_t timestamp;
 	ETH_PTPTime_GetTime(&timestamp);
 	time->seconds = timestamp.tv_sec;
 	time->nanoseconds = timestamp.tv_nsec;
+#else
+	struct timeval tv;
+	gettimeofday(&tv, 0);
+	time->seconds = tv.tv_sec;
+	time->nanoseconds = tv.tv_usec * 1000;
+#endif	
 }
 
 void setTime(const TimeInternal *time)
@@ -118,3 +125,4 @@ bool  adjFreq(int32_t adj)
 
 	return TRUE;
 }
+

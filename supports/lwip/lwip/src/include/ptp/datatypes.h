@@ -14,7 +14,6 @@
  * \brief 5.3.2 The TimeInterval type represents time intervals
  * in scaled nanoseconds where scaledNanoseconds = time[ns] * 2^16
  */
-
 typedef struct
 {
 	int64_t		scaledNanoseconds;
@@ -48,7 +47,6 @@ typedef struct
 /**
  * \brief 5.3.6 The PortAdress type represents the protocol address of a PTP port
  */
-
  typedef struct
 {
 	enum16bit_t		networkProtocol;
@@ -60,7 +58,6 @@ typedef struct
 /**
 * \brief 5.3.7 The ClockQuality represents the quality of a clock
  */
-
 typedef struct
 {
 	uint8_t		clockClass;
@@ -71,23 +68,21 @@ typedef struct
 /**
  * \brief 5.3.8 The TLV type represents TLV extension fields
  */
-
 typedef struct
 {
-		enum16bit_t tlvType;
-		int16_t lengthField;
-		octet_t* valueField;
+	enum16bit_t		tlvType;
+	int16_t			lengthField;
+	octet_t			*valueField;
 } TLV;
 
 /**
  * \brief 5.3.9 The PTPText data type is used to represent textual material in PTP messages
  * textField - UTF-8 encoding
  */
-
 typedef struct
 {
-		uint8_t lengthField;
-		octet_t* textField;
+	uint8_t		lengthField;
+	octet_t		*textField;
 } PTPText;
 
 /**
@@ -96,12 +91,14 @@ typedef struct
 
 typedef struct
 {
-		int16_t faultRecordLength;
-		Timestamp faultTime;
-		enum8bit_t severityCode;
-		PTPText faultName;
-		PTPText faultValue;
-		PTPText faultDescription;
+	int16_t			faultRecordLength;
+	
+	Timestamp		faultTime;
+	enum8bit_t		severityCode;
+	
+	PTPText			faultName;
+	PTPText			faultValue;
+	PTPText			faultDescription;
 } FaultRecord;
 
 
@@ -131,15 +128,17 @@ typedef struct
 /**
  * \brief Announce message fields (Table 25 of the spec)
  */
-
 typedef struct
 {
 	Timestamp	originTimestamp;
 	int16_t		currentUtcOffset;
+	
 	uint8_t		grandmasterPriority1;
 	ClockQuality	grandmasterClockQuality;
+	
 	uint8_t		grandmasterPriority2;
 	ClockIdentity	grandmasterIdentity;
+	
 	int16_t		stepsRemoved;
 	enum8bit_t	timeSource;
 }MsgAnnounce;
@@ -148,7 +147,6 @@ typedef struct
 /**
  * \brief Sync message fields (Table 26 of the spec)
  */
-
 typedef struct
 {
 	Timestamp		originTimestamp;
@@ -176,7 +174,6 @@ typedef struct
 /**
  * \brief FollowUp message fields (Table 27 of the spec)
  */
-
 typedef struct
 {
 	Timestamp		preciseOriginTimestamp;
@@ -185,7 +182,6 @@ typedef struct
 /**
  * \brief PDelayReq message fields (Table 29 of the spec)
  */
-
 typedef struct
 {
 	Timestamp		originTimestamp;
@@ -194,7 +190,6 @@ typedef struct
 /**
  * \brief PDelayResp message fields (Table 30 of the spec)
  */
-
 typedef struct
 {
 	Timestamp		requestReceiptTimestamp;
@@ -204,7 +199,6 @@ typedef struct
 /**
  * \brief PDelayRespFollowUp message fields (Table 31 of the spec)
  */
-
 typedef struct
 {
 	Timestamp		responseOriginTimestamp;
@@ -214,7 +208,6 @@ typedef struct
 /**
 * \brief Signaling message fields (Table 33 of the spec)
  */
-
 typedef struct
 {
 	PortIdentity		targetPortIdentity;
@@ -248,7 +241,6 @@ typedef struct
 /**
 * \brief ForeignMasterRecord is used to manage foreign masters
  */
-
 typedef struct
 {
 	PortIdentity		foreignMasterPortIdentity;
@@ -264,18 +256,18 @@ typedef struct
  * \brief spec 8.2.1 default data set
  * spec 7.6.2, spec 7.6.3 PTP device attributes
  */
-
 typedef struct
 {
-	bool  twoStepFlag;
+	bool					twoStepFlag;
 	ClockIdentity			clockIdentity; /**< spec 7.6.2.1 */
 	int16_t				numberPorts;  /**< spec 7.6.2.7 */
-	
+
 	ClockQuality			clockQuality; /**< spec 7.6.2.4, 7.6.3.4 and 7.6.3 */
-	uint8_t priority1; /**< spec 7.6.2.2 */
-	uint8_t priority2; /**< spec 7.6.2.3 */
-	uint8_t domainNumber;
-	bool  slaveOnly;
+	uint8_t				priority1; /**< spec 7.6.2.2 */
+	uint8_t				priority2; /**< spec 7.6.2.3 */
+	uint8_t				domainNumber;
+	
+	bool					slaveOnly;
 } DefaultDS;
 
 
@@ -283,7 +275,6 @@ typedef struct
  * \struct CurrentDS
  * \brief spec 8.2.2 current data set
  */
-
 typedef struct
 {
 	int16_t			stepsRemoved;
@@ -297,26 +288,25 @@ typedef struct
  * \struct ParentDS
  * \brief spec 8.2.3 parent data set
  */
-
 typedef struct
 {
-	PortIdentity parentPortIdentity;
+	PortIdentity		parentPortIdentity;
+	
 	/* 7.6.4 Parent clock statistics - parentDS */
-	bool  parentStats; /**< spec 7.6.4.2 */
-	int16_t observedParentOffsetScaledLogVariance; /**< spec 7.6.4.3 */
-	int32_t observedParentClockPhaseChangeRate; /**< spec 7.6.4.4 */
+	bool				parentStats; /**< spec 7.6.4.2 */
+	int16_t			observedParentOffsetScaledLogVariance; /**< spec 7.6.4.3 */
+	int32_t			observedParentClockPhaseChangeRate; /**< spec 7.6.4.4 */
 
-	ClockIdentity grandmasterIdentity;
-	ClockQuality grandmasterClockQuality;
-	uint8_t grandmasterPriority1;
-	uint8_t grandmasterPriority2;
+	ClockIdentity		grandmasterIdentity;
+	ClockQuality		grandmasterClockQuality;
+	uint8_t			grandmasterPriority1;
+	uint8_t			grandmasterPriority2;
 } ParentDS;
 
 /**
  * \struct TimePropertiesDS
  * \brief spec 8.2.4 time properties data set
  */
-
  typedef struct
 {
 	int16_t		currentUtcOffset;
@@ -335,7 +325,6 @@ typedef struct
  * \struct PortDS
  * \brief spec 8.2.5 port data set
  */
-
  typedef struct
 {
 	PortIdentity	portIdentity;
@@ -374,7 +363,6 @@ typedef struct
  * \struct Servo
  * \brief Clock servo filters and PI regulator values
  */
-
 typedef struct
 {
 	bool		noResetClock;
@@ -389,7 +377,6 @@ typedef struct
  * \struct RunTimeOpts
  * \brief Program options set at run-time
  */
-
 typedef struct
 {
 	int8_t 			announceInterval;
@@ -405,7 +392,7 @@ typedef struct
 	int16_t			currentUtcOffset;
 	
 	enum8bit_t		stats;
-	octet_t   unicastAddress[NET_ADDRESS_LENGTH];
+	octet_t			unicastAddress[NET_ADDRESS_LENGTH];
 	TimeInternal		inboundLatency, outboundLatency;
 	
 	int16_t			maxForeignRecords;
@@ -419,7 +406,6 @@ typedef struct
  * \brief Main program data structure
  */
 /* main program data structure */
-
 typedef struct
 {
 	/* Clock data sets */
@@ -448,67 +434,73 @@ typedef struct
 		MsgManagement			manage;
 		MsgAnnounce				announce;
 		MsgSignaling				signaling;
-	} msgTmp; /**< buffer for incomming message body */
+	}msgTmp; /**< buffer for incomming message body */
 
 
-	octet_t		msgObuf[PACKET_SIZE]; /**< buffer for outgoing message */
+	octet_t		msgObuf[PTP_PACKET_SIZE]; /**< buffer for outgoing message */
 	
-	octet_t		msgIbuf[PACKET_SIZE]; /** <buffer for incomming message */
+	octet_t		msgIbuf[PTP_PACKET_SIZE]; /** <buffer for incomming message */
 	ssize_t		msgIbufLength; /**< length of incomming message */
 
 	TimeInternal	Tms; /**< Time Master -> Slave */
 	TimeInternal	Tsm; /**< Time Slave -> Master */
 
-	TimeInternal pdelay_t1; /**< peer delay time t1 */
-	TimeInternal pdelay_t2; /**< peer delay time t2 */
-	TimeInternal pdelay_t3; /**< peer delay time t3 */
-	TimeInternal pdelay_t4; /**< peer delay time t4 */
+	TimeInternal	pdelay_t1; /**< peer delay time t1 */
+	TimeInternal	pdelay_t2; /**< peer delay time t2 */
+	TimeInternal	pdelay_t3; /**< peer delay time t3 */
+	TimeInternal	pdelay_t4; /**< peer delay time t4 */
 
-	TimeInternal timestamp_syncRecieve; /**< timestamp of Sync message */
-	TimeInternal timestamp_delayReqSend; /**< timestamp of delay request message */
-	TimeInternal timestamp_delayReqRecieve; /**< timestamp of delay request message */
+	TimeInternal	timestamp_syncRecieve; /**< timestamp of Sync message */
+	TimeInternal	timestamp_delayReqSend; /**< timestamp of delay request message */
+	TimeInternal	timestamp_delayReqRecieve; /**< timestamp of delay request message */
 
-	TimeInternal correctionField_sync; /**< correction field of Sync and FollowUp messages */
-	TimeInternal correctionField_pDelayResp; /**< correction fieald of peedr delay response */
+	TimeInternal	correctionField_sync; /**< correction field of Sync and FollowUp messages */
+	TimeInternal	correctionField_pDelayResp; /**< correction fieald of peedr delay response */
 
 		/* MsgHeader  PdelayReqHeader; */ /**< last recieved peer delay reques header */
 
-		int16_t sentPDelayReqSequenceId;
-		int16_t sentDelayReqSequenceId;
-		int16_t sentSyncSequenceId;
-		int16_t sentAnnounceSequenceId;
+	int16_t	sentPDelayReqSequenceId;
+	int16_t	sentDelayReqSequenceId;
+	int16_t	sentSyncSequenceId;
+	int16_t	sentAnnounceSequenceId;
 
-		int16_t recvPDelayReqSequenceId;
-		int16_t recvSyncSequenceId;
+	int16_t	recvPDelayReqSequenceId;
+	int16_t	recvSyncSequenceId;
 
-		bool   waitingForFollowUp; /**< true if sync message was recieved and 2step flag is set */
+	bool   waitingForFollowUp; /**< true if sync message was recieved and 2step flag is set */
 	bool   waitingForPDelayRespFollowUp; /**< true if PDelayResp message was recieved and 2step flag is set */
 
-		Filter  ofm_filt; /**< filter offset from master */
-		Filter  owd_filt; /**< filter one way delay */
+	Filter  ofm_filt; /**< filter offset from master */
+	Filter  owd_filt; /**< filter one way delay */
 	Filter  slv_filt; /**< filter scaled log variance */
 	int16_t offsetHistory[2];
-		int32_t  observedDrift;
+	int32_t  observedDrift;
 
-		bool  messageActivity;
+	bool  messageActivity;
 
-		NetPath netPath;
+	NetPath netPath;
 
-		enum8bit_t recommendedState;
+	enum8bit_t recommendedState;
 
-		octet_t portUuidField[PTP_UUID_LENGTH]; /**< Usefull to init network stuff */
+	octet_t portUuidField[PTP_UUID_LENGTH]; /**< Usefull to init network stuff */
 
-		TimeInternal  inboundLatency, outboundLatency;
+	TimeInternal  inboundLatency, outboundLatency;
 
 	Servo servo;
 
-		int32_t  events;
+	int32_t  events;
 
-		enum8bit_t  stats;
+	enum8bit_t  stats;
 
-		RunTimeOpts * rtOpts;
+	RunTimeOpts * rtOpts;
 
 } PtpClock;
+
+#define ETH_PTP_FineUpdate        ((uint32_t)0x00000001)  /*!< Fine Update method */
+#define ETH_PTP_CoarseUpdate      ((uint32_t)0x00000000)  /*!< Coarse Update method */
+#define IS_ETH_PTP_UPDATE(UPDATE) (((UPDATE) == ETH_PTP_FineUpdate) || \
+                                   ((UPDATE) == ETH_PTP_CoarseUpdate))
+
 
 #endif /* DATATYPES_H_*/
 

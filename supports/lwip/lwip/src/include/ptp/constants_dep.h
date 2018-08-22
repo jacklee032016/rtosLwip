@@ -56,7 +56,7 @@
 #define CLOCK_IDENTITY_LENGTH   8
 #define FLAG_FIELD_LENGTH    2
 
-#define PACKET_SIZE  300 /* ptpdv1 value kept because of use of TLV... */
+#define PTP_PACKET_SIZE  300 /* ptpdv1 value kept because of use of TLV... */
 
 #define PTP_EVENT_PORT    319
 #define PTP_GENERAL_PORT  320

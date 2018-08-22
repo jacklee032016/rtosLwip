@@ -8,7 +8,7 @@
 static unsigned char		_readBuffer[EXT_RW_BUFFER_SIZE];
 static unsigned char		_writeBuffer[EXT_RW_BUFFER_SIZE];
 
-EXT_RUNTIME_CFG	extRun;
+EXT_RUNTIME_CFG			extRun;
 
 
 char extSysAtoInt8(const char *str, unsigned char *value)

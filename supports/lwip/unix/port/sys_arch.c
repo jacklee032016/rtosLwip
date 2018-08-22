@@ -188,10 +188,13 @@ err_t sys_mbox_new(struct sys_mbox **mb, int size)
 	struct sys_mbox *mbox;
 	LWIP_UNUSED_ARG(size);
 
+TRACE();
 	mbox = (struct sys_mbox *)malloc(sizeof(struct sys_mbox));
-	if (mbox == NULL) {
+	if (mbox == NULL)
+	{
 		return ERR_MEM;
 	}
+	
 	mbox->first = mbox->last = 0;
 	mbox->not_empty = sys_sem_new_internal(0);
 	mbox->not_full = sys_sem_new_internal(0);
@@ -200,6 +203,8 @@ err_t sys_mbox_new(struct sys_mbox **mb, int size)
 
 	SYS_STATS_INC_USED(mbox);
 	*mb = mbox;
+
+TRACE();
 	return ERR_OK;
 }
 
@@ -506,13 +511,13 @@ sys_sem_free_internal(struct sys_sem *sem)
   free(sem);
 }
 
-void
-sys_sem_free(struct sys_sem **sem)
+void sys_sem_free(struct sys_sem **sem)
 {
-  if ((sem != NULL) && (*sem != SYS_SEM_NULL)) {
-    SYS_STATS_DEC(sem.used);
-    sys_sem_free_internal(*sem);
-  }
+	if ((sem != NULL) && (*sem != SYS_SEM_NULL))
+	{
+		SYS_STATS_DEC(sem.used);
+		sys_sem_free_internal(*sem);
+	}
 }
 
 /*-----------------------------------------------------------------------------------*/
@@ -539,27 +544,27 @@ err_t sys_mutex_new(struct sys_mutex **mutex)
 
 /** Lock a mutex
  * @param mutex the mutex to lock */
-void
-sys_mutex_lock(struct sys_mutex **mutex)
+void sys_mutex_lock(struct sys_mutex **mutex)
 {
-  pthread_mutex_lock(&((*mutex)->mutex));
+	pthread_mutex_lock(&((*mutex)->mutex));
+//	pthread_mutex_lock(&mutex->mutex);
 }
 
 /** Unlock a mutex
  * @param mutex the mutex to unlock */
-void
-sys_mutex_unlock(struct sys_mutex **mutex)
+void sys_mutex_unlock(struct sys_mutex **mutex)
 {
-  pthread_mutex_unlock(&((*mutex)->mutex));
+	pthread_mutex_unlock(&((*mutex)->mutex));
+//	pthread_mutex_unlock(&mutex->mutex);
 }
 
 /** Delete a mutex
  * @param mutex the mutex to delete */
-void
-sys_mutex_free(struct sys_mutex **mutex)
+void sys_mutex_free(struct sys_mutex **mutex)
 {
-  pthread_mutex_destroy(&((*mutex)->mutex));
-  free(*mutex);
+	pthread_mutex_destroy(&((*mutex)->mutex));
+//	pthread_mutex_destroy(&mutex->mutex);
+	free(*mutex);
 }
 
 #endif /* !NO_SYS */
@@ -707,7 +712,7 @@ typedef	struct cmn_timer
 	int							numOfTimers;
 	sys_timer_id_t				*timers;
 	
-	sys_mutex_t					*mutex;
+	struct sys_mutex			*mutex;
 	sys_thread_t					tId;
 
 	int							timersChanged;
@@ -738,7 +743,7 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 	
 	now = cmn_get_ticks( );
 
-	sys_mutex_lock(timers->mutex);
+	sys_mutex_lock(&timers->mutex);
 	
 	for ( prev = NULL, t = timers->timers; t; t = next )
 	{
@@ -762,11 +767,11 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 #if EXT_TIMER_DEBUG
 			EXT_DEBUGF( EXT_DBG_ON, ("Executing timer %s(%p) ", t->name, t ));
 #endif
-			sys_mutex_unlock(timers->mutex );
+			sys_mutex_unlock(&timers->mutex );
 
 			t->callback(t->param);
 			
-			sys_mutex_lock(timers->mutex);
+			sys_mutex_lock(&timers->mutex);
 			
 			if ( timers->timersChanged )
 			{/* Abort, list of timers has been modified by other threads */
@@ -808,7 +813,7 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 		}
 	}
 	
-	sys_mutex_unlock(timers->mutex);
+	sys_mutex_unlock(&timers->mutex);
 }
 
 static void _lwip_timer_thread(void *data)
@@ -833,17 +838,21 @@ static void _lwip_timer_thread(void *data)
 static int _sys_timer_init(void)
 {
 	err_t err = ERR_OK;
-
+TRACE();
 	memset(&_timers, 0 , sizeof(cmn_timer_t) );
 	
 	gettimeofday(&_timers.startTimeStamp, NULL);
 	
-	err = sys_mutex_new(_timers.mutex);
+TRACE();
+	err = sys_mutex_new(&_timers.mutex);
+TRACE();
 	_timers.tId = sys_thread_new("SysTimer", _lwip_timer_thread, &_timers, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
+TRACE();
 	if(!_timers.tId || err != ERR_OK )
 	{
 		return (-EXIT_FAILURE);
 	}
+TRACE();
 
 	return EXIT_SUCCESS;
 }
@@ -870,7 +879,7 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 {
 	sys_timer_id_t	*t;
 	
-	sys_mutex_lock(_timers.mutex);
+	sys_mutex_lock(&_timers.mutex);
 	t = (sys_timer_id_t *)malloc(sizeof( sys_timer_id_t));
 	if ( t )
 	{
@@ -892,7 +901,7 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 	
 	EXT_DEBUGF(EXT_DBG_ON, ("Added Timer(%s: %d millisecond) num_timers = %d", t->name, millisec, _timers.numOfTimers ) );
 
-	sys_mutex_unlock(_timers.mutex);
+	sys_mutex_unlock(&_timers.mutex);
 	return;
 }
 
@@ -909,7 +918,7 @@ void sys_timer_stop(sys_timer_t *timer)
 		return;
 	}
 
-	sys_mutex_lock(_timers.mutex);
+	sys_mutex_lock(&_timers.mutex);
 	/* Look for id in the linked list of timers */
 	for (t = _timers.timers; t; prev=t, t = t->next )
 	{
@@ -936,7 +945,7 @@ void sys_timer_stop(sys_timer_t *timer)
 	}
 	
 
-	sys_mutex_unlock(_timers.mutex);
+	sys_mutex_unlock(&_timers.mutex);
 	return;
 }
 

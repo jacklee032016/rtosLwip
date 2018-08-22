@@ -550,7 +550,7 @@ err_t igmp_leavegroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr)
 	struct netif *netif;
 
 	/* make sure it is multicast address */
-	LWIP_ERROR(("igmp_leavegroup: attempt to leave non-multicast address"), ip4_addr_ismulticast(groupaddr), return ERR_VAL;);
+	LWIP_ERROR(("igmp_leavegroup: attempt to leave non-multicast address:'%s'", inet_ntoa(groupaddr)), ip4_addr_ismulticast(groupaddr), return ERR_VAL;);
 	LWIP_ERROR(("igmp_leavegroup: attempt to leave allsystems address"), (!ip4_addr_cmp(groupaddr, &allsystems)), return ERR_VAL;);
 
 	/* loop through netif's */
