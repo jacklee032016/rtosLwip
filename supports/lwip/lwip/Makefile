@@ -146,11 +146,9 @@ EXTS_PTPD_SRC += \
 	$(EXT_HOME)/ptp/ptpBmc.c \
 	$(EXT_HOME)/ptp/ptpMain.c \
 	$(EXT_HOME)/ptp/ptpProtocol.c \
-	$(EXT_HOME)/ptp/ptpUtils.c \
-	$(EXT_HOME)/ptp/dep/ptpMsg.c \
+	$(EXT_HOME)/ptp/ptpMsg.c \
 	$(EXT_HOME)/ptp/dep/ptpNet.c \
 	$(EXT_HOME)/ptp/dep/ptpServo.c \
-	$(EXT_HOME)/ptp/dep/ptpStartup.c \
 	$(EXT_HOME)/ptp/dep/ptpSysTime.c \
 	$(EXT_HOME)/ptp/dep/ptpTimer.c \
 	$(EXT_HOME)/ptp/extPtp.c \

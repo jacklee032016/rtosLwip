@@ -29,16 +29,16 @@ void initData(PtpClock *ptpClock)
 	/* Init clockIdentity with MAC address and 0xFF and 0xFE. see spec 7.5.2.2.2 */
 	if ((CLOCK_IDENTITY_LENGTH == 8) && (PTP_UUID_LENGTH == 6))
 	{
-			DBGVV("initData: EUI48toEUI64\n");
-			EUI48toEUI64(ptpClock->portUuidField, ptpClock->defaultDS.clockIdentity);
+		DBGVV("initData: EUI48toEUI64");
+		EUI48toEUI64(ptpClock->portUuidField, ptpClock->defaultDS.clockIdentity);
 	}
 	else if (CLOCK_IDENTITY_LENGTH == PTP_UUID_LENGTH)
 	{
-			memcpy(ptpClock->defaultDS.clockIdentity, ptpClock->portUuidField, CLOCK_IDENTITY_LENGTH);
+		memcpy(ptpClock->defaultDS.clockIdentity, ptpClock->portUuidField, CLOCK_IDENTITY_LENGTH);
 	}
 	else
 	{
-			ERROR("initData: UUID length is not valid");
+		ERROR("initData: UUID length is not valid");
 	}
 
 	ptpClock->defaultDS.numberPorts = NUMBER_PORTS;
@@ -239,11 +239,11 @@ void copyD0(MsgHeader *header, MsgAnnounce *announce, PtpClock *ptpClock)
 
 #define COMPARE_AB_RETURN_BETTER(cond, msg)                             \
 	if ((announceA->cond) > (announceB->cond)) {                           \
-		DBGVV("bmcDataSetComparison: " msg ": B better then A\n");          \
+		DBGVV("bmcDataSetComparison: " msg ": B better then A");          \
 		return B_better_then_A;                                             \
 	}                                                                     \
 	if ((announceB->cond) > (announceA->cond)) {                           \
-		DBGVV("bmcDataSetComparison: " msg ": A better then B\n");          \
+		DBGVV("bmcDataSetComparison: " msg ": A better then B");          \
 		return A_better_then_B;                                             \
 	}                                                                     \
 
@@ -271,12 +271,12 @@ int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeade
 
 		if (grandmasterIdentityComp > 0)
 		{
-			DBGVV("bmcDataSetComparison: grandmaster.Identity: B better then A\n");
+			DBGVV("bmcDataSetComparison: grandmaster.Identity: B better then A");
 			return B_better_then_A;
 		}
 		else if (grandmasterIdentityComp < 0)
 		{
-			DBGVV("bmcDataSetComparison: grandmaster.Identity: A better then B\n");
+			DBGVV("bmcDataSetComparison: grandmaster.Identity: A better then B");
 			return A_better_then_B;
 		}
 	}
@@ -284,13 +284,13 @@ int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeade
 	/* Algoritgm part 2 - Figure 28 */
 	if ((announceA->stepsRemoved) > (announceB->stepsRemoved + 1))
 	{
-		DBGVV("bmcDataSetComparison: stepsRemoved: B better then A\n");
+		DBGVV("bmcDataSetComparison: stepsRemoved: B better then A");
 		return B_better_then_A;
 	}
 
 	if ((announceB->stepsRemoved) > (announceA->stepsRemoved + 1))
 	{
-		DBGVV("bmcDataSetComparison: stepsRemoved: A better then B\n");
+		DBGVV("bmcDataSetComparison: stepsRemoved: A better then B");
 		return A_better_then_B;
 	}
 
@@ -301,18 +301,18 @@ int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeade
 		if (comp > 0)
 		{
 			/* reciever < sender */
-			DBGVV("bmcDataSetComparison: PortIdentity: B better then A\n");
+			DBGVV("bmcDataSetComparison: PortIdentity: B better then A");
 			return B_better_then_A;
 		}
 		else if (comp < 0)
 		{
 			/* reciever > sender */
-			DBGVV("bmcDataSetComparison: PortIdentity: B better by topology then A\n");
+			DBGVV("bmcDataSetComparison: PortIdentity: B better by topology then A");
 			return B_better_by_topology_then_A;
 		}
 		else
 		{
-			DBGVV("bmcDataSetComparison: ERROR 1\n");
+			DBGVV("bmcDataSetComparison: ERROR 1");
 			return ERROR_1;
 		}
 	}
@@ -322,18 +322,18 @@ int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeade
 		if (comp > 0)
 		{
 			/* reciever < sender */
-			DBGVV("bmcDataSetComparison: PortIdentity: A better then B\n");
+			DBGVV("bmcDataSetComparison: PortIdentity: A better then B");
 			return A_better_then_B;
 		}
 		else if (comp < 0)
 		{
 			/* reciever > sender */
-			DBGVV("bmcDataSetComparison: PortIdentity: A better by topology then B\n");
+			DBGVV("bmcDataSetComparison: PortIdentity: A better by topology then B");
 			return A_better_by_topology_then_B;
 		}
 		else
 		{
-			DBGV("bmcDataSetComparison: ERROR 1\n");
+			DBGV("bmcDataSetComparison: ERROR 1");
 			return ERROR_1;
 		}
 	}
@@ -342,13 +342,13 @@ int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeade
 	if (comp > 0)
 	{
 		/* A > B */
-		DBGVV("bmcDataSetComparison: sourcePortIdentity: B better by topology then A\n");
+		DBGVV("bmcDataSetComparison: sourcePortIdentity: B better by topology then A");
 		return B_better_by_topology_then_A;
 	}
 	else if (comp < 0)
 	{
 		/* B > A */
-		DBGVV("bmcDataSetComparison: sourcePortIdentity: A better by topology then B\n");
+		DBGVV("bmcDataSetComparison: sourcePortIdentity: A better by topology then B");
 		return A_better_by_topology_then_B;
 	}
 

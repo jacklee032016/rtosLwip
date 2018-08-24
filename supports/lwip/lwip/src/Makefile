@@ -149,6 +149,19 @@ EXTS_IPERF_SRC += \
 	$(EXT_HOME)/iperf/iperfUdp.c \
 	$(EXT_HOME)/iperf/iperfLwip.c \
 
+EXTS_PTPD_SRC += \
+	$(EXT_HOME)/ptp/ptpArith.c \
+	$(EXT_HOME)/ptp/ptpBmc.c \
+	$(EXT_HOME)/ptp/ptpMain.c \
+	$(EXT_HOME)/ptp/ptpProtocol.c \
+	$(EXT_HOME)/ptp/ptpMsg.c \
+	$(EXT_HOME)/ptp/dep/ptpNet.c \
+	$(EXT_HOME)/ptp/dep/ptpServo.c \
+	$(EXT_HOME)/ptp/dep/ptpSysTime.c \
+	$(EXT_HOME)/ptp/dep/ptpTimer.c \
+	$(EXT_HOME)/ptp/extPtp.c \
+
+
 EXTS_LWIP_SRC += \
 	$(EXTS_CMN_SRC) \
 	$(EXTS_MISC_SRC) \
@@ -157,6 +170,7 @@ EXTS_LWIP_SRC += \
 	$(EXTS_NMOS_SRC) \
 	$(EXTS_CMD_SRC) \
 	$(EXTS_IPERF_SRC) \
+	$(EXTS_PTPD_SRC) \
 	$(EXT_HOME)/extLwipStart.c \
 
 #	lwip/frozen.c \

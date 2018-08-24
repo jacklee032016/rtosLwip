@@ -109,6 +109,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 #endif
 	cfg->isUpdate = EXT_FALSE;
 	cfg->isDipOn = EXT_TRUE;
+	cfg->isMacConfiged = EXT_FALSE;
 	
 #if 0
 	cfg->macAddress.address[0] = ETHERNET_CONF_ETHADDR0;

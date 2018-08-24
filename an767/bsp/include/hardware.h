@@ -355,6 +355,39 @@ typedef	enum
 
 #define	EXT_FPGA_REG_ENABLE					3
 
+#define	EXT_FPGA_REG_POWER_LED				5	/* -- 0 - LED is on, 1 - LED is flashing*/
+
+#define	EXT_FPGA_REG_WIDTH					6	/* 2 bytes */
+#define	EXT_FPGA_REG_HEIGHT					8	/* 2 bytes */
+#define	EXT_FPGA_REG_FRAMERATE				10	/* 4 bits */
+/*-- x"2"   24/1.001
+-- x"3"   24
+-- x"5"   25
+-- x"6"   30/1.001
+-- x"7"   30
+-- x"9"   50
+-- x"A"   60/1.001
+-- x"B"   60
+*/
+#define EXT_FPGA_REG_SAMPLING					11	/* 4 bits */
+/*-- "0000" YCbCr-4:2:2
+-- "0001" YCbCr-4:4:4
+-- "0010" RGB
+-- "0011" YCbCr-4:2:0
+-- "0100" XYZ
+-- "0101" KEY
+-- "1000" CLYCbCr-4:2:2
+-- "1001" CLYCbCr-4:4:4
+-- "1011" CLYCbCr-4:2:0
+*/
+#define	EXT_FPGA_REG_DEPTH					12	/* 2 bits (1:0) */
+/*-- b"00" 8                             bits
+-- b"01" 10          bits
+-- b"10" 12          bits
+-- b"11" 16          bits
+*/
+#define EXT_FPGA_REG_INTLC_SEGM				13	/* 2 bits interlac bit 0 , segmented bit 1 */
+
 
 #define	EXT_FPGA_REG_ETHERNET_RESET			0
 

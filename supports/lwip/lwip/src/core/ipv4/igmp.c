@@ -315,6 +315,13 @@ void igmp_input(struct pbuf *p, struct netif *inp, const ip4_addr_t *dest)
 
 	/* Now calculate and check the checksum */
 	igmp = (struct igmp_msg *)p->payload;
+	
+	{
+		EXT_INFOF(("IGMP recv %s from ""%"U16_F ".%" U16_F ".%" U16_F ".%" U16_F" to %s", (igmp->igmp_msgtype==IGMP_MEMB_QUERY)?"QUERY":(igmp->igmp_msgtype==IGMP_V2_MEMB_REPORT)?"REPORT":"Others",
+			ip4_addr1_16(&(ip4_current_header()->src)), ip4_addr2_16(&(ip4_current_header()->src)),ip4_addr3_16(&(ip4_current_header()->src)),ip4_addr4_16(&(ip4_current_header()->src)),
+			inet_ntoa((ip4_current_header()->dest))));
+	}
+		
 	if (inet_chksum(igmp, p->len))
 	{
 		pbuf_free(p);

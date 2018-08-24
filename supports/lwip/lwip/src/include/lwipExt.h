@@ -226,5 +226,42 @@ struct MAC_STATS
 	uint32_t	rxErrFrame;	/* not frame we are interested */
 };
 
+
+#define	EXT_TIMER_DEBUG	1
+
+
+typedef enum
+{
+	os_timer_type_once = 0,
+	os_timer_type_reload	
+}os_timer_type;
+
+typedef	void (*sys_time_callback)(void *arg);
+
+
+typedef struct
+{
+#if EXT_TIMER_DEBUG
+	char						name[32];
+#endif
+	void						*timeId;
+	sys_time_callback			callback;
+	os_timer_type				type;
+
+	void						*arg;
+	
+} sys_timer_t;
+
+
+err_t sys_timer_new(sys_timer_t *timer, sys_time_callback callback, os_timer_type type, void *argument);
+void sys_timer_start(sys_timer_t *timer, uint32_t millisec);
+void sys_timer_stop(sys_timer_t *timer);
+void sys_timer_free(sys_timer_t *timer);
+
+#if LWIP_EXT_PTP
+void extPtpCmdStatus(char *buf, unsigned int len);
+bool extPtpCmdDate(char *buf, unsigned int len);
+#endif
+
 #endif
 

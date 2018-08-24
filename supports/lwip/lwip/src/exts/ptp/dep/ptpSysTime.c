@@ -113,7 +113,7 @@ uint32_t getRand(uint32_t randMax)
 
 bool  adjFreq(int32_t adj)
 {
-	DBGV("adjFreq %d\n", adj);
+	DBGV("adjFreq %d", adj);
 
 	if (adj > ADJ_FREQ_MAX)
 		adj = ADJ_FREQ_MAX;

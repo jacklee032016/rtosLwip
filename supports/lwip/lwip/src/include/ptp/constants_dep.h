@@ -67,8 +67,8 @@
 #define MM_STARTING_BOUNDARY_HOPS  0x7fff
 
 /* Must be a power of 2 */
-#define PBUF_QUEUE_SIZE 4
-#define PBUF_QUEUE_MASK (PBUF_QUEUE_SIZE - 1)
+#define PTP_PBUF_QUEUE_SIZE			4
+#define PBUF_QUEUE_MASK				(PTP_PBUF_QUEUE_SIZE - 1)
 
 /* others */
 

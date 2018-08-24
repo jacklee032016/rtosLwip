@@ -354,6 +354,13 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 	},
 
 	{
+		name	: EXT_CMD_PTP_INFO,
+		helpString: EXT_NEW_LINE EXT_CMD_PTP_INFO" :"EXT_NEW_LINE" Display PTP runtime data"EXT_NEW_LINE,
+		callback: cmnCmdPtpInfo,
+	},
+
+
+	{
 		name	: EXT_CMD_MAC_INFO,
 		helpString: EXT_NEW_LINE EXT_CMD_MAC_INFO" xx:xx:xx:xx:xx:xx :"EXT_NEW_LINE" Display/Set MAC address"EXT_NEW_LINE,
 		callback: cmnCmdMacInfo,

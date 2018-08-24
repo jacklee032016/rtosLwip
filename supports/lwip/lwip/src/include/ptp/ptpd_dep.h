@@ -1,13 +1,15 @@
 #ifndef PTPD_DEP_H_
 #define PTPD_DEP_H_
 
+#define	PTPD_DBGVV
+
 /** \name Debug messages */
 /**\{*/
 #ifdef PTPD_DBGVV
 #define PTPD_DBGV
 #define PTPD_DBG
 #define PTPD_ERR
-#define DBGVV(...) printf("(V) " __VA_ARGS__)
+#define DBGVV(...)	EXT_DEBUGF(EXT_PTP_DEBUG,  ("(V) " __VA_ARGS__))
 #else
 #define DBGVV(...)
 #endif
@@ -15,14 +17,14 @@
 #ifdef PTPD_DBGV
 #define PTPD_DBG
 #define PTPD_ERR
-#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); EXT_DEBUGF(EXT_PTP_DEBUG,  (__VA_ARGS__)); }
 #else
 #define DBGV(...)
 #endif
 
 #ifdef PTPD_DBG
 #define PTPD_ERR
-#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); EXT_INFOF((__VA_ARGS__)); }
 #else
 #define DBG(...)
 #endif
@@ -31,7 +33,7 @@
 /** \name System messages */
 /**\{*/
 #ifdef PTPD_ERR
-#define ERROR(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(E %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#define ERROR(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(E %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds);EXT_ERRORF( (__VA_ARGS__)); }
 /* #define ERROR(...)  { printf("(E) "); printf(__VA_ARGS__); } */
 #else
 #define ERROR(...)
@@ -117,16 +119,16 @@ int16_t msgPackManagementResponse(const PtpClock*,  octet_t*, MsgHeader*, const 
  * -Init network stuff, send and receive datas */
 /**\{*/
 
-bool  netInit(NetPath*, PtpClock*);
-bool  netShutdown(NetPath*);
-int32_t netSelect(NetPath*, const TimeInternal*);
-ssize_t netRecvEvent(NetPath*, octet_t*, TimeInternal*);
-ssize_t netRecvGeneral(NetPath*, octet_t*, TimeInternal*);
-ssize_t netSendEvent(NetPath*, const octet_t*, int16_t, TimeInternal*);
-ssize_t netSendGeneral(NetPath*, const octet_t*, int16_t);
-ssize_t netSendPeerGeneral(NetPath*, const octet_t*, int16_t);
-ssize_t netSendPeerEvent(NetPath*, const octet_t*, int16_t, TimeInternal*);
-void netEmptyEventQ(NetPath *netPath);
+bool  ptpNetInit(NetPath*, PtpClock*);
+bool  ptpNetShutdown(NetPath*);
+bool ptpNetSelect(NetPath*, const TimeInternal*);
+ssize_t ptpNetRecvEvent(NetPath*, octet_t*, TimeInternal*);
+ssize_t ptpNetRecvGeneral(NetPath*, octet_t*, TimeInternal*);
+ssize_t ptpNetSendEvent(NetPath*, const octet_t*, int16_t, TimeInternal*);
+ssize_t ptpNetSendGeneral(NetPath*, const octet_t*, int16_t);
+ssize_t ptpNetSendPeerGeneral(NetPath*, const octet_t*, int16_t);
+ssize_t ptpNetSendPeerEvent(NetPath*, const octet_t*, int16_t, TimeInternal*);
+void ptpNetEmptyEventQ(NetPath *netPath);
 /** \}*/
 
 /** \name servo.c
@@ -162,7 +164,9 @@ void timerStart(int32_t,  uint32_t);
 bool timerExpired(int32_t);
 /** \}*/
 
-char *ptpStateString(uint8_t state);
+const char *extPtpStateString(uint8_t state);
+
+const char *extPtpMsgTypeString(uint8_t type);
 
 /* Test functions */
 

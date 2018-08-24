@@ -888,8 +888,11 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 		t->callback = timer->callback;
 		t->param = timer->arg;
 		t->lastAlarm = cmn_get_ticks();
-		snprintf(t->name, sizeof(t->name), "%s", "Timer");
-		
+#if EXT_TIMER_DEBUG
+		snprintf(t->name, sizeof(t->name), "%s", timer->name );
+#else
+		snprintf(t->name, sizeof(t->name), "%s", "sysTimer" );
+#endif
 		t->next = _timers.timers;
 		_timers.timers = t;
 		timer->timeId = t;

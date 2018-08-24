@@ -4,12 +4,12 @@
 
 #define PTPD_THREAD_PRIO    (tskIDLE_PRIORITY + 2)
 
-static sys_mbox_t ptp_alert_queue;
+static sys_mbox_t _ptp_alert_queue;
 
 // Statically allocated run-time configuration data.
-static RunTimeOpts	rtOpts;
+static RunTimeOpts	_rtOpts;
 
-static PtpClock		_ptpClock;
+PtpClock		ptpClock;
 ForeignMasterRecord ptpForeignRecords[DEFAULT_MAX_FOREIGN_RECORDS];
 
 __IO uint32_t PTPTimer = 0;
@@ -26,7 +26,7 @@ static int16_t _ptpdStartup(PtpClock * ptpClock)
 	if (ptpClock->rtOpts->servo.ai < 1)
 		ptpClock->rtOpts->servo.ai = 1;
 
-	DBG("event POWER UP\n");
+	DBG("event POWER UP");
 
 	toState(ptpClock, PTP_INITIALIZING);
 
@@ -69,10 +69,12 @@ static void _ptpdTask(void *arg)
 	ptpClock->rtOpts->stats = PTP_TEXT_STATS;
 	ptpClock->rtOpts->delayMechanism = DEFAULT_DELAY_MECHANISM;
 
+	ptpClock->netPath.multicastAddr = IPADDR_ANY;
+
 	// Initialize run time options.
 	if (_ptpdStartup(ptpClock) != 0)
 	{
-		printf("PTPD: startup failed");
+		EXT_ERRORF(("PTPD: startup failed"));
 		return;
 	}
 
@@ -98,11 +100,10 @@ static void _ptpdTask(void *arg)
 			// 'port_state' by calling toState(), but once they are done we loop around
 			// again and perform the actions required for the new 'port_state'.
 			ptpStateMachine(ptpClock);
-		}
-		while (netSelect(&ptpClock->netPath, 0) > 0);
+		}while (ptpNetSelect(&ptpClock->netPath, 0) != 0);
 		
 		// Wait up to 100ms for something to do, then do something anyway.
-		sys_arch_mbox_fetch(&ptp_alert_queue, &msg, 100);
+		sys_arch_mbox_fetch(&_ptp_alert_queue, &msg, 100);
 	}
 }
 
@@ -110,19 +111,20 @@ static void _ptpdTask(void *arg)
 void ptpd_alert(void)
 {
 	// Send a message to the alert queue to wake up the PTP thread.
-	sys_mbox_trypost(&ptp_alert_queue, NULL);
+	sys_mbox_trypost(&_ptp_alert_queue, NULL);
 }
 
 void ptpd_init(void)
 {
+	memset(&ptpClock, 0, sizeof(PtpClock));
 	// Create the alert queue mailbox.
-	if (sys_mbox_new(&ptp_alert_queue, 8) != ERR_OK)
+	if (sys_mbox_new(&_ptp_alert_queue, 8) != ERR_OK)
 	{
-		printf("PTPD: failed to create ptp_alert_queue mbox");
+		EXT_ERRORF(("PTPD: failed to create ptp_alert_queue mbox"));
 	}
-	_ptpClock.rtOpts = &rtOpts;
+	ptpClock.rtOpts = &_rtOpts;
 
 	// Create the PTP daemon thread.
-	sys_thread_new("PTPD", _ptpdTask, &_ptpClock, EXT_NET_IF_TASK_STACK_SIZE,  EXT_NET_IF_TASK_PRIORITY-2 );
+	sys_thread_new("PTPD", _ptpdTask, &ptpClock, EXT_NET_IF_TASK_STACK_SIZE,  EXT_NET_IF_TASK_PRIORITY-2 );
 }
 

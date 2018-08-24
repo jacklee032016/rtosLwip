@@ -197,3 +197,178 @@ void ETH_PTPTime_SetTime(struct ptptime_t * timestamp)
 
 #endif /* LWIP_PTP */
 
+
+
+const char *extPtpMsgTypeString(uint8_t type)
+{
+	switch (type)
+	{
+		case SYNC:
+			return "SYNC";
+			break;
+		case DELAY_REQ:
+			return "DELAY_REQ";
+			break;
+		case PDELAY_REQ:
+			return "PDELAY_REQ";
+			break;
+		case PDELAY_RESP:
+			return "PDELAY_RESP";
+			break;
+		case FOLLOW_UP:
+			return "FOLLOW_UP";
+			break;
+		case DELAY_RESP:
+			return "DELAY_RESQ";
+			break;
+		case PDELAY_RESP_FOLLOW_UP:
+			return "P_FOLLOW_UP";
+			break;
+		case ANNOUNCE:
+			return "ANNOUNCE";
+			break;
+		case SIGNALING:
+			return "SIGNAL";
+			break;
+		case MANAGEMENT:
+			return "MGMT";
+			break;
+		default:
+			return "?";
+			break;
+	}
+	
+	return "UNKNOWN";
+}
+
+
+const char *extPtpStateString(uint8_t state)
+{
+	switch (state)
+	{
+		case PTP_INITIALIZING:
+			return "INIT";
+			break;
+		case PTP_FAULTY:
+			return "FACULTY";
+			break;
+		case PTP_LISTENING:
+			return "LISTENING";
+			break;
+		case PTP_PASSIVE:
+			return "PASSIVE";
+			break;
+		case PTP_UNCALIBRATED:
+			return "UNCALIBRATED";
+			break;
+		case PTP_SLAVE:
+			return "SLAVE";
+			break;
+		case PTP_PRE_MASTER:
+			return "PRE MASTER";
+			break;
+		case PTP_MASTER:
+			return "MASTER";
+			break;
+		case PTP_DISABLED:
+			return "DISABLED";
+			break;
+		default:
+			return "?";
+			break;
+	}
+	
+	return "UNKNOWN";
+}
+
+/* for command line */
+void extPtpCmdStatus(char *buf, unsigned int len)
+{
+	unsigned int index = 0;
+	char sign;
+	unsigned char *uuid;
+	extern PtpClock ptpClock;
+
+	uuid = (unsigned char*) ptpClock.parentDS.parentPortIdentity.clockIdentity;
+
+	/* Master clock UUID */
+	index += snprintf(buf+index, len-index, "Master ID: %02x%02x%02x%02x%02x%02x%02x%02x\n", 
+		uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid[5], uuid[6], uuid[7]);
+
+	/* State of the PTP */
+	index += snprintf(buf+index, len-index, "State: %s\n", extPtpStateString(ptpClock.portDS.portState) );
+
+	/* One way delay */
+	switch (ptpClock.portDS.delayMechanism)
+	{
+		case E2E:
+			index += snprintf(buf+index, len-index, "Mode: E2E\n");
+			index += snprintf(buf+index, len-index, "Path Delay: %d nsec\n", ptpClock.currentDS.meanPathDelay.nanoseconds);
+			break;
+		case P2P:
+			index += snprintf(buf+index, len-index, "Mode: P2P\n");
+			index += snprintf(buf+index, len-index, "Path Delay: %d nsec\n", ptpClock.portDS.peerMeanPathDelay.nanoseconds);
+			break;
+		default:
+			index += snprintf(buf+index, len-index,"Mode: unknown\n");
+			index += snprintf(buf+index, len-index,"Path Delay: unknown\n");
+			/* none */
+			break;
+	}
+
+	/* Offset from master */
+	if (ptpClock.currentDS.offsetFromMaster.seconds)
+	{
+		index += snprintf(buf+index, len-index, "Offset: %d sec\n", ptpClock.currentDS.offsetFromMaster.seconds);
+	}
+	else
+	{
+		index += snprintf(buf+index, len-index, "Offset: %d nsec\n", ptpClock.currentDS.offsetFromMaster.nanoseconds);
+	}
+
+	/* Observed drift from master */
+	sign = ' ';
+	if (ptpClock.observedDrift > 0)
+		sign = '+';
+	if (ptpClock.observedDrift < 0)
+		sign = '-';
+
+	index += snprintf(buf+index, len-index, "Drift: %c%d.%03d ppm\n", sign, abs(ptpClock.observedDrift /1000), abs(ptpClock.observedDrift %1000) );
+
+	return;
+}
+
+
+
+bool extPtpCmdDate(char *buf, unsigned int len)
+{
+	unsigned int index = 0;
+#ifdef ARM
+
+	char buffer[32];
+	time_t seconds1900;
+	struct ptptime_t ptptime;
+
+	// Get the ethernet time values.
+	ETH_PTPTime_GetTime(&ptptime);
+
+	// Get the seconds since 1900.
+	seconds1900 = (time_t) ptptime.tv_sec;
+
+	// Format into a string.
+	strftime(buffer, sizeof(buffer), "%a %b %d %H:%M:%S UTC %Y\n", localtime(&seconds1900));
+
+	// Print the string.
+	telnet_puts(buffer);
+#else
+
+#endif
+
+	return true;
+}
+
+void ptpdShutdown(PtpClock *ptpClock)
+{
+	ptpNetShutdown(&ptpClock->netPath);
+}
+

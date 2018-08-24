@@ -59,6 +59,7 @@ HW_SRC += \
 	hw/bspHwEfcFlash.c \
 	hw/bspHwClock.c \
 	hw/bspHwRs232.c \
+	hw/bspHwTrng.c \
 
 
 BSP_SRC += \

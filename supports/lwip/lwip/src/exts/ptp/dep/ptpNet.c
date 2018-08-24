@@ -95,7 +95,7 @@ static int32_t _findIface(octet_t *uuid, NetPath *netPath)
 }
 
 /* Process an incoming message on the Event port. */
-static void _udpRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, u16_t port)
+static void _udpRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p, const struct ip4_addr *addr, u16_t port)
 {
 	NetPath *netPath = (NetPath *) arg;
 
@@ -103,16 +103,15 @@ static void _udpRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p
 	if (!_netQPut(&netPath->eventQ, p))
 	{
 		pbuf_free(p);
-		ERROR("netRecvEventCallback: queue full\n");
+		EXT_ERRORF(("PTP: Event queue full"));
 		return;
 	}
 
-	/* Alert the PTP thread there is now something to do. */
 	ptpd_alert();
 }
 
 /* Process an incoming message on the General port. */
-static void _udpRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *addr, u16_t port)
+static void _udpRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p, const struct ip4_addr *addr, u16_t port)
 {
 	NetPath *netPath = (NetPath *) arg;
 
@@ -120,14 +119,14 @@ static void _udpRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf 
 	if (!_netQPut(&netPath->generalQ, p))
 	{
 		pbuf_free(p);
-		ERROR("netRecvGeneralCallback: queue full\n");
+		EXT_ERRORF(("PTP: General queue full"));
 		return;
 	}
 
-	/* Alert the PTP thread there is now something to do. */
 	ptpd_alert();
 }
 
+/* ptp thread recv from event/general queue */
 static ssize_t _netRecv(octet_t *buf, TimeInternal *time, BufQueue *msgQueue)
 {
 	int i;
@@ -145,7 +144,7 @@ static ssize_t _netRecv(octet_t *buf, TimeInternal *time, BufQueue *msgQueue)
 	/* Verify that we have enough space to store the contents. */
 	if (p->tot_len > PTP_PACKET_SIZE)
 	{
-		ERROR("netRecv: received truncated message\n");
+		EXT_ERRORF(("PTP: received truncated message"));
 		pbuf_free(p);
 		return 0;
 	}
@@ -153,7 +152,7 @@ static ssize_t _netRecv(octet_t *buf, TimeInternal *time, BufQueue *msgQueue)
 	/* Verify there is contents to copy. */
 	if (p->tot_len == 0)
 	{
-		ERROR("netRecv: received empty packet\n");
+		EXT_ERRORF(("PTP: received empty packet") );
 		pbuf_free(p);
 		return 0;
 	}
@@ -203,7 +202,7 @@ static ssize_t _netSend(const octet_t *buf, int16_t  length, TimeInternal *time,
 	p = pbuf_alloc(PBUF_TRANSPORT, length, PBUF_RAM);
 	if (NULL == p)
 	{
-		ERROR("netSend: Failed to allocate Tx Buffer\n");
+		EXT_ERRORF(("PTP: Failed to allocate Tx Buffer") );
 		goto fail01;
 	}
 
@@ -211,15 +210,15 @@ static ssize_t _netSend(const octet_t *buf, int16_t  length, TimeInternal *time,
 	result = pbuf_take(p, buf, length);
 	if (ERR_OK != result)
 	{
-		ERROR("netSend: Failed to copy data to Pbuf (%d)\n", result);
+		EXT_ERRORF(("PTP: Failed to copy data to Pbuf (%d)", result));
 		goto fail02;
 	}
 
-	/* send the buffer. */
+	/* send the buffer.  call to mac layer, and update timestamp at sending time ??? */
 	result = udp_sendto(pcb, p, (void *)addr, pcb->local_port);
 	if (ERR_OK != result)
 	{
-		ERROR("netSend: Failed to send data (%d)\n", result);
+		EXT_ERRORF(("PTP: Failed to send data (%d)", result));
 		goto fail02;
 	}
 
@@ -236,11 +235,11 @@ static ssize_t _netSend(const octet_t *buf, int16_t  length, TimeInternal *time,
 		*/
 		getTime(time);
 #endif
-		DBGV("netSend: %d sec %d nsec\n", time->seconds, time->nanoseconds);
+		DBGV("netSend: %d sec %d nsec", time->seconds, time->nanoseconds);
 	}
 	else
 	{
-		DBGV("netSend\n");
+		DBGV("netSend");
 	}
 
 
@@ -256,7 +255,7 @@ fail01:
 /* Wait for a packet  to come in on either port.  For now, there is no wait.
  * Simply check to  see if a packet is available on either port and return 1,
  *  otherwise return 0. */
-int32_t netSelect(NetPath *netPath, const TimeInternal *timeout)
+bool ptpNetSelect(NetPath *netPath, const TimeInternal *timeout)
 {
 	/* Check the packet queues.  If there is data, return TRUE. */
 	if (_netQCheck(&netPath->eventQ) || _netQCheck(&netPath->generalQ))
@@ -266,52 +265,58 @@ int32_t netSelect(NetPath *netPath, const TimeInternal *timeout)
 }
 
 /* Delete all waiting packets in event queue. */
-void netEmptyEventQ(NetPath *netPath)
+void ptpNetEmptyEventQ(NetPath *netPath)
 {
 	_netQEmpty(&netPath->eventQ);
 }
 
-ssize_t netRecvEvent(NetPath *netPath, octet_t *buf, TimeInternal *time)
+ssize_t ptpNetRecvEvent(NetPath *netPath, octet_t *buf, TimeInternal *time)
 {
 	return _netRecv(buf, time, &netPath->eventQ);
 }
 
-ssize_t netRecvGeneral(NetPath *netPath, octet_t *buf, TimeInternal *time)
+ssize_t ptpNetRecvGeneral(NetPath *netPath, octet_t *buf, TimeInternal *time)
 {
 	return _netRecv(buf, time, &netPath->generalQ);
 }
 
 /* only Sync and DelayReq are sent as event */
-ssize_t netSendEvent(NetPath *netPath, const octet_t *buf, int16_t  length, TimeInternal *time)
+ssize_t ptpNetSendEvent(NetPath *netPath, const octet_t *buf, int16_t  length, TimeInternal *time)
 {
 	return _netSend(buf, length, time, &netPath->multicastAddr, netPath->eventPcb);
 }
 
-ssize_t netSendGeneral(NetPath *netPath, const octet_t *buf, int16_t  length)
+/* Announce, FollowUp and DelayResp */
+ssize_t ptpNetSendGeneral(NetPath *netPath, const octet_t *buf, int16_t  length)
 {
 	return _netSend(buf, length, NULL, &netPath->multicastAddr, netPath->generalPcb);
 }
 
-ssize_t netSendPeerGeneral(NetPath *netPath, const octet_t *buf, int16_t  length)
+/* PDelayRespFollowUp */
+ssize_t ptpNetSendPeerGeneral(NetPath *netPath, const octet_t *buf, int16_t  length)
 {
 	return _netSend(buf, length, NULL, &netPath->peerMulticastAddr, netPath->generalPcb);
 }
 
-ssize_t netSendPeerEvent(NetPath *netPath, const octet_t *buf, int16_t  length, TimeInternal* time)
+/* PDelayReq and PDelayResp */
+ssize_t ptpNetSendPeerEvent(NetPath *netPath, const octet_t *buf, int16_t  length, TimeInternal* time)
 {
 	return _netSend(buf, length, time, &netPath->peerMulticastAddr, netPath->eventPcb);
 }
 
 /* Shut down  the UDP and network stuff */
-bool netShutdown(NetPath *netPath)
+bool ptpNetShutdown(NetPath *netPath)
 {
 	struct ip4_addr multicastAaddr;
 
-	DBG("netShutdown\n");
-
-	/* leave multicast group */
-	multicastAaddr.addr = netPath->multicastAddr;
-	igmp_leavegroup(IP_ADDR_ANY, &multicastAaddr);
+	DBG("netShutdown");
+	if(netPath->multicastAddr != IPADDR_ANY)
+	{
+		/* leave multicast group */
+		multicastAaddr.addr = netPath->multicastAddr;
+		igmp_leavegroup(IP_ADDR_ANY, &multicastAaddr);
+		EXT_INFOF(("PTP: leave group :%s", inet_ntoa(multicastAaddr)));
+	}
 
 	/* Disconnect and close the Event UDP interface */
 	if (netPath->eventPcb)
@@ -330,21 +335,21 @@ bool netShutdown(NetPath *netPath)
 	}
 
 	/* Clear the network addresses. */
-	netPath->multicastAddr = 0;
-	netPath->unicastAddr = 0;
+	netPath->multicastAddr = IPADDR_ANY;
+	netPath->unicastAddr = IPADDR_ANY;
 
 	/* Return a success code. */
 	return TRUE;
 }
 
 /* Start  all of the UDP stuff */
-bool netInit(NetPath *netPath, PtpClock *ptpClock)
+bool ptpNetInit(NetPath *netPath, PtpClock *ptpClock)
 {
 	struct ip4_addr netAddr;
 	struct ip4_addr interfaceAddr;
 	char addrStr[NET_ADDRESS_LENGTH];
 
-	DBG("netInit\n");
+	DBG("netInit");
 
 	/* Initialize the buffer queues. */
 	_netQInit(&netPath->eventQ);
@@ -354,15 +359,16 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 	interfaceAddr.addr = _findIface(ptpClock->portUuidField, netPath);
 	if (!(interfaceAddr.addr))
 	{
-		ERROR("netInit: Failed to find interface address\n");
+		EXT_ERRORF(("Failed to find interface address"));
 		goto fail01;
 	}
+	EXT_DEBUGF(EXT_PTP_DEBUG, ("Default Interface Address:%s", inet_ntoa(interfaceAddr)));
 
 	/* Open lwIP raw udp interfaces for the event port. */
 	netPath->eventPcb = udp_new();
 	if (NULL == netPath->eventPcb)
 	{
-		ERROR("netInit: Failed to open Event UDP PCB\n");
+		EXT_ERRORF(("Failed to open Event UDP PCB"));
 		goto fail02;
 	}
 
@@ -370,7 +376,7 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 	netPath->generalPcb = udp_new();
 	if (NULL == netPath->generalPcb)
 	{
-		ERROR("netInit: Failed to open General UDP PCB\n");
+		EXT_ERRORF(("Failed to open General UDP PCB"));
 		goto fail03;
 	}
 
@@ -381,25 +387,26 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 	memcpy(addrStr, DEFAULT_PTP_DOMAIN_ADDRESS, NET_ADDRESS_LENGTH);
 	if (!inet_aton(addrStr, &netAddr))
 	{
-		ERROR("netInit: failed to encode multi-cast address: %s\n", addrStr);
+		EXT_ERRORF(("Failed to encode PTP default multicast address: %s", addrStr));
 		goto fail04;
 	}
+	
 	netPath->multicastAddr = netAddr.addr;
 
 	/* Join multicast group (for receiving) on specified interface */
-	igmp_joingroup(&interfaceAddr, (struct ip_addr *)&netAddr);
+	igmp_joingroup(&interfaceAddr, (ip_addr_t *)&netAddr);
 
 	/* Init Peer multicast IP address */
 	memcpy(addrStr, PEER_PTP_DOMAIN_ADDRESS, NET_ADDRESS_LENGTH);
 	if (!inet_aton(addrStr, &netAddr))
 	{
-		ERROR("netInit: failed to encode peer multi-cast address: %s\n", addrStr);
+		EXT_ERRORF(("Failed to encode PTP peer multicast address: %s", addrStr));
 		goto fail04;
 	}
 	netPath->peerMulticastAddr = netAddr.addr;
 
 	/* Join peer multicast group (for receiving) on specified interface */
-	igmp_joingroup(&interfaceAddr, (struct ip_addr *) &netAddr);
+	igmp_joingroup(&interfaceAddr, (ip_addr_t *) &netAddr);
 
 	/* Multicast send only on specified interface. */
 	netPath->eventPcb->multicast_ip.addr = netPath->multicastAddr;

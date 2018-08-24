@@ -277,6 +277,7 @@ typedef    _CODE unsigned char    cBYTE;
 
 #define	EXT_CMD_PARAMS				"params"
 #define	EXT_CMD_NET_INFO				"net"
+#define	EXT_CMD_PTP_INFO				"ptp"
 #define	EXT_CMD_MAC_INFO				"mac"	/* MAC address */
 
 #define	EXT_CMD_LOCAL_INFO			"local"	/* MAC/IP and A/V port of local, both on TX/RX */

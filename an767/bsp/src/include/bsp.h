@@ -20,6 +20,7 @@
 
 #include <spi.h>
 
+#include "trng.h"
 
 #endif
 

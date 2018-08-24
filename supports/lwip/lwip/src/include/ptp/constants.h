@@ -55,26 +55,28 @@
 #define MAX_ADJ_OFFSET_NS       100000000 /* max offset to try to adjust it < 100ms */
 
 /* features, only change to refelect changes in implementation */
+
 #define NUMBER_PORTS			1
 #define VERSION_PTP				2
 #define BOUNDARY_CLOCK		FALSE
-#define SLAVE_ONLY        TRUE
-#define NO_ADJUST         FALSE
+#define SLAVE_ONLY				TRUE
+#define NO_ADJUST				FALSE
 
 /** \name Packet length
  Minimal length values for each message.
  If TLV used length could be higher.*/
 /**\{*/
-#define HEADER_LENGTH                 34
-#define ANNOUNCE_LENGTH               64
-#define SYNC_LENGTH                   44
-#define FOLLOW_UP_LENGTH              44
-#define PDELAY_REQ_LENGTH             54
-#define DELAY_REQ_LENGTH              44
-#define DELAY_RESP_LENGTH             54
-#define PDELAY_RESP_LENGTH            54
-#define PDELAY_RESP_FOLLOW_UP_LENGTH  54
-#define MANAGEMENT_LENGTH             48
+#define HEADER_LENGTH							34
+
+#define ANNOUNCE_LENGTH						64
+#define SYNC_LENGTH								44
+#define FOLLOW_UP_LENGTH						44
+#define PDELAY_REQ_LENGTH						54
+#define DELAY_REQ_LENGTH						44
+#define DELAY_RESP_LENGTH						54
+#define PDELAY_RESP_LENGTH						54
+#define PDELAY_RESP_FOLLOW_UP_LENGTH			54
+#define MANAGEMENT_LENGTH						48
 /** \}*/
 
 /* Enumeration  defined in tables of the spec */

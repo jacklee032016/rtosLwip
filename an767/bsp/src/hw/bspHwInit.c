@@ -15,7 +15,7 @@
 
 static uint32_t _firstTime = 0;
 
-#define	BTN_FACTORY_DURATION		3000
+#define	BTN_FACTORY_DURATION		6000 /* requirement */
 
 /**
  *  Handler for Button 1 rising edge interrupt.
@@ -26,6 +26,7 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
 
 	if ((EXT_PUSH_BUTTON_ID == id) && (EXT_PUSH_BUTTON_PIN_MSK == mask) )
 	{
+		extFpgaBlinkPowerLED(EXT_TRUE);
 //		g_button_event = 1;
 		if(_firstTime == 0)
 		{
@@ -254,6 +255,12 @@ void bspHwInit(boot_mode bMode)
 	}
 
 	extCfgInitAfterReadFromFlash(runCfg);
+
+	if( !runCfg->isMacConfiged )
+	{
+		EXT_INFOF(("Start TRNG"EXT_NEW_LINE));
+		bspHwTrngConfig();
+	}
 
 	if(runCfg->isMCast)
 	{

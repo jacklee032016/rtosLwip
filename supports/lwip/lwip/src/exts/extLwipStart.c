@@ -142,7 +142,7 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 
 #if LWIP_EXT_MQTT_CLIENT && defined(X86)
 	EXT_INFOF(("MQTT Client start..."));
-	mqttClientConnect(PP_HTONL(LWIP_MAKEU32(192,168,168,102)));
+//	mqttClientConnect(PP_HTONL(LWIP_MAKEU32(192,168,168,102)));
 #endif
 
 	if(!EXT_IS_TX(runCfg))

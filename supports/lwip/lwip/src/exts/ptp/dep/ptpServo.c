@@ -44,7 +44,7 @@ void initClock(PtpClock *ptpClock)
 	if (!ptpClock->servo.noAdjust)
 		adjFreq(0);
 
-	netEmptyEventQ(&ptpClock->netPath);
+	ptpNetEmptyEventQ(&ptpClock->netPath);
 }
 
 static int32_t order(int32_t n)
@@ -105,10 +105,10 @@ static void filter(int32_t * nsec_current, Filter * filt)
 	}
 
 	/* Avoid overflowing of filter. 30 is because using signed 32bit integers */
-	s2 = 30 - order(max(filt->y_prev, *nsec_current));
+	s2 = 30 - order(ptp_max(filt->y_prev, *nsec_current));
 
 	/* Use the lower filter order, higher will overflow */
-	s = min(s, s2);
+	s = ptp_min(s, s2);
 
 	/* If the order of the filter changed, change also y_sum value */
 	if (filt->s_prev > s)

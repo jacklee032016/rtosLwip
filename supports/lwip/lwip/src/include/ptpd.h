@@ -49,13 +49,15 @@
 #include "lwip/timeouts.h"
 #endif
 
+#include "lwipExt.h"
+
+#define	EXT_PTP_DEBUG		EXT_DBG_ON
+
 #include "ptp/constants.h"
 #include "ptp/constants_dep.h"
 #include "ptp/datatypes_dep.h"
 #include "ptp/datatypes.h"
 #include "ptp/ptpd_dep.h"
-
-#include "lwipExt.h"
 
 
 #if   defined ( __CC_ARM )
@@ -115,7 +117,7 @@ int32_t floorLog2(uint32_t);
 /**
  * \brief return maximum of two numbers
  */
-static __INLINE int32_t max(int32_t a, int32_t b)
+static __INLINE int32_t ptp_max(int32_t a, int32_t b)
 {
 	return a > b ? a : b;
 }
@@ -123,7 +125,7 @@ static __INLINE int32_t max(int32_t a, int32_t b)
 /**
  * \brief return minimum of two numbers
  */
-static __INLINE int32_t min(int32_t a, int32_t b)
+static __INLINE int32_t ptp_min(int32_t a, int32_t b)
 {
 	return a > b ? b : a;
 }

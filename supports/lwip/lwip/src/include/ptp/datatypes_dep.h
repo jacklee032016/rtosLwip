@@ -48,24 +48,25 @@ typedef struct
 // Network  buffer queue
 typedef struct
 {
-	void      *pbuf[PBUF_QUEUE_SIZE];
-	int16_t   head;
-	int16_t   tail;
-	sys_mutex_t mutex;
+	void			*pbuf[PTP_PBUF_QUEUE_SIZE];
+	int16_t		head;
+	int16_t		tail;
+	
+	sys_mutex_t	mutex;
 } BufQueue;
 
 // Struct used  to store network datas
 typedef struct
 {
-	int32_t   multicastAddr;
-	int32_t   peerMulticastAddr;
-	int32_t   unicastAddr;
+	int32_t			multicastAddr; 		/* for default multicast */
+	int32_t			peerMulticastAddr;	/* for peer multicast */
+	int32_t			unicastAddr;
 
 	struct udp_pcb    *eventPcb;
 	struct udp_pcb    *generalPcb;
 
-	BufQueue    eventQ;
-	BufQueue    generalQ;
+	BufQueue			eventQ;
+	BufQueue			generalQ;
 } NetPath;
 
 // Define compiler specific symbols

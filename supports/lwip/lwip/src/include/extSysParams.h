@@ -112,7 +112,7 @@
 	#if EXTLAB_BOARD
 	#define ETHERNET_CONF_IPADDR2_TX			168
 	#define ETHERNET_CONF_IPADDR2_RX			168
-	#define ETHERNET_CONF_IPADDR3_TX			120
+	#define ETHERNET_CONF_IPADDR3_TX			64
 	#else
 	#define ETHERNET_CONF_IPADDR2_TX			169
 	#define ETHERNET_CONF_IPADDR2_RX			169
@@ -126,7 +126,7 @@
 #endif
 
 #if ARCH_ARM
-#define ETHERNET_CONF_IPADDR3_RX				130
+#define ETHERNET_CONF_IPADDR3_RX				65
 #else
 #define ETHERNET_CONF_IPADDR3_RX				3
 #endif
@@ -742,6 +742,7 @@ struct	_EXT_RUNTIME_CFG
 	EXT_VIDEO_CONFIG	local;
 	unsigned int			ipMask;
 	unsigned int			ipGateway;
+	unsigned char			isMacConfiged;
 	
 	EXT_VIDEO_CONFIG	dest;	/* only for TX */
 #endif
@@ -928,31 +929,6 @@ char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 #else
 #define	FOR_U32	"u"
 #endif
-
-
-#define	EXT_TIMER_DEBUG	1
-
-typedef enum
-{
-	os_timer_type_once = 0,
-	os_timer_type_reload	
-}os_timer_type;
-
-typedef	void (*sys_time_callback)(void *arg);
-
-
-typedef struct
-{
-#if EXT_TIMER_DEBUG
-	char						name[32];
-#endif
-	void						*timeId;
-	sys_time_callback			callback;
-	os_timer_type				type;
-
-	void						*arg;
-	
-} sys_timer_t;
 
 
 #endif

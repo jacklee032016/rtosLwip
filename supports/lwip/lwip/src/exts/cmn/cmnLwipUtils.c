@@ -226,6 +226,16 @@ char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 	return EXT_FALSE;
 }
 
+char	cmnCmdPtpInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
+{
+#if LWIP_EXT_PTP
+	extPtpCmdStatus(outBuffer, bufferLen);
+#else
+	unsigned int index = 0;
+	index += snprintf(outBuffer+index,bufferLen-index, "PTP is not support"EXT_NEW_LINE);
+#endif
+	return EXT_FALSE;
+}
 
 char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
 {

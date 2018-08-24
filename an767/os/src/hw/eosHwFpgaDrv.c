@@ -391,8 +391,19 @@ void	extFpgaEnable(char	isEnable)
 	}
 
 	extFpgaRegisterWrite(EXT_FPGA_REG_ENABLE, &data, 1);
-
 }
+
+void	extFpgaBlinkPowerLED(char	isEnable)
+{
+	unsigned char		data = 0x01;
+	if(isEnable == 0)
+	{
+		data = 0;
+	}
+
+	extFpgaRegisterWrite(EXT_FPGA_REG_POWER_LED, &data, 1);
+}
+
 
 char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
 {
@@ -573,4 +584,17 @@ char *extFgpaReadVersion(void)
 
 	return _fpgaVersion;
 }
+
+char extFpgaReadParams(MuxRunTimeParam *mediaParams)
+{
+
+	return EXIT_SUCCESS;
+}
+
+char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
+{
+
+	return EXIT_SUCCESS;
+}
+
 
