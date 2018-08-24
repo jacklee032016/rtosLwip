@@ -108,10 +108,9 @@ void extFpgaInit(void);
 char  extBspFpgaReload(void);
 
 
-char	extFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size);
 //void	extFpgaEnable(char	isEnable);
 
-void extFgpaRegisterDebug(void);
+void extFgpaRegisterDebug( char *data, unsigned int size);
 
 
 

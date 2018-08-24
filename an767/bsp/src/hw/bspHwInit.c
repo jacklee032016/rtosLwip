@@ -17,6 +17,39 @@ static uint32_t _firstTime = 0;
 
 #define	BTN_FACTORY_DURATION		6000 /* requirement */
 
+static char  _countTrngIrqs = 0;
+
+void TRNG_Handler(void)
+{
+	uint32_t status;
+
+	status = trng_get_interrupt_status(TRNG);
+
+	if ((status & TRNG_ISR_DATRDY) == TRNG_ISR_DATRDY)
+	{
+		status = trng_read_output_data(TRNG);
+		printf("-- Random Value: %x --"EXT_NEW_LINE, status);
+		if(_countTrngIrqs == 0)
+		{
+			memcpy(&extRun.local.mac.address[0], &status, 4);
+		}
+		else
+		{
+			memcpy(&extRun.local.mac.address[4], &status, 2); 
+		}
+
+		/* set local address: bit 0 of first address is 0 */
+		
+		_countTrngIrqs++;
+		if(_countTrngIrqs ==2)
+		{
+			bspHwTrngConfig(EXT_FALSE);
+		}
+	}
+}
+
+
+
 /**
  *  Handler for Button 1 rising edge interrupt.
  *  Set button1 event flag (g_button_event).
@@ -259,7 +292,7 @@ void bspHwInit(boot_mode bMode)
 	if( !runCfg->isMacConfiged )
 	{
 		EXT_INFOF(("Start TRNG"EXT_NEW_LINE));
-		bspHwTrngConfig();
+		bspHwTrngConfig(EXT_TRUE);
 	}
 
 	if(runCfg->isMCast)

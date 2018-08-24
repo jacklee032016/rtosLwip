@@ -148,14 +148,15 @@ static char cmdFpgaRegisterRead(const struct _EXT_CLI_CMD *cmd, char *outBuffer,
 
 	if(argc==1)
 	{
-
+#if 9
 		for(i=EXT_FPGA_REG_ETHERNET_RESET; i< EXT_FPGA_REG_DEST_PORT_ANC_ST+1; i++)
 		{
 			FPGA_I2C_READ(i, &val, 1);
 			index += snprintf(outBuffer+index, bufferLen-index, "0x%2x: 0x%2x"EXT_NEW_LINE, i, val);
 		}
+#endif
 
-		extFgpaRegisterDebug();
+		extFgpaRegisterDebug(outBuffer+index,  bufferLen-index);
 		index += snprintf(outBuffer+index, bufferLen-index, "'%s [address [size]]'"EXT_NEW_LINE, argv[0] );
 	}
 	else if(argc >= 2)

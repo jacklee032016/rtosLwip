@@ -22,5 +22,7 @@
 
 #include "trng.h"
 
+void bspHwTrngConfig(char isEnable);
+
 #endif
 

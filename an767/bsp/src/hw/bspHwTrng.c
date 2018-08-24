@@ -136,33 +136,28 @@ uint32_t trng_read_output_data(Trng *p_trng)
 	return p_trng->TRNG_ODATA;
 }
 
-
-void TRNG_Handler(void)
+void bspHwTrngConfig(char isEnable)
 {
-	uint32_t status;
-
-	status = trng_get_interrupt_status(TRNG);
-
-	if ((status & TRNG_ISR_DATRDY) == TRNG_ISR_DATRDY)
+	if(isEnable)
 	{
-		printf("-- Random Value: %x --\n\r", trng_read_output_data(TRNG));
+		/* Configure PMC */
+		pmc_enable_periph_clk(ID_TRNG);
+
+		/* Enable TRNG */
+		trng_enable(TRNG);
+
+		/* Enable TRNG interrupt */
+		NVIC_DisableIRQ(TRNG_IRQn);
+		NVIC_ClearPendingIRQ(TRNG_IRQn);
+		NVIC_SetPriority(TRNG_IRQn, 0);
+		NVIC_EnableIRQ(TRNG_IRQn);
+		trng_enable_interrupt(TRNG);
 	}
-}
-
-
-void bspHwTrngConfig(void)
-{
-	/* Configure PMC */
-	pmc_enable_periph_clk(ID_TRNG);
-
-	/* Enable TRNG */
-	trng_enable(TRNG);
-
-	/* Enable TRNG interrupt */
-	NVIC_DisableIRQ(TRNG_IRQn);
-	NVIC_ClearPendingIRQ(TRNG_IRQn);
-	NVIC_SetPriority(TRNG_IRQn, 0);
-	NVIC_EnableIRQ(TRNG_IRQn);
-	trng_enable_interrupt(TRNG);
+	else
+	{
+		NVIC_ClearPendingIRQ(TRNG_IRQn);
+		NVIC_DisableIRQ(TRNG_IRQn);
+		trng_disable_interrupt(TRNG);
+	}
 }
 

@@ -215,6 +215,7 @@ typedef unsigned char           Bool; //!< Boolean.
 typedef unsigned char           bool; //!< Boolean.
 #endif
 #endif
+
 typedef int8_t                  S8 ;  //!< 8-bit signed integer.
 typedef uint8_t                 U8 ;  //!< 8-bit unsigned integer.
 typedef int16_t                 S16;  //!< 16-bit signed integer.
