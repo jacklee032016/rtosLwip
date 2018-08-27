@@ -107,10 +107,13 @@ char extBspRtl8305Config(void);
 void extFpgaInit(void);
 char  extBspFpgaReload(void);
 
+char extFpgaReadParams(MuxRunTimeParam *mediaParams);
+char extFpgaWriteParams(MuxRunTimeParam *mediaParams);
+
 
 //void	extFpgaEnable(char	isEnable);
 
-void extFgpaRegisterDebug( char *data, unsigned int size);
+unsigned int  extFgpaRegisterDebug( char *data, unsigned int size);
 
 
 

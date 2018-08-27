@@ -73,6 +73,441 @@ static char  _extBspFpgaWaitDone(unsigned int  seconds)
 	return done;
 }
 
+static void _extFpgaRegisterRead(unsigned char address, unsigned char *data, unsigned char size)
+{
+	unsigned char i;
+	unsigned char *index = data;
+	
+	for(i=0; i< size; i++)
+	{
+		FPGA_I2C_READ(address+i, index+i, 1);
+	}
+}
+
+#define	_extFpgaReadByte(address, value)	\
+	FPGA_I2C_READ((address), (value), 1)
+
+
+#define	_extFpgaReadShortChanging(address, shortVal) \
+{	_extFpgaRegisterRead((address), (shortVal), 2); \
+	 *((unsigned short *)shortVal) = lwip_ntohs(*((unsigned short *)shortVal)); }
+
+
+#define	_extFpgaReadShort(address, shortVal) \
+{	_extFpgaRegisterRead((address), (shortVal), 2); }
+
+
+#define	_extFpgaReadInteger(address, intVal) \
+{	_extFpgaRegisterRead((address), intVal, 4); *((unsigned int *)intVal) = lwip_ntohl(*((unsigned int *)intVal)); }
+
+
+/* IPAddress from Lwip, in network byte order */
+static void	_extFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size)
+{
+	unsigned char i;
+	unsigned char *index = data;
+
+	for(i=0; i < size; i++)
+	{
+		FPGA_I2C_WRITE(baseAddr+i, index+i, 1);
+	}
+
+//		FPGA_I2C_READ(i, &data, 1);
+
+	return ;//EXIT_SUCCESS;
+}
+
+#define	_extFpgaWriteByte(address, value)	\
+	FPGA_I2C_WRITE((address), (value), 1)
+
+
+#define	_extFpgaWriteShortChanging(address, shortVal) \
+{	unsigned short value = lwip_ntohs(*((unsigned short *)(shortVal))); _extFpgaRegisterWrite((address), &value, 2); }
+
+
+#define	_extFpgaWriteShort(address, shortVal) \
+{	_extFpgaRegisterWrite((address), shortVal, 2); }
+
+
+#define	_extFpgaWriteInteger(address, intVal) \
+{	unsigned int value = lwip_ntohl(*((unsigned int *)(intVal))); _extFpgaRegisterWrite((address), &value, 4); }
+
+
+
+static void _changeByteOrderOfMac(EXT_MAC_ADDRESS *mac, unsigned char *address)
+{
+	int i;
+	for(i=0; i<EXT_MAC_ADDRESS_LENGTH; i++ )
+	{
+		address[i] = mac->address[EXT_MAC_ADDRESS_LENGTH-i-1];
+	}
+}
+
+
+unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
+{
+	int index = 0;
+	unsigned char val;
+	unsigned short port = 0;
+	unsigned int	intValue;
+	EXT_MAC_ADDRESS destMac;
+	unsigned char		address[EXT_MAC_ADDRESS_LENGTH];
+	
+	MuxRunTimeParam *mediaParams = &extRun.runtime;
+	extFpgaReadParams(mediaParams);
+
+	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, extFgpaReadVersion() );
+	
+	index += snprintf(data+index, size-index, "%s configuration: ", EXT_IS_TX(&extRun)?"TX":"RX");
+	_extFpgaReadInteger(EXT_FPGA_REG_IP, (unsigned char *)&intValue);
+	index += snprintf(data+index, size-index, EXT_NEW_LINE"Local :"EXT_NEW_LINE"\tIP\t: %s", inet_ntoa(intValue));
+
+	index += snprintf(data+index, size-index, EXT_NEW_LINE"\tMAC\t:" );
+	_extFpgaRegisterRead(EXT_FPGA_REG_MAC,  (unsigned char *)&destMac, EXT_MAC_ADDRESS_LENGTH);
+	_changeByteOrderOfMac(&destMac, address);
+	index += snprintf(data+index, size-index, " %02x:%02x:%02x:%02x:%02x:%02x:", address[0], address[1], address[2], address[3], address[4], address[5]);
+
+	index += snprintf(data+index, size-index, EXT_NEW_LINE"\tPort\t: Video:" );
+	_extFpgaReadShort(EXT_FPGA_REG_PORT_VIDEO,  (unsigned char *)&port);
+	index += snprintf(data+index, size-index, "%d;", port);
+
+	index += snprintf(data+index, size-index," Audio:" );
+	_extFpgaReadShort(EXT_FPGA_REG_PORT_AUDIO,  (unsigned char *)&port);
+	index += snprintf(data+index, size-index, "%d;", port);
+
+	index += snprintf(data+index, size-index, " DT:" );
+	_extFpgaReadShort(EXT_FPGA_REG_PORT_ANC_DT,  (unsigned char *)&port);
+	index += snprintf(data+index, size-index, "%d;", port);
+
+	index += snprintf(data+index, size-index, " ST:" );
+	_extFpgaReadShort(EXT_FPGA_REG_PORT_ANC_ST,  (unsigned char *)&port);
+	index += snprintf(data+index, size-index, "%d;"EXT_NEW_LINE, port);
+
+	if(EXT_IS_TX(&extRun) )
+	{
+		/* TX only */
+		_extFpgaReadInteger(EXT_FPGA_REG_DEST_IP, (unsigned char *)&intValue);
+		index += snprintf(data+index, size-index, EXT_NEW_LINE"Dest :"EXT_NEW_LINE"\tIP\t: %s", inet_ntoa(intValue));
+
+		index += snprintf(data+index, size-index, EXT_NEW_LINE"\tMAC\t:" );
+		_extFpgaRegisterRead(EXT_FPGA_REG_DEST_MAC, (unsigned char *)&destMac, EXT_MAC_ADDRESS_LENGTH);
+		_changeByteOrderOfMac(&destMac, address);
+		index += snprintf(data+index, size-index, " %02x:%02x:%02x:%02x:%02x:%02x:", address[0], address[1], address[2], address[3], address[4], address[5]);
+
+		index += snprintf(data+index, size-index, EXT_NEW_LINE"\tPort\t: Video:" );
+		_extFpgaReadShort(EXT_FPGA_REG_DEST_PORT_VIDEO,  (unsigned char *)&port);
+		index += snprintf(data+index, size-index, "%d;", port);
+
+
+		index += snprintf(data+index, size-index," Audio:" );
+		_extFpgaReadShort(EXT_FPGA_REG_DEST_PORT_AUDIO,  (unsigned char *)&port);
+		index += snprintf(data+index, size-index, "%d;", port);
+
+		index += snprintf(data+index, size-index," DT:" );
+		_extFpgaReadShort(EXT_FPGA_REG_DEST_PORT_ANC_DT,  (unsigned char *)&port);
+		index += snprintf(data+index, size-index, "%d;", port);
+
+		index += snprintf(data+index, size-index," ST:" );
+		_extFpgaReadShort(EXT_FPGA_REG_DEST_PORT_ANC_ST,  (unsigned char *)&port);
+		index += snprintf(data+index, size-index, "%d;"EXT_NEW_LINE, port);
+
+	}
+
+	index += snprintf(data+index, size-index, EXT_NEW_LINE"Video :"EXT_NEW_LINE"\tWxH:%hux%hu; ", mediaParams->vWidth, mediaParams->vHeight);
+	index += snprintf(data+index, size-index, "FPS:%d; ", mediaParams->vFrameRate);
+	index += snprintf(data+index, size-index, "Depth:%d; ", mediaParams->vDepth);
+	index += snprintf(data+index, size-index, "ColorSpace:%s; ", CMN_FIND_V_COLORSPACE(mediaParams->vColorSpace));
+	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, (mediaParams->vIsSegmented)?"Segmented":"Interlaced");
+	
+	return index;
+}
+
+
+char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
+{
+	EXT_MAC_ADDRESS destMac, *mac;
+	char ret;
+	unsigned char		address[EXT_MAC_ADDRESS_LENGTH];
+	EXT_VIDEO_CONFIG *vCfg;
+
+
+	/*configure local address/port, for both RX/TX*/
+	
+//	_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport, 2);
+
+	/*configure dest, only for TX */
+	if(EXT_IS_TX(runCfg) )
+	{
+		/* local */
+		_changeByteOrderOfMac(&runCfg->local.mac, address);
+		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(EXT_FPGA_REG_IP, (unsigned char *)&runCfg->local.ip);
+
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&runCfg->local.vport);
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport);
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_DT, (unsigned char *)&runCfg->local.dport);
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_ST, (unsigned char *)&runCfg->local.sport);
+
+		/* dest */
+		ret = extNetMulticastIP4Mac(&runCfg->dest.ip, &destMac);
+		if(ret == EXIT_SUCCESS)
+		{/* dest MAC is multicast MAC address */
+			mac = &destMac;
+		}
+		else
+		{
+			mac = &runCfg->dest.mac;
+		}
+		_changeByteOrderOfMac(mac, address);
+		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_MAC, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(EXT_FPGA_REG_DEST_IP, (unsigned char *)&runCfg->dest.ip);
+
+		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_VIDEO, (unsigned char *)&runCfg->dest.vport);
+		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_AUDIO, (unsigned char *)&runCfg->dest.aport);
+		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_ANC_DT, (unsigned char *)&runCfg->dest.dport);
+		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_ANC_ST, (unsigned char *)&runCfg->dest.sport);
+		
+	//	extFpgaEnable(1);
+	}
+	else
+	{/* RX */
+//		const ip4_addr_t *mcIpAddr;
+		vCfg = &runCfg->dest;
+
+		_changeByteOrderOfMac(&vCfg->mac, address);
+		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(EXT_FPGA_REG_IP, (unsigned char *)&vCfg->ip);
+
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&vCfg->vport);
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&vCfg->aport);
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_DT, (unsigned char *)&vCfg->dport);
+		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_ST, (unsigned char *)&vCfg->sport);
+
+//		printf("FPGA Configuration ended!"LWIP_NEW_LINE);
+
+//		EXT_DELAY_MS(5000);
+	
+		ip4_addr_t *mcIpAddr = (ip4_addr_t *)&vCfg->ip;
+		if( ip4_addr_ismulticast(mcIpAddr) )
+		{
+//			printf("Send IGMP JOIN"LWIP_NEW_LINE);
+			ret = EXT_NET_IGMP_JOIN(runCfg->dest.ip);
+		}
+
+
+	}
+
+	return EXIT_SUCCESS;
+}
+
+#define	_extFpgaReadVer( mediaParams) \
+{	_extFpgaReadByte(EXT_FPGA_REG_VERSION, &(mediaParams)->version); \
+	_extFpgaReadByte(EXT_FPGA_REG_REVISION, &(mediaParams)->revision); \
+	_extFpgaReadByte(EXT_FPGA_REG_MONTH, &(mediaParams)->month); \
+	_extFpgaReadByte(EXT_FPGA_REG_DAY, &(mediaParams)->day);	\
+	_extFpgaReadByte(EXT_FPGA_REG_YEAR, &(mediaParams)->year);		\
+	_extFpgaReadByte(EXT_FPGA_REG_HOUR, &(mediaParams)->hour);	\
+	_extFpgaReadByte(EXT_FPGA_REG_MINUTE, &(mediaParams)->minute); \
+}
+
+
+char *extFgpaReadVersion(void)
+{
+	int index = 0;
+	MuxRunTimeParam *mediaParams = &extRun.runtime;
+	
+	_extFpgaReadVer(mediaParams);
+
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, " %s, Ver:%02x", 
+		((mediaParams->version&EXT_FPGA_TX_FLAGS)==0)?"RX":"TX", (mediaParams->version&(~EXT_FPGA_TX_FLAGS)) );
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, ".%02x, ", mediaParams->revision);
+
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "(Build %02x ", mediaParams->month);
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x ", mediaParams->day);
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x ", mediaParams->year);
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x:", mediaParams->hour);
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x)", mediaParams->minute);
+
+	return _fpgaVersion;
+}
+
+typedef	struct _fpgaIntTable
+{
+	unsigned char		key;
+	unsigned char		value;
+}FpgaIntTable;
+
+
+static const FpgaIntTable _frameRateTable[]=
+{
+	{
+		2,
+		EXT_V_FRAMERATE_T_23	
+	},
+	{
+		3,
+		EXT_V_FRAMERATE_T_24	
+	},
+	{
+		5,
+		EXT_V_FRAMERATE_T_25	
+	},
+	{
+		6,
+		EXT_V_FRAMERATE_T_29	
+	},
+	{
+		7,
+		EXT_V_FRAMERATE_T_30	
+	},
+	{
+		9,
+		EXT_V_FRAMERATE_T_50	
+	},
+	{
+		0x0a,
+		EXT_V_FRAMERATE_T_59	
+	},
+	{
+		0x0b,
+		EXT_V_FRAMERATE_T_60	
+	}
+};
+
+static const FpgaIntTable _vDepthTable[]=
+{
+	{
+		0,
+		EXT_V_DEPTH_8	
+	},
+	{
+		1,
+		EXT_V_DEPTH_10	
+	},
+	{
+		2,
+		EXT_V_DEPTH_12	
+	},
+	{
+		3,
+		EXT_V_DEPTH_16	
+	}
+};
+
+static unsigned char _translateFrameRate(unsigned char rate, unsigned char isFromFpga)
+{
+	unsigned int i;
+	for(i=0; i< EXT_ARRAYSIZE(_frameRateTable); i++)
+	{
+		if(isFromFpga )
+		{
+			if(_frameRateTable[i].key == rate )
+				return _frameRateTable[i].value;
+		}
+		else
+		{
+			if(_frameRateTable[i].value == rate )
+				return _frameRateTable[i].key;
+		}
+	}
+
+	EXT_ERRORF(("FrameRate %d is invalidate value for %s", rate, (isFromFpga)?"MCU":"FPGA") );
+	
+	if(isFromFpga)
+		return EXT_V_DEPTH_8;
+	return 0; /* depth 0 for FPGA */
+}
+
+static unsigned char _translateDepth(unsigned char depth, unsigned char isFromFpga)
+{
+	unsigned int i;
+	for(i=0; i< EXT_ARRAYSIZE(_vDepthTable); i++)
+	{
+		if(isFromFpga )
+		{
+			if(_vDepthTable[i].key == depth )
+				return _vDepthTable[i].value;
+		}
+		else
+		{
+			if(_vDepthTable[i].value == depth )
+				return _vDepthTable[i].key;
+		}
+	}
+
+	EXT_ERRORF(("vDepth %d is invalidate value for %s", depth, (isFromFpga)?"MCU":"FPGA") );
+	
+	if(isFromFpga)
+		return EXT_V_FRAMERATE_T_23;
+	return 2; /* 23.9 for FPGA */
+}
+
+
+char extFpgaReadParams(MuxRunTimeParam *mediaParams)
+{
+	_extFpgaReadShortChanging(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
+	
+	_extFpgaReadShortChanging(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
+	
+	_extFpgaReadByte(EXT_FPGA_REG_FRAMERATE, &mediaParams->vFrameRate);
+	mediaParams->vFrameRate = _translateFrameRate(mediaParams->vFrameRate, EXT_TRUE);
+
+	_extFpgaReadByte(EXT_FPGA_REG_SAMPLING, &mediaParams->vColorSpace);
+
+	_extFpgaReadByte(EXT_FPGA_REG_DEPTH, &mediaParams->vDepth);
+	mediaParams->vDepth = _translateDepth(mediaParams->vDepth, EXT_TRUE);
+
+	_extFpgaReadByte(EXT_FPGA_REG_INTLC_SEGM, &mediaParams->vIsSegmented);
+
+	return EXIT_SUCCESS;
+}
+
+char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
+{
+	unsigned char value;
+	_extFpgaWriteShortChanging(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
+	
+	_extFpgaWriteShortChanging(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
+	
+	value = _translateFrameRate(mediaParams->vFrameRate, EXT_FALSE);
+	_extFpgaWriteByte(EXT_FPGA_REG_FRAMERATE, &value);
+
+	_extFpgaWriteByte(EXT_FPGA_REG_SAMPLING, &mediaParams->vColorSpace);
+
+	value = _translateDepth(mediaParams->vDepth, EXT_FALSE);
+	_extFpgaReadByte(EXT_FPGA_REG_DEPTH, &value);
+
+	_extFpgaWriteByte(EXT_FPGA_REG_INTLC_SEGM, &mediaParams->vIsSegmented);
+
+	return EXIT_SUCCESS;
+}
+
+void	extFpgaEnable(char	isEnable)
+{
+	unsigned char		data = 0x01;
+	if(isEnable == 0)
+	{
+		data = 0;
+	}
+
+	_extFpgaRegisterWrite(EXT_FPGA_REG_ENABLE, &data, 1);
+}
+
+void	extFpgaBlinkPowerLED(char	isEnable)
+{
+	unsigned char		data = 0x01;
+	if(isEnable == 0)
+	{
+		data = 0;
+	}
+
+	_extFpgaWriteByte(EXT_FPGA_REG_POWER_LED, &data);
+}
+
+
 
 /* Reload FPGA from SPI memory */
 char  extBspFpgaReload(void)
@@ -137,7 +572,7 @@ char  extBspFpgaReload(void)
 		printf("FPGA Ethernet Reset register %d : %2x"EXT_NEW_LINE, EXT_FPGA_REG_ETHERNET_RESET, data);
 		data = 0x01;
 	
-		FPGA_I2C_WRITE(EXT_FPGA_REG_ETHERNET_RESET, &data, 1);
+		_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &data);
 
 #if 0
 	/* test I2C when LMH1983 is not working. J.L. April 10, 2018 */
@@ -153,7 +588,7 @@ char  extBspFpgaReload(void)
 	return isOK;
 }
 
-
+#if 0
 void extFpgaInit(void)
 {
 	EXT_FPGA_VER ver;
@@ -166,14 +601,14 @@ void extFpgaInit(void)
 	for(i=0; i< 8; i++)
 	{
 		val =(unsigned char)i;
-		FPGA_I2C_WRITE(i, &val, 1);
-		FPGA_I2C_READ(i, &data, 1);
+		_extFpgaWriteByte(i, &val);
+		_extFpgaReadByte(i, &data);
 		printf("FPGA register %d : %s (%d)"EXT_NEW_LINE, i, (val==data)?"OK":"Failed", data);
 	}
 
 	for(i=8; i< 16; i++)
 	{
-		FPGA_I2C_READ(i, &data, 1);
+		_extFpgaReadByte(i, &data, 1);
 		printf("FPGA register %d : 0x%2x"EXT_NEW_LINE, i, data);
 	}
 	
@@ -194,443 +629,6 @@ void extFpgaInit(void)
 	printf("FPGA %s, version:%d, revision:%d, device:%d"EXT_NEW_LINE, (ver.rx_tx== EXT_FALSE)?"RX":"TX", ver.version, ver.revision, ver.fpgaDevice);
 
 }
-
-void _extFpgaRegisterRead(unsigned char address, unsigned char *data, unsigned char size)
-{
-	unsigned char i;
-	unsigned char *index = data;
-	
-	for(i=0; i< size; i++)
-	{
-		FPGA_I2C_READ(address+i, index+i, 1);
-	}
-}
-
-#define	_extFpgaReadShort(address, shortVal) \
-{	_extFpgaRegisterRead((address), (shortVal), 2); *(shortVal) = lwip_ntohs(*(shortVal)); }
-
-
-#define	_extFpgaReadInteger(address, intVal) \
-{	_extFpgaRegisterRead((address), intVal, 4); *(intVal) = lwip_ntohl(*(intVal)); }
-
-
-/* IPAddress from Lwip, in network byte order */
-static void	_extFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size)
-{
-	unsigned char i;
-	unsigned char *index = data;
-
-	for(i=0; i < size; i++)
-	{
-		FPGA_I2C_WRITE(baseAddr+i, index+i, 1);
-	}
-
-//		FPGA_I2C_READ(i, &data, 1);
-
-	return EXIT_SUCCESS;
-}
-
-#define	_extFpgaWriteShort(address, shortVal) \
-{	unsigned short value = lwip_ntohs((shortVal)); _extFpgaRegisterWrite((address), value, 2); }
-
-
-#define	_extFpgaWriteInteger(address, intVal) \
-{	unsigned int value = lwip_ntohl((intVal)); _extFpgaRegisterWrite((address), value, 4); }
-
-
-
-
-void extFgpaRegisterDebug( char *data, unsigned int size)
-{
-	int i;
-	int index = 0;
-	unsigned char val;
-	unsigned short port = 0;
-	unsigned int	intValue;
-
-	index += snprintf(data+index, size-index, "%s configuration: ", EXT_IS_TX(&extRun)?"TX":"RX");
-	_extFpgaReadInteger(EXT_FPGA_REG_IP, &intValue);
-	index += snprintf(data+index, size-index, EXT_NEW_LINE"\tLocal :"EXT_NEW_LINE"\t\tIP:\t:%s", inet_ntoa(intValue));
-	printf(EXT_NEW_LINE"\tLocal :"EXT_NEW_LINE"\t\tIP:\t:%s", inet_ntoa(intValue));
-
-	printf(EXT_NEW_LINE"\t\tMAC:\t" );
-	for(i=EXT_FPGA_REG_MAC; i< EXT_FPGA_REG_MAC+ EXT_MAC_ADDRESS_LENGTH; i++)
-	{
-		FPGA_I2C_READ(i, &val, 1);
-		printf(" %u:0x%2x;", i, val);
-	}
-
-	printf(EXT_NEW_LINE"\t\tPort:"EXT_NEW_LINE"\t\t\tVideo:\t" );
-	for(i=EXT_FPGA_REG_PORT_VIDEO; i< EXT_FPGA_REG_PORT_VIDEO+2; i++)
-	{
-		FPGA_I2C_READ(i, &val, 1);
-		printf(" %u:0x%2x;", i, val);
-		port = (port<<8)|val;	/* byte order changed now */
-	}
-#if _PORT_BYTE_ORDER_CHANGE	
-	printf("(%d)"EXT_NEW_LINE port );
-#else
-	printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
 #endif
-
-	printf("\t\t\tAudio:\t" );
-	for(i=EXT_FPGA_REG_PORT_AUDIO; i< EXT_FPGA_REG_PORT_AUDIO+2; i++)
-	{
-		FPGA_I2C_READ(i, &val, 1);
-		printf(" %u:0x%2x;", i, val);
-		port = (port<<8)|val;	/* byte order changed now */
-	}
-#if _PORT_BYTE_ORDER_CHANGE	
-	printf("(%d)"EXT_NEW_LINE port );
-#else
-	printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
-#endif
-
-	printf("\t\t\tDT:\t" );
-	for(i=EXT_FPGA_REG_PORT_ANC_DT; i< EXT_FPGA_REG_PORT_ANC_DT+2; i++)
-	{
-		FPGA_I2C_READ(i, &val, 1);
-		printf(" %u:0x%2x;", i, val);
-		port = (port<<8)|val;	/* byte order changed now */
-	}
-#if _PORT_BYTE_ORDER_CHANGE	
-	printf("(%d)"EXT_NEW_LINE port );
-#else
-	printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
-#endif
-
-	printf("\t\t\tST:\t" );
-	for(i=EXT_FPGA_REG_PORT_ANC_ST; i< EXT_FPGA_REG_PORT_ANC_ST+2; i++)
-	{
-		FPGA_I2C_READ(i, &val, 1);
-		printf(" %u:0x%2x;", i, val);
-		port = (port<<8)|val;/* byte order changed now */
-	}
-#if _PORT_BYTE_ORDER_CHANGE	
-	printf("(%d)"EXT_NEW_LINE port );
-#else
-	printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
-#endif
-
-
-	if(EXT_IS_TX(&extRun) )
-	{
-		/* TX only */
-#if _PORT_BYTE_ORDER_CHANGE		
-		printf("\tDest"EXT_NEW_LINE"\t\tIP:\t" );
-#else
-		printf("\tDest"EXT_NEW_LINE"\t\tIP:\t" );
-#endif
-		for(i=EXT_FPGA_REG_DEST_IP; i< EXT_FPGA_REG_DEST_IP+4; i++)
-		{
-			FPGA_I2C_READ(i, &val, 1);
-			printf(" %u:%d(0x%2x);", i, val, val);
-		}
-
-		printf(EXT_NEW_LINE"\t\tMAC:\t" );
-		for(i=EXT_FPGA_REG_DEST_MAC; i< EXT_FPGA_REG_DEST_MAC+ EXT_MAC_ADDRESS_LENGTH; i++)
-		{
-			FPGA_I2C_READ(i, &val, 1);
-			printf(" %u:0x%2x;", i, val);
-		}
-
-		printf(EXT_NEW_LINE"\t\tPort:"EXT_NEW_LINE"\t\t\tVideo:\t" );
-		port = 0;
-		for(i=EXT_FPGA_REG_DEST_PORT_VIDEO; i< EXT_FPGA_REG_DEST_PORT_VIDEO+2; i++)
-		{
-			FPGA_I2C_READ(i, &val, 1);
-			printf(" %u:0x%2x;", i, val);
-			port = (port<<8)|val;
-		}
-#if _PORT_BYTE_ORDER_CHANGE	
-		printf("(%d)"EXT_NEW_LINE, port );
-#else
-		printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
-#endif
-
-		printf("\t\t\tAudio:\t" );
-		port = 0;
-		for(i=EXT_FPGA_REG_DEST_PORT_AUDIO; i< EXT_FPGA_REG_DEST_PORT_AUDIO+2; i++)
-		{
-			FPGA_I2C_READ(i, &val, 1);
-			printf(" %u:0x%2x;", i, val);
-			port = (port<<8)|val;
-		}
-#if _PORT_BYTE_ORDER_CHANGE	
-		printf("(%d)"EXT_NEW_LINE, port );
-#else
-		printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
-#endif
-
-		printf("\t\t\tDT:\t" );
-		port = 0;
-		for(i=EXT_FPGA_REG_DEST_PORT_ANC_DT; i< EXT_FPGA_REG_DEST_PORT_ANC_DT+2; i++)
-		{
-			FPGA_I2C_READ(i, &val, 1);
-			printf(" %u:0x%2x;", i, val);
-			port = (port<<8)|val;
-		}
-#if _PORT_BYTE_ORDER_CHANGE	
-		printf("(%d)"EXT_NEW_LINE, port );
-#else
-		printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
-#endif
-
-		printf("\t\t\tST:\t" );
-		port = 0;
-		for(i=EXT_FPGA_REG_DEST_PORT_ANC_ST; i< EXT_FPGA_REG_DEST_PORT_ANC_ST+2; i++)
-		{
-			FPGA_I2C_READ(i, &val, 1);
-			printf(" %u:0x%2x;", i, val);
-			port = (port<<8)|val;
-		}
-#if _PORT_BYTE_ORDER_CHANGE	
-		printf("(%d)"EXT_NEW_LINE, port );
-#else
-		printf("(%d)"EXT_NEW_LINE, lwip_htons(port));
-#endif
-
-	}
-	
-#if _PORT_BYTE_ORDER_CHANGE	
-	printf("FPGA !!" EXT_NEW_LINE);
-#else
-	printf("FPGA !!" EXT_NEW_LINE);
-#endif
-}
-
-
-static void _changeByteOrderOfMac(EXT_MAC_ADDRESS *mac, unsigned char *address)
-{
-	int i;
-	for(i=0; i<EXT_MAC_ADDRESS_LENGTH; i++ )
-	{
-		address[i] = mac->address[EXT_MAC_ADDRESS_LENGTH-i-1];
-	}
-}
-
-char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
-{
-	EXT_MAC_ADDRESS destMac, *mac;
-	char ret;
-	unsigned int ip;
-	unsigned char		address[EXT_MAC_ADDRESS_LENGTH];
-	unsigned short port = 0;
-	EXT_VIDEO_CONFIG *vCfg;
-
-
-	/*configure local address/port, for both RX/TX*/
-	
-//	_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport, 2);
-
-	/*configure dest, only for TX */
-	if(EXT_IS_TX(runCfg) )
-	{
-		/* local */
-		_changeByteOrderOfMac(&runCfg->local.mac, address);
-		ip = lwip_htonl(runCfg->local.ip);
-
-		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
-		_extFpgaRegisterWrite(EXT_FPGA_REG_IP, (unsigned char *)&ip, 4);
-
-		port = runCfg->local.vport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( runCfg->local.vport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&port, 2);
-
-		port = runCfg->local.aport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( runCfg->local.aport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&port, 2);
-
-		port = runCfg->local.dport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( runCfg->local.dport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_ANC_DT, (unsigned char *)&port, 2);
-
-		port = runCfg->local.sport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( runCfg->local.sport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_ANC_ST, (unsigned char *)&port, 2);
-
-		/* dest */
-		ip = lwip_htonl(runCfg->dest.ip);
-		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_IP, (unsigned char *)&ip, 4);
-
-		ret = extNetMulticastIP4Mac(&runCfg->dest.ip, &destMac);
-		if(ret == EXIT_SUCCESS)
-		{/* dest MAC is multicast MAC address */
-			mac = &destMac;
-		}
-		else
-		{
-			mac = &runCfg->dest.mac;
-		}
-		_changeByteOrderOfMac(mac, address);
-
-		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_MAC, address, EXT_MAC_ADDRESS_LENGTH);
-
-		port = runCfg->dest.vport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons(runCfg->dest.vport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_PORT_VIDEO, (unsigned char *)&port, 2);
-
-		port = runCfg->dest.aport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons(runCfg->dest.aport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_PORT_AUDIO, (unsigned char *)&port, 2);
-
-		port = runCfg->dest.dport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons(runCfg->dest.dport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_PORT_ANC_DT, (unsigned char *)&port, 2);
-
-		port = runCfg->dest.sport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons(runCfg->dest.sport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_PORT_ANC_ST, (unsigned char *)&port, 2);
-
-//		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_PORT_AUDIO, (unsigned char *)&runCfg->audioPortDest, 2);
-		
-	//	extFpgaEnable(1);
-	}
-	else
-	{/* RX */
-//		const ip4_addr_t *mcIpAddr;
-
-		vCfg = &runCfg->dest;
-
-		_changeByteOrderOfMac(&vCfg->mac, address);
-		ip = lwip_htonl(vCfg->ip);
-
-		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
-
-		_extFpgaRegisterWrite(EXT_FPGA_REG_IP, (unsigned char *)&ip, 4);
-
-		port = vCfg->vport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( vCfg->vport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&port, 2);
-
-		port = vCfg->aport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( vCfg->aport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&port, 2);
-
-		port = vCfg->dport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( vCfg->dport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_ANC_DT, (unsigned char *)&port, 2);
-
-		port = vCfg->sport;
-#if _PORT_BYTE_ORDER_CHANGE	
-		port = lwip_htons( vCfg->sport);
-#endif
-		_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_ANC_ST, (unsigned char *)&port, 2);
-
-//		printf("FPGA Configuration ended!"LWIP_NEW_LINE);
-
-//		EXT_DELAY_MS(5000);
-	
-		ip4_addr_t *mcIpAddr = (ip4_addr_t *)&vCfg->ip;
-		if( ip4_addr_ismulticast(mcIpAddr) )
-		{
-//			printf("Send IGMP JOIN"LWIP_NEW_LINE);
-			ret = EXT_NET_IGMP_JOIN(runCfg->dest.ip);
-		}
-
-
-	}
-
-//	extFgpaRegisterDebug();
-
-	return EXIT_SUCCESS;
-}
-
-
-char *extFgpaReadVersion(void)
-{
-	int index = 0;
-	unsigned char val;
-
-	FPGA_I2C_READ(EXT_FPGA_REG_VERSION, &val, 1);
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, " %s, Ver:%02x", ((val&0x80)==0)?"RX":"TX", val);
-
-	FPGA_I2C_READ(EXT_FPGA_REG_REVISION, &val, 1);
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, ".%02x, ", val);
-	
-
-	FPGA_I2C_READ(EXT_FPGA_REG_MONTH, &val, 1);
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "(Build %02x ", val);
-
-	FPGA_I2C_READ(EXT_FPGA_REG_DAY, &val, 1);
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x ", val);
-	
-	FPGA_I2C_READ(EXT_FPGA_REG_YEAR, &val, 1);
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x ", val);
-
-	FPGA_I2C_READ(EXT_FPGA_REG_HOUR, &val, 1);
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x:", val);
-
-	FPGA_I2C_READ(EXT_FPGA_REG_MINUTE, &val, 1);
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x)", val);
-
-	return _fpgaVersion;
-}
-
-char extFpgaReadParams(MuxRunTimeParam *mediaParams)
-{
-	unsigned char b0, b1;
-
-	FPGA_I2C_READ(EXT_FPGA_REG_WIDTH, &b0, 1);
-	FPGA_I2C_READ(EXT_FPGA_REG_WIDTH+1, &b1, 1);
-	mediaParams->vWidth = (b0<<8)|b1;
-	
-	FPGA_I2C_READ(EXT_FPGA_REG_HEIGHT, &b0, 1);
-	FPGA_I2C_READ(EXT_FPGA_REG_HEIGHT+1, &b1, 1);
-	mediaParams->vHeight = (b0<<8)|b1;
-
-	return EXIT_SUCCESS;
-}
-
-char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
-{
-
-	return EXIT_SUCCESS;
-}
-
-void	extFpgaEnable(char	isEnable)
-{
-	unsigned char		data = 0x01;
-	if(isEnable == 0)
-	{
-		data = 0;
-	}
-
-	_extFpgaRegisterWrite(EXT_FPGA_REG_ENABLE, &data, 1);
-}
-
-void	extFpgaBlinkPowerLED(char	isEnable)
-{
-	unsigned char		data = 0x01;
-	if(isEnable == 0)
-	{
-		data = 0;
-	}
-
-	_extFpgaRegisterWrite(EXT_FPGA_REG_POWER_LED, &data, 1);
-}
-
 
 

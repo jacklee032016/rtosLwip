@@ -355,6 +355,9 @@ typedef	enum
 
 #define	EXT_FPGA_REG_ENABLE					3
 
+#define	EXT_FPGA_FLAGS_MCU_ENABLE			0x43
+#define	EXT_FPGA_FLAGS_MCU_DISABLE			0x05
+
 #define	EXT_FPGA_REG_POWER_LED				5	/* -- 0 - LED is on, 1 - LED is flashing*/
 
 #define	EXT_FPGA_REG_WIDTH					6	/* 2 bytes */
@@ -393,15 +396,18 @@ typedef	enum
 
 
 /* for both TX/RX */
-#define	EXT_FPGA_REG_VERSION						38
-#define	EXT_FPGA_REG_REVISION					39
-#define	EXT_FPGA_REG_MODEL						40
+#define	EXT_FPGA_REG_VERSION						29
 
-#define	EXT_FPGA_REG_YEAR						41
-#define	EXT_FPGA_REG_MONTH						42
-#define	EXT_FPGA_REG_DAY							43
-#define	EXT_FPGA_REG_HOUR						44
-#define	EXT_FPGA_REG_MINUTE						45
+#define	EXT_FPGA_TX_FLAGS							0x80	/* in version info */
+
+#define	EXT_FPGA_REG_REVISION						30
+#define	EXT_FPGA_REG_MODEL						31
+
+#define	EXT_FPGA_REG_YEAR							32
+#define	EXT_FPGA_REG_MONTH						33
+#define	EXT_FPGA_REG_DAY							34
+#define	EXT_FPGA_REG_HOUR						35
+#define	EXT_FPGA_REG_MINUTE						36
 
 
 #define	EXT_FPGA_REG_IP							52

@@ -201,7 +201,7 @@ char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 	else //if( ret == 0 )
 	{
 		sprintf( outBuffer, "'%s' is not validate IGMP command"EXT_NEW_LINE,  argv[1]);
-		return EXT_TRUE;
+		return EXT_FALSE;
 	}
 	
 	/* Convert IP address, which may have come from a DNS lookup, to string. */
@@ -209,7 +209,7 @@ char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 	if( address == IPADDR_NONE )
 	{
 		sprintf( outBuffer, "'%s' is not validate IP address"EXT_NEW_LINE,  argv[2] );
-		return EXT_TRUE;
+		return EXT_FALSE;
 	}
 
 	if(ret ==1 )

@@ -193,6 +193,12 @@ uint32_t sys_get_ms(void)
 	return 0;
 }
 
+
+void	extFpgaBlinkPowerLED(char	isEnable)
+{
+	isEnable = isEnable;
+}
+
 int main( void )
 {
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)

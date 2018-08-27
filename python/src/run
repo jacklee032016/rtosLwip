@@ -208,8 +208,8 @@ The most commonly used commands are:
         webClient = WebClient(ip=args.ip, simGateway=args.gateway, debug=args.debug)
         res = webClient.uploadFirmwareOs(file=args.file, ip=args.ip, simGateway=args.gateway, debug=args.debug)
         if res is not None and res.status_code == 200:
-            #webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
-            pass
+            webClient.reboot(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+            #pass
         else:
             ColorMsg.error_msg("uploading %s failed"%(args.file) )
 

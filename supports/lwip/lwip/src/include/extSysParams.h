@@ -702,8 +702,18 @@ typedef	struct
 	unsigned char			aChannels;
 	unsigned char			aDepth;		/* 16, 24 bits, etc. */
 
+
 	unsigned char			isConnect;
-	
+
+	/* version */	
+	unsigned char			version;
+	unsigned char			revision;
+
+	unsigned char			year;
+	unsigned char			month;
+	unsigned char			day;
+	unsigned char			hour;
+	unsigned char			minute;
 }MuxRunTimeParam;
 
 

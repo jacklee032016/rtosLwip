@@ -237,7 +237,8 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 
 void extLwipNetStatusCallback(struct netif *netif)
 {
-	printf("NETIF: %c%c%d is %s"EXT_NEW_LINE, netif->name[0], netif->name[1], netif->num, netif_is_up(netif) ? "UP" : "DOWN");
+	printf("NETIF: %c%c%d (%02x:%02x:%02x:%02x:%02x:%02x) is %s"EXT_NEW_LINE, netif->name[0], netif->name[1], netif->num, 
+		netif->hwaddr[0], netif->hwaddr[1], netif->hwaddr[2], netif->hwaddr[3], netif->hwaddr[4], netif->hwaddr[5], netif_is_up(netif) ? "UP" : "DOWN");
 	if (netif_is_up(netif))
 	{
 //		printf("Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
@@ -312,8 +313,12 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 #ifdef X86
 	netif->flags = NETIF_FLAG_IGMP;
 #else
-//	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_ETHERNET;
+#if 1
+	/* when random MAC address is used, ARP must be enabled. 08.26.2018 */
+	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_ETHERNET;
+#else
 	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_IGMP;
+#endif
 #endif
 
 #if EXT_LWIP_DEBUG

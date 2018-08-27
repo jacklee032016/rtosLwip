@@ -38,6 +38,9 @@ void TRNG_Handler(void)
 			memcpy(&extRun.local.mac.address[4], &status, 2); 
 		}
 
+		extRun.local.mac.address[0] = extRun.local.mac.address[0]*0xFE;	/* set as unicast address */
+		
+
 		/* set local address: bit 0 of first address is 0 */
 		
 		_countTrngIrqs++;
@@ -289,7 +292,7 @@ void bspHwInit(boot_mode bMode)
 
 	extCfgInitAfterReadFromFlash(runCfg);
 
-	if( !runCfg->isMacConfiged )
+	if( !runCfg->isMacConfiged && bMode == BOOT_MODE_RTOS )
 	{
 		EXT_INFOF(("Start TRNG"EXT_NEW_LINE));
 		bspHwTrngConfig(EXT_TRUE);
@@ -321,8 +324,6 @@ void bspHwInit(boot_mode bMode)
 
 	extHwRs232Init(runCfg);
 //	extBspEfcFlashReadInfo();
-	
-//	extFpgaInit();
 	
 }
 
