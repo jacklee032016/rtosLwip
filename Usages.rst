@@ -63,7 +63,11 @@ Usage
 
 	run httpOs --help
 	run httpOs 192.168.168.130
+	
+	run httpFpga --help
 	run httpFpga 192.168.168.130
+	run httpFpga --file /media/sf_rtos/0826/top_Angelica_N_767_tx.bin 192.168.168.64
+	
 
  * by TFTP
 ::
