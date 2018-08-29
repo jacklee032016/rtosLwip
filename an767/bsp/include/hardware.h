@@ -352,6 +352,8 @@ typedef	enum
 /* Test page start address. */
 #define TEST_PAGE_ADDRESS		(IFLASH_ADDR + IFLASH_SIZE - IFLASH_PAGE_SIZE * 4)
 
+/* registers */
+#define	EXT_FPGA_REG_ETHERNET_RESET			0
 
 #define	EXT_FPGA_REG_ENABLE					3
 
@@ -392,8 +394,9 @@ typedef	enum
 #define EXT_FPGA_REG_INTLC_SEGM				13	/* 2 bits interlac bit 0 , segmented bit 1 */
 
 
-#define	EXT_FPGA_REG_ETHERNET_RESET			0
+#define EXT_FPGA_REG_PARAM_STATUS				14
 
+#define	EXT_FPGA_FLAGS_PARAM_USABLE				0x01
 
 /* for both TX/RX */
 #define	EXT_FPGA_REG_VERSION						29

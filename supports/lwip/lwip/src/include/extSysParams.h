@@ -753,6 +753,8 @@ struct	_EXT_RUNTIME_CFG
 	unsigned int			ipMask;
 	unsigned int			ipGateway;
 	unsigned char			isMacConfiged;
+
+	unsigned char			isMacConfiged2;
 	
 	EXT_VIDEO_CONFIG	dest;	/* only for TX */
 #endif

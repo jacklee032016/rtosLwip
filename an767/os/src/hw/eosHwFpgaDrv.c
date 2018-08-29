@@ -5,6 +5,7 @@
 #include "eosFpga.h"
 
 #include "lwipExt.h"
+#include "jsmn.h"
 
 #define	_PORT_BYTE_ORDER_CHANGE		0
 
@@ -446,11 +447,56 @@ static unsigned char _translateDepth(unsigned char depth, unsigned char isFromFp
 }
 
 
+static MuxRunTimeParam _mediaParams;
+
+static char _extFpgaCompareParams(MuxRunTimeParam *dest, MuxRunTimeParam *newParam )
+{
+	char isDiff = EXT_FALSE;
+
+	if(dest->vWidth != newParam->vWidth || dest->vHeight != newParam->vHeight ||
+		dest->vFrameRate != newParam->vFrameRate || dest->vColorSpace!= newParam->vColorSpace ||
+		dest->vDepth != newParam->vDepth || dest->vIsSegmented != newParam->vIsSegmented )
+	{
+		isDiff = EXT_TRUE;
+	}
+	
+	if(isDiff)
+	{
+		memcpy(dest, newParam, sizeof(MuxRunTimeParam));
+	}
+	
+	return isDiff;
+}
+
+extern	EXT_JSON_PARSER  extParser;
+
+void extFpgaTimerJob(EXT_RUNTIME_CFG *runCfg)
+{
+	unsigned char value;
+
+	_extFpgaReadByte(EXT_FPGA_REG_PARAM_STATUS, &value);
+	if(value != EXT_FPGA_FLAGS_PARAM_USABLE)
+		return;
+
+	EXT_DEBUGF(EXT_DBG_ON, ("New Media Params is available now!"));
+	
+	extFpgaReadParams(&_mediaParams);
+	_extFpgaWriteByte(EXT_FPGA_REG_PARAM_STATUS, &value);
+
+	if(_extFpgaCompareParams(&runCfg->runtime, &_mediaParams))	
+	{
+		EXT_DEBUGF(EXT_DBG_ON, ("New Media Params need to be updated now!"));
+		extIpCmdSendMediaData(&extParser);
+	}
+
+	return;
+}
+
 char extFpgaReadParams(MuxRunTimeParam *mediaParams)
 {
-	_extFpgaReadShortChanging(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
+	_extFpgaReadShort(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
 	
-	_extFpgaReadShortChanging(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
+	_extFpgaReadShort(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
 	
 	_extFpgaReadByte(EXT_FPGA_REG_FRAMERATE, &mediaParams->vFrameRate);
 	mediaParams->vFrameRate = _translateFrameRate(mediaParams->vFrameRate, EXT_TRUE);
@@ -468,9 +514,9 @@ char extFpgaReadParams(MuxRunTimeParam *mediaParams)
 char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
 {
 	unsigned char value;
-	_extFpgaWriteShortChanging(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
+	_extFpgaWriteShort(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
 	
-	_extFpgaWriteShortChanging(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
+	_extFpgaWriteShort(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
 	
 	value = _translateFrameRate(mediaParams->vFrameRate, EXT_FALSE);
 	_extFpgaWriteByte(EXT_FPGA_REG_FRAMERATE, &value);

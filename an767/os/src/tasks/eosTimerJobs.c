@@ -94,6 +94,11 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 			extTxMulticastIP2Mac(runCfg);
 		}
 	}
+
+	if(EXT_IS_TX(runCfg))
+	{
+		extFpgaTimerJob(runCfg);
+	}
 #endif	
 }
 

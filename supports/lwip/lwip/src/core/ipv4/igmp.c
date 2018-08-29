@@ -700,7 +700,7 @@ static void igmp_timeout(struct netif *netif, struct igmp_group *group)
 		igmp_send(netif, group, IGMP_V2_MEMB_REPORT);
 
 //#if IGMP_REPORT_RETRY
-#ifdef	ARM
+#if 1//def	ARM
 		/* following are added by Jack. July, 3,2018*/
 		igmp_start_timer(group, IGMP_JOIN_DELAYING_MEMBER_TMR);
 

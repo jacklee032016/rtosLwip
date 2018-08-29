@@ -114,6 +114,7 @@ void extLwipMdsnDestroy(struct netif *netif)
 char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 {
 	extParser.runCfg = runCfg;
+	extJsonInit(&extParser, NULL, 0);
 
 	EXT_INFOF(("TELNET server start..."));
 	extNetRawTelnetInit(runCfg);

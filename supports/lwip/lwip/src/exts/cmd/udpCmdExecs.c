@@ -245,17 +245,22 @@ char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser)
 	data = parser->outBuffer+IPCMD_HEADER_LENGTH + parser->outIndex;
 	size = parser->outSize - IPCMD_HEADER_LENGTH - parser->outIndex;
 	
+	EXT_DEBUGF(EXT_IPCMD_DEBUG, (" %d (%d)bytes packet", parser->outIndex, index) );
 	index += snprintf(data+index, size-index, ",\""EXT_IPCMD_DATA_ARRAY"\":[{");
 	
+	EXT_DEBUGF(EXT_IPCMD_DEBUG, (" %d (%d)bytes packet", parser->outIndex, index) );
 	index += extIpCmdPrintMediaCfg(parser, data+index, size-index);
 
+	EXT_DEBUGF(EXT_IPCMD_DEBUG, (" %d (%d)bytes packet", parser->outIndex, index) );
 	index += snprintf(data+index, size-index, "}]" );
 
 	parser->outIndex += index;
+	EXT_DEBUGF(EXT_IPCMD_DEBUG, (" %d (%d)bytes packet", parser->outIndex, index) );
 
 	extIpCmdResponseTailCalculate(parser);
 
 	return extIpCmdSendout(parser, &parser->runCfg->dest.ip, EXT_CTRL_PORT);
 	
 }
+
 

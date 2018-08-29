@@ -371,7 +371,7 @@ IoT_Error_t parseStringValue(char *buf, const char *jsonString, jsmntok_t *token
 
 #define	EXT_JSON_MESSAGE_SIZE		64		/* it is also used in parsing request, the most length of request is UUID, 36 */
 #define	EXT_JSON_TOKEN_SIZE			50*2
-#define	EXT_JSON_OUT_BUF_SIZE		512*2
+#define	EXT_JSON_OUT_BUF_SIZE			512*4
 
 
 #define	JSON_TOKEN_COUNT(mParser)	\
