@@ -21,7 +21,7 @@ include $(RULE_DIR)/Rules.mak
 
 
 SUBDIRS += libs/os3
-SUBDIRS += libs/bsp
+SUBDIRS += libs/bsp/src
 SUBDIRS += app/uart
 
 SUBDIRS += $(OS_DIRS)
@@ -46,6 +46,7 @@ clean:
 	rm -rf pkg
 	rm -rf $(OBJ_DIR) 
 	- find . -name $(OBJ_DIR) -prune -exec rm -r -f {} \;
+	- find . -name a.out -prune -exec rm -r -f {} \;
 	rm -rf BIN
 	rm -rf *.log
 

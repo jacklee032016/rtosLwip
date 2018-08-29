@@ -64,14 +64,14 @@ RTOS_SRC += \
 
 
 ASM_SRCS +=  \
-	ucCpu/ARM-Cortex-M4/GNU/cpu_a.s \
 	ucLib/Ports/ARM-Cortex-M4/GNU/lib_mem_a.s \
-	ucos3/Ports/ARM-Cortex-M/Generic/GNU/os_cpu_a.S
+	ucCpu/ARM-Cortex-M4/GNU/cpu_a.s \
+	ucos3/Ports/ARM-Cortex-M/Generic/GNU/os_cpu_a.S \
 
 
 SRC += \
-	$(RTOS_SRC) \
 	$(ASM_SRCS) \
+	$(RTOS_SRC) \
 
 
 TARGET_LIB:=libRtos

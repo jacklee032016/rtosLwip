@@ -71,10 +71,12 @@ $(OBJ_DIR)/%.o:%.c $(OBJ_DIR)/%.d
 	$(CXX) $(CXXFLAGS) $(CC_CFLAGS) -g $(CFLAGS) -c $<
 
 $(OBJ_DIR)/%.o:%.S $(OBJ_DIR)/%.d
-	$(CC) $(C_FLAGS) $(CFLAGS) -c $< -o $(OUTPUT_FLAG) $@ 
+	$(ASM) $(ASM_FLAGS) $< -o $@
+
+#	$(CC) $(C_FLAGS) $(CFLAGS) -c $< -o $(OUTPUT_FLAG) $@ 
 
 $(OBJ_DIR)/%.o:%.s $(OBJ_DIR)/%.d 
-	$(ASM) $(ASM_FLAGS) -o $@ $<
+	$(ASM) $(ASM_FLAGS) $< -o $@ 
 	
 
 	
@@ -108,11 +110,13 @@ ifdef CODE_SUBDIRS
 endif
 ifeq ($(DEPS),yes)
 	@echo "Making $@"
-	@$(SHELL) -ec '$(CC) $(ASM_FLAGS) $(C_FLAGS) $(DFLAGS) $(CFLAGS) $< \
+	@$(SHELL) -ec '$(ASM) $(ASM_FLAGS) --MD $@ $< \
 		$(DMANGLE) | sed -e "s#^$(*F).o[ :]*#$(@D)\/$(*F).o $@ : #" \
 		> $@; [ -s $@ ] || mv -f a.temp'
 endif
 
+#	@$(SHELL) -ec '$(ASM) $(ASM_FLAGS) --MD $@ $< \
+#	@$(SHELL) -ec '$(CC) $(ASM_FLAGS) $(C_FLAGS) $(DFLAGS) $(CFLAGS) $< \
 
 
 $(OBJ_DIR)/%.d: %.s 
@@ -121,11 +125,14 @@ ifdef CODE_SUBDIRS
 endif
 ifeq ($(DEPS),yes)
 	@echo "Making $@ "
-	@$(SHELL) -ec '$(ASM) $(ASM_FLAGS) --MD $@ -nocpp $< \
+	@$(SHELL) -ec '$(ASM) $(ASM_FLAGS) --MD $@ $< \
 		$(DMANGLE) | sed -e "s#^$(*F).o[ :]*#$(@D)\/$(*F).o $@ : #" \
 		> $@; [ -s $@ ] || mv -f a.temp'
 		
 endif
+
+#	@$(SHELL) -ec '$(ASM) $(ASM_FLAGS) --MD $@ $< \
+#	@$(SHELL) -ec '$(CC) $(ASM_FLAGS) $(C_FLAGS) $(DFLAGS) $(CFLAGS) $< \
 
 
 -include $(DEPENDENCIES)	
