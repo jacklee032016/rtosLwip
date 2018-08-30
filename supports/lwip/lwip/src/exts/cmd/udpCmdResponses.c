@@ -52,7 +52,7 @@ char extIpCmdRequestHeaderPrint(EXT_JSON_PARSER  *parser, const char *cmd)
 	MAC_ADDRESS_PRINT(data, size, index, &(parser->runCfg->dest.mac));
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_KEY_COMMAND"\":\"%s\",", cmd);
 
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_LOGIN_ACK"\":%s,", parser->runCfg->user );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_LOGIN_ACK"\":\"%s\",", parser->runCfg->user );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_PWD_MSG"\":\"%s\"", parser->runCfg->password );
 
 	parser->outIndex = index;
@@ -93,7 +93,8 @@ char extIpCmdResponseHeaderPrint(EXT_JSON_PARSER  *parser )
 }
 
 
-char extIpCmdResponseTailCalculate(EXT_JSON_PARSER  *parser)
+/* when TX--> RX directly, it send request; otherwise all reply response */
+char extIpCmdResponseTailCalculate(EXT_JSON_PARSER  *parser, char isRequest)
 {
 	unsigned int crc32 =0;
 	int index = 0;
@@ -103,8 +104,8 @@ char extIpCmdResponseTailCalculate(EXT_JSON_PARSER  *parser)
 
 	index += snprintf(parser->outBuffer+IPCMD_HEADER_LENGTH+parser->outIndex+index, parser->outSize-IPCMD_HEADER_LENGTH-parser->outIndex-index, "}");
 	parser->outIndex += index;
-	
-	ipCmd->tag = CMD_TAG_RESPONSE;
+
+	ipCmd->tag = (isRequest==EXT_FALSE)? CMD_TAG_RESPONSE:CMD_TAG_REQUEST;
 	ipCmd->length =  htons(parser->outIndex + IPCMD_HEADER_LENGTH);
 
 	crc32 =  htonl(cmnMuxCRC32b(ipCmd->data, parser->outIndex) );
@@ -122,7 +123,7 @@ char extIpCmdResponseTailCalculate(EXT_JSON_PARSER  *parser)
 char	extIpCmdResponseReply(EXT_JSON_PARSER  *parser)
 {
 	extIpCmdResponseHeaderPrint( parser);
-	extIpCmdResponseTailCalculate(parser);
+	extIpCmdResponseTailCalculate(parser, EXT_FALSE);
 	
 	return EXIT_SUCCESS;
 }
@@ -175,7 +176,7 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 		printf("output RES %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, parser->outBuffer);
 	}
 	
-	extIpCmdResponseTailCalculate(parser);
+	extIpCmdResponseTailCalculate(parser, EXT_FALSE);
 	
 	return EXIT_SUCCESS;
 }
@@ -199,19 +200,19 @@ char extJsonUserValidate(EXT_JSON_PARSER  *parser)
 	
 	if(extJsonParseString(parser, EXT_IPCMD_LOGIN_ACK, name, EXT_USER_SIZE) == EXIT_FAILURE )
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'"EXT_IPCMD_LOGIN_ACK"' is provided in JSON data");
+//		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'"EXT_IPCMD_LOGIN_ACK"' is not provided or invalidate in JSON data");
 		return EXIT_FAILURE;
 	}
 	if(strncmp(name, parser->runCfg->user, strlen(parser->runCfg->user)) )
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'%s' is not validate user", name);
+//		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'%s' is not validate user", name);
 //		TRACE();
 		return EXIT_FAILURE;
 	}
 
 	if(extJsonParseString(parser, EXT_IPCMD_PWD_MSG, name, EXT_USER_SIZE) == EXIT_FAILURE )
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'"EXT_IPCMD_PWD_MSG"' is provided in JSON data");
+//		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'"EXT_IPCMD_PWD_MSG"' is not provided or invalidate in JSON data");
 		return EXIT_FAILURE;
 	}
 	if(strncmp(name, parser->runCfg->password, strlen(parser->runCfg->password)) )

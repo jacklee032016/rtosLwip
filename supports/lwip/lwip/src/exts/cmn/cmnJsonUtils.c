@@ -8,7 +8,7 @@
 #include "jsmn.h"
 #include <stdlib.h> /* rand() and srand() */
 
-#define		EXT_JSON_DEBUG						EXT_DBG_ON
+#define		EXT_JSON_DEBUG						EXT_DBG_OFF
 
 #if 0
 const char *jsonErrorStatus = 

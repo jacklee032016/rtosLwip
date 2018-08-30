@@ -110,7 +110,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parserr, EXT_RUNTIME_CFG	*runCfg);
 
 
 char extIpCmdResponseHeaderPrint(EXT_JSON_PARSER  *parser);
-char extIpCmdResponseTailCalculate(EXT_JSON_PARSER  *parser);
+char extIpCmdResponseTailCalculate(EXT_JSON_PARSER  *parser, char isRequest);
 
 char	extIpCmdResponseReply(EXT_JSON_PARSER  *parser);
 char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser);
@@ -128,7 +128,7 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size);
 
 char extIpCmdRequestHeaderPrint(EXT_JSON_PARSER  *parser, const char *cmd);
 
-char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser);
+char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser, char isRequest);
 
 char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short port);
 

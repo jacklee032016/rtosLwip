@@ -334,6 +334,7 @@ char	cmnCmdMacInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 	}
 	
 	memcpy(&extRun.local.mac, &macAddress, sizeof(EXT_MAC_ADDRESS));
+	extRun.isMacConfiged = EXT_TRUE;
 	
 	index += snprintf(outBuffer+index, bufferLen-index, "\tNew MAC:%02x:%02x:%02x:%02x:%02x:%02x"EXT_NEW_LINE, 
 		extRun.local.mac.address[0] , extRun.local.mac.address[1] , extRun.local.mac.address[2] , 
@@ -609,8 +610,6 @@ char	cmnCmdDestInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 
 	_extVideoConfigOutput(outBuffer+index, bufferLen-index, &extRun.dest);
 
-//	extFpgaConfig(&extRun);
-
 	return EXT_FALSE;
 }
 
@@ -646,8 +645,6 @@ char	cmnCmdLocalInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 	bspCfgSave(&extRun, EXT_CFG_MAIN);
 
 	_extVideoConfigOutput(outBuffer+index, bufferLen-index, &extRun.local);
-
-//	extFpgaConfig(&extRun);
 
 	return EXT_FALSE;
 }

@@ -146,16 +146,18 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 //	mqttClientConnect(PP_HTONL(LWIP_MAKEU32(192,168,168,102)));
 #endif
 
+#if 0
 	if(!EXT_IS_TX(runCfg))
 	{
 //		EXT_DEBUGF(IGMP_DEBUG,("Send IGMP JOIN"LWIP_NEW_LINE));
 //		extLwipGroupMgr(netif, runCfg->dest.ip, 1);
 		
-		extIpCmdSendMediaData(&extParser);
+		extIpCmdSendMediaData(&extParser, EXT_TRUE);
 	}
 	else
 	{
 	}
+#endif
 
 	EXT_INFOF(("IP Command Daemon start..."));
 	extIpCmdAgentInit(&extParser);

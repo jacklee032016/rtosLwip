@@ -16,7 +16,6 @@ from cmds.node import createNode, Node
 from utils import ColorMsg
 from utils import settings
 
-import requests
 import logging
 import logging.config
 

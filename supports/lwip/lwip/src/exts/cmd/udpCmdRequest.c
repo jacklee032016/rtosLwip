@@ -242,14 +242,14 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	}
 
 	if(extJsonParseIpAddress(parser, EXT_IPCMD_DATA_IP, &tmpCfg->local.ip ) == EXIT_SUCCESS)
-		{
+	{
 		count++;
-		}
+	}
 	
 	if(extJsonParseIpAddress(parser, EXT_IPCMD_DATA_MASK, &tmpCfg->ipMask) == EXIT_SUCCESS)
-		{
+	{
 		count ++;
-		}
+	}
 	if(extJsonParseIpAddress(parser, EXT_IPCMD_DATA_GATEWAY, &tmpCfg->ipGateway) == EXIT_SUCCESS)
 	{
 		count++;
@@ -479,7 +479,6 @@ char extJsonRequestParseCommand(char *jsonRequest, unsigned short size, EXT_JSON
 
 	extJsonParse(parser, (char *)jsonRequest, size);
 
-TRACE();
 	if(parser->status == JSON_STATUS_OK)
 	{
 #if 0	
@@ -505,24 +504,20 @@ TRACE();
 	}
 #endif
 
-TRACE();
 	if(extJsonParseMacAddress(parser, EXT_IPCMD_KEY_TARGET, &parser->target) == EXIT_FAILURE)
 	{
 		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR: can't find or invalidate '%s' object", EXT_IPCMD_KEY_TARGET);
 		goto parseFailed;
 	}
 
-TRACE();
 	if(extJsonFindCommand(parser) == EXIT_FAILURE)
 	{
 		goto parseFailed;
 	}
 
-TRACE();
 	return EXIT_SUCCESS;
 
 parseFailed:
-TRACE();
 	parser->status = JSON_STATUS_PARSE_ERROR;
 	
 	return EXIT_FAILURE;

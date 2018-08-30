@@ -91,7 +91,18 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 		if(ip != runCfg->dest.ip )
 		{
 			EXT_INFOF(("Multicast Address change to '%s'", EXT_LWIP_IPADD_TO_STR(&ip)));
-			extTxMulticastIP2Mac(runCfg);
+			if(!EXT_IS_TX(runCfg))
+			{
+				EXT_NET_IGMP_LEAVE(runCfg->dest.ip);
+			}
+			
+			runCfg->dest.ip = ip;
+			if(!EXT_IS_TX(runCfg))
+			{
+				extTxMulticastIP2Mac(runCfg);
+			}
+			
+			extFpgaConfig(runCfg);
 		}
 	}
 

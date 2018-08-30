@@ -212,7 +212,8 @@ char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short 
 	
 	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("send out %p:%p, size %d to  port %d of '%s': "LWIP_NEW_LINE"'%.*s'"LWIP_NEW_LINE, 
 		newBuf, newBuf->payload, newBuf->len, port,  inet_ntoa(*(ip_addr_t *)addr), parser->outIndex-2*IPCMD_HEADER_LENGTH,  parser->outBuffer+IPCMD_HEADER_LENGTH ) );
-	CONSOLE_DEBUG_MEM((unsigned char *)parser->outBuffer, parser->outIndex, 0, "Send out Raw IP CMD");
+	
+//	CONSOLE_DEBUG_MEM((unsigned char *)parser->outBuffer, parser->outIndex, 0, "Send out Raw IP CMD");
 	udp_sendto(_ipcmdPcb, newBuf, addr, port); //dest port
 
 	pbuf_free(newBuf);
@@ -237,7 +238,8 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 			EXT_ERRORF(("ERROR : add is null"LWIP_NEW_LINE));
 			return;
 		}
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("receive %d bytes from '%s' port %d"LWIP_NEW_LINE, p->tot_len, inet_ntoa(*(ip_addr_t *)addr), port) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("receive %d bytes from '%s' port %d:'%.*s'"LWIP_NEW_LINE, p->tot_len, inet_ntoa(*(ip_addr_t *)addr), port,
+			p->tot_len - IPCMD_HEADER_LENGTH*2, (char *)(p->payload+IPCMD_HEADER_LENGTH)) );
 //		CONSOLE_DEBUG_MEM( p->payload, p->len, 0, "RECV IP Cmd");
 
 		size = (p->tot_len > parser->runCfg->bufLength)? parser->runCfg->bufLength: p->tot_len;

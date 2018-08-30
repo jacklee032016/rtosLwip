@@ -470,6 +470,8 @@ static char _extFpgaCompareParams(MuxRunTimeParam *dest, MuxRunTimeParam *newPar
 
 extern	EXT_JSON_PARSER  extParser;
 
+
+
 void extFpgaTimerJob(EXT_RUNTIME_CFG *runCfg)
 {
 	unsigned char value;
@@ -486,7 +488,9 @@ void extFpgaTimerJob(EXT_RUNTIME_CFG *runCfg)
 	if(_extFpgaCompareParams(&runCfg->runtime, &_mediaParams))	
 	{
 		EXT_DEBUGF(EXT_DBG_ON, ("New Media Params need to be updated now!"));
-		extIpCmdSendMediaData(&extParser);
+#if 0		
+		extIpCmdSendMediaData(&extParser, EXT_TRUE);
+#endif
 	}
 
 	return;
@@ -527,6 +531,9 @@ char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
 	_extFpgaReadByte(EXT_FPGA_REG_DEPTH, &value);
 
 	_extFpgaWriteByte(EXT_FPGA_REG_INTLC_SEGM, &mediaParams->vIsSegmented);
+
+	
+	_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, EXT_FPGA_FLAGS_MCU_ENABLE);
 
 	return EXIT_SUCCESS;
 }

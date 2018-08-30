@@ -144,7 +144,7 @@ static char _securityCheckId(EXT_JSON_PARSER  *parser)
 
 	parser->outIndex += index;
 
-	extIpCmdResponseTailCalculate(parser);
+	extIpCmdResponseTailCalculate(parser, EXT_FALSE);
 
 	return EXIT_SUCCESS;
 }
@@ -155,7 +155,7 @@ char extIpCmdSecurityCheck(EXT_JSON_PARSER  *parser)
 	char ret;
 
 #if 1
-	extIpCmdSendMediaData(parser);
+	extIpCmdSendMediaData(parser, EXT_FALSE);
 #endif
 
 	ret = extIpCmdIsLocal(parser);
@@ -222,7 +222,7 @@ parseFailed:
 }
 
 
-char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser)
+char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser, char isRequest)
 {
 	int index = 0;
 	char *data = NULL;
@@ -257,7 +257,7 @@ char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser)
 	parser->outIndex += index;
 	EXT_DEBUGF(EXT_IPCMD_DEBUG, (" %d (%d)bytes packet", parser->outIndex, index) );
 
-	extIpCmdResponseTailCalculate(parser);
+	extIpCmdResponseTailCalculate(parser, isRequest);
 
 	return extIpCmdSendout(parser, &parser->runCfg->dest.ip, EXT_CTRL_PORT);
 	

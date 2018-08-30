@@ -726,48 +726,9 @@ struct	_EXT_RUNTIME_CFG
 	/* in order to guanratee the compatible between bootloader and RTOS, put updateInfo at the beginning of this structure */
 	EXT_FM_UPDATE		firmUpdateInfo;
 
+	/* following params are changed seldom to guanratee the compatible between bootloader and OS */
 	unsigned char			isTx;
-	unsigned char			isMCast;
-	unsigned char			isUpdate;	/*isUpdate: enter into bootloader and wait for further commands; otherwise, enter into OS directly */
-	unsigned char			isDipOn;
-	unsigned char			netMode;
-
-#if 0
-	EXT_MAC_ADDRESS	macAddress;
-	
-	unsigned int			ipAddress;
-	
-	unsigned int			destIp;
-	EXT_MAC_ADDRESS	videoMacLocal;
-	EXT_MAC_ADDRESS	videoMacDest;
-
-	unsigned int			videoIpLocal;
-	unsigned int			videoIpDest;
-
-	unsigned short		videoPortLocal;
-	unsigned short		videoPortDest;
-	unsigned short		audioPortLocal;
-	unsigned short		audioPortDest;
-#else
-	EXT_VIDEO_CONFIG	local;
-	unsigned int			ipMask;
-	unsigned int			ipGateway;
-	unsigned char			isMacConfiged;
-
-	unsigned char			isMacConfiged2;
-	
-	EXT_VIDEO_CONFIG	dest;	/* only for TX */
-#endif
-
-#if 0
-	unsigned int			mcIp;	/* multicast IP */
-	unsigned short		mcPort;	/* port of multicast */
-#endif
-
-	/* following fields are not modified by SetParams command */
-	char					name[32];	/* can be modified */
-	char					model[32];
-	EXT_FM_VERSION		version;
+	MuxRs232Cfg			rs232Cfg;
 
 	char					user[EXT_USER_SIZE];
 	char					password[EXT_PASSWORD_SIZE];
@@ -777,10 +738,29 @@ struct	_EXT_RUNTIME_CFG
 
 	unsigned char			isStoreDefaultCfg;
 	
+
+	unsigned char			isMCast;
+	unsigned char			isUpdate;	/*isUpdate: enter into bootloader and wait for further commands; otherwise, enter into OS directly */
+	unsigned char			isDipOn;
+	unsigned char			netMode;
+
+	EXT_VIDEO_CONFIG	local;
+	unsigned int			ipMask;
+	unsigned int			ipGateway;
+	unsigned char			isMacConfiged;
+
+	unsigned char			isMacConfiged2;
+	
+	EXT_VIDEO_CONFIG	dest;	/* only for TX */
+
+	/* following fields are not modified by SetParams command */
+	char					name[32];	/* can be modified */
+	char					model[32];
+	EXT_FM_VERSION		version;
+
 	/* following fields are not transmitted to client */
 	unsigned short		httpPort;
 
-	MuxRs232Cfg			rs232Cfg;
 	unsigned char			isConfigFpga;	/* whether configure FPGA when MCU startup. Just for FPGA debugging */
 
 	MuxNmosID			nodeID;

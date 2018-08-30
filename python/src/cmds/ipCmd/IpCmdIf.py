@@ -51,6 +51,7 @@ class IpCmdSocket(object):
             self.sock.bind((self.dev.simGateway, 3600))
 
     def send(self, cmd):
+        self.cmd = cmd['cmd']
         self.sendPacket(CommandCodec.encode(cmd, debug=self.debug))
 
     def sendPacket(self, data):
@@ -65,50 +66,59 @@ class IpCmdSocket(object):
         receive from socket
         :return: node dict list
         """
-        nodes = [];
-        chunks = b''  # bytearray()#[]
-        bytes_recd = 0
+        nodes = []
         lenPacket = MSGLEN
 
-        while bytes_recd < MSGLEN:
-            chunk = self.receiveRaw()  # min(MSGLEN - bytes_recd, 2048))
-            if chunk is None:
+        while 1:#bytes_recd < MSGLEN:
+            datas = self.receiveRaw()  # min(MSGLEN - bytes_recd, 2048))
+            if datas is None:
                 return nodes
 
-            if chunk == b'':
-                raise RuntimeError("socket connection broken")
-            if bytes_recd == 0 and ( (chunk is not None) and (len(chunk) > 4) ):
-                unpacker = struct.Struct("<HH")
-                tag, lenPacket = unpacker.unpack(chunk[0:4])
-                lenPacket = socket.ntohs(lenPacket)
+            # ColorMsg.error_msg("chunk %d: %s" % (len(datas), self.cmd))
+            for chunk in datas:
+                bytes_recd = 0
+                chunks = b''  # bytearray()#[]
+                if chunk == b'':
+                    raise RuntimeError("socket connection broken")
+                if bytes_recd == 0 and ( (chunk is not None) and (len(chunk) > 4) ):
+                    unpacker = struct.Struct("<HH")
+                    tag, lenPacket = unpacker.unpack(chunk[0:4])
+                    lenPacket = socket.ntohs(lenPacket)
 
-            chunks = b"".join([chunks, chunk])  # (chunk)#.decode('utf-8'))
-            bytes_recd = bytes_recd + len(chunk)
-            ColorMsg.debug_msg('read length :%d, IP Command length :%d' % (bytes_recd, lenPacket), self.debug)
-            if bytes_recd >= lenPacket + 4:
-                break
+                chunks = b"".join([chunks, chunk])  # (chunk)#.decode('utf-8'))
+                bytes_recd = bytes_recd + len(chunk)
+                # ColorMsg.debug_msg('read length :%d, IP Command length :%d' % (bytes_recd, lenPacket), self.debug)
+                if bytes_recd > lenPacket + 4:
+                    ColorMsg.error_msg("bytes_read %d larger than %s" % (bytes_recd, lenPacket+4))
+                    break
 
-        #ColorMsg.debug_msg("receive data:%s" % (chunks), self.debug)
-        replyJson = CommandCodec.decode(chunks, debug=self.debug)
-        if replyJson is not None:
-            nodes.append(replyJson)
+                # ColorMsg.debug_msg("receive data:%s" % (chunks), self.debug)
+                replyJson = CommandCodec.decode(chunks, debug=self.debug)
+                if replyJson is not None:
+                    nodes.append(replyJson)
 
-        #self.sock.close()
-        return nodes
+            #self.sock.close()
+            return nodes
 
     def receiveRaw(self):
         """
         : default for Unix socket and TCP socket
         """
-        try:
-            # return self.sock.recv(4092)
-            data, node = self.sock.recvfrom(4096)
-            ColorMsg.debug_msg("receive %d bytes data from %s data:%s" % (len(data), node, data), self.debug)
-            return data
-        except socket.timeout as e:
-            ColorMsg.error_msg("Read timeout on socket ")
-            self.sock.close()
-            return None
+        datas = []
+        while 1:
+            try:
+                # return self.sock.recv(4092)
+                data, node = self.sock.recvfrom(4096)
+                ColorMsg.debug_msg("receive %d bytes data from %s data:%s" % (len(data), node, data), self.debug)
+                datas.append(data)
+                if self.server != "<broadcast>":
+                    return datas
+            except socket.timeout as e:
+                ColorMsg.debug_msg("Read timeout on socket ", self.debug)
+                self.sock.close()
+                if self.server != "<broadcast>":
+                    return None
+                return datas
             # sys.exit(1)
             # logging.error("Read timeout on socket '{}': {}".format(e))
 

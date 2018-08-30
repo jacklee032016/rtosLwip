@@ -100,7 +100,6 @@ static char cmdTestFpga(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t 
 
 //	extBspFpgaReload();
 
-//	extFpgaConfig(&extRun);
 	if(!EXT_IS_TX(&extRun) )
 	{
 		index += snprintf( outBuffer+index, (bufferLen-index), "'%s' 'enable/disable' not support in RX"EXT_NEW_LINE, cmd->name );

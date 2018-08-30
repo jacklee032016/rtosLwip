@@ -1,4 +1,5 @@
 import json
+import time
 
 from cmds import DeviceCtrl
 
@@ -39,15 +40,17 @@ class IpCommand(DeviceCtrl):
         self.sendCmds['targ'] = kwargs.get("target", "FF:FF:FF:FF:FF:FF")
         #json_string = json.dumps(self.sendCmds)
 
+        start_time = time.time()  # time() is float
         msg = self.cmdSocket.send(cmd=self.sendCmds)
         result = self.cmdSocket.receive()
-        ColorMsg.debug_msg('JSON result type %s: "%s"\n' %(type(result), result), self.debug )
+        self.timeused = (time.time() - start_time) * 1000  # millsecond
+        ColorMsg.debug_msg('After %s ms,JSON result type %s: "%s"\n' %(self.timeused, type(result), result), self.debug )
 
         for res in result:
             if res['login-ack'] != "OK":
-                ColorMsg.error_msg("\tIP Command '%s' failed %s\n" %(self.sendCmds["cmd"], res['pwd-msg']))
+                ColorMsg.error_msg("\tIP Command '%s' failed %s" %(self.sendCmds["cmd"], res['pwd-msg']))
             else:
-                ColorMsg.success_msg("\tIP Command '%s' success\n" %(self.sendCmds["cmd"]))
+                ColorMsg.success_msg("\tIP Command '%s' success after %s ms" %(self.sendCmds["cmd"], self.timeused))
 
         return result
         

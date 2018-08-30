@@ -165,7 +165,8 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &rxCfg->local.mac) )
 		{
 //			EXT_DEBUGF(EXT_IPCMD_DEBUG, ("MAC address is not same:%s=%s"LWIP_NEW_LINE, runCfg->local.mac.address, rxCfg->local.mac.address));
-			memcpy(&runCfg->local.mac, &rxCfg->local.mac, EXT_MAC_ADDRESS_LENGTH);	
+			memcpy(&runCfg->local.mac, &rxCfg->local.mac, EXT_MAC_ADDRESS_LENGTH);
+			runCfg->isMacConfiged = EXT_TRUE;
 //			needReboot = 1;
 			SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
 		}
@@ -411,7 +412,7 @@ char extIpCmdSetupParams(EXT_JSON_PARSER  *parser)
 	_compareMediaCfg(parser->runCfg, rxCfg);
 
 	/* reply cmd with updated params */
-	extIpCmdSendMediaData(parser);
+	extIpCmdSendMediaData(parser, EXT_FALSE);
 
 #ifdef	X86
 	extDebugCfg(parser->runCfg, LWIP_NEW_LINE"updated Cfg:");

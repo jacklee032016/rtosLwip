@@ -45,7 +45,7 @@ class CommandCodec(object):
             # print("receive from:", binascii.hexlify(data))
             tag, packedLen = struct.unpack("<HH", data[0:4])
             packedLen = socket.ntohs(packedLen)
-            ColorMsg.debug_msg("\nUnpacked TAG 0x%x; length:%d" % (tag, packedLen), debug)
+            # ColorMsg.debug_msg("\nUnpacked TAG 0x%x; length:%d" % (tag, packedLen), debug)
             #msg = data[4:len].decode('utf-8')  #
 
 #            format = b'HH%ds' % (length - 4)
