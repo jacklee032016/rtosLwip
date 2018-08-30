@@ -152,17 +152,16 @@ tcp_init(void)
 /**
  * Called periodically to dispatch TCP timers.
  */
-void
-tcp_tmr(void)
+void tcp_tmr(void)
 {
-  /* Call tcp_fasttmr() every 250 ms */
-  tcp_fasttmr();
+	/* Call tcp_fasttmr() every 250 ms */
+	tcp_fasttmr();
 
-  if (++tcp_timer & 1) {
-    /* Call tcp_slowtmr() every 500 ms, i.e., every other timer
-       tcp_tmr() is called. */
-    tcp_slowtmr();
-  }
+	if (++tcp_timer & 1)
+	{
+		/* Call tcp_slowtmr() every 500 ms, i.e., every other timer tcp_tmr() is called. */
+		tcp_slowtmr();
+	}
 }
 
 #if LWIP_CALLBACK_API || TCP_LISTEN_BACKLOG

@@ -906,7 +906,7 @@ static void _handle(PtpClock *ptpClock)
 #endif			
 		if (!ret)
 		{
-			DBGVV("handle: nothing");
+//			DBGVV("handle: nothing");
 			return;
 		}
 	}

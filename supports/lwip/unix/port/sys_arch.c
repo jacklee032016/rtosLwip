@@ -334,8 +334,7 @@ sys_arch_mbox_tryfetch(struct sys_mbox **mb, void **msg)
   return 0;
 }
 
-u32_t
-sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
+u32_t sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
 {
   u32_t time_needed = 0;
   struct sys_mbox *mbox;
