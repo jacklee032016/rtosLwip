@@ -458,7 +458,9 @@ static void main_thread(void *arg)
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
 TRACE();
+
 	extSysParamsInit(runCfg);
+	extCfgInitAfterReadFromFlash(runCfg);
 
 TRACE();
 	if(sys_sem_new(&sem, 0) != ERR_OK)

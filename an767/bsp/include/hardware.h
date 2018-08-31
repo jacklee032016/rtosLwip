@@ -399,6 +399,12 @@ typedef	enum
 
 #define	EXT_FPGA_FLAGS_PARAM_USABLE				0x01
 
+
+#define	EXT_FPGA_REG_SDI_STATUS					19
+
+#define	EXT_FPGA_FLAGS_SDI_CONNECTTED			0x01
+
+
 /* for both TX/RX */
 #define	EXT_FPGA_REG_VERSION						29
 

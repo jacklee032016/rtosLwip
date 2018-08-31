@@ -263,5 +263,11 @@ void extPtpCmdStatus(char *buf, unsigned int len);
 bool extPtpCmdDate(char *buf, unsigned int len);
 #endif
 
+
+void extMediaInit( void *arg);
+unsigned char extMediaPostEvent(unsigned char eventType, void *ctx);
+void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg);
+
+
 #endif
 

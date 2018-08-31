@@ -110,7 +110,7 @@ char  extBspFpgaReload(void);
 char extFpgaReadParams(MuxRunTimeParam *mediaParams);
 char extFpgaWriteParams(MuxRunTimeParam *mediaParams);
 
-void extFpgaTimerJob(EXT_RUNTIME_CFG *runCfg);
+void extFpgaTimerJob(MuxRunTimeParam  *mediaParams);
 
 //void	extFpgaEnable(char	isEnable);
 

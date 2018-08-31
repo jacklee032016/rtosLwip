@@ -193,9 +193,12 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 #endif	
 #endif
 
+	EXT_INFOF(("FPGA Polling Service start..."));
+	extMediaInit(runCfg);
 
 	return 0;
 }
+
 
 #ifdef	X86
 /* after basic startup of hardware, call it to read configuration from NVRAM or others */

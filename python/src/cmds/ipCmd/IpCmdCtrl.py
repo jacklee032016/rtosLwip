@@ -38,6 +38,8 @@ class IpCommand(DeviceCtrl):
             self.sendCmds['data'] = []
 
         self.sendCmds['targ'] = kwargs.get("target", "FF:FF:FF:FF:FF:FF")
+        self.sendCmds['811Ip'] = kwargs.get("811Ip", "192.168.168.102")
+        self.sendCmds['811Port'] = kwargs.get("811Port", 3840 )
         #json_string = json.dumps(self.sendCmds)
 
         start_time = time.time()  # time() is float

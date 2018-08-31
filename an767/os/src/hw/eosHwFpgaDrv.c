@@ -447,32 +447,9 @@ static unsigned char _translateDepth(unsigned char depth, unsigned char isFromFp
 }
 
 
-static MuxRunTimeParam _mediaParams;
-
-static char _extFpgaCompareParams(MuxRunTimeParam *dest, MuxRunTimeParam *newParam )
-{
-	char isDiff = EXT_FALSE;
-
-	if(dest->vWidth != newParam->vWidth || dest->vHeight != newParam->vHeight ||
-		dest->vFrameRate != newParam->vFrameRate || dest->vColorSpace!= newParam->vColorSpace ||
-		dest->vDepth != newParam->vDepth || dest->vIsSegmented != newParam->vIsSegmented )
-	{
-		isDiff = EXT_TRUE;
-	}
-	
-	if(isDiff)
-	{
-		memcpy(dest, newParam, sizeof(MuxRunTimeParam));
-	}
-	
-	return isDiff;
-}
-
 extern	EXT_JSON_PARSER  extParser;
 
-
-
-void extFpgaTimerJob(EXT_RUNTIME_CFG *runCfg)
+void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 {
 	unsigned char value;
 
@@ -482,16 +459,9 @@ void extFpgaTimerJob(EXT_RUNTIME_CFG *runCfg)
 
 	EXT_DEBUGF(EXT_DBG_ON, ("New Media Params is available now!"));
 	
-	extFpgaReadParams(&_mediaParams);
+	extFpgaReadParams(mediaParams);
 	_extFpgaWriteByte(EXT_FPGA_REG_PARAM_STATUS, &value);
 
-	if(_extFpgaCompareParams(&runCfg->runtime, &_mediaParams))	
-	{
-		EXT_DEBUGF(EXT_DBG_ON, ("New Media Params need to be updated now!"));
-#if 0		
-		extIpCmdSendMediaData(&extParser, EXT_TRUE);
-#endif
-	}
 
 	return;
 }

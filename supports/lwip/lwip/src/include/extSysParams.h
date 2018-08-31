@@ -58,6 +58,7 @@
 
 #define		EXT_NET_IF_TASK_PRIORITY					(4)		/* highest priority level in Free RTOS */
 
+#define		EXT_MCTRL_MBOX_SIZE						4
 
 #define	EXT_RW_BUFFER_SIZE				1024
 
@@ -130,6 +131,10 @@
 #else
 #define ETHERNET_CONF_IPADDR3_RX				3
 #endif
+
+//#define	CONF_SVR811_IPADDR3						50
+#define	CONF_SVR811_IPADDR3						102 		/* test with my computer */
+#define	CONF_SVR811_PORT							3840
 
 
 /** The gateway address being used. */
@@ -273,7 +278,7 @@
 #define	EXT_TASK_TELNET				"telnetd"
 #define	EXT_TASK_SYS_CTRL				"sysd"
 
-
+#define	EXT_TASK_NAME					"mCtrl"
 
 /** Debug level: ALL messages*/
 #define	EXT_DBG_LEVEL_ALL				0x00
@@ -703,8 +708,6 @@ typedef	struct
 	unsigned char			aDepth;		/* 16, 24 bits, etc. */
 
 
-	unsigned char			isConnect;
-
 	/* version */	
 	unsigned char			version;
 	unsigned char			revision;
@@ -714,8 +717,22 @@ typedef	struct
 	unsigned char			day;
 	unsigned char			hour;
 	unsigned char			minute;
+
+	/* FPGA register */
+	unsigned char			paramsState;
+	unsigned char			sdiState;		/* connected or disconnect */
+
+	/* UDP command from 811 */
+	unsigned char			isConnect;
+
 }MuxRunTimeParam;
 
+typedef	enum
+{
+	FPGA_PARAM_STATE_STABLE = 0,
+	FPGA_PARAM_STATE_UPDATED,			/* updated from FPGA, and send to 811 */
+	FPGA_PARAM_STATE_ACKNOWLEDGED,		/* acknowledged by 811 */
+}FPGA_PARAM_STATE_T;
 
 
 /* IP address, port number and state are all defined as unsigned type */
@@ -767,6 +784,9 @@ struct	_EXT_RUNTIME_CFG
 	MuxNmosID			deviceID;
 
 	/* in order to make old bootloader compatible with new RTOS, all new field must be added after here */
+	/* add for 811. Aug.31, 2018 */
+	unsigned int			ipSvr811;			/* IP of server 811 */	
+	unsigned short		portSvr811;			/* port of server 811 */
 	
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
 

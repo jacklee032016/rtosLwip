@@ -173,7 +173,7 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 	{
-		printf("output RES %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, parser->outBuffer);
+		printf("output RES %d bytes: '%.*s'"LWIP_NEW_LINE, parser->outIndex, parser->outIndex - IPCMD_HEADER_LENGTH, parser->outBuffer + IPCMD_HEADER_LENGTH);
 	}
 	
 	extIpCmdResponseTailCalculate(parser, EXT_FALSE);
@@ -240,6 +240,28 @@ static char _extCmdGetParams(EXT_JSON_PARSER  *parser)
 		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'targ' is not boardcast or local address" );
 		return EXIT_FAILURE;
 	}
+
+	if(extJsonParseIpAddress(parser, EXT_IPCMD_DATA_811_IP, &parser->runCfg->ipSvr811 ) == EXIT_SUCCESS)
+	{
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("811 IP is '%s'", EXT_LWIP_IPADD_TO_STR(&parser->runCfg->ipSvr811)));
+	}
+#if EXT_IPCMD_DEBUG
+	else
+	{
+		EXT_INFOF( ("811 IP is not defined in get_param") );
+	}
+#endif
+
+	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_811_PORT, &parser->runCfg->portSvr811 ) == EXIT_SUCCESS)
+	{
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("811 port is '%d'", parser->runCfg->portSvr811) );
+	}
+#if EXT_IPCMD_DEBUG
+	else
+	{
+		EXT_INFOF( ("811 port is not defined in get_param") );
+	}
+#endif
 
 	return extJsonResponsePrintConfig(parser);
 }

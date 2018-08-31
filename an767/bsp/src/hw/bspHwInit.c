@@ -75,22 +75,22 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
 
 			bspButtonConfig(BOOT_MODE_RTOS , EXT_FALSE);
 			_firstTime = sys_get_ms();
-			EXT_INFOF(("'%s' is pressed at %"FOR_U32" ms:%d"EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, _firstTime, extRun.bootMode ));
+//			EXT_INFOF(("'%s' is pressed at %"FOR_U32" ms:%d"EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, _firstTime, extRun.bootMode ));
 		}
 		else
 		{
 			unsigned int duration = (sys_get_ms()-_firstTime);
-			EXT_INFOF(("'%s' is unpressed after %d ms"EXT_NEW_LINE EXT_NEW_LINE, EXT_BUTTON_STRING, duration));
+			EXT_INFOF(("'%s' is unpressed after %d ms"EXT_NEW_LINE , EXT_BUTTON_STRING, duration));
 			if(duration > BTN_FACTORY_DURATION)
 			{
-				EXT_INFOF(("now factory reset..."EXT_NEW_LINE EXT_NEW_LINE));
+				EXT_INFOF(("now factory reset..."EXT_NEW_LINE ));
 				bspCmdFactory(NULL, NULL, 0);
 
 //				extDelayReboot(1000);
 			}
 			else
 			{
-				EXT_INFOF(("now reboot..."EXT_NEW_LINE EXT_NEW_LINE) );
+				EXT_INFOF(("now reboot..."EXT_NEW_LINE ) );
 			}
 			
 			EXT_PRINTF((EXT_NEW_LINE)); /* reset the color to default before reboot */

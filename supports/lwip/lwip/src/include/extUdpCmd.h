@@ -92,6 +92,9 @@ typedef struct _cmn_ext_ip_cmd CMN_IP_COMMAND;
 
 #define	EXT_IPCMD_DATA_IS_CONNECT				"IsConnect"	/* 811 send to TX(stop/start) or RX(connect/disconnect) */
 
+#define	EXT_IPCMD_DATA_811_IP						"811Ip"
+#define	EXT_IPCMD_DATA_811_PORT					"811Port"
+
 
 #define	EXT_IPCMD_RS232_DATA_HEX				"hexdata"
 #define	EXT_IPCMD_RS232_FEEDBACK				"isFeedback"

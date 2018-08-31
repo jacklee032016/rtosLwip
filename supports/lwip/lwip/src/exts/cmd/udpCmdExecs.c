@@ -221,7 +221,7 @@ parseFailed:
 	return EXIT_FAILURE;
 }
 
-
+/* send IP command of params to 811 */
 char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser, char isRequest)
 {
 	int index = 0;
@@ -259,8 +259,11 @@ char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser, char isRequest)
 
 	extIpCmdResponseTailCalculate(parser, isRequest);
 
+#if 0
 	return extIpCmdSendout(parser, &parser->runCfg->dest.ip, EXT_CTRL_PORT);
-	
+#else
+	return extIpCmdSendout(parser, &parser->runCfg->ipSvr811, parser->runCfg->portSvr811);
+#endif
 }
 
 

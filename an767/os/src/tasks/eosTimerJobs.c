@@ -106,10 +106,8 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 		}
 	}
 
-	if(EXT_IS_TX(runCfg))
-	{
-		extFpgaTimerJob(runCfg);
-	}
+	extMediaPollDevice(runCfg);
+
 #endif	
 }
 
