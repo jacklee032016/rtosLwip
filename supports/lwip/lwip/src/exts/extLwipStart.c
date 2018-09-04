@@ -187,7 +187,7 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 #endif /* LWIP_UDP */
 
 #if LWIP_EXT_PTP
-#ifdef	X86
+#if 0//def	X86
 	EXT_INFOF(("PTP service start..."));
 	ptpd_init();
 #endif	
@@ -228,7 +228,7 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 //	runCfg->isTx = 1; /* TX */
 	extCfgInitAfterReadFromFlash(runCfg);
 
-#if 1
+#if 0
 //	debugOption = EXT_DEBUG_FLAG_IP_IN| EXT_DEBUG_FLAG_UDP_IN|EXT_DEBUG_FLAG_IGMP|EXT_DEBUG_FLAG_CMD;
 	debugOption = EXT_DEBUG_FLAG_IGMP|EXT_DEBUG_FLAG_CMD;
 #else

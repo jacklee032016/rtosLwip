@@ -77,8 +77,8 @@ char extIpCmdResponseHeaderPrint(EXT_JSON_PARSER  *parser )
 	MAC_ADDRESS_PRINT(data, size, index, &(parser->runCfg->local.mac));
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_KEY_COMMAND"\":\"%s\",", parser->cmd);
 
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_LOGIN_ACK"\":\"%s\",", PARSE_IS_OK(parser)?"OK":"NOK");
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_PWD_MSG"\":\"%s\"", PARSE_IS_OK(parser)?"OK": parser->msg );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_LOGIN_ACK"\":\"%s\",", PARSE_IS_OK(parser)?EXT_IPCMD_STATUS_OK:EXT_IPCMD_STATUS_FAIL );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_PWD_MSG"\":\"%s\"", PARSE_IS_OK(parser)?EXT_IPCMD_STATUS_OK: parser->msg );
 
 //	index += snprintf(data+index, size-index, "\""EXT_JSON_KEY_DEBUG"\":\"%s\"}", parser->msg);
 
@@ -348,7 +348,7 @@ char extJsonHandle(EXT_JSON_PARSER  *parser )
 				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 			}	
 //TRACE();
-			if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+			if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD) && parser->outIndex )
 			{
 				printf("output IP CMD RES for cmd %s %p, %d bytes: '%.*s'"LWIP_NEW_LINE, 
 					parser->cmd, (void *)parser, parser->outIndex, parser->outIndex-2*IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH );

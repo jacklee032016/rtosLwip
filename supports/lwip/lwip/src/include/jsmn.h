@@ -445,7 +445,7 @@ typedef struct
 	jsmntok_t 			tokens[EXT_JSON_TOKEN_SIZE];
 	int					tokenCount;
 
-	EXT_RUNTIME_CFG	*runCfg;
+	EXT_RUNTIME_CFG		*runCfg;
 	MuxSetupData		setupData;
 }EXT_JSON_PARSER;
 

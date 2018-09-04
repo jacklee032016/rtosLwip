@@ -19,40 +19,66 @@ static sys_mbox_t 		_vmMailBox;
 
 static sys_mutex_t		_vmLock;
 
-unsigned char _fsmConnectEvent()
+static sys_timer_t		_mediaMsgTimer;		/* timer for connect and disconnect messages */
+
+static void msgTimerCallback(void *arg)
 {
-	TRACE();
-	/* send set_param*/
+	ext_fsm_t *fsm = (ext_fsm_t *)arg;
+	
 	extIpCmdSendMediaData(&extParser, EXT_TRUE);
+
+	sys_timer_start(&_mediaMsgTimer, 3000);
+}
+
+
+unsigned char _fsmConnectEvent(void *arg)
+{
+	ext_fsm_t *fsm = (ext_fsm_t *)arg;
+	
+	TRACE();
+	if(fsm->currentState == EXT_MEDIA_STATE_DISCONNECT)
+	{/* send set_param and start timer */
+		msgTimerCallback(arg);
+	}
 //	runCfg->runtime.paramsState = FPGA_PARAM_STATE_UPDATED;
 
 	/* start timer */
 	return EXT_MEDIA_STATE_CONNECT;
 }
 
-unsigned char _fsmDisconnEvent()
+unsigned char _fsmDisconnEvent(void *arg)
 {
+	ext_fsm_t *fsm = (ext_fsm_t *)arg;
+
 	TRACE();
 	/* send set_param*/
-	extIpCmdSendMediaData(&extParser, EXT_TRUE);
+	if(fsm->currentState == EXT_MEDIA_STATE_CONNECT)
+	{/* send set_param and start timer */
+		msgTimerCallback(arg);
+	}
 
-	/* start timer */
 	return EXT_MEDIA_STATE_DISCONNECT;
 }
 
-unsigned char _fsmAckEvent()
+unsigned char _fsmAckEvent(void *arg)
 {
+	ext_fsm_t *fsm = (ext_fsm_t *)arg;
 	TRACE();
 	/* stop timer */
+	sys_timer_stop(&_mediaMsgTimer);
+	
 	return EXT_STATE_CONTINUE;
 }
 
-unsigned char _fsmTimeoutEvent()
+unsigned char _fsmTimeoutEvent(void *arg)
 {
+	ext_fsm_t *fsm = (ext_fsm_t *)arg;
 	TRACE();
-	/* send set_param*/
+
+	msgTimerCallback(arg);
 
 	/* start timer again */
+	
 	return EXT_STATE_CONTINUE;
 }
 
@@ -105,6 +131,11 @@ const statemachine_t	_mediaStateMachine[] =
 		EXT_MEDIA_STATE_CONNECT,
 		sizeof(_connectState)/sizeof(transition_t),
 		_connectState,
+	},
+	{
+		EXT_STATE_CONTINUE,
+		0,
+		NULL,
 	}
 };
 
@@ -118,13 +149,12 @@ static void _extMediaControlThread(void *arg)
 	media_event_t *event;
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 	
-
 	while (1)
 	{
 		sys_mbox_fetch(&_vmMailBox, (void **)&event);
 		if (event == NULL)
 		{
-			EXT_DEBUGF(TCPIP_DEBUG, (EXT_TASK_NAME" thread: invalid message: NULL"));
+			EXT_DEBUGF(EXT_DBG_ON, (EXT_TASK_NAME" thread: invalid message: NULL"));
 			EXT_ASSERT((EXT_TASK_NAME" thread: invalid message"), 0);
 			continue;
 		}
@@ -144,7 +174,7 @@ static sys_timer_t _mediaPollingTimer;
 
 void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
 {
-	if(isConn )
+	if(! isConn )
 	{
 		mediaParams->aChannels = 2;
 		mediaParams->aDepth = 16;
@@ -182,7 +212,12 @@ void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
  
 static void pollingTimerCallback(void *arg)
 {
-	MuxRunTimeParam  *mediaParams = (MuxRunTimeParam  *) arg;
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+#if 1
+	MuxRunTimeParam  *mediaParams = &_mediaParams;
+#else
+	MuxRunTimeParam  *mediaParams = &runCfg->runtime;
+#endif
 
 	// Sanity check the index.
 //	if (mediaParams->isConnect == EXT_TRUE)
@@ -194,12 +229,16 @@ static void pollingTimerCallback(void *arg)
 	}
 
 	mediaParams->isConnect = (mediaParams->isConnect == 0);
+
+	extMediaPollDevice(runCfg);
+
 }
 #endif
 
 void extMediaInit( void *arg)
 {
 	TRACE();
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 	
 	if (sys_mbox_new(&_vmMailBox, EXT_MCTRL_MBOX_SIZE) != ERR_OK)
 	{
@@ -211,17 +250,27 @@ void extMediaInit( void *arg)
 		EXT_ASSERT(("failed to create "EXT_TASK_NAME" Lock"), 0);
 	}
 
+	memset(&_mediaParams, 0, sizeof(MuxRunTimeParam));
+	
+	memset(&_mediaFsm, 0, sizeof(ext_fsm_t));
 	_mediaFsm.currentEvent = EXT_EVENT_NONE;
-	_mediaFsm.currentState = EXT_MEDIA_STATE_CONNECT;
+	_mediaFsm.currentState = EXT_MEDIA_STATE_DISCONNECT;
 	_mediaFsm.states = _mediaStateMachine;
+
+	EXT_DEBUGF(EXT_DBG_ON, (EXT_TASK_NAME" FSM: %p:%p", _mediaStateMachine, _mediaFsm.states ));
 
 #ifdef	X86
 #if EXT_TIMER_DEBUG
 	snprintf(_mediaPollingTimer.name, sizeof(_mediaPollingTimer.name), "%s", "PollingTimer" );
 #endif
-	sys_timer_new(&_mediaPollingTimer, pollingTimerCallback, os_timer_type_reload, (void *) &_mediaParams);
-	sys_timer_start(&_mediaPollingTimer, 4000);
+	sys_timer_new(&_mediaPollingTimer, pollingTimerCallback, os_timer_type_reload, (void *) runCfg);
+	sys_timer_start(&_mediaPollingTimer, 14000);
 #endif
+
+#if EXT_TIMER_DEBUG
+	snprintf(_mediaMsgTimer.name, sizeof(_mediaMsgTimer.name), "%s", "MsgTimer" );
+#endif
+	sys_timer_new(&_mediaMsgTimer, msgTimerCallback, os_timer_type_once, (void *) &_mediaFsm);
 
 	sys_thread_new(EXT_TASK_NAME, _extMediaControlThread, arg, EXT_NET_IF_TASK_STACK_SIZE/2, EXT_NET_IF_TASK_PRIORITY-2 );
 }
@@ -231,7 +280,6 @@ unsigned char extMediaPostEvent(unsigned char eventType, void *ctx)
 	media_event_t *event;
 
 	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(_vmMailBox));
-
 	event = (media_event_t *)memp_malloc(MEMP_TCPIP_MSG_API);
 	if (event == NULL)
 	{
@@ -241,6 +289,7 @@ unsigned char extMediaPostEvent(unsigned char eventType, void *ctx)
 
 	event->type = eventType;
 	event->arg = ctx;
+	EXT_INFOF( ("EVENT: %d", event->type));
 
 	if (sys_mbox_trypost(&_vmMailBox, event) != ERR_OK)
 	{
@@ -256,6 +305,11 @@ unsigned char extMediaPostEvent(unsigned char eventType, void *ctx)
 static char _extMediaCompareParams(MuxRunTimeParam *dest, MuxRunTimeParam *newParam )
 {
 	char isDiff = EXT_FALSE;
+
+	if(dest->isConnect== EXT_FALSE && newParam->isConnect == EXT_TRUE)
+	{
+		isDiff = EXT_TRUE;
+	}
 
 	if(dest->vWidth != newParam->vWidth || dest->vHeight != newParam->vHeight ||
 		dest->vFrameRate != newParam->vFrameRate || dest->vColorSpace!= newParam->vColorSpace ||
@@ -280,22 +334,25 @@ void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg)
 #ifdef ARM
 		extFpgaTimerJob(&_mediaParams);
 #else
-		_mediaParams.isConnect = (_mediaParams.isConnect==0);
+//		_mediaParams.isConnect = (_mediaParams.isConnect==0);
 #endif
 
-		if(_mediaParams.isConnect == EXT_FALSE)
+		if(_mediaParams.isConnect == EXT_FALSE &&
+			runCfg->runtime.isConnect == EXT_TRUE )
 		{
+			runCfg->runtime.isConnect = EXT_FALSE;
 			extMediaPostEvent(EXT_MEDIA_EVENT_DISCONNECT, NULL);
 			return;
 		}
 
 		if(_extMediaCompareParams(&runCfg->runtime, &_mediaParams))	
 		{
-			EXT_DEBUGF(EXT_DBG_ON, ("New Media Params need to be updated now!"));
+			EXT_DEBUGF(EXT_DBG_ON, ("CONNECT event: New Media Params need to be updated now!"));
 			extMediaPostEvent(EXT_MEDIA_EVENT_CONNECT, NULL);
 			return;
 		}
 
 	}
+
 }
 

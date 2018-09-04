@@ -41,6 +41,9 @@ typedef struct _cmn_ext_ip_cmd CMN_IP_COMMAND;
 #define	EXT_IPCMD_LOGIN_ACK						"login-ack" /* login user name or status */
 #define	EXT_IPCMD_PWD_MSG						"pwd-msg" /* login password or status msg */
 
+#define	EXT_IPCMD_STATUS_OK						"OK"
+#define	EXT_IPCMD_STATUS_FAIL						"NOK"
+
 #define	EXT_IPCMD_DATA_ARRAY					"data" /* login password or status msg */
 
 

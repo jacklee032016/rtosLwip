@@ -7,6 +7,7 @@
 
 #include "jsmn.h"
 #include "extUdpCmd.h"
+#include "extFsm.h"
 
 
 typedef	enum
@@ -376,10 +377,37 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 }
 
 
+/* check whether this message is a reply for last message sent from TX/RX */
+char extJsonIsResponse(EXT_JSON_PARSER  *parser)
+{
+	char name[EXT_USER_SIZE];
+	
+	if(extJsonParseString(parser, EXT_IPCMD_LOGIN_ACK, name, EXT_USER_SIZE) == EXIT_FAILURE )
+	{
+		return EXIT_FAILURE;
+	}
+	
+	if(strncmp(name, EXT_IPCMD_STATUS_OK, strlen(EXT_IPCMD_STATUS_OK)) && 
+		strncmp(name, EXT_IPCMD_STATUS_FAIL, strlen(EXT_IPCMD_STATUS_FAIL)))
+	{
+		return EXIT_FAILURE;
+	}
+
+	parser->outIndex = 0;
+
+	extMediaPostEvent(EXT_MEDIA_EVENT_ACK, NULL);
+	EXT_DEBUGF(EXT_DBG_ON, ("this is a response of IP command"));
+	
+	return EXIT_SUCCESS;
+}
+
 char extIpCmdSetupParams(EXT_JSON_PARSER  *parser)
 {
 	char ret;
 	EXT_RUNTIME_CFG *rxCfg = &tmp;
+
+	if(extJsonIsResponse(parser)== EXIT_SUCCESS )
+		return EXIT_SUCCESS;
 
 	ret = extIpCmdIsLocal(parser);
 	if(ret == EXIT_FAILURE)

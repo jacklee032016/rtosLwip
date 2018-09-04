@@ -40,7 +40,7 @@ static void _vTimerDelayExpired(TimerHandle_t pxTimer)
 }
 
 
-static void extJobDelay(const char *name, unsigned short delayMs, MuxDelayJob func, void *data)
+static void _extJobDelay(const char *name, unsigned short delayMs, MuxDelayJob func, void *data)
 {
 #if configUSE_TIMERS
 	_delayJob = func;
@@ -74,7 +74,7 @@ static char _delayReboot(void *data)
 
 void extDelayReboot(unsigned short delayMs)
 {
-	extJobDelay("reboot", delayMs, _delayReboot, NULL);
+	_extJobDelay("reboot", delayMs, _delayReboot, NULL);
 }
 
 static void _periodJobCallback(TimerHandle_t pxTimer)
@@ -105,10 +105,12 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 			extFpgaConfig(runCfg);
 		}
 	}
+#else
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)pxTimer;
+#endif	
 
 	extMediaPollDevice(runCfg);
 
-#endif	
 }
 
 
@@ -130,6 +132,8 @@ void extJobPeriod(EXT_RUNTIME_CFG *runCfg)
 		EXT_ERRORF(("Delay Job can not be started"));
 		return;
 	}
+#else	
+	_timerHdlPeriod = runCfg;
 #endif	
 }
 

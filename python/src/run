@@ -8,6 +8,8 @@ import argparse
 
 from cmds.http.web import WebClient
 from cmds.ipCmd.IpCmdCtrl import DeviceIpCmd
+from cmds.ipCmd.IpCmdSvr import IpCommandSvr
+
 from cmds.misc.TftpCtrl import TftpUpload
 from cmds.misc.iperf import Iperf
 
@@ -54,6 +56,7 @@ The most commonly used commands are:
    tftpOs       Update OS firmware through TFTP
    tftpFpga     Update FPGA firmware through TFTP
    bandwidth    Test bandwidth to one node
+   svr          Sever for IP commands
    reboot       Reboot one node
 ''')
 
@@ -189,6 +192,23 @@ The most commonly used commands are:
 
         cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
         cmdCtrl.secureGetStatus(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+    def svr(self):
+        parser = argparse.ArgumentParser( description='Sever for IP command')
+
+        self._addDefaultIp(parser=parser)
+        parser.add_argument('port', help='Port to recv', nargs='?', default="3840")
+
+        args = parser.parse_args(sys.argv[2:])
+        ColorMsg.debug_msg(
+            'Running %s %s,%s:%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.port, args.debug, args.gateway), args.debug )
+
+        #cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        #node = cmdCtrl.findOneNode(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
+        cmdSvr = IpCommandSvr(ip=args.ip, simGateway=args.gateway, debug=args.debug )
+        cmdSvr.run(ip=args.ip, simGateway=args.gateway, debug=args.debug)
+
 
     """
     2 Following are commands based on HTTP service

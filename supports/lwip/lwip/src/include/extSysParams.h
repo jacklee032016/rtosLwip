@@ -132,8 +132,14 @@
 #define ETHERNET_CONF_IPADDR3_RX				3
 #endif
 
+#ifdef	ARM
 //#define	CONF_SVR811_IPADDR3						50
+#define	CONF_SVR811_IPADDR2						168 		/* X86-->board */
 #define	CONF_SVR811_IPADDR3						102 		/* test with my computer */
+#else
+#define	CONF_SVR811_IPADDR2						166 		/* simhost */
+#define	CONF_SVR811_IPADDR3						1 		/* simhost */
+#endif
 #define	CONF_SVR811_PORT							3840
 
 

@@ -8,11 +8,14 @@
 
 #define	EXT_EVENT_NONE 					0
 
+#pragma		pack(1)
+
 typedef	enum
 {
 	EXT_MEDIA_EVENT_CONNECT = EXT_EVENT_NONE+1, 		/* SDI connect from FPGA */
 	EXT_MEDIA_EVENT_DISCONNECT, 						/* SDI disconnect from FPGA */
 	EXT_MEDIA_EVENT_ACK, 								/* recv ACK after send set_param  */
+	EXT_MEDIA_EVENT_NACK, 							/* recv NACK, eg 811 refuse this message after send set_param  */
 	EXT_MEDIA_EVENT_TIMEOUT, 							/* timeout after send set_param */
 }EXT_MEDIA_EVENT_T;
 
@@ -28,8 +31,8 @@ typedef	enum
 
 struct _transition_t
 {
-	unsigned char		event;
-	unsigned char 		(*handle)(void);
+	unsigned char			event;
+	unsigned char 		(*handle)(void *);
 };
 
 typedef	struct _transition_t	transition_t;
@@ -52,8 +55,9 @@ struct _fsm_t
 	unsigned char				currentEvent;
 	
 	void						*arg;
-
+	
 	const statemachine_t		*states;
+	
 };
 
 

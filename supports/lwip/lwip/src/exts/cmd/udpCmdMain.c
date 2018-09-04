@@ -14,6 +14,7 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 	unsigned int crcDecoded, crcReceived;
 
 	ipCmd->length = ntohs(ipCmd->length);
+	
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 	{
 		printf("receive %d (IP CMD->length:%d) bytes from at port %d of '%s' ", size, ipCmd->length, port,  inet_ntoa(*(ip_addr_t *)addr));
@@ -72,7 +73,7 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 
 	}
 
-	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD) && parser->outIndex )
 	{
 		printf("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
 			parser->status, parser->outIndex,  parser->outIndex -IPCMD_HEADER_LENGTH*2, parser->outBuffer+IPCMD_HEADER_LENGTH, parser->msg );
@@ -198,6 +199,11 @@ char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short 
 	struct pbuf *newBuf = NULL;
 	const ip_addr_t *addr =  (ip_addr_t *)ip;
 //	const ip4_addr_t *mcIpAddr = (ip4_addr_t *)&runCfg->dest.ip;
+
+	if(parser->outIndex == 0)
+	{/* this message is a response or no response is needed for this message*/
+		return EXIT_SUCCESS;
+	}
 
 	newBuf = pbuf_alloc(PBUF_TRANSPORT, parser->outIndex, PBUF_ROM);
 	if (newBuf == NULL)

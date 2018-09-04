@@ -188,7 +188,6 @@ err_t sys_mbox_new(struct sys_mbox **mb, int size)
 	struct sys_mbox *mbox;
 	LWIP_UNUSED_ARG(size);
 
-TRACE();
 	mbox = (struct sys_mbox *)malloc(sizeof(struct sys_mbox));
 	if (mbox == NULL)
 	{
@@ -204,25 +203,24 @@ TRACE();
 	SYS_STATS_INC_USED(mbox);
 	*mb = mbox;
 
-TRACE();
 	return ERR_OK;
 }
 
-void
-sys_mbox_free(struct sys_mbox **mb)
+void sys_mbox_free(struct sys_mbox **mb) 
 {
-  if ((mb != NULL) && (*mb != SYS_MBOX_NULL)) {
-    struct sys_mbox *mbox = *mb;
-    SYS_STATS_DEC(mbox.used);
-    sys_arch_sem_wait(&mbox->mutex, 0);
-    
-    sys_sem_free_internal(mbox->not_empty);
-    sys_sem_free_internal(mbox->not_full);
-    sys_sem_free_internal(mbox->mutex);
-    mbox->not_empty = mbox->not_full = mbox->mutex = NULL;
-    /*  LWIP_DEBUGF("sys_mbox_free: mbox 0x%lx\n", mbox); */
-    free(mbox);
-  }
+	if ((mb != NULL) && (*mb != SYS_MBOX_NULL))
+	{
+		struct sys_mbox *mbox = *mb;
+		SYS_STATS_DEC(mbox.used);
+		sys_arch_sem_wait(&mbox->mutex, 0);
+
+		sys_sem_free_internal(mbox->not_empty);
+		sys_sem_free_internal(mbox->not_full);
+		sys_sem_free_internal(mbox->mutex);
+		mbox->not_empty = mbox->not_full = mbox->mutex = NULL;
+		/*  LWIP_DEBUGF("sys_mbox_free: mbox 0x%lx\n", mbox); */
+		free(mbox);
+	}
 }
 
 err_t sys_mbox_trypost(struct sys_mbox **mb, void *msg)
@@ -694,12 +692,14 @@ typedef struct _sys_timer_id
 #if EXT_TIMER_DEBUG
 	char							name[32];
 #endif
-	int							interval;
+	int							interval;		/* milliseconds */
 
 	sys_time_callback				callback;
+	os_timer_type					type;
+
 	void 						*param;
 	
-	int							lastAlarm;
+	int							lastAlarm;	/* ticks of last alarm, initialized as current ticks */
 	
 	struct _sys_timer_id			*next;
 
@@ -723,6 +723,7 @@ typedef	struct cmn_timer
 
 static cmn_timer_t		_timers;
 
+/* 1K HZ tick */
 int cmn_get_ticks (void)
 {
 	struct timeval now;
@@ -837,21 +838,16 @@ static void _lwip_timer_thread(void *data)
 static int _sys_timer_init(void)
 {
 	err_t err = ERR_OK;
-TRACE();
 	memset(&_timers, 0 , sizeof(cmn_timer_t) );
 	
 	gettimeofday(&_timers.startTimeStamp, NULL);
 	
-TRACE();
 	err = sys_mutex_new(&_timers.mutex);
-TRACE();
 	_timers.tId = sys_thread_new("SysTimer", _lwip_timer_thread, &_timers, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
-TRACE();
 	if(!_timers.tId || err != ERR_OK )
 	{
 		return (-EXIT_FAILURE);
 	}
-TRACE();
 
 	return EXIT_SUCCESS;
 }
@@ -885,6 +881,8 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 //		t->interval = ROUND_RESOLUTION(millisec);
 		t->interval = millisec;
 		t->callback = timer->callback;
+		t->type = timer->type;
+		
 		t->param = timer->arg;
 		t->lastAlarm = cmn_get_ticks();
 #if EXT_TIMER_DEBUG
@@ -901,7 +899,7 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 		_timers.timersChanged = EXT_TRUE;
 	}
 	
-	EXT_DEBUGF(EXT_DBG_ON, ("Added Timer(%s: %d millisecond) num_timers = %d", t->name, millisec, _timers.numOfTimers ) );
+	EXT_DEBUGF(EXT_DBG_ON, ("Added Timer(%s(%p): %d millisecond) num_timers = %d", t->name, t, millisec, _timers.numOfTimers ) );
 
 	sys_mutex_unlock(&_timers.mutex);
 	return;
