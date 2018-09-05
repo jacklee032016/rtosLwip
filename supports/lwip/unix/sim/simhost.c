@@ -197,10 +197,8 @@ void sntp_set_system_time(u32_t sec)
 static void simhost_tcpip_init_done(void *arg)
 {
 	sys_sem_t *sem;
-TRACE();
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
-TRACE();
 	LWIP_ASSERT(("runCfg is NULL"), (runCfg!= NULL));
 	sem = (sys_sem_t *)runCfg->data;
 
@@ -457,25 +455,19 @@ static void main_thread(void *arg)
 
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 
-TRACE();
-
 	extSysParamsInit(runCfg);
 	extCfgInitAfterReadFromFlash(runCfg);
 
-TRACE();
 	if(sys_sem_new(&sem, 0) != ERR_OK)
 	{
 		LWIP_ASSERT(("Failed to create semaphore"), 0);
 	}
 
 	runCfg->data = &sem;
-TRACE();
 	tcpip_init(simhost_tcpip_init_done, runCfg);
-TRACE();
 	
 	sys_sem_wait(&sem);
 
-TRACE();
 	printf("TCP/IP initialized.\n");
 
 

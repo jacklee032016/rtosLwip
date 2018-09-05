@@ -50,11 +50,11 @@ extern "C" {
 #endif
 
 /** period (in seconds) of the application calling dhcp_coarse_tmr() */
-#define DHCP_COARSE_TIMER_SECS  60
+#define DHCP_COARSE_TIMER_SECS 		60
 /** period (in milliseconds) of the application calling dhcp_coarse_tmr() */
 #define DHCP_COARSE_TIMER_MSECS (DHCP_COARSE_TIMER_SECS * 1000UL)
 /** period (in milliseconds) of the application calling dhcp_fine_tmr() */
-#define DHCP_FINE_TIMER_MSECS   500
+#define DHCP_FINE_TIMER_MSECS			500
 
 #define DHCP_BOOT_FILE_LEN      128U
 

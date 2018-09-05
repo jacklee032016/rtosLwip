@@ -118,6 +118,8 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 void extJobPeriod(EXT_RUNTIME_CFG *runCfg)
 {
 #if configUSE_TIMERS
+
+TRACE();
 	_timerHdlPeriod = xTimerCreate(EXT_PERIOD_JOB_NAME, pdMS_TO_TICKS(EXT_PERIOD_JOB_TIME), pdTRUE/* auto reload */,  (void*)0 /* timer ID */,_periodJobCallback);
 	if (_timerHdlPeriod==NULL)
 	{

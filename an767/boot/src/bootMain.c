@@ -194,9 +194,9 @@ uint32_t sys_get_ms(void)
 }
 
 
-void	extFpgaBlinkPowerLED(char	isEnable)
+void	extSysBlinkTimerInit(unsigned short milliseconds)
 {
-	isEnable = isEnable;
+	milliseconds = milliseconds;
 }
 
 int main( void )

@@ -108,6 +108,8 @@ LIBS= -Wl,-L$(BIN_DIR) -lBsp -lAsf $(SUPPORT_LIBS)
 $(LOCAL_ALL):$(OBJS)
 		$(CC) -mthumb --specs=nano.specs -Wl,--gc-sections -mcpu=cortex-m7 -Wl,-Map=$(EXE).map -Wl,--entry=Reset_Handler -T $(LINK_SCRIPT) $(OBJS) $(LIBS) -lm -o $(EXE).elf 
 		$(OBJCOPY) -O binary $(EXE).elf $@
+		$(COPY) $(EXE).elf $(BIN_DIR)/$(EXE).$(BUILDTIME).elf
 		$(MOVE) $(EXE).elf $(BIN_DIR)
+		$(COPY) $@ $(BIN_DIR)/$(EXE).$(BUILDTIME).bin
 		$(MOVE) $@ $(BIN_DIR)
 		$(MOVE) $(EXE).map $(BIN_DIR)

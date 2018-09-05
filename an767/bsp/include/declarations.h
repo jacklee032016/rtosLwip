@@ -193,6 +193,8 @@ char *extFgpaReadVersion(void);
 
 #endif
 
+void extSysBlinkTimerInit(unsigned short milliseconds);
+
 char extCmdFactory(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
 extern	int 		argc;

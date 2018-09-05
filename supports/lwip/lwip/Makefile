@@ -166,6 +166,7 @@ EXTS_LWIP_SRC += \
 	$(EXT_HOME)/extFsm.c \
 	$(EXT_HOME)/extMediaTask.c \
 	$(EXT_HOME)/extLwipStart.c \
+	$(EXT_HOME)/extSys.c \
 
 
 #	src/lwip/frozen.c \

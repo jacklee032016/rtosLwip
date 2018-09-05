@@ -358,7 +358,7 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	if(EXT_DHCP_IS_ENABLE(runCfg))
 	{
 		/* DHCP mode. */
-		EXT_DEBUGF(EXT_DBG_ON, ("DHCP Starting %s..."EXT_NEW_LINE, "test") );
+		EXT_DEBUGF(EXT_DBG_ON, ("DHCP Starting ..."EXT_NEW_LINE) );
 		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
 		if (ERR_OK != dhcp_start(netif))
 		{

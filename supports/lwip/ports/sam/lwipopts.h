@@ -369,7 +369,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 #define	NETIF_DEBUG					LWIP_DBG_OFF
 #define	IP_DEBUG						LWIP_DBG_OFF
-#define	DHCP_DEBUG					LWIP_DBG_OFF
+#define	DHCP_DEBUG					LWIP_DBG_ON
 
 #define	PBUF_DEBUG					LWIP_DBG_OFF
 #define	API_LIB_DEBUG					LWIP_DBG_OFF

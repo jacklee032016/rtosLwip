@@ -687,6 +687,13 @@ void cmn_delay(int ms)
 /* used by other applications */
 #define	CMN_TIMER_1_SECOND		1000
 
+typedef enum
+{
+	sys_timer_id_state_waiting = 0,
+	sys_timer_id_state_servicing,		/* is servicing the callback */
+	sys_timer_id_state_wait_stop,	/* when it is in servicing state, someone want it stop (remove) */
+}sys_timer_id_state;
+
 typedef struct _sys_timer_id
 {
 #if EXT_TIMER_DEBUG
@@ -695,6 +702,8 @@ typedef struct _sys_timer_id
 	int							interval;		/* milliseconds */
 
 	sys_time_callback				callback;
+	unsigned char					state;
+	
 	os_timer_type					type;
 
 	void 						*param;
@@ -735,6 +744,22 @@ int cmn_get_ticks (void)
 	return(ticks);
 }
 
+static void __timer_remove(cmn_timer_t *timers, sys_timer_id_t *prev, sys_timer_id_t *t)
+{
+	if ( prev )
+	{
+		prev->next = t->next;
+	}
+	else
+	{
+		timers->timers = t->next;
+	}
+
+	-- timers->numOfTimers;
+	EXT_DEBUGF(EXT_DBG_ON,  ("Removed Timer %s:%p, num_timers = %d ", t->name, t, _timers.numOfTimers) );
+	free(t);
+}
+
 static void __threaded_timer_check(cmn_timer_t *timers)
 {
 	int now, ms;
@@ -744,10 +769,8 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 	now = cmn_get_ticks( );
 
 	sys_mutex_lock(&timers->mutex);
-	
-	for ( prev = NULL, t = timers->timers; t; t = next )
+	for ( t = timers->timers; t; t = next )
 	{
-		removed = 0;
 		ms = t->interval - CMN_TIMESLICE;
 		next = t->next;
 		
@@ -763,6 +786,7 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 			}
 
 			timers->timersChanged = EXT_FALSE;
+			t->state = sys_timer_id_state_servicing;
 
 #if EXT_TIMER_DEBUG
 			EXT_DEBUGF( EXT_DBG_ON, ("Executing timer %s(%p) ", t->name, t ));
@@ -777,7 +801,18 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 			{/* Abort, list of timers has been modified by other threads */
 				break;
 			}
+		}
+	}
 
+
+//	sys_mutex_lock(&timers->mutex);
+	for ( prev = NULL, t = timers->timers; t; t = next )
+	{
+		removed = 0;
+		ms = t->interval - CMN_TIMESLICE;
+		next = t->next;
+
+#if 0
 			if ( ms != t->interval )
 			{
 				if ( ms )
@@ -805,7 +840,22 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 				}
 			}
 		}
-		
+#else
+		if( t->state == sys_timer_id_state_wait_stop || 
+			(t->state == sys_timer_id_state_servicing && t->type != os_timer_type_reload) )
+		{
+			__timer_remove(timers, prev, t);
+			removed = 1;
+		}
+		else if(t->state== sys_timer_id_state_servicing)
+		{
+			t->state = sys_timer_id_state_waiting;
+			t->interval = ROUND_RESOLUTION(ms);
+#if EXT_TIMER_DEBUG
+			EXT_DEBUGF( EXT_DBG_ON, ("Reload timer %s(%p) with interval of %d", t->name, t, t->interval ));
+#endif
+		}
+#endif
 		/* Don't update prev if the timer has disappeared */
 		if ( ! removed )
 		{
@@ -873,12 +923,20 @@ err_t sys_timer_new(sys_timer_t *timer, sys_time_callback callback, os_timer_typ
 void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 {
 	sys_timer_id_t	*t;
-	
+
+	if(timer->timeId != NULL)
+	{
+		EXT_ERRORF(("Timer %s:%p has been started", timer->name, timer->timeId));
+		return;
+	}
+
 	sys_mutex_lock(&_timers.mutex);
 	t = (sys_timer_id_t *)malloc(sizeof( sys_timer_id_t));
 	if ( t )
 	{
 //		t->interval = ROUND_RESOLUTION(millisec);
+		memset(t, 0, sizeof(sys_timer_id_t));
+
 		t->interval = millisec;
 		t->callback = timer->callback;
 		t->type = timer->type;
@@ -924,6 +982,14 @@ void sys_timer_stop(sys_timer_t *timer)
 	{
 		if ( t == id )
 		{
+			if(t->state == sys_timer_id_state_servicing)
+			{/* if this timer is working now, it must be waiting and removed(freed) in timer thread */
+				t->state = sys_timer_id_state_wait_stop;
+				_timers.timersChanged = EXT_TRUE;
+				break;
+			}
+
+#if 0
 			if(prev)
 			{
 				prev->next = t->next;
@@ -937,13 +1003,16 @@ void sys_timer_stop(sys_timer_t *timer)
 			free(t);
 			
 			-- _timers.numOfTimers;
-			
+#else
+			__timer_remove(&_timers, prev, t);
+#endif
 			removed = EXT_TRUE;
 			_timers.timersChanged = EXT_TRUE;
 			break;
 		}
 	}
-	
+
+	timer->timeId = NULL;
 
 	sys_mutex_unlock(&_timers.mutex);
 	return;

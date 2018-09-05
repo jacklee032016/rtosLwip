@@ -38,7 +38,7 @@ void TRNG_Handler(void)
 			memcpy(&extRun.local.mac.address[4], &status, 2); 
 		}
 
-		extRun.local.mac.address[0] = extRun.local.mac.address[0]*0xFE;	/* set as unicast address */
+		extRun.local.mac.address[0] = extRun.local.mac.address[0]*0xFE|0x02;	/* set as unicast address and local mac*/
 		
 
 		/* set local address: bit 0 of first address is 0 */
@@ -62,7 +62,7 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
 
 	if ((EXT_PUSH_BUTTON_ID == id) && (EXT_PUSH_BUTTON_PIN_MSK == mask) )
 	{
-		extFpgaBlinkPowerLED(EXT_TRUE);
+		extSysBlinkTimerInit( BTN_FACTORY_DURATION);
 //		g_button_event = 1;
 		if(_firstTime == 0)
 		{

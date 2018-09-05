@@ -11,7 +11,7 @@
 /* polled once per second (e.g. continue write on memory error) */
 #define	EXT_TELNET_POLL_INTERVAL			2
 
-#define	EXT_TELNET_TIMEOUT				30
+#define	EXT_TELNET_TIMEOUT				30		/* seconds */
 
 #define	TELNET_PROTOCOL_IAC				0xFF	/* Intepret As Command */
 

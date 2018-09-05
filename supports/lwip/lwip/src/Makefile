@@ -171,9 +171,10 @@ EXTS_LWIP_SRC += \
 	$(EXTS_CMD_SRC) \
 	$(EXTS_IPERF_SRC) \
 	$(EXTS_PTPD_SRC) \
+	$(EXT_HOME)/extFsm.c \
 	$(EXT_HOME)/extMediaTask.c \
 	$(EXT_HOME)/extLwipStart.c \
-	$(EXT_HOME)/extLwipStart.c \
+	$(EXT_HOME)/extSys.c \
 
 #	lwip/frozen.c \
 
