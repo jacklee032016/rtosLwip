@@ -185,6 +185,8 @@ void ptpStateMachine(PtpClock*);
 void toState(PtpClock*, uint8_t);
 /** \}*/
 
+void ptpdShutdown(PtpClock *ptpClock);
+
 // Send an alert to the PTP daemon thread.
 void ptpd_alert(void);
 

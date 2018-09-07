@@ -159,9 +159,8 @@ void TC9_Handler    ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 void TC10_Handler   ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 void TC11_Handler   ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 void AES_Handler    ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
-#if 1//def __FREERTOS__
-void TRNG_Handler( void ) __attribute__ (( naked ));
-#else
+#if 0//def __FREERTOS__
+//void TRNG_Handler( void ) __attribute__ (( naked ));
 void TRNG_Handler   ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
 void XDMAC_Handler  ( void ) __attribute__ ((weak, alias("Dummy_Handler")));

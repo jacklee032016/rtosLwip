@@ -378,7 +378,7 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 
 /* check whether this message is a reply for last message sent from TX/RX */
-char extJsonIsResponse(EXT_JSON_PARSER  *parser)
+static char _extJsonIsResponse(EXT_JSON_PARSER  *parser)
 {
 	char name[EXT_USER_SIZE];
 	
@@ -406,7 +406,7 @@ char extIpCmdSetupParams(EXT_JSON_PARSER  *parser)
 	char ret;
 	EXT_RUNTIME_CFG *rxCfg = &tmp;
 
-	if(extJsonIsResponse(parser)== EXIT_SUCCESS )
+	if(_extJsonIsResponse(parser)== EXIT_SUCCESS )
 		return EXIT_SUCCESS;
 
 	ret = extIpCmdIsLocal(parser);

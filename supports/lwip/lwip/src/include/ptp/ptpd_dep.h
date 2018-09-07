@@ -17,14 +17,14 @@
 #ifdef PTPD_DBGV
 #define PTPD_DBG
 #define PTPD_ERR
-#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); EXT_DEBUGF(EXT_PTP_DEBUG,  (__VA_ARGS__)); }
+#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %"U32_F".%09"U32_F") ", tmpTime.seconds, tmpTime.nanoseconds); EXT_DEBUGF(EXT_PTP_DEBUG,  (__VA_ARGS__)); }
 #else
 #define DBGV(...)
 #endif
 
 #ifdef PTPD_DBG
 #define PTPD_ERR
-#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); EXT_INFOF((__VA_ARGS__)); }
+#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %"U32_F".%09"U32_F") ", tmpTime.seconds, tmpTime.nanoseconds); EXT_INFOF((__VA_ARGS__)); }
 #else
 #define DBG(...)
 #endif
@@ -33,7 +33,7 @@
 /** \name System messages */
 /**\{*/
 #ifdef PTPD_ERR
-#define ERROR(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(E %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds);EXT_ERRORF( (__VA_ARGS__)); }
+#define ERROR(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(E %"U32_F".%09"U32_F") ", tmpTime.seconds, tmpTime.nanoseconds);EXT_ERRORF( (__VA_ARGS__)); }
 /* #define ERROR(...)  { printf("(E) "); printf(__VA_ARGS__); } */
 #else
 #define ERROR(...)

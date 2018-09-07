@@ -11,7 +11,6 @@ static sys_timer_t		_blinkTimer;		/* timer for connect and disconnect messages *
 
 static void _blinkTimerCallback(void *arg)
 {
-	TRACE();
 #ifdef ARM
 	extFpgaBlinkPowerLED(EXT_TRUE);
 #else
@@ -24,16 +23,16 @@ static void _blinkTimerCallback(void *arg)
 
 void extSysBlinkTimerInit(unsigned short milliseconds)
 {
-	TRACE();
 	memset(&_blinkTimer, 0, sizeof(sys_timer_t));
 #if EXT_TIMER_DEBUG
 	snprintf(_blinkTimer.name, sizeof(_blinkTimer.name), "%s", "BlinkTimer" );
 #endif
-	sys_timer_new(&_blinkTimer, _blinkTimerCallback, os_timer_type_once, (void *) NULL);
+	sys_timer_new(&_blinkTimer, _blinkTimerCallback, os_timer_type_reload, (void *) &_blinkTimer);
 
-	TRACE();
+//	_blinkTimer.isFromIsr = EXT_TRUE;
 
-//	sys_timer_start(&_blinkTimer, milliseconds);
-	TRACE();
+
+	sys_timer_start(&_blinkTimer, milliseconds);
+
 }
 

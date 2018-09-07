@@ -127,7 +127,7 @@ static void filter(int32_t * nsec_current, Filter * filt)
 	/* Save previous order of the filter */
 	filt->s_prev = s;
 
-	DBGV("filter: %d -> %d (%d)\n", *nsec_current, filt->y_prev, s);
+	DBGV("filter: %"U32_F" -> %"U32_F" (%"U32_F")\n", *nsec_current, filt->y_prev, s);
 
 	/* Actualize target value */
 	*nsec_current = filt->y_prev;
@@ -311,7 +311,7 @@ void updateClock(PtpClock *ptpClock)
 
 		if (DEFAULT_PARENTS_STATS)
 		{
-			int a, scaledLogVariance;
+			int32_t a, scaledLogVariance;
 			ptpClock->parentDS.parentStats = TRUE;
 			ptpClock->parentDS.observedParentClockPhaseChangeRate = 1100 * ptpClock->observedDrift;
 
@@ -329,12 +329,12 @@ void updateClock(PtpClock *ptpClock)
 	switch (ptpClock->portDS.delayMechanism)
 	{
 		case E2E:
-			DBG("updateClock: one-way delay averaged (E2E): %d sec %d nsec\n",
+			DBG("updateClock: one-way delay averaged (E2E): %"U32_F" sec %"U32_F" nsec\n",
 					ptpClock->currentDS.meanPathDelay.seconds, ptpClock->currentDS.meanPathDelay.nanoseconds);
 			break;
 
 		case P2P:
-			DBG("updateClock: one-way delay averaged (P2P): %d sec %d nsec\n",
+			DBG("updateClock: one-way delay averaged (P2P): %"U32_F" sec %"U32_F" nsec\n",
 					ptpClock->portDS.peerMeanPathDelay.seconds, ptpClock->portDS.peerMeanPathDelay.nanoseconds);
 			break;
 
@@ -342,8 +342,9 @@ void updateClock(PtpClock *ptpClock)
 			DBG("updateClock: one-way delay not computed\n");
 	}
 
-	DBG("updateClock: offset from master: %d sec %d nsec\n",
+	DBG("updateClock: offset from master: %"U32_F" sec %"U32_F" nsec\n",
 			ptpClock->currentDS.offsetFromMaster.seconds,
 			ptpClock->currentDS.offsetFromMaster.nanoseconds);
-	DBG("updateClock: observed drift: %d\n", ptpClock->observedDrift);
+	DBG("updateClock: observed drift: %"U32_F"\n", ptpClock->observedDrift);
 }
+

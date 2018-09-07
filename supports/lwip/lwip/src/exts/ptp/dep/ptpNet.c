@@ -235,7 +235,7 @@ static ssize_t _netSend(const octet_t *buf, int16_t  length, TimeInternal *time,
 		*/
 		getTime(time);
 #endif
-		DBGV("netSend: %d sec %d nsec", time->seconds, time->nanoseconds);
+		DBGV("netSend: %"U32_F" sec %"U32_F" nsec", time->seconds, time->nanoseconds);
 	}
 	else
 	{

@@ -93,9 +93,9 @@ void timerStart(int32_t index, uint32_t interval_ms)
 
 	// Set the timer duration and start the timer.
 #if EXT_TIMER_DEBUG
-	DBGV("timerStart: set timer %s to %d\n", ptpdTimers[index].name, interval_ms);
+	DBGV("timerStart: set timer %s to %"U32_F"\n", ptpdTimers[index].name, interval_ms);
 #else
-	DBGV("timerStart: set timer %d to %d\n", index, interval_ms);
+	DBGV("timerStart: set timer %d to %"U32_F"\n", index, interval_ms);
 #endif
 	ptpdTimersExpired[index] = FALSE;
 	sys_timer_start(&ptpdTimers[index], interval_ms);

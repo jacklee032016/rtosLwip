@@ -211,8 +211,12 @@ void vMuxUartCmdConsoleStart( uint16_t usStackSize, unsigned long uxPriority )
 	_xTxMutex = xSemaphoreCreateMutex();
 	configASSERT( _xTxMutex );
 
+#if 0
 	/* Create that task that handles the console itself. */
 	xTaskCreate( _prvUartCmdConsoleTask, EXT_TASK_CONSOLE, usStackSize, NULL, uxPriority, NULL );
+#else
+	sys_thread_new(EXT_TASK_CONSOLE, _prvUartCmdConsoleTask, NULL, usStackSize, uxPriority);
+#endif
 }
 
 

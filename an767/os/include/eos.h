@@ -110,7 +110,6 @@ char  extBspFpgaReload(void);
 char extFpgaReadParams(MuxRunTimeParam *mediaParams);
 char extFpgaWriteParams(MuxRunTimeParam *mediaParams);
 
-void extFpgaTimerJob(MuxRunTimeParam  *mediaParams);
 
 //void	extFpgaEnable(char	isEnable);
 
@@ -125,7 +124,6 @@ uint32_t sys_get_ms(void);
 
 void extEtherDebug(void);
 
-void extJobPeriod(EXT_RUNTIME_CFG *runCfg);
 
 #endif
 

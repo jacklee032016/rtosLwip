@@ -3,7 +3,7 @@
 #include "ptpd.h"
 
 /* Convert EUI48 format to EUI64 */
-void EUI48toEUI64(const octet_t * eui48, octet_t * eui64)
+static void EUI48toEUI64(const octet_t * eui48, octet_t * eui64)
 {
 	eui64[0] = eui48[0];
 	eui64[1] = eui48[1];
@@ -216,7 +216,7 @@ void s1(PtpClock *ptpClock, const MsgHeader *header, const MsgAnnounce *announce
 /**
  * \brief Copy local data set into header and announce message. 9.3.4 table 12
  */
-void copyD0(MsgHeader *header, MsgAnnounce *announce, PtpClock *ptpClock)
+static void copyD0(MsgHeader *header, MsgAnnounce *announce, PtpClock *ptpClock)
 {
 	announce->grandmasterPriority1 = ptpClock->defaultDS.priority1;
 	memcpy(announce->grandmasterIdentity, ptpClock->defaultDS.clockIdentity, CLOCK_IDENTITY_LENGTH);
@@ -248,7 +248,7 @@ void copyD0(MsgHeader *header, MsgAnnounce *announce, PtpClock *ptpClock)
 	}                                                                     \
 
 /* Data set comparison bewteen two foreign masters (9.3.4 fig 27) return similar to memcmp() */
-int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeader *headerB, MsgAnnounce *announceB, PtpClock *ptpClock)
+static int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeader *headerB, MsgAnnounce *announceB, PtpClock *ptpClock)
 {
 	int grandmasterIdentityComp;
 	short comp = 0;
@@ -358,7 +358,7 @@ int8_t bmcDataSetComparison(MsgHeader *headerA, MsgAnnounce *announceA, MsgHeade
 }
 
 /* State decision algorithm 9.3.3 Fig 26 */
-uint8_t bmcStateDecision(MsgHeader *header, MsgAnnounce *announce, PtpClock *ptpClock)
+static uint8_t bmcStateDecision(MsgHeader *header, MsgAnnounce *announce, PtpClock *ptpClock)
 {
 	int comp;
 

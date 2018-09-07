@@ -11,7 +11,7 @@
 * Output         : None
 * Return         : None
 */
-void ETH_PTPStart(uint32_t UpdateMethod)
+static void ETH_PTPStart(uint32_t UpdateMethod)
 {
 #if 0
 	/* Check the parameters */
@@ -90,6 +90,7 @@ void ETH_PTPTime_AdjFreq(int32_t Adj)
 
 	addend = ((((275LL * Adj)>>8) * (ADJ_FREQ_BASE_ADDEND>>24))>>6) + ADJ_FREQ_BASE_ADDEND;
 
+	addend = addend;
 #if 0	
 	/* Reprogram the Time stamp addend register with new Rate value and set ETH_TPTSCR */
 	ETH_SetPTPTimeStampAddend((uint32_t)addend);
@@ -303,11 +304,11 @@ void extPtpCmdStatus(char *buf, unsigned int len)
 	{
 		case E2E:
 			index += snprintf(buf+index, len-index, "Mode: E2E\n");
-			index += snprintf(buf+index, len-index, "Path Delay: %d nsec\n", ptpClock.currentDS.meanPathDelay.nanoseconds);
+			index += snprintf(buf+index, len-index, "Path Delay: %"U32_F" nsec\n", ptpClock.currentDS.meanPathDelay.nanoseconds);
 			break;
 		case P2P:
 			index += snprintf(buf+index, len-index, "Mode: P2P\n");
-			index += snprintf(buf+index, len-index, "Path Delay: %d nsec\n", ptpClock.portDS.peerMeanPathDelay.nanoseconds);
+			index += snprintf(buf+index, len-index, "Path Delay: %"U32_F" nsec\n", ptpClock.portDS.peerMeanPathDelay.nanoseconds);
 			break;
 		default:
 			index += snprintf(buf+index, len-index,"Mode: unknown\n");
@@ -319,11 +320,11 @@ void extPtpCmdStatus(char *buf, unsigned int len)
 	/* Offset from master */
 	if (ptpClock.currentDS.offsetFromMaster.seconds)
 	{
-		index += snprintf(buf+index, len-index, "Offset: %d sec\n", ptpClock.currentDS.offsetFromMaster.seconds);
+		index += snprintf(buf+index, len-index, "Offset: %"U32_F" sec\n", ptpClock.currentDS.offsetFromMaster.seconds);
 	}
 	else
 	{
-		index += snprintf(buf+index, len-index, "Offset: %d nsec\n", ptpClock.currentDS.offsetFromMaster.nanoseconds);
+		index += snprintf(buf+index, len-index, "Offset: %"U32_F" nsec\n", ptpClock.currentDS.offsetFromMaster.nanoseconds);
 	}
 
 	/* Observed drift from master */
@@ -342,8 +343,7 @@ void extPtpCmdStatus(char *buf, unsigned int len)
 
 bool extPtpCmdDate(char *buf, unsigned int len)
 {
-	unsigned int index = 0;
-#ifdef ARM
+#ifndef ARM
 
 	char buffer[32];
 	time_t seconds1900;
@@ -361,6 +361,7 @@ bool extPtpCmdDate(char *buf, unsigned int len)
 	// Print the string.
 	telnet_puts(buffer);
 #else
+//	unsigned int index = 0;
 
 #endif
 

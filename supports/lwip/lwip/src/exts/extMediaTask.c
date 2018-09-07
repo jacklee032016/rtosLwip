@@ -28,13 +28,16 @@ static void _sendMsgStartTimer(void )
 }
 
 
-unsigned char _fsmConnectEvent(void *arg)
+
+static unsigned char _fsmConnectEvent(void *arg)
 {
 	ext_fsm_t *fsm = (ext_fsm_t *)arg;
 	
+#ifndef ARM
 	/* stop old timer and then start a new one */
 	sys_timer_stop(&_mediaMsgTimer);
-	
+#endif
+
 	if(fsm->currentState == EXT_MEDIA_STATE_DISCONNECT)
 	{/* send set_param and start timer */
 		_sendMsgStartTimer();
@@ -45,12 +48,14 @@ unsigned char _fsmConnectEvent(void *arg)
 	return EXT_MEDIA_STATE_CONNECT;
 }
 
-unsigned char _fsmDisconnEvent(void *arg)
+static unsigned char _fsmDisconnEvent(void *arg)
 {
 	ext_fsm_t *fsm = (ext_fsm_t *)arg;
 
+#ifndef ARM
 	/* stop old timer and then start a new one */
 	sys_timer_stop(&_mediaMsgTimer);
+#endif
 
 	/* send set_param*/
 	if(fsm->currentState == EXT_MEDIA_STATE_CONNECT)
@@ -61,20 +66,20 @@ unsigned char _fsmDisconnEvent(void *arg)
 	return EXT_MEDIA_STATE_DISCONNECT;
 }
 
-unsigned char _fsmAckEvent(void *arg)
+static unsigned char _fsmAckEvent(void *arg)
 {
 //	ext_fsm_t *fsm = (ext_fsm_t *)arg;
-	TRACE();
 	/* stop timer */
+#ifndef ARM
 	sys_timer_stop(&_mediaMsgTimer);
+#endif
 	
 	return EXT_STATE_CONTINUE;
 }
 
-unsigned char _fsmTimeoutEvent(void *arg)
+static unsigned char _fsmTimeoutEvent(void *arg)
 {
 //	ext_fsm_t *fsm = (ext_fsm_t *)arg;
-	TRACE();
 	/* maybe not compatible with sys_arch of FreeRTOS and Linux */
 	sys_timer_stop(&_mediaMsgTimer);
 
@@ -150,7 +155,7 @@ static MuxRunTimeParam _mediaParams;
 static void _extMediaControlThread(void *arg)
 {
 	media_event_t *event;
-	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+//	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 	
 	while (1)
 	{
@@ -245,8 +250,7 @@ static void _msgTimerCallback(void *arg)
 
 void extMediaInit( void *arg)
 {
-	TRACE();
-	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+//	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 	
 	if (sys_mbox_new(&_vmMailBox, EXT_MCTRL_MBOX_SIZE) != ERR_OK)
 	{
@@ -265,7 +269,7 @@ void extMediaInit( void *arg)
 	_mediaFsm.currentState = EXT_MEDIA_STATE_DISCONNECT;
 	_mediaFsm.states = _mediaStateMachine;
 
-	EXT_DEBUGF(EXT_DBG_ON, (EXT_TASK_NAME" FSM: %p:%p", _mediaStateMachine, _mediaFsm.states ));
+	EXT_DEBUGF(EXT_DBG_OFF, (EXT_TASK_NAME" FSM: %p:%p", _mediaStateMachine, _mediaFsm.states ));
 
 #ifdef	X86
 #if EXT_TIMER_DEBUG
@@ -280,7 +284,7 @@ void extMediaInit( void *arg)
 #endif
 	sys_timer_new(&_mediaMsgTimer, _msgTimerCallback, os_timer_type_once, (void *) &_mediaFsm);
 
-	sys_thread_new(EXT_TASK_NAME, _extMediaControlThread, arg, EXT_NET_IF_TASK_STACK_SIZE/2, EXT_NET_IF_TASK_PRIORITY-2 );
+	sys_thread_new(EXT_TASK_NAME, _extMediaControlThread, arg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY-2 );
 }
 
 
@@ -290,6 +294,10 @@ const EXT_CONST_STR  _stateStr[] =
 	{
 		EXT_EVENT_NONE,
 		"None"	
+	},
+	{
+		EXT_EVENT_FACTORY_RESET,
+		"RESET"	
 	},
 	{
 		EXT_MEDIA_EVENT_CONNECT,
@@ -340,6 +348,8 @@ unsigned char extMediaPostEvent(unsigned char eventType, void *ctx)
 		memp_free(MEMP_TCPIP_MSG_API, event);
 		return EXIT_FAILURE;
 	}
+
+TRACE();
 
 	return EXIT_SUCCESS;
 }

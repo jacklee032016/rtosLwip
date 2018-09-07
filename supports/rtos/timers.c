@@ -62,7 +62,7 @@ configUSE_TIMERS is set to 1 in FreeRTOSConfig.h. */
 /* The name assigned to the timer service task.  This can be overridden by
 defining trmTIMER_SERVICE_TASK_NAME in FreeRTOSConfig.h. */
 #ifndef configTIMER_SERVICE_TASK_NAME
-	#define configTIMER_SERVICE_TASK_NAME		"Timer"
+	#define configTIMER_SERVICE_TASK_NAME		"timer"
 #endif
 
 /* The definition of the timers themselves. */

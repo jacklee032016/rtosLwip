@@ -58,7 +58,7 @@ void toInternalTime(TimeInternal *internal, const Timestamp *external)
 	}
 }
 
-void normalizeTime(TimeInternal *r)
+static void normalizeTime(TimeInternal *r)
 {
 	r->seconds += r->nanoseconds / 1000000000;
 	r->nanoseconds -= r->nanoseconds / 1000000000 * 1000000000;

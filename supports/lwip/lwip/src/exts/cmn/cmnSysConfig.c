@@ -229,7 +229,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->rs232Cfg.parityType = EXT_RS232_PARITY_NONE;
 	cfg->rs232Cfg.stopbits = EXT_RS232_STOP_BITS_1;
 
-#if 0
+#if 1
 	cfg->netMode = (EXT_IP_CFG_DHCP_ENABLE)|0;
 #else
 	cfg->netMode = 0;

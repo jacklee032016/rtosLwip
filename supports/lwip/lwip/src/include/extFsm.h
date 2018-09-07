@@ -6,21 +6,22 @@
 
 #define		WITH_VERSION_STATE			0
 
-#define	EXT_EVENT_NONE 					0
+#include		"extSysParams.h"
 
 #pragma		pack(1)
 
 typedef	enum
 {
-	EXT_MEDIA_EVENT_CONNECT = EXT_EVENT_NONE+1, 		/* SDI connect from FPGA */
+	EXT_MEDIA_EVENT_CONNECT = EXT_SYS_EVENT_MAX+1, 		/* SDI connect from FPGA */
 	EXT_MEDIA_EVENT_DISCONNECT, 						/* SDI disconnect from FPGA */
 	EXT_MEDIA_EVENT_ACK, 								/* recv ACK after send set_param  */
 	EXT_MEDIA_EVENT_NACK, 							/* recv NACK, eg 811 refuse this message after send set_param  */
 	EXT_MEDIA_EVENT_TIMEOUT, 							/* timeout after send set_param */
+
+
 }EXT_MEDIA_EVENT_T;
 
 
-#define	EXT_STATE_CONTINUE				0
 
 typedef	enum
 {

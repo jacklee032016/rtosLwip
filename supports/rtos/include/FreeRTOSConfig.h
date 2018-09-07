@@ -8,6 +8,10 @@
 
 /* Atmel includes. */
 
+#include "extSysParams.h"
+
+#include <stdio.h>
+
 //#include "compact.h"
 
 /*-----------------------------------------------------------
@@ -41,7 +45,7 @@
 //#define configTICK_RATE_HZ						( 100 )
 #define configMAX_PRIORITIES					( 5 )
 #define configMINIMAL_STACK_SIZE				( ( unsigned short ) 130 )
-#define configTOTAL_HEAP_SIZE					( ( size_t ) ( 26 * 1024 ) )
+#define configTOTAL_HEAP_SIZE					( ( size_t ) ( 40 * 1024 ) )
 #define configMAX_TASK_NAME_LEN					( 10 )
 #define configUSE_TRACE_FACILITY				1
 #define configUSE_16_BIT_TICKS					0
@@ -82,7 +86,7 @@ FreeRTOS/Source/tasks.c for limitations. */
 
 #define configTIMER_TASK_PRIORITY				( configMAX_PRIORITIES - 2 )
 #define configTIMER_QUEUE_LENGTH				10
-#define configTIMER_TASK_STACK_DEPTH			( configMINIMAL_STACK_SIZE * 4 )
+#define configTIMER_TASK_STACK_DEPTH			( configMINIMAL_STACK_SIZE *2 )
 
 /* add 07.19,2018 JL*/
 //#define configSUPPORT_STATIC_ALLOCATION			1
@@ -127,7 +131,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
-#define configASSERT( x ) if( ( x ) == 0 ) { taskDISABLE_INTERRUPTS(); for( ;; ) __asm volatile( "NOP" ); }
+#define configASSERT( x ) if( ( x ) == 0 ) { TRACE(); taskDISABLE_INTERRUPTS(); for( ;; ) __asm volatile( "NOP" ); }
 #define INCLUDE_MODULE_TEST 0
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS

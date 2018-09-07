@@ -54,11 +54,25 @@
 
 
 
+
+#define	EXT_EVENT_NONE 					0
+	/**/
+#define	EXT_EVENT_FACTORY_RESET			1 			/* factory reset event from ISR */
+
+#define	EXT_SYS_EVENT_MAX				EXT_EVENT_FACTORY_RESET
+
+
+#define	EXT_STATE_CONTINUE				0
+
+
+#define	BTN_FACTORY_DURATION				6000 /* requirement */
+
+
 #define		EXT_NET_IF_TASK_STACK_SIZE				256*4
 
 #define		EXT_NET_IF_TASK_PRIORITY					(4)		/* highest priority level in Free RTOS */
 
-#define		EXT_MCTRL_MBOX_SIZE						4
+#define		EXT_MCTRL_MBOX_SIZE						4*2
 
 #define	EXT_RW_BUFFER_SIZE				1024
 
@@ -133,9 +147,9 @@
 #endif
 
 #ifdef	ARM
-//#define	CONF_SVR811_IPADDR3						50
 #define	CONF_SVR811_IPADDR2						168 		/* X86-->board */
-#define	CONF_SVR811_IPADDR3						102 		/* test with my computer */
+//#define	CONF_SVR811_IPADDR3						102 		/* test with my computer */
+#define	CONF_SVR811_IPADDR3						50
 #else
 #define	CONF_SVR811_IPADDR2						166 		/* simhost */
 #define	CONF_SVR811_IPADDR3						1 		/* simhost */
@@ -279,12 +293,12 @@
 
 
 #define	EXT_TASK_CONSOLE				"console"
-#define	EXT_TASK_MAC					"macd"	/* GMAC controller */
+#define	EXT_TASK_MAC					"mac"	/* GMAC controller */
 #define	EXT_TASK_HTTP					"httpd"
 #define	EXT_TASK_TELNET				"telnetd"
 #define	EXT_TASK_SYS_CTRL				"sysd"
 
-#define	EXT_TASK_NAME					"mCtrl"
+#define	EXT_TASK_NAME					"poll"
 
 /** Debug level: ALL messages*/
 #define	EXT_DBG_LEVEL_ALL				0x00
@@ -352,7 +366,7 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(message)		{printf((ANSI_COLOR_CYAN""));_TRACE_OUT(message);printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
+	#define	EXT_INFOF(message)		{printf((ANSI_COLOR_CYAN""));EXT_PRINTF(message);printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
 	
 	#define	EXT_ERRORF(message)		{printf((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); printf((ERROR_TEXT_END  EXT_NEW_LINE));}
 

@@ -245,7 +245,7 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 			return;
 		}
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("receive %d bytes from '%s' port %d:'%.*s'"LWIP_NEW_LINE, p->tot_len, inet_ntoa(*(ip_addr_t *)addr), port,
-			p->tot_len - IPCMD_HEADER_LENGTH*2, (char *)(p->payload+IPCMD_HEADER_LENGTH)) );
+			p->tot_len - IPCMD_HEADER_LENGTH*2, ((char *)(p->payload)+IPCMD_HEADER_LENGTH)));
 //		CONSOLE_DEBUG_MEM( p->payload, p->len, 0, "RECV IP Cmd");
 
 		size = (p->tot_len > parser->runCfg->bufLength)? parser->runCfg->bufLength: p->tot_len;

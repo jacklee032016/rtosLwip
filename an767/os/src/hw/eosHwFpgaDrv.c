@@ -123,7 +123,7 @@ static void	_extFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, u
 
 
 #define	_extFpgaWriteShortChanging(address, shortVal) \
-{	unsigned short value = lwip_ntohs(*((unsigned short *)(shortVal))); _extFpgaRegisterWrite((address), &value, 2); }
+{	unsigned short _value = lwip_ntohs(*((unsigned short *)(shortVal))); _extFpgaRegisterWrite((address), (unsigned char *)&_value, 2); }
 
 
 #define	_extFpgaWriteShort(address, shortVal) \
@@ -131,7 +131,7 @@ static void	_extFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, u
 
 
 #define	_extFpgaWriteInteger(address, intVal) \
-{	unsigned int value = lwip_ntohl(*((unsigned int *)(intVal))); _extFpgaRegisterWrite((address), &value, 4); }
+{	unsigned int _value = lwip_ntohl(*((unsigned int *)(intVal))); _extFpgaRegisterWrite((address), (unsigned char *)&_value, 4); }
 
 
 
@@ -148,7 +148,7 @@ static void _changeByteOrderOfMac(EXT_MAC_ADDRESS *mac, unsigned char *address)
 unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 {
 	int index = 0;
-	unsigned char val;
+//	unsigned char val;
 	unsigned short port = 0;
 	unsigned int	intValue;
 	EXT_MAC_ADDRESS destMac;
@@ -228,9 +228,9 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
 {
 	EXT_MAC_ADDRESS destMac, *mac;
 	char ret;
+	unsigned char value;
 	unsigned char		address[EXT_MAC_ADDRESS_LENGTH];
 	EXT_VIDEO_CONFIG *vCfg;
-
 
 	/*configure local address/port, for both RX/TX*/
 	
@@ -263,7 +263,7 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
 		_changeByteOrderOfMac(mac, address);
 		_extFpgaRegisterWrite(EXT_FPGA_REG_DEST_MAC, address, EXT_MAC_ADDRESS_LENGTH);
 
-		_extFpgaWriteInteger(EXT_FPGA_REG_DEST_IP, (unsigned char *)&runCfg->dest.ip);
+		_extFpgaWriteInteger(EXT_FPGA_REG_DEST_IP, &runCfg->dest.ip);
 
 		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_VIDEO, (unsigned char *)&runCfg->dest.vport);
 		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_AUDIO, (unsigned char *)&runCfg->dest.aport);
@@ -280,12 +280,27 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
 		_changeByteOrderOfMac(&vCfg->mac, address);
 		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
 
-		_extFpgaWriteInteger(EXT_FPGA_REG_IP, (unsigned char *)&vCfg->ip);
+		_extFpgaWriteInteger(EXT_FPGA_REG_IP, &vCfg->ip);
 
 		_extFpgaWriteShort(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&vCfg->vport);
 		_extFpgaWriteShort(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&vCfg->aport);
 		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_DT, (unsigned char *)&vCfg->dport);
 		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_ST, (unsigned char *)&vCfg->sport);
+
+		/* reset */
+		_extFpgaReadByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
+		EXT_DEBUGF(EXT_DBG_OFF, ("Read %x", value));
+		value = (value | (1<<1));
+		EXT_DEBUGF(EXT_DBG_OFF, ("Write %x", value));
+		_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
+
+		/* release reset */
+		_extFpgaReadByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
+		EXT_DEBUGF(EXT_DBG_OFF, ("ReRead %x", value));
+		value = value & 0xFD;
+		EXT_DEBUGF(EXT_DBG_OFF,  ("ReWrite %x", value));
+		_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
+
 
 //		printf("FPGA Configuration ended!"LWIP_NEW_LINE);
 
@@ -447,8 +462,6 @@ static unsigned char _translateDepth(unsigned char depth, unsigned char isFromFp
 }
 
 
-extern	EXT_JSON_PARSER  extParser;
-
 void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 {
 	unsigned char value;
@@ -460,6 +473,7 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 	EXT_DEBUGF(EXT_DBG_ON, ("New Media Params is available now!"));
 	
 	extFpgaReadParams(mediaParams);
+	/* clear register */
 	_extFpgaWriteByte(EXT_FPGA_REG_PARAM_STATUS, &value);
 
 
@@ -502,8 +516,8 @@ char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
 
 	_extFpgaWriteByte(EXT_FPGA_REG_INTLC_SEGM, &mediaParams->vIsSegmented);
 
-	
-	_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, EXT_FPGA_FLAGS_MCU_ENABLE);
+	value = EXT_FPGA_FLAGS_MCU_ENABLE;
+	_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, &value);
 
 	return EXIT_SUCCESS;
 }
@@ -593,8 +607,9 @@ char  extBspFpgaReload(void)
 	if(isOK == EXIT_SUCCESS)
 	{
 		printf("FPGA Ethernet Reset register %d : %2x"EXT_NEW_LINE, EXT_FPGA_REG_ETHERNET_RESET, data);
-		data = 0x01;
-	
+
+		_extFpgaReadByte(EXT_FPGA_REG_ETHERNET_RESET, &data);
+		data = data||0x01;
 		_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &data);
 
 #if 0

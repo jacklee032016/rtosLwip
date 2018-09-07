@@ -38,10 +38,10 @@ void displayStats(const PtpClock *ptpClock)
 	switch (ptpClock->portDS.delayMechanism)
 	{
 		case E2E:
-			printf("path delay: %d nsec\n", ptpClock->currentDS.meanPathDelay.nanoseconds);
+			printf("path delay: %"U32_F" nsec\n", ptpClock->currentDS.meanPathDelay.nanoseconds);
 			break;
 		case P2P:
-			printf("path delay: %d nsec\n", ptpClock->portDS.peerMeanPathDelay.nanoseconds);
+			printf("path delay: %"U32_F" nsec\n", ptpClock->portDS.peerMeanPathDelay.nanoseconds);
 			break;
 		default:
 			printf("path delay: unknown\n");
@@ -52,11 +52,11 @@ void displayStats(const PtpClock *ptpClock)
 	/* Offset from master */
 	if (ptpClock->currentDS.offsetFromMaster.seconds)
 	{
-		printf("offset: %d sec\n", ptpClock->currentDS.offsetFromMaster.seconds);
+		printf("offset: %"U32_F" sec\n", ptpClock->currentDS.offsetFromMaster.seconds);
 	}
 	else
 	{
-		printf("offset: %d nsec\n", ptpClock->currentDS.offsetFromMaster.nanoseconds);
+		printf("offset: %"U32_F" nsec\n", ptpClock->currentDS.offsetFromMaster.nanoseconds);
 	}
 
 	/* Observed drift from master */
@@ -89,14 +89,14 @@ void setTime(const TimeInternal *time)
 	ts.tv_sec = time->seconds;
 	ts.tv_nsec = time->nanoseconds;
 	ETH_PTPTime_SetTime(&ts);
-	DBG("resetting system clock to %d sec %d nsec\n", time->seconds, time->nanoseconds);
+	DBG("resetting system clock to %"U32_F" sec %"U32_F" nsec\n", time->seconds, time->nanoseconds);
 }
 
 void updateTime(const TimeInternal *time)
 {
 	struct ptptime_t timeoffset;
 
-	DBGV("updateTime: %d sec %d nsec\n", time->seconds, time->nanoseconds);
+	DBGV("updateTime: %"U32_F" sec %"U32_F" nsec\n", time->seconds, time->nanoseconds);
 
 	timeoffset.tv_sec = -time->seconds;
 	timeoffset.tv_nsec = -time->nanoseconds;
@@ -113,7 +113,7 @@ uint32_t getRand(uint32_t randMax)
 
 bool  adjFreq(int32_t adj)
 {
-	DBGV("adjFreq %d", adj);
+	DBGV("adjFreq %"U32_F, adj);
 
 	if (adj > ADJ_FREQ_MAX)
 		adj = ADJ_FREQ_MAX;

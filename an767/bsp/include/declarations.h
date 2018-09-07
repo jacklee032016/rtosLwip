@@ -195,6 +195,8 @@ char *extFgpaReadVersion(void);
 
 void extSysBlinkTimerInit(unsigned short milliseconds);
 
+unsigned char extMediaPostEvent(unsigned char eventType, void *ctx);;
+
 char extCmdFactory(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
 extern	int 		argc;
@@ -231,6 +233,14 @@ void extNetPingSendNow(unsigned int destIp);
 
 
 int	cmnParseGetHexIntValue(char *hexString);
+
+#ifdef	ARM
+void extFpgaTimerJob(MuxRunTimeParam  *mediaParams);;
+
+void wakeResetInIsr(void);
+
+void extJobPeriod(EXT_RUNTIME_CFG *runCfg);
+#endif
 
 #endif
 

@@ -46,7 +46,8 @@ err_t sys_sem_new(sys_sem_t *sem, u8_t count)
 		portENTER_CRITICAL();
 
 		vSemaphoreCreateBinary( *sem );
-		if (*sem != SYS_SEM_NULL) {
+		if (*sem != SYS_SEM_NULL)
+		{
   #if SYS_STATS
 			lwip_stats.sys.sem.used++;
 			if (lwip_stats.sys.sem.used > lwip_stats.sys.sem.max) {
@@ -720,56 +721,65 @@ err_t sys_timer_new(sys_timer_t *timer, sys_time_callback callback, os_timer_typ
 	timer->callback = callback;
 	timer->type = type;
 	timer->arg = argument;
+//	timer->isFromIsr = 0;
 
 	return ERR_OK;
 }
 
-static TimerHandle_t _systimerHdlPeriod;
+
 
 /** Start or restart a timer
  * @param timer the timer to start
  * @param millisec the value of the timer */
 void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 {
-TRACE();
+	BaseType_t xReturn = pdPASS;
 	if(timer->timeId != NULL)
 	{
 		EXT_ERRORF(("Timer has been started") );
 		return;
 	}
 	
-TRACE();
-#if 0//EXT_TIMER_DEBUG
-	TRACE();
+#if EXT_TIMER_DEBUG
 	timer->timeId = xTimerCreate(timer->name , pdMS_TO_TICKS(millisec), (timer->type==os_timer_type_reload)?pdTRUE:pdFALSE/* auto reload */,  timer->arg/* timer ID */, timer->callback);
 #else
-	TRACE();
-	//timer->timeId
-	_systimerHdlPeriod = xTimerCreate("sysTimer", pdMS_TO_TICKS(2000), pdTRUE/* auto reload */,  (void *)0, timer->callback);
-//	_timerHdlPeriod = xTimerCreate(EXT_PERIOD_JOB_NAME, pdMS_TO_TICKS(EXT_PERIOD_JOB_TIME), pdTRUE/* auto reload */,  (void*)0 /* timer ID */,_periodJobCallback);
+	timer->timeId = xTimerCreate("sysTimer", pdMS_TO_TICKS(millisec),  (timer->type==os_timer_type_reload)?pdTRUE:pdFALSE/* auto reload */,  timer->arg, timer->callback);
 #endif
 
-TRACE();
-//	if (timer->timeId==NULL)
-	if (_systimerHdlPeriod==NULL)
+	if (timer->timeId==NULL)
 	{
 		EXT_ERRORF(("Delay Job can not be created"));
 		return;
 	}
 
-TRACE();
-//	if (xTimerStart(timer->timeId, 0)!=pdPASS)
-	if (xTimerStart(_systimerHdlPeriod, 0)!=pdPASS)
+#if 0
+	if(timer->isFromIsr)
+	{
+		xReturn = xTimerGenericCommand( timer->timeId, tmrCOMMAND_START_FROM_ISR, ( xTaskGetTickCount() ), NULL, 0 );
+	}
+	else
+#endif		
+	{
+		xReturn = xTimerStart(timer->timeId, 0);
+	}
+	
+	if (xReturn !=pdPASS)
 	{
 		EXT_ERRORF(("Timer Job can not be started"));
 		return;
 	}
+
 }
 
 /** Stop a timer
  * @param timer the timer to stop */
 void sys_timer_stop(sys_timer_t *timer)
 {
+	if(timer->timeId == NULL)
+	{
+		return;
+	}
+
 	if (xTimerStop(timer->timeId, 0) != pdPASS)
 	{
 		EXT_ERRORF(("sys_timer_stop error\n"));

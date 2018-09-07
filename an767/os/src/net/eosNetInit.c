@@ -111,42 +111,45 @@ static void _ethernetTask(void *param)
 #endif
 
 
+static void _tcpip_init_done(void *arg)
+{
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+	struct netif *netif = &guNetIf;
+	/* Initialize lwIP. */
+	netif->hwaddr_len = 6;
+
+	LWIP_ASSERT(("runCfg is NULL"), (runCfg!= NULL));
+
+	extLwipStartNic(netif, runCfg);
+
+#if 0
+	printf("Ethernet Task initializing..."EXT_NEW_LINE);
+	xTaskCreate(_ethernetTask, "ethTask", EXT_TASK_ETHERNET_STACK_SIZE/* 1024*2*/, NULL, EXT_TASK_ETHERNET_PRIORITY, NULL);
+#endif
+
+}
+
 /**
  * \brief Initialize the lwIP TCP/IP stack with the network interface driver.
  */
 void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg)
 {
-	struct netif *netif = &guNetIf;
-	/* Initialize lwIP. */
-	netif->hwaddr_len = 6;
 
 	srand( sys_now() );
 	
 	/* Initialize lwIP. */
 #if EXT_WITH_OS
 	/* Call tcpip_init for threaded lwIP mode. JL */
-	tcpip_init(NULL, NULL);
+	tcpip_init(_tcpip_init_done, runCfg);
 #else
 	lwip_init();
 #endif
 
 //	printf("Initializing LwIP, netif:%d(%p)..."EXT_NEW_LINE, netif->hwaddr_len, netif );
 
+
 	/* Set hw and IP parameters, initialize MAC too. */
-	extLwipStartNic(netif, runCfg);
-
-#if EXT_WITH_OS
-	/*also support RAW */
-
-//	printf("Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
-//	netif->hwaddr_len = 6;
-//	printf("Set Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
-	extLwipStartup(netif, runCfg);
-#else
-
-	printf("Ethernet Task initializing..."EXT_NEW_LINE);
-	xTaskCreate(_ethernetTask, "ethTask", EXT_TASK_ETHERNET_STACK_SIZE/* 1024*2*/, NULL, EXT_TASK_ETHERNET_PRIORITY, NULL);
-#endif
-
+//	extLwipStartNic(netif, runCfg);
 }
+
 

@@ -24,6 +24,8 @@ CFLAGS += \
 	$(RTOS_FLAGS) \
 	$(RTOS_HEADER) \
 	$(CPACK_FLAGS) \
+	$(LWIP_FLAGS) \
+	$(LWIP_HEADER) \
 
 
 

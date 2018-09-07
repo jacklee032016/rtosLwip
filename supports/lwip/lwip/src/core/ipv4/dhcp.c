@@ -1074,9 +1074,9 @@ static err_t dhcp_discover(struct netif *netif)
 	}
 
 	/* July 25, 2018. J.L. */
-	if (dhcp->tries >= LWIP_DHCP_AUTOIP_COOP_TRIES )
+	if (dhcp->tries > LWIP_DHCP_AUTOIP_COOP_TRIES )
 	{
-		printf("DHCP tried %d, reconfigure static IP netif"LWIP_NEW_LINE, dhcp->tries);
+		EXT_INFOF(("DHCP tried %d, reconfigure static IP netif"LWIP_NEW_LINE, dhcp->tries-1 ));
 		netif->flags &= ~(( NETIF_FLAG_UP) );
 		dhcp_stop(netif);
 
@@ -1102,6 +1102,8 @@ static err_t dhcp_discover(struct netif *netif)
 	msecs = (dhcp->tries < 6 ? 1 << dhcp->tries : 60) * EXT_DHCP_INIT_TIMEOUT;
 	dhcp->request_timeout = (msecs + DHCP_FINE_TIMER_MSECS - 1) / DHCP_FINE_TIMER_MSECS;
 	LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("dhcp_discover(): set request timeout %"U16_F" msecs(counter:%"U16_F")"LWIP_NEW_LINE, msecs, dhcp->request_timeout));
+
+	EXT_INFOF(("#.%d try of DHCP Discovery with timeout %"U16_F" msecs", dhcp->tries, msecs));
 	return result;
 }
 
@@ -1893,6 +1895,10 @@ static void dhcp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_a
 		ip4_addr1_16(ip_2_ip4(addr)), ip4_addr2_16(ip_2_ip4(addr)), ip4_addr3_16(ip_2_ip4(addr)), ip4_addr4_16(ip_2_ip4(addr)), port));
 	LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("pbuf->len = %"U16_F""LWIP_NEW_LINE, p->len));
 	LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("pbuf->tot_len = %"U16_F""LWIP_NEW_LINE, p->tot_len));
+
+	EXT_DEBUGF(DHCP_DEBUG, ("DHCP msg from DHCP server %"U16_F".%"U16_F".%"U16_F".%"U16_F" port %"U16_F"", 
+		ip4_addr1_16(ip_2_ip4(addr)), ip4_addr2_16(ip_2_ip4(addr)), ip4_addr3_16(ip_2_ip4(addr)), ip4_addr4_16(ip_2_ip4(addr)), port));
+
 	/* prevent warnings about unused arguments */
 	LWIP_UNUSED_ARG(pcb);
 	LWIP_UNUSED_ARG(addr);

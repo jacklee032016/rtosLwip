@@ -84,17 +84,50 @@ static void _consoleTestTask(void *param)
 	}
 }
 
-static void _ledTestTask(void *param)
+#endif
+
+#define	WITH_MUX_WAIT		1
+
+#if WITH_MUX_WAIT
+static sys_sem_t		factorySem;
+#else
+static char isFactory = 0;
+#endif
+
+void wakeResetInIsr(void)
+{
+//	TRACE();
+#if WITH_MUX_WAIT
+	portBASE_TYPE	xTaskWoken = pdFALSE;
+	
+	xSemaphoreGiveFromISR(factorySem, &xTaskWoken);
+#else
+	isFactory = 1;
+#endif
+//	TRACE();
+}
+
+static void _factoryTask(void *param)
 {
 	param = param;
+
 	while(1)
 	{
-//		vMuxConsoleOutput("LED");
-		ioport_toggle_pin_level(LED0_GPIO);
-		vTaskDelay( EXT_OS_MILL_SECOND(250));
+//		TRACE();
+#if WITH_MUX_WAIT
+//		EXT_INFOF(("reset task is waiting....."));
+		sys_arch_sem_wait(&factorySem, 0);
+#else
+		if(isFactory != 0)
+#endif			
+		{
+			EXT_INFOF(("reset task is waken up"));
+			extSysBlinkTimerInit(BTN_FACTORY_DURATION);
+		}
 	}
+
+	EXT_ERRORF(("Reset Task error"));
 }
-#endif
 
 
 int main( void )
@@ -152,21 +185,21 @@ int main( void )
 	printf("Initializing timer..."EXT_NEW_LINE);
 	sys_init_timing();
 
+#if WITH_MUX_WAIT
+	err_t err;
+	/* Incoming packet notification semaphore. */
+	err = sys_sem_new(&factorySem, 0);
+	EXT_ASSERT(("reset semaphore allocation ERROR!"), (err == ERR_OK) );
+	if (err == ERR_MEM)
+		return ERR_MEM;
+#endif
+	sys_thread_new("reset", _factoryTask, NULL, EXT_TASK_LED_STACK_SIZE*4, EXT_TASK_LED_PRIORITY);
+	
 	extBspFpgaReload();
-
 	extBspNetStackInit(&extRun);
-	
-	extFpgaConfig(&extRun);
 
-	printf(""EXT_NEW_LINE);
-	
+	/* console task must start finally to make the command line prompt */
 	vMuxUartCmdConsoleStart(EXT_TASK_CONSOLE_STACK_SIZE, EXT_TASK_CONSOLE_PRIORITY);
-
-//	printf("OS Scheduler beginning..."EXT_NEW_LINE);
-
-	extRs232Write((unsigned char *)"OS startup", 10);
-
-	extJobPeriod(&extRun);
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();

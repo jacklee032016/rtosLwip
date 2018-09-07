@@ -24,6 +24,7 @@ extern	const struct tftp_context		extTftp;
 
 EXT_JSON_PARSER  extParser;
 
+
 /*
 * Only involving join or leave one group. IGMP has been initialized in protocol stack
 */
@@ -115,6 +116,7 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 {
 	extParser.runCfg = runCfg;
 	extJsonInit(&extParser, NULL, 0);
+
 
 	EXT_INFOF(("TELNET server start..."));
 	extNetRawTelnetInit(runCfg);
@@ -241,17 +243,51 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 #endif
 
 
+static void _extStackUp( struct netif *netif)
+{
+
+	EXT_RUNTIME_CFG *runCfg = &extRun;
+
+	extLwipStartup(netif, runCfg);
+
+#ifdef	ARM
+	extFpgaConfig(runCfg);
+
+	printf(""EXT_NEW_LINE);
+	
+//	printf("OS Scheduler beginning..."EXT_NEW_LINE);
+
+//	extRs232Write((unsigned char *)"OS startup", 10);
+
+	extJobPeriod(runCfg);
+#endif
+}
+
 void extLwipNetStatusCallback(struct netif *netif)
 {
-	printf("NETIF: %c%c%d (%02x:%02x:%02x:%02x:%02x:%02x) is %s"EXT_NEW_LINE, netif->name[0], netif->name[1], netif->num, 
-		netif->hwaddr[0], netif->hwaddr[1], netif->hwaddr[2], netif->hwaddr[3], netif->hwaddr[4], netif->hwaddr[5], netif_is_up(netif) ? "UP" : "DOWN");
+	EXT_INFOF(("NETIF: %c%c%d (%02x:%02x:%02x:%02x:%02x:%02x) is %s", netif->name[0], netif->name[1], netif->num, 
+		netif->hwaddr[0], netif->hwaddr[1], netif->hwaddr[2], netif->hwaddr[3], netif->hwaddr[4], netif->hwaddr[5], netif_is_up(netif) ? "UP" : "DOWN"));
 	if (netif_is_up(netif))
 	{
 //		printf("Ethernet hwaddr:%d(%p)"EXT_NEW_LINE, netif->hwaddr_len, netif);
 #if LWIP_IPV4
+#if 0
 		printf("IPV4: Host at %s ", ip4addr_ntoa(netif_ip4_addr(netif)));
 		printf("mask %s ", ip4addr_ntoa(netif_ip4_netmask(netif)));
 		printf("gateway %s"EXT_NEW_LINE, ip4addr_ntoa(netif_ip4_gw(netif)));
+#endif
+
+		const ip4_addr_t *ip, *mask, *gw;
+		ip = netif_ip4_addr(netif);
+		mask = netif_ip4_netmask(netif);
+		gw = netif_ip4_gw(netif);
+		EXT_INFOF(("IP:%"U16_F".%"U16_F".%"U16_F".%"U16_F";"\
+			" mask:%"U16_F".%"U16_F".%"U16_F".%"U16_F"; "\
+			" gateway:%"U16_F".%"U16_F".%"U16_F".%"U16_F""LWIP_NEW_LINE, 
+			ip4_addr1_16(ip), ip4_addr2_16(ip), ip4_addr3_16(ip), ip4_addr4_16(ip), 
+			ip4_addr1_16(mask), ip4_addr2_16(mask), ip4_addr3_16(mask), ip4_addr4_16(mask), 
+			ip4_addr1_16(gw), ip4_addr2_16(gw), ip4_addr3_16(gw), ip4_addr4_16(gw) ));
+
 #endif /* LWIP_IPV4 */
 #if LWIP_IPV6
 		printf("IPV6: Host at %s"EXT_NEW_LINE, ip6addr_ntoa(netif_ip6_addr(netif, 0)));
@@ -264,6 +300,7 @@ void extLwipNetStatusCallback(struct netif *netif)
 #ifdef	ARM
 		gmacEnableWakeOnLan(netif->ip_addr.addr);
 #endif		
+		_extStackUp(netif);
 
 	}
 	else
@@ -351,6 +388,7 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 //	printf("Setup default netif...\r\n");
 	netif_set_default(netif);
 
+
 	/* Setup callback function for netif status change */
 	netif_set_status_callback(netif, extLwipNetStatusCallback);
 
@@ -358,13 +396,13 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	if(EXT_DHCP_IS_ENABLE(runCfg))
 	{
 		/* DHCP mode. */
-		EXT_DEBUGF(EXT_DBG_ON, ("DHCP Starting ..."EXT_NEW_LINE) );
+		EXT_DEBUGF(EXT_DBG_OFF, ("DHCP Starting ..."EXT_NEW_LINE) );
 		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
 		if (ERR_OK != dhcp_start(netif))
 		{
 			EXT_ASSERT(("ERR_OK != dhcp_start"), 0);
 		}
-		EXT_INFOF( ("DHCP Started"EXT_NEW_LINE) );
+		EXT_INFOF( ("DHCP Start..."EXT_NEW_LINE) );
 	}
 	else
 	{/* Static mode: start up directly */

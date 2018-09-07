@@ -15,7 +15,6 @@
 
 static uint32_t _firstTime = 0;
 
-#define	BTN_FACTORY_DURATION		6000 /* requirement */
 
 static char  _countTrngIrqs = 0;
 
@@ -28,7 +27,9 @@ void TRNG_Handler(void)
 	if ((status & TRNG_ISR_DATRDY) == TRNG_ISR_DATRDY)
 	{
 		status = trng_read_output_data(TRNG);
-		printf("-- Random Value: %x --"EXT_NEW_LINE, status);
+		
+//		printf("-- Random Value: %x --"EXT_NEW_LINE, status);
+
 		if(_countTrngIrqs == 0)
 		{
 			memcpy(&extRun.local.mac.address[0], &status, 4);
@@ -62,7 +63,9 @@ static void _buttonHandler(uint32_t id, uint32_t mask)
 
 	if ((EXT_PUSH_BUTTON_ID == id) && (EXT_PUSH_BUTTON_PIN_MSK == mask) )
 	{
-		extSysBlinkTimerInit( BTN_FACTORY_DURATION);
+
+		wakeResetInIsr();
+
 //		g_button_event = 1;
 		if(_firstTime == 0)
 		{
@@ -294,7 +297,7 @@ void bspHwInit(boot_mode bMode)
 
 	if( !runCfg->isMacConfiged && bMode == BOOT_MODE_RTOS )
 	{
-		EXT_INFOF(("Start TRNG"EXT_NEW_LINE));
+		EXT_INFOF(("Random MAC"EXT_NEW_LINE));
 		bspHwTrngConfig(EXT_TRUE);
 	}
 

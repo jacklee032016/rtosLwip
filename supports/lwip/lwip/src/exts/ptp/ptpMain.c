@@ -14,21 +14,21 @@ ForeignMasterRecord ptpForeignRecords[DEFAULT_MAX_FOREIGN_RECORDS];
 
 __IO uint32_t PTPTimer = 0;
 
-static int16_t _ptpdStartup(PtpClock * ptpClock)
+static int16_t _ptpdStartup(PtpClock * _pptpClock)
 {
 	/* 9.2.2 */
-	if (ptpClock->rtOpts->slaveOnly) 
-		ptpClock->rtOpts->clockQuality.clockClass = DEFAULT_CLOCK_CLASS_SLAVE_ONLY;
+	if (_pptpClock->rtOpts->slaveOnly) 
+		_pptpClock->rtOpts->clockQuality.clockClass = DEFAULT_CLOCK_CLASS_SLAVE_ONLY;
 
 	/* No negative or zero attenuation */
-	if (ptpClock->rtOpts->servo.ap < 1)
-		ptpClock->rtOpts->servo.ap = 1;
-	if (ptpClock->rtOpts->servo.ai < 1)
-		ptpClock->rtOpts->servo.ai = 1;
+	if (_pptpClock->rtOpts->servo.ap < 1)
+		_pptpClock->rtOpts->servo.ap = 1;
+	if (_pptpClock->rtOpts->servo.ai < 1)
+		_pptpClock->rtOpts->servo.ai = 1;
 
 	DBG("event POWER UP");
 
-	toState(ptpClock, PTP_INITIALIZING);
+	toState(_pptpClock, PTP_INITIALIZING);
 
 	return 0;
 }
@@ -36,43 +36,43 @@ static int16_t _ptpdStartup(PtpClock * ptpClock)
 
 static void _ptpdTask(void *arg)
 {
-	PtpClock	*ptpClock = (PtpClock *)arg;
+	PtpClock	*_pptpClock = (PtpClock *)arg;
 
 	// Initialize run-time options to default values.
-	ptpClock->rtOpts->announceInterval = DEFAULT_ANNOUNCE_INTERVAL;
-	ptpClock->rtOpts->syncInterval = DEFAULT_SYNC_INTERVAL;
+	_pptpClock->rtOpts->announceInterval = DEFAULT_ANNOUNCE_INTERVAL;
+	_pptpClock->rtOpts->syncInterval = DEFAULT_SYNC_INTERVAL;
 	
-	ptpClock->rtOpts->clockQuality.clockAccuracy = DEFAULT_CLOCK_ACCURACY;
-	ptpClock->rtOpts->clockQuality.clockClass = DEFAULT_CLOCK_CLASS;
-	ptpClock->rtOpts->clockQuality.offsetScaledLogVariance = DEFAULT_CLOCK_VARIANCE; /* 7.6.3.3 */
-	ptpClock->rtOpts->priority1 = DEFAULT_PRIORITY1;
-	ptpClock->rtOpts->priority2 = DEFAULT_PRIORITY2;
-	ptpClock->rtOpts->domainNumber = DEFAULT_DOMAIN_NUMBER;
+	_pptpClock->rtOpts->clockQuality.clockAccuracy = DEFAULT_CLOCK_ACCURACY;
+	_pptpClock->rtOpts->clockQuality.clockClass = DEFAULT_CLOCK_CLASS;
+	_pptpClock->rtOpts->clockQuality.offsetScaledLogVariance = DEFAULT_CLOCK_VARIANCE; /* 7.6.3.3 */
+	_pptpClock->rtOpts->priority1 = DEFAULT_PRIORITY1;
+	_pptpClock->rtOpts->priority2 = DEFAULT_PRIORITY2;
+	_pptpClock->rtOpts->domainNumber = DEFAULT_DOMAIN_NUMBER;
 
-	ptpClock->rtOpts->slaveOnly = SLAVE_ONLY;
+	_pptpClock->rtOpts->slaveOnly = SLAVE_ONLY;
 
-	ptpClock->rtOpts->currentUtcOffset = DEFAULT_UTC_OFFSET;
-	ptpClock->rtOpts->servo.noResetClock = DEFAULT_NO_RESET_CLOCK;
-	ptpClock->rtOpts->servo.noAdjust = NO_ADJUST;
+	_pptpClock->rtOpts->currentUtcOffset = DEFAULT_UTC_OFFSET;
+	_pptpClock->rtOpts->servo.noResetClock = DEFAULT_NO_RESET_CLOCK;
+	_pptpClock->rtOpts->servo.noAdjust = NO_ADJUST;
 
-	ptpClock->rtOpts->servo.sDelay = DEFAULT_DELAY_S;
-	ptpClock->rtOpts->servo.sOffset = DEFAULT_OFFSET_S;
-	ptpClock->rtOpts->servo.ap = DEFAULT_AP;
-	ptpClock->rtOpts->servo.ai = DEFAULT_AI;
+	_pptpClock->rtOpts->servo.sDelay = DEFAULT_DELAY_S;
+	_pptpClock->rtOpts->servo.sOffset = DEFAULT_OFFSET_S;
+	_pptpClock->rtOpts->servo.ap = DEFAULT_AP;
+	_pptpClock->rtOpts->servo.ai = DEFAULT_AI;
 
-	ptpClock->rtOpts->inboundLatency.nanoseconds = DEFAULT_INBOUND_LATENCY;
-	ptpClock->rtOpts->outboundLatency.nanoseconds = DEFAULT_OUTBOUND_LATENCY;
+	_pptpClock->rtOpts->inboundLatency.nanoseconds = DEFAULT_INBOUND_LATENCY;
+	_pptpClock->rtOpts->outboundLatency.nanoseconds = DEFAULT_OUTBOUND_LATENCY;
 
-	ptpClock->foreignMasterDS.records = ptpForeignRecords;
-	ptpClock->rtOpts->maxForeignRecords = sizeof(ptpForeignRecords) / sizeof(ptpForeignRecords[0]);
+	_pptpClock->foreignMasterDS.records = ptpForeignRecords;
+	_pptpClock->rtOpts->maxForeignRecords = sizeof(ptpForeignRecords) / sizeof(ptpForeignRecords[0]);
 	
-	ptpClock->rtOpts->stats = PTP_TEXT_STATS;
-	ptpClock->rtOpts->delayMechanism = DEFAULT_DELAY_MECHANISM;
+	_pptpClock->rtOpts->stats = PTP_TEXT_STATS;
+	_pptpClock->rtOpts->delayMechanism = DEFAULT_DELAY_MECHANISM;
 
-	ptpClock->netPath.multicastAddr = IPADDR_ANY;
+	_pptpClock->netPath.multicastAddr = IPADDR_ANY;
 
 	// Initialize run time options.
-	if (_ptpdStartup(ptpClock) != 0)
+	if (_ptpdStartup(_pptpClock) != 0)
 	{
 		EXT_ERRORF(("PTPD: startup failed"));
 		return;
@@ -99,8 +99,8 @@ static void _ptpdTask(void *arg)
 			// checked for 'port_state'. The actions and events may or may not change
 			// 'port_state' by calling toState(), but once they are done we loop around
 			// again and perform the actions required for the new 'port_state'.
-			ptpStateMachine(ptpClock);
-		}while (ptpNetSelect(&ptpClock->netPath, 0) != 0);
+			ptpStateMachine(_pptpClock);
+		}while (ptpNetSelect(&_pptpClock->netPath, 0) != 0);
 		
 		// Wait up to 100ms for something to do, then do something anyway.
 		sys_arch_mbox_fetch(&_ptp_alert_queue, &msg, 100);

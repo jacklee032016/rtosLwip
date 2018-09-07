@@ -1546,7 +1546,7 @@
  * TCPIP_THREAD_NAME: The name assigned to the main tcpip thread.
  */
 #if !defined TCPIP_THREAD_NAME || defined __DOXYGEN__
-#define TCPIP_THREAD_NAME              "tcpipd"
+#define TCPIP_THREAD_NAME              "tcpip"
 #endif
 
 /**

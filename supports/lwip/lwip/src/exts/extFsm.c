@@ -33,12 +33,11 @@ void	extFsmHandle(ext_fsm_t *fsm)
 			{
 				if(fsm->currentEvent == handle->event )
 				{
-					fsm->currentEvent = EXT_EVENT_NONE;
 					newState = (handle->handle)(fsm);
-
+					fsm->currentEvent = EXT_EVENT_NONE;
+					
 					if(newState!= EXT_STATE_CONTINUE && newState != fsm->currentState )
 					{
-TRACE();
 						fsm->currentState = newState;
 					}
 					

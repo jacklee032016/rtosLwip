@@ -199,8 +199,9 @@ CFLAGS += -mthumb -mcpu=cortex-m7 -mfloat-abi=softfp -mfpu=fpv5-sp-d16 -DARM_MAT
 	-std=gnu99 -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs \
 	-Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return \
 	-Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wredundant-decls \
-	-Wunreachable-code -Wcast-align --param max-inline-insns-single=500 
+	-Wunreachable-code --param max-inline-insns-single=500 
 
+# -Wcast-align 
 
 # can't use this options, pbuf in Lwip and gmac of atmel must be alligned differently, such as 8 bytes border or others
 # CPACK_FLAGS =	-fpack-struct

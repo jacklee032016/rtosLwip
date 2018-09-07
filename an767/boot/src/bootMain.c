@@ -194,9 +194,8 @@ uint32_t sys_get_ms(void)
 }
 
 
-void	extSysBlinkTimerInit(unsigned short milliseconds)
+void	wakeResetInIsr(void )
 {
-	milliseconds = milliseconds;
 }
 
 int main( void )
