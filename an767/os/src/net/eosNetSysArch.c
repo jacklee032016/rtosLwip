@@ -780,9 +780,13 @@ void sys_timer_stop(sys_timer_t *timer)
 		return;
 	}
 
+#if 0
 	if (xTimerStop(timer->timeId, 0) != pdPASS)
+#else
+	if(xTimerDelete(timer->timeId, 0) != pdPASS )
+#endif
 	{
-		EXT_ERRORF(("sys_timer_stop error\n"));
+		EXT_ERRORF(("sys_timer is not moved"));
 	}
 
 	timer->timeId = NULL;

@@ -178,12 +178,12 @@ int extJsonParseIpAddress(EXT_JSON_PARSER *parser, const char *key, unsigned int
 		return EXIT_FAILURE;
 	}
 
-#ifdef	JSON_DEBUG
+#if 0//def	JSON_DEBUG
 	printf("%s Address:%s\n\r", key, parser->msg );
 #endif
 
 	*ipAddress = ipaddr_addr(parser->msg);
-#ifdef	JSON_DEBUG
+#if 0//def	JSON_DEBUG
 	printf("Address:%d\n\r", *ipAddress );
 #endif
 	return EXIT_SUCCESS;

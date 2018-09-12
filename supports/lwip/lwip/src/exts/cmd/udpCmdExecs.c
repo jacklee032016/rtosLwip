@@ -207,7 +207,6 @@ TRACE();
 		goto parseFailed;
 	}
 
-TRACE();	
 	if( _securityCheckId(parser) == EXIT_FAILURE)
 	{
 		goto parseFailed;
@@ -252,7 +251,7 @@ char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser, char isRequest)
 	index += snprintf(data+index, size-index, "}]" );
 
 	parser->outIndex += index;
-	EXT_DEBUGF(EXT_IPCMD_DEBUG, (" %d (%d)bytes packet", parser->outIndex, index) );
+//	EXT_DEBUGF(EXT_IPCMD_DEBUG, (" %d (%d)bytes packet", parser->outIndex, index) );
 
 	extIpCmdResponseTailCalculate(parser, isRequest);
 

@@ -300,7 +300,7 @@ err_t ethernet_output(struct netif* netif, struct pbuf* p, const struct eth_addr
 	ETHADDR32_COPY(&ethhdr->dest, dst);
 	ETHADDR16_COPY(&ethhdr->src,  src);
 
-	LWIP_ASSERT(("netif->hwaddr_len must be 6 for ethernet_output!"), (netif->hwaddr_len == ETH_HWADDR_LEN) );
+	LWIP_ASSERT(("netif->hwaddr_len must be 6 (%d) for ethernet_output!", netif->hwaddr_len), (netif->hwaddr_len == ETH_HWADDR_LEN) );
 //	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet etharp_hwaddr_len:%d(%p)"LWIP_NEW_LINE, netif->hwaddr_len, netif));
 
 	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet_output: sending packet %p\n", (void *)p));

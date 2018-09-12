@@ -250,8 +250,10 @@ static void _msgTimerCallback(void *arg)
 
 void extMediaInit( void *arg)
 {
-//	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
-	
+#ifdef	X86
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+#endif
+
 	if (sys_mbox_new(&_vmMailBox, EXT_MCTRL_MBOX_SIZE) != ERR_OK)
 	{
 		EXT_ASSERT(("failed to create "EXT_TASK_NAME" mbox"), 0);
@@ -348,8 +350,6 @@ unsigned char extMediaPostEvent(unsigned char eventType, void *ctx)
 		memp_free(MEMP_TCPIP_MSG_API, event);
 		return EXIT_FAILURE;
 	}
-
-TRACE();
 
 	return EXIT_SUCCESS;
 }

@@ -113,7 +113,7 @@ char extIpCmdResponseTailCalculate(EXT_JSON_PARSER  *parser, char isRequest)
 
 	parser->outIndex += +2*IPCMD_HEADER_LENGTH;
 
-	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("Reply %d bytes packet", parser->outIndex) );
+//	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("Reply %d bytes packet", parser->outIndex) );
 //	CONSOLE_DEBUG_MEM((uint8_t *)ipCmd, parser->outIndex, 0, "Reply IP Cmd");
 
 	return EXIT_SUCCESS;
