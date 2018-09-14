@@ -43,6 +43,7 @@ Usage
 
 Send JSON IP command to node
 ::
- ./run.py setParams '{"ip":"192.168.168.121","isDhcp":1}' 192.168.168.120 -d
+ ./run setParams '{"ip":"192.168.168.121","isDhcp":1}' 192.168.168.120 -d
 
+ ./run setParams '{"IsConnect":0}' 192.168.168.63 -d
   

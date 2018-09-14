@@ -252,6 +252,7 @@ static void _extStackUp( struct netif *netif)
 
 #ifdef	ARM
 	extFpgaConfig(runCfg);
+	extFpgaEnable(EXT_TRUE); /* start TX and RX after IP address is configured. 09.13, 2018 */
 
 	printf(""EXT_NEW_LINE);
 	
@@ -288,6 +289,8 @@ void extLwipNetStatusCallback(struct netif *netif)
 			ip4_addr1_16(mask), ip4_addr2_16(mask), ip4_addr3_16(mask), ip4_addr4_16(mask), 
 			ip4_addr1_16(gw), ip4_addr2_16(gw), ip4_addr3_16(gw), ip4_addr4_16(gw) ));
 
+		
+		extRun.local.ip = ip->addr;
 #endif /* LWIP_IPV4 */
 #if LWIP_IPV6
 		printf("IPV6: Host at %s"EXT_NEW_LINE, ip6addr_ntoa(netif_ip6_addr(netif, 0)));

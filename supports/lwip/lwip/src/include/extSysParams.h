@@ -29,10 +29,10 @@
 
 #define		LWIP_EXT_HTTP					1
 
-#define		LWIP_EXT_NMOS					1
+#define		LWIP_EXT_NMOS					0
 
 /* ---------- MDNS options ---------- */
-#define		LWIP_MDNS_RESPONDER        			1
+#define		LWIP_MDNS_RESPONDER        			0
 #define		LWIP_NUM_NETIF_CLIENT_DATA		(LWIP_MDNS_RESPONDER)
 
 #define		LWIP_EXT_UDP_RX_PERF			0
@@ -299,6 +299,10 @@
 #define	EXT_TASK_SYS_CTRL				"sysd"
 
 #define	EXT_TASK_NAME					"poll"
+
+#define	UDP_CMD_THREAD				1
+#define	EXT_TASK_UDP_CMD_NAME		"cmd"
+
 
 /** Debug level: ALL messages*/
 #define	EXT_DBG_LEVEL_ALL				0x00

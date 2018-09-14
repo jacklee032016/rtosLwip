@@ -491,9 +491,10 @@ char extIpCmdSetupParams(EXT_JSON_PARSER  *parser)
 	/* connect command */
 	if(FIELD_IS_CHANGED(rxCfg->runtime.isConnect))
 	{
-		if( parser->runCfg->runtime.isConnect != rxCfg->runtime.isConnect )
+		EXT_DEBUGF(EXT_DBG_ON, ("IsConnect changed: %d(Runtime:%d)", rxCfg->runtime.isConnect, parser->runCfg->runtime.isConnect) );
+//		if( parser->runCfg->runtime.isConnect != (rxCfg->runtime.isConnect-1) )
 		{
-			extCmdConnect( parser->runCfg);
+			extCmdConnect( parser->runCfg, rxCfg->runtime.isConnect-1 );
 		}
 	}
 
@@ -530,18 +531,21 @@ void extVideoConfigCopy(EXT_VIDEO_CONFIG *dest, EXT_VIDEO_CONFIG *src)
 }
 
 
-char extCmdConnect(EXT_RUNTIME_CFG  *runCfg)
+/* no matter what current state is, send command to TX or RX.  */
+char extCmdConnect(EXT_RUNTIME_CFG  *runCfg, unsigned char isStart)
 {
-	char newStatus;
+//	char newStatus;
 //	char action[32];
 //	int index = 0;
 
-	newStatus = (runCfg->runtime.isConnect==0);
+//	newStatus = (runCfg->runtime.isConnect==0);
+
+	EXT_INFOF(("%s begin to %s", runCfg->name,  (isStart)?"connect":"stop") );
 
 	if(EXT_IS_TX(runCfg) )
 	{
 #ifdef	ARM
-		extFpgaEnable(newStatus);
+		extFpgaEnable(isStart);
 #endif
 	}
 	else
@@ -550,13 +554,13 @@ char extCmdConnect(EXT_RUNTIME_CFG  *runCfg)
 		if(IP_ADDR_IS_MULTICAST(runCfg->dest.ip))
 		{
 #ifdef	ARM
-			ret = extLwipGroupMgr(&guNetIf, runCfg->dest.ip, newStatus);
+			ret = extLwipGroupMgr(&guNetIf, runCfg->dest.ip, isStart);
 #endif
-			EXT_DEBUGF(EXT_IPCMD_DEBUG, ("IGMP group %s %s: %s"LWIP_NEW_LINE, (newStatus==0)?"leave":"join", EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ip), (ret==EXIT_SUCCESS)?"OK":"Fail" ));
+			EXT_DEBUGF(EXT_IPCMD_DEBUG, ("IGMP group %s %s: %s"LWIP_NEW_LINE, (isStart==0)?"leave":"join", EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ip), (ret==EXIT_SUCCESS)?"OK":"Fail" ));
 		}
 	}
 
-	runCfg->runtime.isConnect = newStatus;
+//	runCfg->runtime.isConnect = newStatus;
 
 	return EXIT_SUCCESS;
 }

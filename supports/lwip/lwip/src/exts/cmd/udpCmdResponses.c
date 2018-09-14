@@ -243,7 +243,7 @@ static char _extCmdGetParams(EXT_JSON_PARSER  *parser)
 
 	if(extJsonParseIpAddress(parser, EXT_IPCMD_DATA_811_IP, &parser->runCfg->ipSvr811 ) == EXIT_SUCCESS)
 	{
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("811 IP is '%s'", EXT_LWIP_IPADD_TO_STR(&parser->runCfg->ipSvr811)));
+//		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("811 IP is '%s'", EXT_LWIP_IPADD_TO_STR(&parser->runCfg->ipSvr811)));
 	}
 #if EXT_IPCMD_DEBUG
 	else
@@ -254,7 +254,7 @@ static char _extCmdGetParams(EXT_JSON_PARSER  *parser)
 
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_811_PORT, &parser->runCfg->portSvr811 ) == EXIT_SUCCESS)
 	{
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("811 port is '%d'", parser->runCfg->portSvr811) );
+//		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("811 port is '%d'", parser->runCfg->portSvr811) );
 	}
 #if EXT_IPCMD_DEBUG
 	else

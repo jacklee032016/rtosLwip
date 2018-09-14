@@ -402,6 +402,7 @@ typedef	enum
 
 #define	EXT_FPGA_REG_SDI_STATUS					19
 
+/* when 0x00 is 'SDI DISCONNECTED; 0x01: SDI CONNECTION '*/
 #define	EXT_FPGA_FLAGS_SDI_CONNECTTED			0x01
 
 

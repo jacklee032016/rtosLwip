@@ -20,6 +20,8 @@ IP_CMD_SET_PARAM = "set_param"
 IP_CMD_RS232_DATA= "send_data_rs232"
 IP_CMD_SECURE="security_check"
 
+# seconds
+IP_CMD_FIND_TIMEOUT=5
 
 FIRMWARE_URL_OS="/mcuUpdate"
 FIRMWARE_URL_FPGA="/fpgaUpdate"

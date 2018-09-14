@@ -3,12 +3,14 @@ import abc
 import socket
 import logging
 import struct
+import time
 
 from cmds import DeviceCtrl
 from . import CommandCodec
 from . import MSGLEN
 
 from utils import ColorMsg
+from utils import settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +42,7 @@ class IpCmdSocket(object):
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # Set a timeout so the socket does not block indefinitely when trying to receive data.
-        self.sock.settimeout(3.0)
+        self.sock.settimeout(settings.IP_CMD_FIND_TIMEOUT)
 
         ColorMsg.debug_msg( '%s, %s:%s, gateway:%s'%(self.__class__.__name__, self.server, self.port, self.dev.simGateway), self.debug)
 
@@ -58,6 +60,7 @@ class IpCmdSocket(object):
         """
         """
         ColorMsg.debug_msg('send packet: %s\n' % (data), self.debug)
+        self.start_time = time.time()
         sent = self.sock.sendto(data, self.peer)
         return sent
 
@@ -109,12 +112,15 @@ class IpCmdSocket(object):
             try:
                 # return self.sock.recv(4092)
                 data, node = self.sock.recvfrom(4096)
-                ColorMsg.debug_msg("receive %d bytes data from %s data:%s" % (len(data), node, data), self.debug)
+                usedTime = (time.time() - self.start_time) * 1000
+                #ColorMsg.debug_msg("After %s ms, receive %d bytes data from %s data:%s " % (usedTime, len(data), node, data), self.debug)
+                ColorMsg.success_msg("\tAfter %s ms, receive %d bytes data from %s" % (usedTime, len(data), node) )
                 datas.append(data)
                 if self.server != "<broadcast>":
                     return datas
             except socket.timeout as e:
-                ColorMsg.debug_msg("Read timeout on socket ", self.debug)
+                usedTime = (time.time() - self.start_time) * 1000
+                ColorMsg.error_msg("\tAfter %s ms, read timeout on socket "% (usedTime))
                 self.sock.close()
                 if self.server != "<broadcast>":
                     return None

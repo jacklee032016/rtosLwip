@@ -131,8 +131,8 @@ The most commonly used commands are:
             'Running %s %s,ip=%s, data=%s, debug=%s, gateway=%s' %(sys.argv[:1][0],sys.argv[1:2][0], args.ip, args.data, args.debug, args.gateway), args.debug )
 
         """
-       param must be set in form of list which hold a dict
-       """
+        param must be set in form of list which hold a dict
+        """
         dataDict = json.loads(args.data)
         dataArray = []
         dataArray.append(dataDict)

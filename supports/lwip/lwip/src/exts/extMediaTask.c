@@ -21,6 +21,8 @@ static sys_mutex_t		_vmLock;
 
 static sys_timer_t		_mediaMsgTimer;		/* timer for connect and disconnect messages */
 
+static unsigned short	_timeoutCount;
+
 static void _sendMsgStartTimer(void )
 {
 	extIpCmdSendMediaData(&extParser, EXT_TRUE);
@@ -33,10 +35,9 @@ static unsigned char _fsmConnectEvent(void *arg)
 {
 	ext_fsm_t *fsm = (ext_fsm_t *)arg;
 	
-#ifndef ARM
 	/* stop old timer and then start a new one */
 	sys_timer_stop(&_mediaMsgTimer);
-#endif
+	_timeoutCount = 0;
 
 	if(fsm->currentState == EXT_MEDIA_STATE_DISCONNECT)
 	{/* send set_param and start timer */
@@ -52,10 +53,9 @@ static unsigned char _fsmDisconnEvent(void *arg)
 {
 	ext_fsm_t *fsm = (ext_fsm_t *)arg;
 
-#ifndef ARM
 	/* stop old timer and then start a new one */
 	sys_timer_stop(&_mediaMsgTimer);
-#endif
+	_timeoutCount = 0;
 
 	/* send set_param*/
 	if(fsm->currentState == EXT_MEDIA_STATE_CONNECT)
@@ -70,9 +70,8 @@ static unsigned char _fsmAckEvent(void *arg)
 {
 //	ext_fsm_t *fsm = (ext_fsm_t *)arg;
 	/* stop timer */
-#ifndef ARM
 	sys_timer_stop(&_mediaMsgTimer);
-#endif
+	_timeoutCount = 0;
 	
 	return EXT_STATE_CONTINUE;
 }
@@ -83,7 +82,12 @@ static unsigned char _fsmTimeoutEvent(void *arg)
 	/* maybe not compatible with sys_arch of FreeRTOS and Linux */
 	sys_timer_stop(&_mediaMsgTimer);
 
-	_sendMsgStartTimer();
+	_timeoutCount++;
+
+	if(_timeoutCount < 5)
+	{
+		_sendMsgStartTimer();
+	}
 
 	/* start timer again */
 	
@@ -172,6 +176,8 @@ static void _extMediaControlThread(void *arg)
 		extFsmHandle(&_mediaFsm);
 
 		memp_free(MEMP_TCPIP_MSG_API, event);
+
+		event = NULL;
 	}
 	
 }
@@ -340,9 +346,9 @@ unsigned char extMediaPostEvent(unsigned char eventType, void *ctx)
 	event->type = eventType;
 	event->arg = ctx;
 #if EXT_TIMER_DEBUG
-	EXT_INFOF( ("EVENT: %s", (event->type <EXT_ARRAYSIZE(_stateStr) )? _stateStr[event->type].name: "UNKNOWN"));
+//	EXT_INFOF( ("EVENT: %s", (event->type <EXT_ARRAYSIZE(_stateStr) )? _stateStr[event->type].name: "UNKNOWN"));
 #else
-	EXT_INFOF( ("EVENT: %d", event->type));
+//	EXT_INFOF( ("EVENT: %d", event->type));
 #endif
 	if (sys_mbox_trypost(&_vmMailBox, event) != ERR_OK)
 	{
@@ -397,12 +403,17 @@ void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg)
 			extMediaPostEvent(EXT_MEDIA_EVENT_DISCONNECT, NULL);
 			return;
 		}
-
-		if(_extMediaCompareParams(&runCfg->runtime, &_mediaParams))	
+		else if(_mediaParams.isConnect == EXT_TRUE && runCfg->runtime.isConnect == EXT_FALSE )
 		{
-			EXT_DEBUGF(EXT_DBG_ON, ("CONNECT event: New Media Params need to be updated now!"));
-			extMediaPostEvent(EXT_MEDIA_EVENT_CONNECT, NULL);
-			return;
+			EXT_DEBUGF(EXT_DBG_ON, ("SDI CONNECT event"));
+
+			if(_extMediaCompareParams(&runCfg->runtime, &_mediaParams))	
+			{
+				EXT_DEBUGF(EXT_DBG_ON, ("CONNECT event : New Media Params need to be updated now!"));
+				runCfg->runtime.isConnect = EXT_TRUE;
+				extMediaPostEvent(EXT_MEDIA_EVENT_CONNECT, NULL);
+				return;
+			}
 		}
 
 	}

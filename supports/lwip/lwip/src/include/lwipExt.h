@@ -176,7 +176,7 @@ struct ptptime_t
 };
 
 
-char extCmdConnect(EXT_RUNTIME_CFG  *runCfg);
+char extCmdConnect(EXT_RUNTIME_CFG  *runCfg, unsigned char isStart);
 
 char extUdpRxPerfStart(void);
 

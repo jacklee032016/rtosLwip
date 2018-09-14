@@ -119,6 +119,8 @@ static void _tcpip_init_done(void *arg)
 	netif->hwaddr_len = 6;
 
 	LWIP_ASSERT(("runCfg is NULL"), (runCfg!= NULL));
+	/* before network start, make FPGA work to filter flooding packets. 09.13,2018  */
+	extFpgaConfig(runCfg);
 
 	extLwipStartNic(netif, runCfg);
 

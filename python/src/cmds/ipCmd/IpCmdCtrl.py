@@ -42,17 +42,18 @@ class IpCommand(DeviceCtrl):
         self.sendCmds['811Port'] = kwargs.get("811Port", 3840 )
         #json_string = json.dumps(self.sendCmds)
 
-        start_time = time.time()  # time() is float
+        self.start_time = time.time()  # time() is float
         msg = self.cmdSocket.send(cmd=self.sendCmds)
         result = self.cmdSocket.receive()
-        self.timeused = (time.time() - start_time) * 1000  # millsecond
+        self.timeused = (time.time() - self.start_time) * 1000  # millsecond
         ColorMsg.debug_msg('After %s ms,JSON result type %s: "%s"\n' %(self.timeused, type(result), result), self.debug )
 
         for res in result:
             if res['login-ack'] != "OK":
                 ColorMsg.error_msg("\tIP Command '%s' failed %s" %(self.sendCmds["cmd"], res['pwd-msg']))
             else:
-                ColorMsg.success_msg("\tIP Command '%s' success after %s ms" %(self.sendCmds["cmd"], self.timeused))
+                None
+                #ColorMsg.success_msg("\tIP Command '%s' success after %s ms" %(self.sendCmds["cmd"], self.timeused))
 
         return result
         

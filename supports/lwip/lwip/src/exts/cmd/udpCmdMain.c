@@ -8,7 +8,7 @@
 #include "extUdpCmd.h"
 
 
-static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size, const ip_addr_t *addr, u16_t port)
+static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size)
 {
 	CMN_IP_COMMAND *ipCmd = (CMN_IP_COMMAND *)data;
 	unsigned int crcDecoded, crcReceived;
@@ -17,7 +17,7 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 	
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
 	{
-		printf("receive %d (IP CMD->length:%d) bytes from at port %d of '%s' ", size, ipCmd->length, port,  inet_ntoa(*(ip_addr_t *)addr));
+		printf("receive %d (IP CMD->length:%d) bytes ", size, ipCmd->length );
 		printf("'%.*s' \n\r", ipCmd->length-IPCMD_HEADER_LENGTH, ipCmd->data );
 		CONSOLE_DEBUG_MEM(data, size, 0, "Raw IP CMD");
 	}
@@ -42,7 +42,7 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 		goto Failed;
 	}
 	
-	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded));
+//	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded));
 
 	memset(parser->msg, 0, sizeof(parser->msg));
 	if(extJsonRequestParseCommand((char *)ipCmd->data, size-IPCMD_HEADER_LENGTH*2, parser) == EXIT_FAILURE)
@@ -164,7 +164,7 @@ static void _udpSysCtrlThread(void *arg)
 #endif
 
 #if 1				
-				extCmdPaserHandler(buffer, buf->p->tot_len, &buf->toaddr, buf->port);
+				extCmdPaserHandler(buffer, buf->p->tot_len);//, &buf->toaddr, buf->port);
 				netbuf_ref(buf, parser->outBuffer, strlen(parser->outBuffer) );
 #else				
 				char *msg="reply from 767";
@@ -194,6 +194,18 @@ static void _udpSysCtrlThread(void *arg)
 
 static struct udp_pcb *_ipcmdPcb;
 
+#if UDP_CMD_THREAD
+typedef struct
+{
+	struct pbuf		*p;
+	unsigned	int 		ip;
+	unsigned short	port;
+}UdpCmd;
+
+static sys_mbox_t 		_udpCmdMailBox;
+
+#endif
+
 char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short port)
 {
 	struct pbuf *newBuf = NULL;
@@ -215,9 +227,11 @@ char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short 
 	newBuf->payload = parser->outBuffer;
 	newBuf->len = parser->outIndex;
 	newBuf->tot_len = parser->outIndex;
-	
+
+#if 1	
 	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("send out %p:%p, size %d to  port %d of '%s': "LWIP_NEW_LINE"'%.*s'"LWIP_NEW_LINE, 
 		newBuf, newBuf->payload, newBuf->len, port,  inet_ntoa(*(ip_addr_t *)addr), parser->outIndex-2*IPCMD_HEADER_LENGTH,  parser->outBuffer+IPCMD_HEADER_LENGTH ) );
+#endif
 	
 //	CONSOLE_DEBUG_MEM((unsigned char *)parser->outBuffer, parser->outIndex, 0, "Send out Raw IP CMD");
 	udp_sendto(_ipcmdPcb, newBuf, addr, port); //dest port
@@ -234,7 +248,10 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 //	struct pbuf *newBuf = NULL;
 	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
 
+#if UDP_CMD_THREAD
+#else
 	unsigned short size;
+#endif
 
 	EXT_ASSERT(("runCfg is null"), (parser !=NULL && parser->runCfg != NULL) );
 	if (p != NULL)
@@ -248,17 +265,78 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 			p->tot_len - IPCMD_HEADER_LENGTH*2, ((char *)(p->payload)+IPCMD_HEADER_LENGTH)));
 //		CONSOLE_DEBUG_MEM( p->payload, p->len, 0, "RECV IP Cmd");
 
+#if UDP_CMD_THREAD
+		UdpCmd *cmd;
+
+		LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(_udpCmdMailBox));
+		cmd = (UdpCmd *)memp_malloc(MEMP_TCPIP_MSG_API);
+		if (cmd == NULL)
+		{
+			EXT_ERRORF(("No memory available for IP Cmd now"));
+			return;
+		}
+		memset(cmd, 0, sizeof(UdpCmd));
+
+		cmd->p = p;
+		cmd->ip = *(unsigned int *)addr;
+		cmd->port = port;
+
+		if (sys_mbox_trypost(&_udpCmdMailBox, cmd) != ERR_OK)
+		{
+			EXT_ERRORF(("Post to UDP Cmd Mailbox failed"));
+			memp_free(MEMP_TCPIP_MSG_API, cmd);
+			return;
+		}
+#else
 		size = (p->tot_len > parser->runCfg->bufLength)? parser->runCfg->bufLength: p->tot_len;
 		pbuf_copy_partial(p, parser->runCfg->bufRead, size, 0);
 		pbuf_free(p);
 
-		extCmdPaserHandler(parser, parser->runCfg->bufRead, size, addr, port);
+		extCmdPaserHandler(parser, parser->runCfg->bufRead, size );
 
 		extIpCmdSendout(parser, (unsigned int *)addr, port );
+#endif
 	}
 }
 
-static void _udpSysCtrlThread(void *arg)
+#if UDP_CMD_THREAD
+static void _extUdpCmdThread(void *arg)
+{
+	UdpCmd *cmd;
+//	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
+	
+	while (1)
+	{
+		struct pbuf *p;
+		unsigned short size;
+		
+		sys_mbox_fetch(&_udpCmdMailBox, (void **)&cmd);
+		if (cmd == NULL)
+		{
+			EXT_DEBUGF(EXT_DBG_ON, (EXT_TASK_UDP_CMD_NAME" thread: invalid message: NULL"));
+			EXT_ASSERT((EXT_TASK_UDP_CMD_NAME" thread: invalid message"), 0);
+			continue;
+		}
+		p = cmd->p;
+		
+		size = (p->tot_len > parser->runCfg->bufLength)? parser->runCfg->bufLength: p->tot_len;
+		pbuf_copy_partial(p, parser->runCfg->bufRead, size, 0);
+		pbuf_free(p);
+
+		extCmdPaserHandler(parser, parser->runCfg->bufRead, size);
+
+		extIpCmdSendout(parser, (unsigned int *)&cmd->ip, cmd->port );
+		
+		memp_free(MEMP_TCPIP_MSG_API, cmd);
+		cmd = NULL;
+	}
+	
+}
+#endif
+
+
+static void _udpCmdInit(void *arg)
 {
 	_ipcmdPcb = udp_new();
 
@@ -269,23 +347,13 @@ static void _udpSysCtrlThread(void *arg)
 
 	udp_recv(_ipcmdPcb, _rawUdpEchoRecv, arg);
 
-#if 0
-	struct pbuf *p;
-
-	char msg[]="testing";
-	while (1)
+#if UDP_CMD_THREAD
+	if (sys_mbox_new(&_udpCmdMailBox, EXT_MCTRL_MBOX_SIZE) != ERR_OK)
 	{
-		//Allocate packet buffer
-		
-		p = pbuf_alloc(PBUF_TRANSPORT,sizeof(msg),PBUF_RAM);
-		memcpy (p->payload, msg, sizeof(msg));
+		EXT_ASSERT(("failed to create "EXT_TASK_UDP_CMD_NAME" mbox"), 0);
+	}
 
-		
-		udp_sendto(ptel_pcb, p, IP_ADDR_BROADCAST, 3600);
-		pbuf_free(p); //De-allocate packet buffer
-
-//		vTaskDelay( 200 ); //some delay!
-	}       
+	sys_thread_new(EXT_TASK_UDP_CMD_NAME, _extUdpCmdThread, arg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY );
 #endif
 
 }
@@ -297,7 +365,7 @@ void extIpCmdAgentInit(EXT_JSON_PARSER  *parser)
 #if LWIP_NETCONN
 	sys_thread_new(EXT_TASK_SYS_CTRL, _udpSysCtrlThread, parser, 130*15, 2);
 #else
-	_udpSysCtrlThread(parser);
+	_udpCmdInit(parser);
 #endif
 }
 

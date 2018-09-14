@@ -537,7 +537,7 @@ static struct pbuf *_gmac_low_level_input(struct netif *netif)
 	{
 		gmac_enable_receive(GMAC, false);
 		
-		EXT_ERRORF(("GMAC overrun: RX Status0x%"PRIx32"", gmac_get_rx_status(GMAC) ));
+		EXT_ERRORF(("GMAC overrun: RX Status 0x%"PRIx32"", gmac_get_rx_status(GMAC) ));
 
 		LINK_STATS_INC(link.err);
 		LINK_STATS_INC(link.drop);

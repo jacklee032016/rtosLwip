@@ -466,6 +466,16 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 {
 	unsigned char value;
 
+	_extFpgaReadByte(EXT_FPGA_REG_SDI_STATUS, &value);
+	if(value == EXT_FPGA_FLAGS_SDI_CONNECTTED)
+	{
+		mediaParams->isConnect = EXT_TRUE;
+	}
+	else
+	{
+		mediaParams->isConnect = EXT_FALSE;
+	}
+
 	_extFpgaReadByte(EXT_FPGA_REG_PARAM_STATUS, &value);
 	if(value != EXT_FPGA_FLAGS_PARAM_USABLE)
 		return;
@@ -475,8 +485,7 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 	extFpgaReadParams(mediaParams);
 	/* clear register */
 	_extFpgaWriteByte(EXT_FPGA_REG_PARAM_STATUS, &value);
-
-
+	
 	return;
 }
 
@@ -524,7 +533,7 @@ char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
 
 void	extFpgaEnable(char	isEnable)
 {
-	unsigned char		data = 0x01;
+	unsigned char		data = 0xFF;	/* enable all bits for different streams */
 	if(isEnable == 0)
 	{
 		data = 0;
