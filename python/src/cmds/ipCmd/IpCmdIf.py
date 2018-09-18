@@ -59,7 +59,7 @@ class IpCmdSocket(object):
     def sendPacket(self, data):
         """
         """
-        ColorMsg.debug_msg('send packet: %s\n' % (data), self.debug)
+        ColorMsg.debug_msg('send packet: %s to %s\n' % (data, self.peer), self.debug)
         self.start_time = time.time()
         sent = self.sock.sendto(data, self.peer)
         return sent

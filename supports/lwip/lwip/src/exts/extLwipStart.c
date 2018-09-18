@@ -320,6 +320,35 @@ void extLwipNetStatusCallback(struct netif *netif)
 /** Maximum transfer unit. */
 #define NET_MTU               1500
 
+#if 0
+static void _initTask(void *param)
+{
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)param;
+	struct netif *netif = &guNetIf;
+	
+	/* Bring it up */
+	if(EXT_DHCP_IS_ENABLE(runCfg))
+	{
+		/* DHCP mode. */
+		EXT_DEBUGF(EXT_DBG_OFF, ("DHCP Starting ..."EXT_NEW_LINE) );
+		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
+		if (ERR_OK != dhcp_start(netif))
+		{
+			EXT_ASSERT(("ERR_OK != dhcp_start"), 0);
+		}
+		EXT_INFOF( ("DHCP Start..."EXT_NEW_LINE) );
+	}
+	else
+	{/* Static mode: start up directly */
+		netif_set_up(netif);
+	}
+
+	EXT_ERRORF(("Init Task exut"));
+	while(1){};
+}
+#endif
+
+
 
 void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 {
@@ -395,6 +424,7 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	/* Setup callback function for netif status change */
 	netif_set_status_callback(netif, extLwipNetStatusCallback);
 
+#if 1
 	/* Bring it up */
 	if(EXT_DHCP_IS_ENABLE(runCfg))
 	{
@@ -411,6 +441,10 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	{/* Static mode: start up directly */
 		netif_set_up(netif);
 	}
+#else
+	sys_thread_new("init", _initTask, runCfg, 512, 2);
+#endif
+
 }
 
 

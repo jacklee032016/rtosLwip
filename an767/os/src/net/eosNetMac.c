@@ -682,6 +682,7 @@ void ethernetif_input(struct netif *netif)
 			LINK_STATS_INC(link.drop);
 #if LWIP_STATS
 			_macDev->macStats->rxErrFrame ++;
+			EXT_DEBUGF(EXT_DBG_OFF, ("IP input ethtype:0x%x", htons(ethhdr->type) ) );
 #endif			
 			pbuf_free(p);
 			break;

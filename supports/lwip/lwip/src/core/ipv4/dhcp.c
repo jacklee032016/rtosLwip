@@ -80,13 +80,13 @@
 
 #include <string.h>
 
-#define	EXT_DHCP_INIT_TIMEOUT			4000
+#define	EXT_DHCP_INIT_TIMEOUT			2000
 
 /** DHCP_CREATE_RAND_XID: if this is set to 1, the xid is created using
  * LWIP_RAND() (this overrides DHCP_GLOBAL_XID)
  */
 #ifndef DHCP_CREATE_RAND_XID
-#define DHCP_CREATE_RAND_XID        1
+#define DHCP_CREATE_RAND_XID				0
 #endif
 
 /** Default for DHCP_GLOBAL_XID is 0xABCD0000
@@ -1086,6 +1086,8 @@ static err_t dhcp_discover(struct netif *netif)
 
 		netif_set_up(netif);
 		result = ERR_OK;
+
+		return result;
 	}
 
 #if 0	
@@ -2055,9 +2057,9 @@ static err_t dhcp_create_msg(struct netif *netif, struct dhcp *dhcp, u8_t messag
 	if ((message_type != DHCP_REQUEST) || (dhcp->state == DHCP_STATE_REBOOTING))
 	{
 		/* reuse transaction identifier in retransmissions */
-		if (dhcp->tries == 0)
+//		if (dhcp->tries == 0)
 		{
-#if DHCP_CREATE_RAND_XID && defined(LWIP_RAND)
+#if	DHCP_CREATE_RAND_XID && defined(LWIP_RAND)
 			xid = LWIP_RAND();
 #else /* DHCP_CREATE_RAND_XID && defined(LWIP_RAND) */
 			xid++;
