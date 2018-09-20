@@ -129,6 +129,24 @@ static void _factoryTask(void *param)
 	EXT_ERRORF(("Reset Task error"));
 }
 
+static char _rs232ReadBuf[128];
+
+static void _rs232Task(void *param)
+{
+	param = param;
+
+	while(1)
+	{
+		memset(_rs232ReadBuf, 0, sizeof(_rs232ReadBuf));
+		if(extRs232Read((unsigned char *)_rs232ReadBuf, sizeof(_rs232ReadBuf)) >0)
+		{
+			EXT_INFOF(("RS232 RX:'%s'", _rs232ReadBuf));
+		}
+	}
+
+	EXT_ERRORF(("RS232 read Task error"));
+}
+
 
 int main( void )
 {
@@ -194,6 +212,8 @@ int main( void )
 		return ERR_MEM;
 #endif
 	sys_thread_new("reset", _factoryTask, NULL, EXT_TASK_LED_STACK_SIZE*4, EXT_TASK_LED_PRIORITY);
+
+	sys_thread_new("rs232", _rs232Task, NULL, EXT_TASK_LED_STACK_SIZE*2, EXT_TASK_LED_PRIORITY-1);
 	
 	extBspFpgaReload();
 	extBspNetStackInit(&extRun);

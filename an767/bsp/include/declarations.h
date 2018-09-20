@@ -180,6 +180,7 @@ void extHwRs232Config(EXT_RUNTIME_CFG *runCfg);
 
 #ifdef	ARM
 int extRs232Write(unsigned char *data, unsigned short size);
+int extRs232Read(unsigned char *data, unsigned short size);
 
 
 char	 bspCmdReboot(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );

@@ -13,6 +13,36 @@
 #include "pio_handler.h"
 
 
+int extRs232Read(unsigned char *data, unsigned short size)
+{
+	unsigned int i = 0;
+//	unsigned char *d = data;
+	
+#if EXT_RS232_DEBUG
+	printf("RS232: input:'");
+#endif
+	for(i=0; i< size; i++)
+	{
+		usart_serial_getchar(USART1, (data+i));
+
+#if EXT_RS232_DEBUG
+		printf("%c ", *(data+i));
+#endif
+		if( *(data+i) == '\n' || *(data+i) == '\r' )
+		{
+			return i;
+		}
+
+	}
+	
+#if EXT_RS232_DEBUG
+	printf("'"EXT_NEW_LINE);
+#endif
+
+	return size;
+}
+
+
 int extRs232Write(unsigned char *data, unsigned short size)
 {
 	unsigned int i;
