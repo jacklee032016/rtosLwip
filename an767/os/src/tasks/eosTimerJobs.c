@@ -77,32 +77,21 @@ void extDelayReboot(unsigned short delayMs)
 	_extJobDelay("reboot", delayMs, _delayReboot, NULL);
 }
 
+
+
 static void _periodJobCallback(TimerHandle_t pxTimer)
 {
 #if configUSE_TIMERS
 	EXT_RUNTIME_CFG *runCfg;
 //	EXT_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
-
 	runCfg = (EXT_RUNTIME_CFG *)pvTimerGetTimerID(pxTimer);
 
-	if(runCfg->isMCast)
+	if(EXT_IS_MULTICAST(runCfg) && EXT_IS_DIP_ON(runCfg) )
 	{
 		unsigned	int	ip = CFG_MAKEU32(bspMultiAddressFromDipSwitch(), MCAST_DEFAULT_IPADDR2, MCAST_DEFAULT_IPADDR1, MCAST_DEFAULT_IPADDR0 );
 		if(ip != runCfg->dest.ip )
 		{
-			EXT_INFOF(("Multicast Address change to '%s'", EXT_LWIP_IPADD_TO_STR(&ip)));
-			if(!EXT_IS_TX(runCfg))
-			{
-				EXT_NET_IGMP_LEAVE(runCfg->dest.ip);
-			}
-			
-			runCfg->dest.ip = ip;
-			if(!EXT_IS_TX(runCfg))
-			{
-				extTxMulticastIP2Mac(runCfg);
-			}
-
-			extFpgaConfig(runCfg);
+			extCmnNewDestIpEffective(runCfg, ip);
 		}
 	}
 #else

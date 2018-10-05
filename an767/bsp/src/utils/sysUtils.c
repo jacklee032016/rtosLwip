@@ -17,6 +17,8 @@ void loadApplication(uint32_t appAddress)
 	printf("\n\r Starting application at flash 0x%08x! "EXT_NEW_LINE, (unsigned int)appAddress);
 	printf("========================================================= "EXT_NEW_LINE );
 
+	EXT_DELAY_MS(100 +100 );
+
 //	WDT_Restart(WDT);
 //	__disable_irq();
 	__set_MSP(__Start_SP);

@@ -224,13 +224,19 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 }
 
 
-char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
+
+char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 {
 	EXT_MAC_ADDRESS destMac, *mac;
 	char ret;
 	unsigned char value;
 	unsigned char		address[EXT_MAC_ADDRESS_LENGTH];
 	EXT_VIDEO_CONFIG *vCfg;
+	
+	struct netif *_netif = (struct netif *)runCfg->netif;
+	const ip4_addr_t *_netIfIpAddr = netif_ip4_addr(_netif);
+
+	unsigned int ip = (_netIfIpAddr->addr == IPADDR_ANY)?runCfg->local.ip:_netIfIpAddr->addr;
 
 	/*configure local address/port, for both RX/TX*/
 	
@@ -243,7 +249,7 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
 		_changeByteOrderOfMac(&runCfg->local.mac, address);
 		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
 
-		_extFpgaWriteInteger(EXT_FPGA_REG_IP, (unsigned char *)&runCfg->local.ip);
+		_extFpgaWriteInteger(EXT_FPGA_REG_IP, &ip);
 
 		_extFpgaWriteShort(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&runCfg->local.vport);
 		_extFpgaWriteShort(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport);
@@ -275,44 +281,81 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg)
 	else
 	{/* RX */
 //		const ip4_addr_t *mcIpAddr;
+		unsigned int	intValue;
+
 		vCfg = &runCfg->dest;
+#if 0
+		if(_netIfIpAddr->addr != IPADDR_ANY)
+		{
+			return EXIT_SUCCESS;
+		}
+#endif
+		EXT_INFOF(("RX is configuring"));
 
-		_changeByteOrderOfMac(&vCfg->mac, address);
-		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
+		_extFpgaReadInteger(EXT_FPGA_REG_IP, (unsigned char *)&intValue);
+		if(intValue != vCfg->ip )
+		{
 
-		_extFpgaWriteInteger(EXT_FPGA_REG_IP, &vCfg->ip);
+			_changeByteOrderOfMac(&vCfg->mac, address);
+			_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
 
-		_extFpgaWriteShort(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&vCfg->vport);
-		_extFpgaWriteShort(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&vCfg->aport);
-		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_DT, (unsigned char *)&vCfg->dport);
-		_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_ST, (unsigned char *)&vCfg->sport);
+			_extFpgaWriteInteger(EXT_FPGA_REG_IP, &vCfg->ip);
 
+			_extFpgaWriteShort(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&vCfg->vport);
+			_extFpgaWriteShort(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&vCfg->aport);
+			_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_DT, (unsigned char *)&vCfg->dport);
+			_extFpgaWriteShort(EXT_FPGA_REG_PORT_ANC_ST, (unsigned char *)&vCfg->sport);
+		}
+		else
+		{
+			EXT_DEBUGF(EXT_DBG_ON,  ("MAC/IP is same, so ignore re-configuration"));
+		}
+
+
+#if  1
+#define	_USING_OR_OP		1
+		/* OR_Op must be used to make RTK switch chipset working. 09.21, 2018 */
+		/* RX version fromo 09.04, 2018 */
 		/* reset */
+#if _USING_OR_OP
 		_extFpgaReadByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
-		EXT_DEBUGF(EXT_DBG_OFF, ("Read %x", value));
+		EXT_DEBUGF(EXT_DBG_ON, ("RX Read %x from register 0x%x", value, EXT_FPGA_REG_ETHERNET_RESET));
 		value = (value | (1<<1));
-		EXT_DEBUGF(EXT_DBG_OFF, ("Write %x", value));
+#else		
+		value = 0x02;
+#endif
+		EXT_DEBUGF(EXT_DBG_ON, ("RX Write %x to register 0x%x: reset FPGA", value, EXT_FPGA_REG_ETHERNET_RESET));
 		_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
 
 		/* release reset */
+#if _USING_OR_OP
 		_extFpgaReadByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
-		EXT_DEBUGF(EXT_DBG_OFF, ("ReRead %x", value));
+		EXT_DEBUGF(EXT_DBG_ON, ("RX ReRead %x from register 0x%x", value, EXT_FPGA_REG_ETHERNET_RESET));
 		value = value & 0xFD;
-		EXT_DEBUGF(EXT_DBG_OFF,  ("ReWrite %x", value));
+#else		
+		value = 0x00;
+#endif
+		EXT_DEBUGF(EXT_DBG_ON,  ("TX ReWrite %x to register 0x%x: release reset of FPGA", value, EXT_FPGA_REG_ETHERNET_RESET));
 		_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &value);
-
-
-//		printf("FPGA Configuration ended!"LWIP_NEW_LINE);
-
-//		EXT_DELAY_MS(5000);
+#endif
 	
 		ip4_addr_t *mcIpAddr = (ip4_addr_t *)&vCfg->ip;
 		if( ip4_addr_ismulticast(mcIpAddr) )
-		{
-//			printf("Send IGMP JOIN"LWIP_NEW_LINE);
-			ret = EXT_NET_IGMP_JOIN(runCfg->dest.ip);
+		{/* join */
+			if( (_netIfIpAddr->addr == IPADDR_ANY) )
+			{
+				EXT_DEBUGF(EXT_DBG_ON,  ("netif is not available, IGMP group can't join now"));
+			}
+			else
+			{
+//				printf("Send IGMP JOIN"LWIP_NEW_LINE);
+				ret = extLwipGroupMgr(runCfg, runCfg->dest.ip, EXT_TRUE);
+			}
 		}
+		
+//		EXT_DELAY_MS(5000);
 
+		EXT_DEBUGF(EXT_DBG_ON,  ("FPGA Configuration ended!"));
 
 	}
 
@@ -466,6 +509,7 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 {
 	unsigned char value;
 
+
 	_extFpgaReadByte(EXT_FPGA_REG_SDI_STATUS, &value);
 	if(value == EXT_FPGA_FLAGS_SDI_CONNECTTED)
 	{
@@ -508,7 +552,7 @@ char extFpgaReadParams(MuxRunTimeParam *mediaParams)
 	return EXIT_SUCCESS;
 }
 
-char extFpgaWriteParams(MuxRunTimeParam *mediaParams)
+char extFpgaConfigParams(MuxRunTimeParam *mediaParams)
 {
 	unsigned char value;
 	_extFpgaWriteShort(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);

@@ -28,20 +28,21 @@ EXT_JSON_PARSER  extParser;
 /*
 * Only involving join or leave one group. IGMP has been initialized in protocol stack
 */
-char	 extLwipGroupMgr(struct netif *netif, unsigned int gAddress, unsigned char isAdd)
+char	 extLwipGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned int gAddress, unsigned char isAdd)
 {
 	const ip_addr_t  *ipaddr;
 	ip_addr_t			ipgroup;
 	err_t ret;
+	struct netif *_netif = (struct netif *)runCfg->netif;
 
 //	IP4_ADDR( &ipgroup, 239,  200,   1,   111 );
 	EXT_LWIP_INT_TO_IP(&ipgroup, gAddress);
 
-	LWIP_ERROR(("IGMP is not enabled in interface"), ( (netif->flags & NETIF_FLAG_IGMP)!=0), return ERR_VAL;);
+	LWIP_ERROR(("IGMP is not enabled in interface when op on group '%s'", EXT_LWIP_IPADD_TO_STR(&ipgroup)), ( (_netif->flags & NETIF_FLAG_IGMP)!=0), return ERR_VAL;);
 
-	LWIP_DEBUGF(IGMP_DEBUG, ("Register IGMP group '%s'"LWIP_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&ipgroup)) );
+	EXT_DEBUGF(EXT_DBG_ON, ("%s IGMP group '%s'"LWIP_NEW_LINE, (isAdd)?"Join":"Leave", EXT_LWIP_IPADD_TO_STR(&ipgroup)) );
 
-	ipaddr = netif_ip4_addr(netif);
+	ipaddr = netif_ip4_addr(_netif);
 	if(isAdd)
 	{
 		ret = igmp_joingroup(ipaddr,  &ipgroup);
@@ -80,20 +81,22 @@ static void srv_txt(struct mdns_service *service, void *txt_userdata)
 static mdns_client_t _mdnsClient;
 
 /* hostname used in MDNS announce packet */
-static char	_extLwipMdnsResponder(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
+static char	_extLwipMdnsResponder(EXT_RUNTIME_CFG *runCfg)
 {
 	char	name[64];
+	struct netif *_netif = (struct netif *)runCfg->netif;
+	
 #define	DNS_AGING_TTL		3600
 
 	mdns_resp_init(&_mdnsClient);
 
 	/* this is also the hostname used to resolve IP address*/
-	mdns_resp_add_netif(netif, runCfg->name, DNS_AGING_TTL);
+	mdns_resp_add_netif(_netif, runCfg->name, DNS_AGING_TTL);
 
 	/* this is servce name displayed in DNS-SD */
 	snprintf(name, sizeof(name), EXT_767_MODEL"_%s_%s", EXT_IS_TX(runCfg)?"TX":"RX", EXT_LWIP_IPADD_TO_STR(&(runCfg->local.ip) ));
 //	printf("IP address:%s:%s"LWIP_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->local.ip) ), name );
-	mdns_resp_add_service(netif, name, NMOS_MDNS_NODE_SERVICE, DNSSD_PROTO_TCP, runCfg->httpPort, DNS_AGING_TTL, srv_txt, runCfg);
+	mdns_resp_add_service(_netif, name, NMOS_MDNS_NODE_SERVICE, DNSSD_PROTO_TCP, runCfg->httpPort, DNS_AGING_TTL, srv_txt, runCfg);
 
 	return 0;
 }
@@ -112,22 +115,19 @@ void extLwipMdsnDestroy(struct netif *netif)
 
 
 /* after netif has been set_up(make it UP), call to start services */
-char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
+char extLwipStartup(EXT_RUNTIME_CFG *runCfg)
 {
+//	struct netif *_netif = (struct netif *)runCfg->netif;
 	extParser.runCfg = runCfg;
 	extJsonInit(&extParser, NULL, 0);
-
 
 	EXT_INFOF(("TELNET server start..."));
 	extNetRawTelnetInit(runCfg);
 
-#if 0
-	extLwipGroupMgr(netif, runCfg->mcIp, 1);
-#endif
 
 #if LWIP_MDNS_RESPONDER
 	EXT_INFOF(("MDNS Responder start..."));
-	_extLwipMdnsResponder(netif, runCfg);
+	_extLwipMdnsResponder(runCfg);
 
 	EXT_INFOF(("MDNS Client start..."));
 	mdnsClientInit(&_mdnsClient, runCfg);
@@ -146,19 +146,6 @@ char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 #if LWIP_EXT_MQTT_CLIENT && defined(X86)
 	EXT_INFOF(("MQTT Client start..."));
 //	mqttClientConnect(PP_HTONL(LWIP_MAKEU32(192,168,168,102)));
-#endif
-
-#if 0
-	if(!EXT_IS_TX(runCfg))
-	{
-//		EXT_DEBUGF(IGMP_DEBUG,("Send IGMP JOIN"LWIP_NEW_LINE));
-//		extLwipGroupMgr(netif, runCfg->dest.ip, 1);
-		
-		extIpCmdSendMediaData(&extParser, EXT_TRUE);
-	}
-	else
-	{
-	}
 #endif
 
 	EXT_INFOF(("IP Command Daemon start..."));
@@ -245,14 +232,17 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 
 static void _extStackUp( struct netif *netif)
 {
-
 	EXT_RUNTIME_CFG *runCfg = &extRun;
 
-	extLwipStartup(netif, runCfg);
+	extLwipStartup(runCfg);
 
 #ifdef	ARM
-	extFpgaConfig(runCfg);
-	extFpgaEnable(EXT_TRUE); /* start TX and RX after IP address is configured. 09.13, 2018 */
+	extFpgaConfig(runCfg );
+
+	if(EXT_IS_TX(runCfg) )
+	{
+		extFpgaEnable(EXT_TRUE); /* start TX and RX after IP address is configured. 09.13, 2018 */
+	}
 
 	printf(""EXT_NEW_LINE);
 	
@@ -290,7 +280,7 @@ void extLwipNetStatusCallback(struct netif *netif)
 			ip4_addr1_16(gw), ip4_addr2_16(gw), ip4_addr3_16(gw), ip4_addr4_16(gw) ));
 
 		
-		extRun.local.ip = ip->addr;
+//		extRun.local.ip = ip->addr;
 #endif /* LWIP_IPV4 */
 #if LWIP_IPV6
 		printf("IPV6: Host at %s"EXT_NEW_LINE, ip6addr_ntoa(netif_ip6_addr(netif, 0)));
@@ -324,14 +314,14 @@ void extLwipNetStatusCallback(struct netif *netif)
 static void _initTask(void *param)
 {
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)param;
-	struct netif *netif = &guNetIf;
+	struct netif *_netif = (struct netif *)runCfg->netif;
 	
 	/* Bring it up */
 	if(EXT_DHCP_IS_ENABLE(runCfg))
 	{
 		/* DHCP mode. */
 		EXT_DEBUGF(EXT_DBG_OFF, ("DHCP Starting ..."EXT_NEW_LINE) );
-		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
+		_netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
 		if (ERR_OK != dhcp_start(netif))
 		{
 			EXT_ASSERT(("ERR_OK != dhcp_start"), 0);
@@ -340,7 +330,7 @@ static void _initTask(void *param)
 	}
 	else
 	{/* Static mode: start up directly */
-		netif_set_up(netif);
+		netif_set_up(_netif);
 	}
 
 	EXT_ERRORF(("Init Task exut"));
@@ -350,23 +340,24 @@ static void _initTask(void *param)
 
 
 
-void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
+void extLwipStartNic(EXT_RUNTIME_CFG *runCfg)
 {
 //	struct ip_addr x_ip_addr, x_net_mask, x_gateway;
 	ip4_addr_t x_ip_addr, x_net_mask, x_gateway;
+	struct netif *_netif = (struct netif *)runCfg->netif;
 
 	/* Set MAC hardware address length. */
-	netif->hwaddr_len = NETIF_MAX_HWADDR_LEN;
+	_netif->hwaddr_len = NETIF_MAX_HWADDR_LEN;
 	/* Set MAC hardware address. */
-	netif->hwaddr[0] = runCfg->local.mac.address[0];
-	netif->hwaddr[1] = runCfg->local.mac.address[1];
-	netif->hwaddr[2] = runCfg->local.mac.address[2];
-	netif->hwaddr[3] = runCfg->local.mac.address[3];
-	netif->hwaddr[4] = runCfg->local.mac.address[4];
-	netif->hwaddr[5] = runCfg->local.mac.address[5];
+	_netif->hwaddr[0] = runCfg->local.mac.address[0];
+	_netif->hwaddr[1] = runCfg->local.mac.address[1];
+	_netif->hwaddr[2] = runCfg->local.mac.address[2];
+	_netif->hwaddr[3] = runCfg->local.mac.address[3];
+	_netif->hwaddr[4] = runCfg->local.mac.address[4];
+	_netif->hwaddr[5] = runCfg->local.mac.address[5];
 
 	/* Set maximum transfer unit. */
-	netif->mtu = NET_MTU;
+	_netif->mtu = NET_MTU;
 
 	if(EXT_DHCP_IS_ENABLE(runCfg))
 	{/* DHCP mode. */
@@ -386,43 +377,43 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 //	netif->flags |= NETIF_FLAG_IGMP;
 	/* start multicast and IGMP */
 #ifdef X86
-	netif->flags = NETIF_FLAG_IGMP;
+	_netif->flags = NETIF_FLAG_IGMP;
 #else
 #if 1
 	/* when random MAC address is used, ARP must be enabled. 08.26.2018 */
-	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_ETHERNET;
+	_netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_ETHERNET;
 #else
-	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_IGMP;
+	_netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_IGMP;
 #endif
 #endif
 
 #if EXT_LWIP_DEBUG
 	EXT_DEBUGF(EXT_DBG_ON, ("before %d(%p), offset %d:%d:%d..."EXT_NEW_LINE, 
-		netif->hwaddr_len, netif , NETIF_HWADDR_OFFSET(), (offsetof(struct netif, rs_count)), (offsetof(struct netif, mtu)) ) );
+		_netif->hwaddr_len, _netif , NETIF_HWADDR_OFFSET(), (offsetof(struct netif, rs_count)), (offsetof(struct netif, mtu)) ) );
 	EXT_LWIP_DEBUG_NETIF(netif);
 #endif
 
 #if LWIP_IPV4
-	if (NULL == netif_add(netif, &x_ip_addr, &x_net_mask, &x_gateway, runCfg, ethernetif_init, tcpip_input))
+	if (NULL == netif_add(_netif, &x_ip_addr, &x_net_mask, &x_gateway, runCfg, ethernetif_init, tcpip_input))
 #else /* LWIP_IPV4 */
-	if(NULL== netif_add(&guNetIf, runCfg, tapif_init, tcpip_input))
+	if(NULL== netif_add(_netif, runCfg, tapif_init, tcpip_input))
 #endif /* LWIP_IPV4 */
 	{
 		EXT_ASSERT(("NULL == netif_add"), 0);
 	}
 
 #if LWIP_IPV6
-	netif_create_ip6_linklocal_address(netif, 1);
-	netif->ip6_autoconfig_enabled = 1;
+	netif_create_ip6_linklocal_address(_netif, 1);
+	_netif->ip6_autoconfig_enabled = 1;
 #endif
 
 	/* Make it the default interface */
 //	printf("Setup default netif...\r\n");
-	netif_set_default(netif);
+	netif_set_default(_netif);
 
 
 	/* Setup callback function for netif status change */
-	netif_set_status_callback(netif, extLwipNetStatusCallback);
+	netif_set_status_callback(_netif, extLwipNetStatusCallback);
 
 #if 1
 	/* Bring it up */
@@ -430,8 +421,8 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	{
 		/* DHCP mode. */
 		EXT_DEBUGF(EXT_DBG_OFF, ("DHCP Starting ..."EXT_NEW_LINE) );
-		netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
-		if (ERR_OK != dhcp_start(netif))
+		_netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
+		if (ERR_OK != dhcp_start(_netif))
 		{
 			EXT_ASSERT(("ERR_OK != dhcp_start"), 0);
 		}
@@ -439,7 +430,7 @@ void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg)
 	}
 	else
 	{/* Static mode: start up directly */
-		netif_set_up(netif);
+		netif_set_up(_netif);
 	}
 #else
 	sys_thread_new("init", _initTask, runCfg, 512, 2);

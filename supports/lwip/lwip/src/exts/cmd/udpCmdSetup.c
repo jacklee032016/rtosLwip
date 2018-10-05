@@ -34,7 +34,7 @@ static unsigned short	_setupType;
 
 
 #define	SETUP_CHECK_TYPE( _type)	\
-		(( _setupType &= (1<<(_type) ) ) != 0 )
+		(( _setupType & (1<<(_type) ) ) != 0 )
 
 
 
@@ -188,6 +188,16 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("DipOn:%s"LWIP_NEW_LINE, STR_BOOL_VALUE(runCfg->isDipOn)) );
 //		needSave = 1;
 //		needReboot = 1;
+		if(!EXT_IS_DIP_ON(runCfg) )
+		{/* DIP ON --> OFF */
+			extCmnNewDestIpEffective(runCfg, runCfg->ipMulticast);
+		}
+		/* when DIP is changed to ON, poll job will configure new mulitcast IP from DIP switch */
+#if 0
+		else
+		{/* DIP OFF-->ON */
+		}
+#endif		
 		SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
 	}
 
@@ -244,11 +254,21 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	}
 
 //	if( _checkIntegerField(&runCfg->dest.ip, rxCfg->dest.ip) == EXIT_SUCCESS)
-	if(rxCfg->dest.ip != IPADDR_NONE)
+	if(rxCfg->dest.ip != IPADDR_NONE && rxCfg->dest.ip != runCfg->ipMulticast )
 	{
-		runCfg->dest.ip = rxCfg->dest.ip;
+		runCfg->ipMulticast = rxCfg->dest.ip;
 //		needReboot = 1;
-		SETUP_SET_TYPE(_SETUP_TYPE_PROTOCOL);
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		if(!EXT_IS_DIP_ON(runCfg) )
+		{/* FPGA maybe configured twice: furst here; second, in setupParams() */
+			extCmnNewDestIpEffective( runCfg, runCfg->ipMulticast);
+		}
+//		else
+
+		{/* config type: system, so only save, not reconfigure FPGA */
+			SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
+		}
+		
 	}
 	
 	if( _checkShortField(&runCfg->dest.vport, rxCfg->dest.vport) == EXIT_SUCCESS)
@@ -439,8 +459,11 @@ char extIpCmdSetupParams(EXT_JSON_PARSER  *parser)
 
 	_compareMediaCfg(parser->runCfg, rxCfg);
 
+#if 0
+	/*10.03, 2018 comment to reply this media parameter J.L. */
 	/* reply cmd with updated params */
 	extIpCmdSendMediaData(parser, EXT_FALSE);
+#endif
 
 #ifdef	X86
 	extDebugCfg(parser->runCfg, LWIP_NEW_LINE"updated Cfg:");
@@ -448,15 +471,17 @@ char extIpCmdSetupParams(EXT_JSON_PARSER  *parser)
 
 	extJsonResponsePrintConfig(parser);
 
+	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("config options:0x%x (0x%x)"LWIP_NEW_LINE, _setupType, SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) ) );
+
 	/* save configuration, and reboot to make it active */
 	//if(needReboot || hasNewMedia  || needSave)
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) )	
 	{
 #ifdef	ARM
 		bspCfgSave(parser->runCfg, EXT_CFG_MAIN);
-		bspCmdReboot(NULL, NULL, 0);
-#else
-		printf("New system configuration, saving configuration and reboot"LWIP_NEW_LINE);
+//		bspCmdReboot(NULL, NULL, 0);
+//#else
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New system configuration, saving configuration and reboot") );
 #endif
 	}
 
@@ -469,22 +494,28 @@ char extIpCmdSetupParams(EXT_JSON_PARSER  *parser)
 		{
 			extHwRs232Config(parser->runCfg);
 		}
-#else
-		printf("RS232 save and setup"LWIP_NEW_LINE);
+//#else
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RS232 save and setup") );
 #endif
 	}
 	
 	//if(hasNewMedia)
-	if(SETUP_CHECK_TYPE(_SETUP_TYPE_PROTOCOL) || SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
+	if(SETUP_CHECK_TYPE(_SETUP_TYPE_PROTOCOL) )
 	{
 #ifdef	ARM
-		if(SETUP_CHECK_TYPE(_SETUP_TYPE_PROTOCOL))
-		{
-			bspCfgSave(parser->runCfg, EXT_CFG_MAIN);
-		}
+		bspCfgSave(parser->runCfg, EXT_CFG_MAIN);
 		extFpgaConfig(parser->runCfg);
-#else
-		printf("FPGA configuration(Protocol|Media)"LWIP_NEW_LINE);
+//#else
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("FPGA configuration Protocol"));
+#endif
+	}
+	
+	if( SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
+	{
+#ifdef	ARM
+		extFpgaConfigParams(&parser->runCfg->runtime);
+//#else
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("FPGA configuration Media") );
 #endif
 	}
 
@@ -554,7 +585,7 @@ char extCmdConnect(EXT_RUNTIME_CFG  *runCfg, unsigned char isStart)
 		if(IP_ADDR_IS_MULTICAST(runCfg->dest.ip))
 		{
 #ifdef	ARM
-			ret = extLwipGroupMgr(&guNetIf, runCfg->dest.ip, isStart);
+			ret = extLwipGroupMgr(runCfg, runCfg->dest.ip, isStart);
 #endif
 			EXT_DEBUGF(EXT_IPCMD_DEBUG, ("IGMP group %s %s: %s"LWIP_NEW_LINE, (isStart==0)?"leave":"join", EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ip), (ret==EXIT_SUCCESS)?"OK":"Fail" ));
 		}
@@ -565,9 +596,10 @@ char extCmdConnect(EXT_RUNTIME_CFG  *runCfg, unsigned char isStart)
 	return EXIT_SUCCESS;
 }
 
-char *extLwipIpAddress(void)
+char *extLwipIpAddress(EXT_RUNTIME_CFG *runCfg)
 {
-	return inet_ntoa(*(struct in_addr *)&(guNetIf.ip_addr));
+	struct netif *_netif = (struct netif *)runCfg->netif;
+	return inet_ntoa(*(struct in_addr *)&(_netif->ip_addr));
 }
 
 

@@ -301,11 +301,15 @@ void bspHwInit(boot_mode bMode)
 		bspHwTrngConfig(EXT_TRUE);
 	}
 
-	if(runCfg->isMCast)
+	if( EXT_IS_MULTICAST(runCfg) && EXT_IS_DIP_ON(runCfg))
 	{
 		runCfg->dest.ip = CFG_MAKEU32(bspMultiAddressFromDipSwitch(), MCAST_DEFAULT_IPADDR2, MCAST_DEFAULT_IPADDR1, MCAST_DEFAULT_IPADDR0 );
-		extTxMulticastIP2Mac(runCfg);
 	}
+	else
+	{
+		runCfg->dest.ip = runCfg->ipMulticast;
+	}
+	extTxMulticastIP2Mac(runCfg);
 
 	/* First output of UART initialized must be platform info */
 	if(bMode == BOOT_MODE_RTOS)

@@ -17,7 +17,6 @@
 
 _CODE char *versionString = EXT_OS_NAME;
 
-
 void vApplicationMallocFailedHook( void )
 {
 	/* Called if a call to pvPortMalloc() fails because there is insufficient

@@ -199,7 +199,7 @@ typedef    _CODE unsigned char    cBYTE;
 
 
 
-#define	EXT_RS232_DEBUG		1
+#define	EXT_RS232_DEBUG		0
 
 
 

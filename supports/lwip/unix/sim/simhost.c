@@ -122,7 +122,7 @@ static const struct snmp_mib *mibs[] = {
 static ip_addr_t ipaddr, netmask, gw;
 #endif /* LWIP_IPV4 */
 
-struct netif guNetIf;
+static struct netif _guNetIf;
 
 /* ping out destination cmd option */
 static unsigned char ping_flag;
@@ -204,7 +204,7 @@ static void simhost_tcpip_init_done(void *arg)
 
 	init_netifs(runCfg);
 
-	extLwipStartNic(&guNetIf, runCfg);
+	extLwipStartNic(runCfg);
 
 
 #if LWIP_TCP
@@ -215,7 +215,7 @@ static void simhost_tcpip_init_done(void *arg)
 #if LWIP_SOCKET
 	chargen_init();
 #endif
-	extLwipStartup(&guNetIf, runCfg);
+	extLwipStartup( runCfg);
 
 
 #if LWIP_IPV4
@@ -228,7 +228,7 @@ static void simhost_tcpip_init_done(void *arg)
 	sntp_servermode_dhcp(1); /* get SNTP server via DHCP */
 #else /* LWIP_DHCP */
 #if LWIP_IPV4
-	sntp_setserver(0, netif_ip_gw4(&guNetIf));
+	sntp_setserver(0, netif_ip_gw4(&_guNetIf));
 #endif /* LWIP_IPV4 */
 #endif /* LWIP_DHCP */
 	sntp_init();
@@ -519,6 +519,8 @@ int main(int argc, char **argv)
 #else
 	extRun.isTx = 1; /* run as TX default, 192.168.166.2 */
 #endif
+
+	extRun.netif = &_guNetIf;
 	while ((ch = getopt_long(argc, argv, "rdhg:i:m:p:", longopts, NULL)) != -1)
 	{
 		switch (ch)

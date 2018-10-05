@@ -182,7 +182,7 @@ static int	_bootUpdate(EXT_RUNTIME_CFG *runCfg)
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 	}
 
-	EXT_DELAY_MS(500 + 200);
+	EXT_DELAY_MS(500 );
 //	EXT_INFOF(("Update RTOS: %d bytes"EXT_NEW_LINE, total));
 
 	return length;

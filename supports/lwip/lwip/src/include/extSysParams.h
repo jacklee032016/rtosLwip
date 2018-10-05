@@ -724,7 +724,7 @@ typedef	struct
 	unsigned char			vColorSpace;
 	unsigned char			vDepth;
 
-	unsigned char			vIsInterlaced;
+	unsigned char			vIsInterlaced;	/* not used now */
 	unsigned char			vIsSegmented;
 
 	unsigned short		aSampleRate;
@@ -788,11 +788,14 @@ struct	_EXT_RUNTIME_CFG
 	EXT_VIDEO_CONFIG	local;
 	unsigned int			ipMask;
 	unsigned int			ipGateway;
+	unsigned int			ipMulticast;	/* save the backup multicast IP which is used when DIP is off. Oct.3, 2018 */
+
 	unsigned char			isMacConfiged;
 
 	unsigned char			isMacConfiged2;
 	
 	EXT_VIDEO_CONFIG	dest;	/* only for TX */
+	
 
 	/* following fields are not modified by SetParams command */
 	char					name[32];	/* can be modified */
@@ -830,6 +833,8 @@ struct	_EXT_RUNTIME_CFG
 	MuxRunTimeParam		runtime;
 
 	void					*data;
+
+	void					*netif;
 };//__attribute__((packed));
 
 //EXT_PACK_RESET();
@@ -913,6 +918,14 @@ extern	EXT_RUNTIME_CFG			extRun;
 			((runCfg)->isTx != 0 )
 
 
+#define	EXT_IS_DIP_ON(runCfg) \
+			((runCfg)->isDipOn != 0 )
+
+
+#define	EXT_IS_MULTICAST(runCfg) \
+			((runCfg)->isMCast != 0 )
+
+
 #define	UUID_IS_NULL(_uuid)	\
 		((_uuid)->uuid[0]==0 && (_uuid)->uuid[1]==0 && (_uuid)->uuid[2]==0 && (_uuid)->uuid[4]==0 && (_uuid)->uuid[15]==0 )
 
@@ -948,15 +961,6 @@ char cmnCmdHelp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int 
 char cmnCmdVersion(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen);
 
 
-/* output for used in OS */
-extern	struct netif			guNetIf;
-
-#define	EXT_NET_IGMP_JOIN(groupAddress)	\
-			extLwipGroupMgr(&guNetIf, (groupAddress), 1)
-
-
-#define	EXT_NET_IGMP_LEAVE(groupAddress)	\
-			extLwipGroupMgr(&guNetIf, (groupAddress), 0)
 
 char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 

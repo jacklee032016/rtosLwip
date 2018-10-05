@@ -177,6 +177,8 @@ char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 {
 	int	ret = 0;
 	uint32_t address;
+	EXT_RUNTIME_CFG *runCfg = &extRun;
+	struct netif *_netif = (struct netif *)runCfg->netif;
 
 	EXT_ASSERT(("Buffer is null"), outBuffer );
 
@@ -185,7 +187,7 @@ char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 
 	if(argc < 3)
 	{
-		extIgmpContent(&guNetIf, outBuffer, bufferLen);
+		extIgmpContent(_netif, outBuffer, bufferLen);
 		//sprintf( outBuffer, "Command '"EXT_CMD_IGMP"' with param of '"EXT_CMD_IGMP_JOIN"|"EXT_CMD_IGMP_LEAVE"' GROUP_ADDRESS" EXT_NEW_LINE);
 		return EXT_FALSE;
 	}
@@ -213,12 +215,12 @@ char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 	}
 
 	if(ret ==1 )
-	{
-		ret = EXT_NET_IGMP_JOIN(address);
+	{/* join */
+		ret = extLwipGroupMgr(runCfg, address, EXT_TRUE);
 	}
 	else
-	{
-		ret = EXT_NET_IGMP_LEAVE(address);
+	{/* leave */
+		ret = extLwipGroupMgr(runCfg, address, EXT_FALSE);
 	}
 	
 	sprintf( outBuffer, "Command %s "EXT_NEW_LINE, ( ret == EXIT_FAILURE)?"Failed":"OK" );
@@ -241,13 +243,15 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 {
 	unsigned int index = 0;
 	unsigned int address;
-	struct netif *netif = &guNetIf;
+	EXT_RUNTIME_CFG *runCfg = &extRun;
+	struct netif *_netif = (struct netif *)runCfg->netif;
 
 	if(argc==1)
 	{
-		index += snprintf(outBuffer+index,bufferLen-index, "Network %s:"EXT_NEW_LINE"\tIP (%s):%s; ", netif_is_up(netif)?"Up":"Down", EXT_DHCP_IS_ENABLE(&extRun)?"DHCP":"Static", inet_ntoa(*(struct in_addr *)&(netif->ip_addr)) );
-		index += snprintf(outBuffer+index,bufferLen-index, "GW:%s"EXT_NEW_LINE, inet_ntoa(*(struct in_addr *)&(netif->gw)) );
-		index += snprintf(outBuffer+index, bufferLen-index, "\tMAC:%02x:%02x:%02x:%02x:%02x:%02x"EXT_NEW_LINE, netif->hwaddr[0] , netif->hwaddr[1] , netif->hwaddr[2] , netif->hwaddr[3] , netif->hwaddr[4] , netif->hwaddr[5] );
+		index += snprintf(outBuffer+index,bufferLen-index, "Network %s:"EXT_NEW_LINE"\tIP (%s):%s; ", netif_is_up(_netif)?"Up":"Down", EXT_DHCP_IS_ENABLE(runCfg)?"DHCP":"Static", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+		index += snprintf(outBuffer+index,bufferLen-index, "GW:%s"EXT_NEW_LINE, inet_ntoa(*(struct in_addr *)&(_netif->gw)) );
+		index += snprintf(outBuffer+index, bufferLen-index, "\tMAC:%02x:%02x:%02x:%02x:%02x:%02x"EXT_NEW_LINE, 
+			_netif->hwaddr[0] , _netif->hwaddr[1] , _netif->hwaddr[2] , _netif->hwaddr[3] , _netif->hwaddr[4] , _netif->hwaddr[5] );
 
 		return EXT_FALSE;
 	}
@@ -255,14 +259,15 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 	index = (unsigned int)cmnParseGetHexIntValue(argv[1]);
 	if(index != 0)
 	{
-		EXT_CFG_SET_DHCP(&extRun, 1);
+		EXT_CFG_SET_DHCP(runCfg, 1);
+		index = 0;
 		index += snprintf(outBuffer+index, bufferLen-index, "\tDHCP enable after reboot"EXT_NEW_LINE );
-		bspCfgSave(&extRun, EXT_CFG_MAIN);
+		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		return EXT_FALSE;
 	}
 	
-	EXT_CFG_SET_DHCP(&extRun, 0);
-	index += snprintf(outBuffer+index, bufferLen-index, "\tDHCP diable"EXT_NEW_LINE);
+	EXT_CFG_SET_DHCP(runCfg, 0);
+	index += snprintf(outBuffer+index, bufferLen-index, "\tDHCP disable"EXT_NEW_LINE);
 	
 	if( argc >= 3)
 	{
@@ -273,7 +278,7 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 			return EXT_FALSE;
 		}
 		
-		extRun.local.ip = address;
+		runCfg->local.ip = address;
 		index += snprintf(outBuffer+index, bufferLen-index, "\tIP address: %s"EXT_NEW_LINE, argv[2] );
 		
 		if(argc >= 4)
@@ -285,7 +290,7 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 				return EXT_FALSE;
 			}
 	
-			extRun.ipMask = address;
+			runCfg->ipMask = address;
 			index += snprintf(outBuffer+index, bufferLen-index, "\tIP mask: %s"EXT_NEW_LINE, argv[3] );
 			
 			if(argc >= 5)
@@ -297,20 +302,20 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 					return EXT_FALSE;
 				}
 
-				extRun.ipGateway = address;
+				runCfg->ipGateway = address;
 				index += snprintf(outBuffer+index, bufferLen-index, "\tGateway: %s"EXT_NEW_LINE, argv[4] );
 			}
 			
 		}	
 	}
 
-	if(!EXT_IS_TX(&extRun) && !extNetIsGroupAddress(&extRun.dest.ip) )
+	if(!EXT_IS_TX(runCfg) && !extNetIsGroupAddress(&runCfg->dest.ip) )
 	{
-		extRun.dest.ip = extRun.local.ip;
-		memcpy(extRun.dest.mac.address, extRun.local.mac.address, EXT_MAC_ADDRESS_LENGTH);
+		runCfg->dest.ip = runCfg->local.ip;
+		memcpy(runCfg->dest.mac.address, runCfg->local.mac.address, EXT_MAC_ADDRESS_LENGTH);
 	}
 
-	bspCfgSave(&extRun, EXT_CFG_MAIN);
+	bspCfgSave(runCfg, EXT_CFG_MAIN);
 
 	return EXT_FALSE;
 }
@@ -318,12 +323,15 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 char	cmnCmdMacInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
 {
 	unsigned int index = 0;
-	struct netif *netif = &guNetIf;
+	EXT_RUNTIME_CFG *runCfg = &extRun;
+	struct netif *_netif = (struct netif *)runCfg->netif;
+
 	EXT_MAC_ADDRESS macAddress;
 
 	if(argc==1)
 	{
-		index += snprintf(outBuffer+index, bufferLen-index, "\tMAC:%02x:%02x:%02x:%02x:%02x:%02x"EXT_NEW_LINE, netif->hwaddr[0] , netif->hwaddr[1] , netif->hwaddr[2] , netif->hwaddr[3] , netif->hwaddr[4] , netif->hwaddr[5] );
+		index += snprintf(outBuffer+index, bufferLen-index, "\tMAC:%02x:%02x:%02x:%02x:%02x:%02x"EXT_NEW_LINE, 
+			_netif->hwaddr[0] , _netif->hwaddr[1] , _netif->hwaddr[2] , _netif->hwaddr[3] , _netif->hwaddr[4] , _netif->hwaddr[5] );
 		return EXT_FALSE;
 	}
 	
@@ -333,20 +341,20 @@ char	cmnCmdMacInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 		return EXT_FALSE;
 	}
 	
-	memcpy(&extRun.local.mac, &macAddress, sizeof(EXT_MAC_ADDRESS));
-	extRun.isMacConfiged = EXT_TRUE;
+	memcpy(&runCfg->local.mac, &macAddress, sizeof(EXT_MAC_ADDRESS));
+	runCfg->isMacConfiged = EXT_TRUE;
 	
 	index += snprintf(outBuffer+index, bufferLen-index, "\tNew MAC:%02x:%02x:%02x:%02x:%02x:%02x"EXT_NEW_LINE, 
-		extRun.local.mac.address[0] , extRun.local.mac.address[1] , extRun.local.mac.address[2] , 
-		extRun.local.mac.address[3] , extRun.local.mac.address[4] , extRun.local.mac.address[5] );
+		runCfg->local.mac.address[0] , runCfg->local.mac.address[1] , runCfg->local.mac.address[2] , 
+		runCfg->local.mac.address[3] , runCfg->local.mac.address[4] , runCfg->local.mac.address[5] );
 
-	if(!EXT_IS_TX(&extRun) && !extNetIsGroupAddress(&extRun.dest.ip) )
+	if(!EXT_IS_TX(runCfg) && !extNetIsGroupAddress(&runCfg->dest.ip) )
 	{
-		extRun.dest.ip = extRun.local.ip;
-		memcpy(extRun.dest.mac.address, extRun.local.mac.address, EXT_MAC_ADDRESS_LENGTH);
+		runCfg->dest.ip = runCfg->local.ip;
+		memcpy(runCfg->dest.mac.address, runCfg->local.mac.address, EXT_MAC_ADDRESS_LENGTH);
 	}
 	
-	bspCfgSave(&extRun, EXT_CFG_MAIN);
+	bspCfgSave(runCfg, EXT_CFG_MAIN);
 
 	return EXT_FALSE;
 }
@@ -370,7 +378,7 @@ char cmnCmdParams(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t buffer
 	index += snprintf(outBuffer+index, bufferLen-index, "%s/%s"EXT_NEW_LINE, runCfg->user, runCfg->password);
 
 #endif	
-	index += snprintf(outBuffer+index, bufferLen-index, "MODE: %s, Multicast:%s"EXT_NEW_LINE, EXT_IS_TX(runCfg)?"TX":"RX", (runCfg->isMCast)?"YES":"NO");
+	index += snprintf(outBuffer+index, bufferLen-index, "MODE: %s, Multicast:%s"EXT_NEW_LINE, EXT_IS_TX(runCfg)?"TX":"RX", STR_BOOL_VALUE(runCfg->isMCast) );
 
 #if 0
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_MAC"\t: ");
@@ -391,7 +399,7 @@ char cmnCmdParams(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t buffer
 	
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_MAC_DEST"\t: ");
 	MAC_ADDRESS_OUTPUT(outBuffer, bufferLen, index, &runCfg->dest.mac);
-	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_IP_DEST"\t: %s"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ip) );
+	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_IP_DEST"\t: %s(%s)"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ip),  extCmnIp4addr_ntoa(&runCfg->ipMulticast) );
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_PORT_DEST"\t: %d"EXT_NEW_LINE, runCfg->dest.vport);
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_AUDIO_PORT_DEST"\t: %d"EXT_NEW_LINE, runCfg->dest.aport);
 
@@ -682,4 +690,32 @@ char	extCmdUdpTxPerf(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 }
 #endif
 
+
+char *extCmnIp4addr_ntoa(unsigned int *ipp)
+{
+	static char str[IP4ADDR_STRLEN_MAX];
+	//struct in_addr *addr =  *(struct in_addr *)(ipp);
+	ip4_addr_t *addr = (ip4_addr_t *)ipp;
+
+	return ip4addr_ntoa_r(addr, str, IP4ADDR_STRLEN_MAX);
+}
+
+void extCmnNewDestIpEffective(EXT_RUNTIME_CFG *runCfg, unsigned int newIp)
+{
+	EXT_INFOF(("Multicast Address change to '%s'", EXT_LWIP_IPADD_TO_STR(&newIp)));
+	if(!EXT_IS_TX(runCfg))
+	{
+		extLwipGroupMgr(runCfg, runCfg->dest.ip, EXT_FALSE);
+	}
+	
+	runCfg->dest.ip = newIp;
+	if(!EXT_IS_TX(runCfg))
+	{
+		extTxMulticastIP2Mac(runCfg);
+	}
+
+#ifdef	ARM
+	extFpgaConfig(runCfg);
+#endif
+}
 

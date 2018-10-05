@@ -26,9 +26,11 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size)
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_HEIGHT"\":%d,", parser->runCfg->runtime.vHeight);
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":%d,", parser->runCfg->runtime.vFrameRate);
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_DEPTH"\":%d,", parser->runCfg->runtime.vDepth);
-
+#if 0
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_INTERLACED"\":%d,", (parser->runCfg->runtime.vIsInterlaced)?1:0);
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_SEGMENTED"\":%d,", (parser->runCfg->runtime.vIsSegmented)?1:0);
+#endif	
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_SEGMENTED"\":%d,", parser->runCfg->runtime.vIsSegmented);
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_COLORSPACE"\":\"%s\",", CMN_FIND_V_COLORSPACE(parser->runCfg->runtime.vColorSpace) );
 
@@ -151,13 +153,14 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 	MAC_ADDRESS_PRINT(data, size, index, &(parser->runCfg->local.mac));
 	
 //	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IP"\":\"%s\",", EXT_LWIP_IPADD_TO_STR(&(parser->runCfg->local.ip)) );
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IP"\":\"%s\",", extLwipIpAddress());
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IP"\":\"%s\",", extLwipIpAddress(parser->runCfg));
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_MASK"\":\"%s\",", EXT_LWIP_IPADD_TO_STR(&(parser->runCfg->ipMask)) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_GATEWAY"\":\"%s\",", EXT_LWIP_IPADD_TO_STR(&(parser->runCfg->ipGateway)) );
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_DHCP"\":%d,", EXT_DHCP_IS_ENABLE(parser->runCfg)?1:0);
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IS_DIP"\":%d,", (parser->runCfg->isDipOn)?1:0);
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_BACKUP_MC_IP"\":\"%s\",", extCmnIp4addr_ntoa(&parser->runCfg->ipMulticast));
 
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_BAUDRATE"\":%d,", parser->runCfg->rs232Cfg.baudRate );

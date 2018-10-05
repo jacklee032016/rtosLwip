@@ -66,16 +66,17 @@ void extLwipHttpSvrInit(void *data);
 void mHttpSvrMain(void *data);
 
 void extLwipNetStatusCallback(struct netif *netif);
-void extLwipStartNic(struct netif *netif, EXT_RUNTIME_CFG *runCfg);
 
-char extLwipStartup(struct netif *netif, EXT_RUNTIME_CFG *runCfg);
+void extLwipStartNic(EXT_RUNTIME_CFG *runCfg);
+char extLwipStartup(EXT_RUNTIME_CFG *runCfg);
+
 void extNetRawTelnetInit(EXT_RUNTIME_CFG *runCfg);
 
 #if LWIP_MDNS_RESPONDER
 void extLwipMdsnDestroy(struct netif *netif);
 #endif
 
-char	 extLwipGroupMgr(struct netif *netif, unsigned int gAddress, unsigned char isAdd);
+char	 extLwipGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned int gAddress, unsigned char isAdd);
 
 
 void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, ip4_addr_t *gw);
@@ -181,7 +182,7 @@ char extCmdConnect(EXT_RUNTIME_CFG  *runCfg, unsigned char isStart);
 char extUdpRxPerfStart(void);
 
 
-char *extLwipIpAddress(void);
+char *extLwipIpAddress(EXT_RUNTIME_CFG *runCfg);
 
 //void bspConsoleDumpMemory(uint8_t *buffer, uint32_t size, uint32_t address);
 

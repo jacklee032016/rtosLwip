@@ -108,7 +108,6 @@ void extFpgaInit(void);
 char  extBspFpgaReload(void);
 
 char extFpgaReadParams(MuxRunTimeParam *mediaParams);
-char extFpgaWriteParams(MuxRunTimeParam *mediaParams);
 
 
 //void	extFpgaEnable(char	isEnable);

@@ -185,6 +185,8 @@ int extRs232Read(unsigned char *data, unsigned short size);
 
 char	 bspCmdReboot(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
 
+char extFpgaConfigParams(MuxRunTimeParam *mediaParams);
+
 char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg);
 void	extFpgaEnable(char	isEnable);
 void	extFpgaBlinkPowerLED(char	isEnable);
@@ -220,6 +222,10 @@ char	cmnCmdLocalInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 char	extCmdChangeName(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
 char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+
+char *extCmnIp4addr_ntoa(unsigned int *ipp);
+void extCmnNewDestIpEffective(EXT_RUNTIME_CFG *runCfg, unsigned int newIp);
+
 
 char cmnCmdParams(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen);
 char cmnCmdTx(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );

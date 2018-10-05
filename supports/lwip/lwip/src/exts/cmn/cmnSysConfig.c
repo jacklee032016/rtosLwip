@@ -107,6 +107,8 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 #else
 	cfg->isMCast = EXT_FALSE;
 #endif
+	cfg->ipMulticast = CFG_MAKEU32(MCAST_DEFAULT_IPADDR3, MCAST_DEFAULT_IPADDR2, MCAST_DEFAULT_IPADDR1, MCAST_DEFAULT_IPADDR0);
+
 	cfg->isUpdate = EXT_FALSE;
 	cfg->isDipOn = EXT_TRUE;
 	cfg->isMacConfiged = EXT_FALSE;

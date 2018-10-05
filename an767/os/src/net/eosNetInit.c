@@ -16,7 +16,7 @@
 
 
 
-struct netif		guNetIf;		/* global unique netIf */
+static struct netif		_guNetIf;		/* global unique netIf */
 
 #if	EXT_WITH_OS
 
@@ -94,7 +94,7 @@ static void timers_update(void)
 void ethernet_task(void)
 {
 	/* Poll the network interface driver for incoming ethernet frames. */
-	ethernetif_input(&guNetIf);
+	ethernetif_input(&_guNetIf);
 
 	/* Update the periodic timer. */
 	timers_update();
@@ -114,15 +114,19 @@ static void _ethernetTask(void *param)
 static void _tcpip_init_done(void *arg)
 {
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
-	struct netif *netif = &guNetIf;
+
+	struct netif *_netif = (struct netif *)runCfg->netif;
 	/* Initialize lwIP. */
-	netif->hwaddr_len = 6;
+	_netif->hwaddr_len = 6;
 
 	LWIP_ASSERT(("runCfg is NULL"), (runCfg!= NULL));
 	/* before network start, make FPGA work to filter flooding packets. 09.13,2018  */
-	extFpgaConfig(runCfg);
+//	if(EXT_IS_TX(runCfg) )
+	{
+		extFpgaConfig(runCfg);
+	}
 
-	extLwipStartNic(netif, runCfg);
+	extLwipStartNic(runCfg);
 
 #if 0
 	printf("Ethernet Task initializing..."EXT_NEW_LINE);
@@ -136,7 +140,8 @@ static void _tcpip_init_done(void *arg)
  */
 void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg)
 {
-
+	runCfg->netif = &_guNetIf;
+	
 	srand( sys_now() );
 	
 	/* Initialize lwIP. */
@@ -151,7 +156,7 @@ void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg)
 
 
 	/* Set hw and IP parameters, initialize MAC too. */
-//	extLwipStartNic(netif, runCfg);
+//	extLwipStartNic(runCfg);
 }
 
 

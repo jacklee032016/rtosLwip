@@ -17,14 +17,14 @@ static jsmntok_t *_extJsonGetArrayObject(EXT_JSON_PARSER *parser, const char *ke
 	valueObj = extJsonFindKeyToken(parser, key);
 	if(valueObj == NULL)
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR can't find '%s' object", key);
+		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR can't find array '%s' object", key);
 		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 		return NULL;
 	}
 
 	if (valueObj->type != JSMN_ARRAY)
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'%s' was not an integer", key);
+		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'%s' was not an array", key);
 		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 		return NULL;
 	}
@@ -39,14 +39,14 @@ static jsmntok_t *_extJsonGetPrimitiveValueObject(EXT_JSON_PARSER *parser, const
 	valueObj = extJsonFindKeyToken(parser, key);
 	if(valueObj == NULL)
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR can't find '%s' object", key);
+		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR can't find primitive '%s' object", key);
 		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 		return NULL;
 	}
 
 	if (valueObj->type != JSMN_PRIMITIVE)
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'%s' was not an integer", key);
+		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "'%s' was not an primitive", key);
 		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 		return NULL;
 	}
@@ -131,7 +131,7 @@ int extJsonParseString(EXT_JSON_PARSER *parser, const char *key, char *retVal, i
 	valueObj = extJsonFindKeyToken(parser, key);
 	if(valueObj == NULL)
 	{
-		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR can't find '%s' object", key);
+		snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR can't find string '%s' object", key);
 		parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 		return EXIT_FAILURE;
 	}
@@ -212,7 +212,7 @@ int extJsonParseUuid(EXT_JSON_PARSER *parser, const char *key, EXT_UUID_T *guid)
 }
 
 
-/* after command has been parsed, parse other fields */
+/* after command has been parsed, parse other fields, only called by set_params */
 char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 {
 	unsigned int intValue;
@@ -337,13 +337,17 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	
 	if(extJsonParseIpAddress(parser, EXT_IPCMD_DATA_MCAST_IP, &tmpCfg->dest.ip) == EXIT_SUCCESS)
 	{
-		count++;
-		if(tmpCfg->isMCast > 1 && !IP_ADDR_IS_MULTICAST(tmpCfg->dest.ip) && tmpCfg->dest.ip != 0 )
+		if( EXT_IS_MULTICAST(parser->runCfg) /*tmpCfg->isMCast > 1*/ )
 		{
-			snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR: ''%s' of '%s' object is not multicast address", EXT_LWIP_IPADD_TO_STR(&(tmpCfg->dest.ip)) , EXT_IPCMD_DATA_MCAST_IP);
-			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
-			return EXIT_FAILURE;
+			if(!IP_ADDR_IS_MULTICAST(tmpCfg->dest.ip) && tmpCfg->dest.ip != 0 )
+			{
+				snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR: ''%s' of '%s' object is not multicast address", EXT_LWIP_IPADD_TO_STR(&(tmpCfg->dest.ip)) , EXT_IPCMD_DATA_MCAST_IP);
+				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
+				return EXIT_FAILURE;
+			}
 		}
+		
+		count++;
 	}
 
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_VIDEO_PORT, &tmpCfg->dest.vport) == EXIT_SUCCESS)
@@ -451,9 +455,14 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 #endif
 	if(count == 0)
 	{
-		snprintf(parser->msg, sizeof(parser->msg), "No validate parameter in this command");
+		snprintf(parser->msg, sizeof(parser->msg), "No validate parameter or param type wrong in this command");
 		return EXIT_FAILURE;
 	}
+	else
+	{
+		parser->status = JSON_STATUS_OK;/* at least one param is correct. 10.03, 2018 */
+	}
+
 	return EXIT_SUCCESS;
 }
 
