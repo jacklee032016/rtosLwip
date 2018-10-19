@@ -18,7 +18,7 @@
 
 #include <rtl8307h_debug.h>
 
-#define	RTK_DEBUG_IF			0
+#define	RTK_DEBUG_IF			1
 
 
 void RTL8307H_I2C_init(void)
@@ -154,6 +154,7 @@ static char _extConfigRtkOnePort(uint8_t port)
 	}
 
 #if RTK_DEBUG_IF
+	printf("Port#%d\t", port);
    	_printPortAbility(&linkAbility);
 #endif
 	return EXIT_SUCCESS;
@@ -184,7 +185,7 @@ void extEtherDebug(void)
 
 #define	__RTK_CHECK_PORT_START(port, retVal, action)		\
 		{if( (retVal) != RT_ERR_OK ){ EXT_ERRORF(("Port %d %s failed: %d", (port),(action), (retVal))); \
-			return EXIT_FAILURE;	}}
+			return EXIT_FAILURE;	}else{printf("Port#%d %s OK!\r\n", (port), (action));}}
 
 
 char extBspRtl8305Config(void)
