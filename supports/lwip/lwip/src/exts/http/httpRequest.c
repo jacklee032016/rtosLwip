@@ -271,7 +271,6 @@ badrequest:
 
 
 
-
 /* *data: current pointer of data handled; endHeader: the end of HTTP header */
 int	 extHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endHeader)
 {

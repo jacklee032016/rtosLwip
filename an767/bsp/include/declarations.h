@@ -96,6 +96,7 @@ char efcFlashRead(uint32_t pageNo, unsigned char *data, uint32_t size);
 char efcFlashProgram(uint32_t pageNo, const uint8_t* buffer, uint32_t size);
 
 char	efcFlashInit(void);
+void efcFlashUpdateGpnvm(void);
 
 char bspCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType);
 //char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );

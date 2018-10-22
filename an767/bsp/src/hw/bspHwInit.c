@@ -287,6 +287,11 @@ void bspHwInit(boot_mode bMode)
 //		return EXT_FALSE;
 	}
 
+	if(bMode == BOOT_MODE_BOOTLOADER)
+	{
+		efcFlashUpdateGpnvm();
+	}
+
 	if(bspCfgRead(runCfg, EXT_CFG_MAIN) == EXIT_FAILURE)
 	{
 		EXT_INFOF(("Use factory configuration"EXT_NEW_LINE));
@@ -329,7 +334,10 @@ void bspHwInit(boot_mode bMode)
 
 	EXT_INFOF(("CPU Freq:%u MHz; Peripheral Freq:%u MHz; System clock:%u MHz"EXT_NEW_LINE, (int)sysclk_get_main_hz()/1000/1000, (int)sysclk_get_peripheral_hz()/1000/1000, (int)SystemCoreClock/1000/1000 ));
 
-	extHwRs232Init(runCfg);
+	if(bMode == BOOT_MODE_RTOS)
+	{
+		extHwRs232Init(runCfg);
+	}
 //	extBspEfcFlashReadInfo();
 	
 }

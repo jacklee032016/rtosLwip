@@ -18,6 +18,10 @@ char bspCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
 
 	if(cfg->bootMode == BOOT_MODE_BOOTLOADER)
 	{/* in order to make old bootloader compatible with new RTOS */
+		cfg->rs232Cfg.baudRate = EXT_BAUDRATE_57600;
+		cfg->rs232Cfg.charLength = EXT_RS232_CHAR_LENGTH_8;	/* 6 bits */
+		cfg->rs232Cfg.parityType = EXT_RS232_PARITY_NONE;
+		cfg->rs232Cfg.stopbits = EXT_RS232_STOP_BITS_1;
 		return EXIT_SUCCESS;
 	}
 	

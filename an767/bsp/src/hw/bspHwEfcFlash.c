@@ -142,6 +142,34 @@ char	efcFlashInit(void)
 	return EXIT_SUCCESS;
 }
 
+void efcFlashUpdateGpnvm(void)
+{
+	uint32_t nvmValue = 0;
+
+	if(flashd_get_gpnvm_bits(&flash, 0, 8, &nvmValue) != FLASH_RC_OK)
+	{
+		EXT_ERRORF(("GPNVM reading failed"));
+		return;
+	}
+
+	if(nvmValue != 0x02)
+	{
+		EXT_ERRORF(("GPNVM is 0x%x, it should be changed and reboot", nvmValue));
+		nvmValue = 0x02;
+		
+		if(flashd_set_gpnvm_bits(&flash, 0, 8, nvmValue) != FLASH_RC_OK)
+		{
+			EXT_ERRORF(("GPNVM Writing failed"));
+			return;
+		}
+
+		EXT_DELAY_S(2);
+		EXT_REBOOT();
+	}
+
+	return;
+}
+
 char bspCmdInternalFlash(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen)
 {
 	unsigned int index = 0;
