@@ -50,7 +50,7 @@ static int _nmosConstraintsHander(char *data, unsigned int size, MuxNmosConstrai
 
 /******** URIs in single/receivers  ************/
 
-static char _connSingleReceiverActiveHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleReceiverActiveHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 //	int i = 0;
@@ -156,7 +156,7 @@ static const ApiAccessPoint	__apConnSingleReceiversStaged =
 };
 
 
-static char _connSingleReceiveConstraintsHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleReceiveConstraintsHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 //	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
@@ -211,7 +211,7 @@ static const ApiAccessPoint	__apConnSingleReceiversConstraints =
 
 
 
-static char _connSingleReceiversHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleReceiversHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int i = 0;
@@ -271,7 +271,7 @@ static const ApiAccessPoint	__apConnSingleReceiver =
 
 /******** URIs in single/senders  ************/
 /* content_type of SDP is text/plain?? */
-static char _connSingleSenderTransportFileHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleSenderTransportFileHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 //	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
@@ -320,7 +320,7 @@ static const ApiAccessPoint	__apConnSingleSendersTransportfile =
 };
 
 
-static char _connSingleSenderActiveHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleSenderActiveHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 //	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
@@ -424,7 +424,7 @@ static const ApiAccessPoint	__apConnSingleSendersActive =
 };
 
 
-static char _connSingleSenderStageHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleSenderStageHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 //	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
@@ -527,7 +527,7 @@ static const ApiAccessPoint	__apConnSingleSendersStaged =
 };
 
 
-static char _connSingleSenderConstraintsHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleSenderConstraintsHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 //	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
@@ -584,7 +584,7 @@ static const ApiAccessPoint	__apConnSingleSendersConstraints =
 
 
 
-static char _connSingleSendersHander(MuxHttpConn  *mhc, void *data)
+static char _connSingleSendersHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int i = 0;
@@ -656,7 +656,7 @@ static const ApiAccessPoint	_apConnSingle =
 /******** URIs in bulk  ************/
 
 
-static char _connBulkReceiversHander(MuxHttpConn  *mhc, void *data)
+static char _connBulkReceiversHander(ExtHttpConn  *mhc, void *data)
 {
 #if 0
 	int index = 0;
@@ -741,7 +741,7 @@ static char _connBulkReceiversHander(MuxHttpConn  *mhc, void *data)
 }
 
 
-static char _connBulkSendersHander(MuxHttpConn  *mhc, void *data)
+static char _connBulkSendersHander(ExtHttpConn  *mhc, void *data)
 {
 #if 0
 	int index = 0;

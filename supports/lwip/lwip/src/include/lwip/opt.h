@@ -2889,4 +2889,22 @@
  * @}
  */
 
+/* 
+* Memory allocation for UDP CMD task and httpd task
+* Oct.23, 2018 J.L. 
+*/
+
+#define		LWIP_EXT_UDP_CMD_TASK						1
+
+#define		LWIP_EXT_HTTPD_TASK							1
+
+#if !defined MEMP_NUM_UDP_CMD || defined __DOXYGEN__
+#define	MEMP_NUM_UDP_CMD					8
+#endif
+
+#if !defined MEMP_NUM_HTTPD || defined __DOXYGEN__
+#define	MEMP_NUM_HTTPD						8
+#endif
+
 #endif /* LWIP_HDR_OPT_H */
+

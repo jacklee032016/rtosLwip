@@ -45,7 +45,7 @@ struct	_transition_table_t
 	unsigned char				size;
 	const transition_t			*eventHandlers;
 	
-//	void	(code *enter_handle)(INT8U devIndex);
+	void	(*enter_handle)(void *);
 };
 
 typedef	struct _transition_table_t	statemachine_t;

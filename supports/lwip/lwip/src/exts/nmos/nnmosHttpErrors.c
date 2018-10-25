@@ -91,7 +91,7 @@ const char *extHttpFindStatusHeader(unsigned short httpStatusCode)
 	return EXT_HTTP_HDR_S_STATUS_404;
 }
 
-char	extHttpRestError(MuxHttpConn *mhc, unsigned short httpErrorCode, const char *debug)
+char	extHttpRestError(ExtHttpConn *mhc, unsigned short httpErrorCode, const char *debug)
 {
 	int index = 0;
 	const char *statusHdr;
@@ -104,7 +104,7 @@ char	extHttpRestError(MuxHttpConn *mhc, unsigned short httpErrorCode, const char
 	statusHdr += 9 + 4;/* sizeof 'HTTP/1.1 ''*/
 	position = strstr(statusHdr, MHTTP_CRLF);
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Request on '%s' is wrong '%s', because %s", mhc->uri, statusHdr, debug));
+	EXT_DEBUGF(EXT_NMOS_DEBUG, ("Request on '%s' is wrong '%s', because %s", mhc->uri, statusHdr, debug));
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "{\""EXT_JSON_KEY_STATUS"\":%d,", httpErrorCode );
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""EXT_JSON_KEY_ERROR"\":\"%.*s\",", (position-statusHdr), statusHdr );
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "\""EXT_JSON_KEY_DEBUG"\":\"%s\"}", debug );

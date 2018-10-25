@@ -756,7 +756,9 @@ static void __timer_remove(cmn_timer_t *timers, sys_timer_id_t *prev, sys_timer_
 	}
 
 	-- timers->numOfTimers;
-	EXT_DEBUGF(EXT_DBG_ON,  ("Removed Timer %s:%p, num_timers = %d ", t->name, t, _timers.numOfTimers) );
+#if EXT_TIMER_DEBUG
+	EXT_DEBUGF(EXT_SYS_ARCH_DEBUG,  ("Removed Timer %s:%p, num_timers = %d ", t->name, t, _timers.numOfTimers) );
+#endif
 	free(t);
 }
 
@@ -789,7 +791,7 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 			t->state = sys_timer_id_state_servicing;
 
 #if EXT_TIMER_DEBUG
-			EXT_DEBUGF( EXT_DBG_ON, ("Executing timer %s(%p) ", t->name, t ));
+			EXT_DEBUGF( EXT_SYS_ARCH_DEBUG, ("Executing timer %s(%p) ", t->name, t ));
 #endif
 			sys_mutex_unlock(&timers->mutex );
 
@@ -852,7 +854,7 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 			t->state = sys_timer_id_state_waiting;
 			t->interval = ROUND_RESOLUTION(ms);
 #if EXT_TIMER_DEBUG
-			EXT_DEBUGF( EXT_DBG_ON, ("Reload timer %s(%p) with interval of %d", t->name, t, t->interval ));
+			EXT_DEBUGF( EXT_SYS_ARCH_DEBUG, ("Reload timer %s(%p) with interval of %d", t->name, t, t->interval ));
 #endif
 		}
 #endif
@@ -926,7 +928,11 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 
 	if(timer->timeId != NULL)
 	{
+#if EXT_TIMER_DEBUG
 		EXT_ERRORF(("Timer %s:%p has been started", timer->name, timer->timeId));
+#else
+		EXT_ERRORF(("Timer %p has been started", timer->timeId));
+#endif
 		return;
 	}
 
@@ -946,7 +952,7 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 #if EXT_TIMER_DEBUG
 		snprintf(t->name, sizeof(t->name), "%s", timer->name );
 #else
-		snprintf(t->name, sizeof(t->name), "%s", "sysTimer" );
+//		snprintf(t->name, sizeof(t->name), "%s", "sysTimer" );
 #endif
 		t->next = _timers.timers;
 		_timers.timers = t;
@@ -957,7 +963,9 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 		_timers.timersChanged = EXT_TRUE;
 	}
 	
-	EXT_DEBUGF(EXT_DBG_ON, ("Added Timer(%s(%p): %d millisecond) num_timers = %d", t->name, t, millisec, _timers.numOfTimers ) );
+#if EXT_TIMER_DEBUG
+	EXT_DEBUGF(EXT_SYS_ARCH_DEBUG, ("Added Timer(%s(%p): %d millisecond) num_timers = %d", t->name, t, millisec, _timers.numOfTimers ) );
+#endif
 
 	sys_mutex_unlock(&_timers.mutex);
 	return;

@@ -487,9 +487,9 @@ typedef	struct
 	char				*service;	/* save constant string of service access point */
 }NMOS_API_INTERFACE;
 
-struct _MuxHttpConn;
+struct _ExtHttpConn;
 
-typedef char (*MuxHttpCallback)(struct _MuxHttpConn  *mhc, void *data);
+typedef char (*MuxHttpCallback)(struct _ExtHttpConn  *mhc, void *data);
 
 
 struct _ApiAcceePoint;

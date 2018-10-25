@@ -9,7 +9,7 @@
 
 char extNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len)
 {
-	MuxHttpConn *mhc = (MuxHttpConn *)conn;
+	ExtHttpConn *mhc = (ExtHttpConn *)conn;
 
 	if(IS_STRING_EQUAL(mhc->uri, NMOS_API_URI_CONNECTION"/single/senders") )
 	{
@@ -23,7 +23,7 @@ char extNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len)
 
 char extNmosPostDataRecv(void *conn, struct pbuf *p)
 {
-	MuxHttpConn *mhc = (MuxHttpConn *)conn;
+	ExtHttpConn *mhc = (ExtHttpConn *)conn;
 	unsigned short len, copied;
 	
 	len = LWIP_MIN(p->tot_len, sizeof(mhc->data));
@@ -32,7 +32,7 @@ char extNmosPostDataRecv(void *conn, struct pbuf *p)
 	mhc->dataSendIndex += copied;
 	mhc->data[mhc->dataSendIndex] = 0;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("packet %d bytes, copied %d (%d)byte  data: '%s'", p->tot_len, copied, mhc->dataSendIndex, mhc->data) );
+	EXT_DEBUGF(EXT_NMOS_DEBUG, ("packet %d bytes, copied %d (%d)byte  data: '%s'", p->tot_len, copied, mhc->dataSendIndex, mhc->data) );
 
 	if(HTTPREQ_IS_UPLOAD(mhc) )
 	{
@@ -52,10 +52,10 @@ char extNmosPostDataRecv(void *conn, struct pbuf *p)
 /* begin to execute on the recevied data of POST request or when conn is closed */
 void extNmosPostDataFinished(void *conn)
 {
-	MuxHttpConn *mhc = (MuxHttpConn *)conn;
+	ExtHttpConn *mhc = (ExtHttpConn *)conn;
 
 	mhc = mhc;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST request on '%s', data is '%s'", mhc->uri, mhc->data) );
+	EXT_DEBUGF(EXT_NMOS_DEBUG, ("POST request on '%s', data is '%s'", mhc->uri, mhc->data) );
 
 	snprintf(mhc->uri + strlen(mhc->uri), sizeof(mhc->uri)-strlen(mhc->uri), " %s", "will be implemented in future" );
 

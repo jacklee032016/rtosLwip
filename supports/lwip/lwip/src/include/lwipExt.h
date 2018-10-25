@@ -52,6 +52,7 @@
 #include "lwip/inet.h"
 
 #include "compact.h"
+#include "extMems.h"
 
 #include "extNmos.h"
 #include "http.h"
@@ -63,7 +64,7 @@
 
 void extLwipHttpSvrInit(void *data);
 
-void mHttpSvrMain(void *data);
+void extHttpSvrMain(void *data);
 
 void extLwipNetStatusCallback(struct netif *netif);
 
@@ -137,12 +138,6 @@ typedef	enum
 
 #include "lwip/apps/mdns.h"
 #include "lwip/apps/mdns_priv.h"
-
-
-#define	EXT_MDNS_CLIENT_DEBUG				EXT_DBG_OFF
-#define	EXT_HTTPD_DEBUG						EXT_DBG_OFF
-
-#define	EXT_HTTPD_DATA_DEBUG				EXT_DBG_OFF
 
 
 typedef	struct 
@@ -228,7 +223,13 @@ struct MAC_STATS
 };
 
 
-#define	EXT_TIMER_DEBUG	1
+#define	EXT_TIMER_DEBUG					0
+
+#if  EXT_TIMER_DEBUG
+	#define	EXT_SYS_ARCH_DEBUG			EXT_DBG_ON
+#else
+	#define	EXT_SYS_ARCH_DEBUG			EXT_DBG_OFF
+#endif
 
 
 typedef enum

@@ -9,7 +9,7 @@
  * @returns: 0 if the file is finished or no data has been read
  *           1 if the file is not finished and data has been read
  */
-static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
+static u8_t _mhttpSendCheckEof(ExtHttpConn *mhc)
 {
 	int bytes_left;
 #if	MHTTPD_DYNAMIC_FILE_READ
@@ -23,8 +23,8 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 	if (mhc->handle == NULL)
 	{
 		/* No - close the connection. */
-		mhttpConnEof(mhc);
-		return 0;
+//		mhttpConnEof(mhc);
+		return MHTTP_NO_DATA_TO_SEND;
 	}
 	
 	bytes_left = mfsBytesLeft(mhc->handle);
@@ -32,8 +32,8 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 	{
 		/* We reached the end of the file so this request is done. */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
-		mhttpConnEof( mhc);
-		return 0;
+//		mhttpConnEof( mhc);
+		return MHTTP_NO_DATA_TO_SEND;
 	}
 	
 #if	MHTTPD_DYNAMIC_FILE_READ
@@ -99,8 +99,8 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
 		/* We reached the end of the file so this request is done.
 		* @todo: close here for HTTP/1.1 when reading file fails */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
-		mhttpConnEof( mhc);
-		return 0;
+//		mhttpConnEof( mhc);
+		return MHTTP_NO_DATA_TO_SEND;
 	}
 
 	/* Set up to send the block of data we just read */
@@ -127,7 +127,7 @@ static u8_t _mhttpSendCheckEof(MuxHttpConn *mhc)
  * Try to send more data on this pcb.
  * This function can be called multiple time, and start write data from last time
  */
-static u8_t _mHttpSendFile( MuxHttpConn *mhc)
+static u8_t _mHttpSendFile( ExtHttpConn *mhc)
 {
 	err_t err;
 	u16_t len;
@@ -137,7 +137,7 @@ static u8_t _mHttpSendFile( MuxHttpConn *mhc)
 #if 	MHTTPD_POST_MANUAL_WND
 	if (mhc->unrecved_bytes != 0)
 	{
-		return 0;
+		return MHTTP_NO_DATA_TO_SEND;
 	}
 #endif
 
@@ -145,9 +145,9 @@ static u8_t _mHttpSendFile( MuxHttpConn *mhc)
 #if	MHTTPD_FS_ASYNC_READ
 	/* Check if we are allowed to read from this file.
 	(e.g. SSI might want to delay sending until data is available) */
-	if (!mfsIsFileReady(mhc->handle, mhttpContinue, mhc))
+	if (mfsIsFileReady(mhc->handle, mhttpContinue, mhc) == MHTTP_NO_DATA_TO_SEND)
 	{
-		return 0;
+		return MHTTP_NO_DATA_TO_SEND;
 	}
 #endif
 
@@ -156,7 +156,7 @@ static u8_t _mHttpSendFile( MuxHttpConn *mhc)
 	{
 		if (!_mhttpSendCheckEof(mhc))
 		{
-			return 0;
+			return MHTTP_NO_DATA_TO_SEND;
 		}
 	}
 
@@ -183,8 +183,8 @@ static u8_t _mHttpSendFile( MuxHttpConn *mhc)
 	{
 		/* We reached the end of the file so this request is done. This adds the FIN flag right into the last data segment. */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
-		mhttpConnEof( mhc);
-		return 0;
+//		mhttpConnEof( mhc); /* free in state of close */
+		return MHTTP_NO_DATA_TO_SEND;
 	}
 	
 	return data_to_send;
@@ -194,7 +194,7 @@ static u8_t _mHttpSendFile( MuxHttpConn *mhc)
 /** 
  * return length send out
  */
-static unsigned short _mhttpSendOneHeader(MuxHttpConn *mhc, const void *hdr, unsigned short len, unsigned short sndBufSize)
+static unsigned short _mhttpSendOneHeader(ExtHttpConn *mhc, const void *hdr, unsigned short len, unsigned short sndBufSize)
 {
 	err_t err;
 	u8_t apiflags = TCP_WRITE_FLAG_COPY|TCP_WRITE_FLAG_MORE;
@@ -219,7 +219,7 @@ static unsigned short _mhttpSendOneHeader(MuxHttpConn *mhc, const void *hdr, uns
 
 static char _contentLength[64];
 
-static char	_mHttpSendRest(MuxHttpConn *mhc)
+static char	_mHttpSendRest(ExtHttpConn *mhc)
 {
 	err_t err;
 	u16_t len, sndBufSize;
@@ -274,7 +274,7 @@ TRACE();
  * Try to send more data on this pcb.
  * This function can be called multiple time, and start write data from last time
  */
-u8_t extHttpSend( MuxHttpConn *mhc)
+u8_t extHttpSend( ExtHttpConn *mhc)
 {
 	u8_t ret = MHTTP_DATA_TO_SEND_CONTINUE;
 

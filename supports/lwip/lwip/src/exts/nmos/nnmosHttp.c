@@ -45,17 +45,17 @@ const	EXT_CONST_STR	nodeRoots[] =
 	}
 };
 
-char extNmosNodeDumpHander(MuxHttpConn  *mhc, void *data)
+char extNmosNodeDumpHander(ExtHttpConn  *mhc, void *data)
 {
 	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
 
 	snprintf(mhc->uri + strlen(mhc->uri), sizeof(mhc->uri)-strlen(mhc->uri), "(%s)%s", apiAp->name, " will be implemented in future" );
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("'%s' is not implemented yet", apiAp->name) );
+	EXT_DEBUGF(EXT_NMOS_DEBUG, ("'%s' is not implemented yet", apiAp->name) );
 	extHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
 	return EXIT_SUCCESS;
 }
 
-char extNmosRootApHander(MuxHttpConn  *mhc, void *data)
+char extNmosRootApHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;
@@ -86,7 +86,7 @@ char extNmosRootApHander(MuxHttpConn  *mhc, void *data)
 }
 
 
-static void _extApiRequestDebug(MuxHttpConn *mhc)
+static void _extApiRequestDebug(ExtHttpConn *mhc)
 {
 	int i;
 	char uuidStr[128];
@@ -151,7 +151,7 @@ static char _extParseApiResource(MuxNmosApiReq *apiReq, char *resource)
 }
 
 
-static char extHttpNmosParseApiRequest(MuxHttpConn *mhc, NMOS_API_TYPE type)
+static char extHttpNmosParseApiRequest(ExtHttpConn *mhc, NMOS_API_TYPE type)
 {
 	MuxNmosApiReq *apiReq;
 	char *version;
@@ -211,7 +211,7 @@ static char extHttpNmosParseApiRequest(MuxHttpConn *mhc, NMOS_API_TYPE type)
 	return EXIT_SUCCESS;
 }
 
-#if EXT_HTTPD_DEBUG
+#if EXT_NMOS_DEBUG
 static void _extApiApdebug(const ApiAccessPoint *apRoot)
 {
 	int i = 0;
@@ -224,7 +224,7 @@ static void _extApiApdebug(const ApiAccessPoint *apRoot)
 }
 #endif
 
-static char _extRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot, NMOS_API_TYPE type)
+static char _extRestApiHandle(ExtHttpConn *mhc, const ApiAccessPoint *apiAcRoot, NMOS_API_TYPE type)
 {
 	const ApiAccessPoint	*apiAp = apiAcRoot;
 	MuxNmosApiReq	*apiReq = &mhc->apiReq;
@@ -248,7 +248,7 @@ static char _extRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 
 	while(apiAp)
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("API:'%s' :: REQ:'%s'", apiAp->name, apiReq->resources[index]) );
+		EXT_DEBUGF(EXT_NMOS_DEBUG, ("API:'%s' :: REQ:'%s'", apiAp->name, apiReq->resources[index]) );
 		if(strcasecmp(apiAp->name, apiReq->resources[index] ) == 0)
 		{
 			index++;
@@ -263,7 +263,7 @@ static char _extRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 				{
 	//					printf("output RES12 %p, %d bytes: '%s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outBuffer);
 				}
-				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("return value of REST API callback handler:%d", ret) );
+				EXT_DEBUGF(EXT_NMOS_DEBUG, ("return value of REST API callback handler:%d", ret) );
 
 				return ret;
 			}	
@@ -282,13 +282,12 @@ static char _extRestApiHandle(MuxHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 	return EXIT_SUCCESS;
 
 }
-#endif
 
-char extHttpHandleRequest(MuxHttpConn *mhc)
+err_t extNmosHandleRequest(ExtHttpConn *mhc)
 {
-//	char ret = EXIT_FAILURE;
+	char ret = EXIT_FAILURE;
 
-#if EXT_HTTPD_DEBUG
+#if EXT_NMOS_DEBUG
 	_extApiApdebug(&apNodeRoot);
 #endif
 
@@ -297,35 +296,31 @@ char extHttpHandleRequest(MuxHttpConn *mhc)
 		return EXIT_SUCCESS;
 	}
 
-#if LWIP_EXT_NMOS
 	if(strstr(mhc->uri, NMOS_API_URI_NODE) )
 	{
-		return _extRestApiHandle(mhc, &apNodeRoot, NMOS_API_T_NODE);
+		ret = _extRestApiHandle(mhc, &apNodeRoot, NMOS_API_T_NODE);
+		goto _return;
 	}
 	else if( strstr(mhc->uri, NMOS_API_URI_CONNECTION) )
 	{
-		return _extRestApiHandle(mhc, &apConnRoot, NMOS_API_T_CONNECTION);
+		_extRestApiHandle(mhc, &apConnRoot, NMOS_API_T_CONNECTION);
+		goto _return;
 	}
-	else 
-		
-#endif
-		if(extHttpWebService(mhc, NULL) == EXIT_SUCCESS)
-	{
-		return EXIT_SUCCESS;
-	}
-	else if(extHttpFileFind(mhc) == ERR_OK)
-	{
-		mhc->reqType = EXT_HTTP_REQ_T_FILE;
-		return EXIT_SUCCESS;
-	}
-	else
-	{
-	}
-
-	mhc->reqType = EXT_HTTP_REQ_T_REST;
-	extHttpRestError(mhc, WEB_RES_NOT_FOUND, "URI not exist in server");
+ 	
+	return ERR_INPROGRESS;
 	
-	return EXIT_SUCCESS;
+_return:
+ 	mhc->reqType = EXT_HTTP_REQ_T_REST;
+	
+	if(ret == EXIT_FAILURE)
+	{
+		extHttpRestError(mhc, WEB_RES_NOT_FOUND, "URI not exist in server");
+		return ERR_VAL;
+	}
+		
+	return ERR_OK;	
 }
+
+#endif
 
 

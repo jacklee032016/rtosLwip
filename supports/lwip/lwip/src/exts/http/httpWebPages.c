@@ -8,7 +8,7 @@
 #include "http.h"
 #include "jsmn.h"
 
-static int __extHttpWebPagePrintHeader(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPagePrintHeader(char *data, unsigned int size, ExtHttpConn *mhc)
 {
 	int index = 0;
 	
@@ -21,7 +21,7 @@ static int __extHttpWebPagePrintHeader(char *data, unsigned int size, MuxHttpCon
 }
 
 
-static int __extHttpWebPageReboot(char *data, unsigned int size, MuxHttpConn *mhc, int seconds)
+static int __extHttpWebPageReboot(char *data, unsigned int size, ExtHttpConn *mhc, int seconds)
 {
 	int index = 0;
 //	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
@@ -39,7 +39,7 @@ static int __extHttpWebPageReboot(char *data, unsigned int size, MuxHttpConn *mh
 	return index;
 }
 
-static char _extHttpWebPageReboot(MuxHttpConn  *mhc, void *data)
+static char _extHttpWebPageReboot(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
@@ -67,7 +67,7 @@ static char _extHttpWebPageReboot(MuxHttpConn  *mhc, void *data)
 }
 
 
-static int __extHttpWebPageMedia(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPageMedia(char *data, unsigned int size, ExtHttpConn *mhc)
 {
 	int index = 0;
 	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
@@ -103,7 +103,7 @@ static int __extHttpWebPageMedia(char *data, unsigned int size, MuxHttpConn *mhc
 }
 
 
-static char _extHttpWebPageMediaHander(MuxHttpConn  *mhc, void *data)
+static char _extHttpWebPageMediaHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
@@ -128,7 +128,7 @@ static char _extHttpWebPageMediaHander(MuxHttpConn  *mhc, void *data)
 //_CODE char *versionString;
 #endif
 
-static int __extHttpWebPageInfo(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPageInfo(char *data, unsigned int size, ExtHttpConn *mhc)
 {
 	int index = 0;
 	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
@@ -177,7 +177,7 @@ static int __extHttpWebPageInfo(char *data, unsigned int size, MuxHttpConn *mhc)
 }
 
 
-static char _extHttpWebPageInfoHander(MuxHttpConn  *mhc, void *data)
+static char _extHttpWebPageInfoHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
@@ -200,7 +200,7 @@ static char _extHttpWebPageInfoHander(MuxHttpConn  *mhc, void *data)
 
 
 
-static int __extHttpWebPageRoot(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __extHttpWebPageRoot(char *data, unsigned int size, ExtHttpConn *mhc)
 {
 	int index = 0;
 	
@@ -243,7 +243,7 @@ static int __extHttpWebPageRoot(char *data, unsigned int size, MuxHttpConn *mhc)
 }
 
 
-char extHttpWebPageRootHander(MuxHttpConn  *mhc, void *data)
+char extHttpWebPageRootHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int headerLength = 0;
@@ -302,7 +302,7 @@ static const MuxHttpHandle	_webpages[] =
 };
 
 
-char extHttpWebService(MuxHttpConn *mhc, void *data)
+char extHttpWebService(ExtHttpConn *mhc, void *data)
 {
 	const MuxHttpHandle	*page = _webpages;
 	char		ret;
@@ -334,7 +334,7 @@ char extHttpWebService(MuxHttpConn *mhc, void *data)
 }
 
 
-char extHttpWebPageResult(MuxHttpConn  *mhc, char *title, char *msg)
+char extHttpWebPageResult(ExtHttpConn  *mhc, char *title, char *msg)
 {
 	int index = 0;
 	int headerLength = 0;

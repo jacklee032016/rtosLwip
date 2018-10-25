@@ -33,7 +33,7 @@ static tWsOpenHandler websocket_open_cb = NULL;
 #endif
 
 /* write reply into mhc->data, and wait to extHttpSend to send it out */
-unsigned short extHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode)
+unsigned short extHttpWebSocketWrite(ExtHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode)
 {
 	unsigned char *buf = mhc->data;
 	unsigned short offset = 2, size;
@@ -91,7 +91,7 @@ unsigned short extHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint
 /**
  * Send status code 1000 (normal closure).
  */
-err_t extHttpWebSocketSendClose(MuxHttpConn *mhc)
+err_t extHttpWebSocketSendClose(ExtHttpConn *mhc)
 {
 	const u8_t buf[] = {EXT_WS_FRAME_FLAG_FIN|EXT_WS_CODE_CLOSE, 0x02, 0x03, 0xe8};
 
@@ -106,7 +106,7 @@ err_t extHttpWebSocketSendClose(MuxHttpConn *mhc)
  *         ERR_CLSD: close request from client
  *         ERR_VAL: invalid frame.
  */
-err_t extHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
+err_t extHttpWebSocketParseFrame(ExtHttpConn *mhc, struct pbuf *p)
 {
 	u8_t *data = (u8_t *) p->payload;
 	u8_t opcode;
@@ -207,21 +207,21 @@ err_t extHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p)
 * check the websocket header and reply with web socket header when connection is web socket
 * SUCESS: this is web socket; FAILURE: this is not web socket, continue to other process 
 */
-char extHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
+err_t extHttpWebSocketParseHeader(ExtHttpConn *ehc)
 {
 	char *keyStart, *keyEnd;
 	int	keyLen;
 	
 	/* Parse WebSocket request */
-	if(! strcasestr((char *)data, WEBSOCKET_HEADER) ) 
+	if(! strcasestr(ehc->headers, WEBSOCKET_HEADER) ) 
 	{
-		return EXIT_FAILURE;
+		return ERR_INPROGRESS;
 	}
 	
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] opening handshake"));
-	mhc->reqType = EXT_HTTP_REQ_T_WEBSOCKET;
+	ehc->reqType = EXT_HTTP_REQ_T_WEBSOCKET;
 	
-	keyStart = strcasestr((char *)data, WEBSOCKET_KEY);
+	keyStart = strcasestr((char *)ehc->headers, WEBSOCKET_KEY);
 	if(! keyStart)
 	{
 		EXT_ERRORF(("[WS] malformed packet: can't find Key header"));
@@ -239,7 +239,7 @@ char extHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 	
 	keyLen = sizeof(char) * (keyEnd - keyStart);
 	
-	if ((keyLen + sizeof(WEBSOCKET_GUID) < sizeof(mhc->uri) ) && (keyLen > 0))
+	if ((keyLen + sizeof(WEBSOCKET_GUID) < sizeof(ehc->uri) ) && (keyLen > 0))
 	{
 		unsigned char sha1sum[MD_OUT_LENGTH_SHA1];
 		unsigned int olen = WS_BASE64_LEN;
@@ -248,27 +248,27 @@ char extHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 		/* base64(sha1(keyHeader+GUID) ) */
 
 		/* Concatenate key */
-		memcpy(mhc->uri, keyStart, (unsigned int)keyLen);
-		memcpy(mhc->uri+keyLen, WEBSOCKET_GUID, sizeof(WEBSOCKET_GUID) );
+		memcpy(ehc->uri, keyStart, (unsigned int)keyLen);
+		memcpy(ehc->uri+keyLen, WEBSOCKET_GUID, sizeof(WEBSOCKET_GUID) );
 
 		/* Get SHA1 */
 		keyLen += sizeof(WEBSOCKET_GUID) - 1;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Resulting key(%d): '%s'", keyLen, mhc->uri) );
-		sha1((unsigned char *)mhc->uri, keyLen, sha1sum);
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Resulting key(%d): '%s'", keyLen, ehc->uri) );
+		sha1((unsigned char *)ehc->uri, keyLen, sha1sum);
 
 		/* Base64 encode */
-		index = mbedtls_base64_encode((unsigned char *)mhc->uri, WS_BASE64_LEN, &olen, sha1sum, MD_OUT_LENGTH_SHA1);
+		index = mbedtls_base64_encode((unsigned char *)ehc->uri, WS_BASE64_LEN, &olen, sha1sum, MD_OUT_LENGTH_SHA1);
 
 //			if (index == 0)
 		{
-			index = snprintf((char *)mhc->data, sizeof(mhc->data), "%s%s"MHTTP_CRLF MHTTP_CRLF, WEBSOCKET_RESPONSE_HEADER, mhc->uri);
+			index = snprintf((char *)ehc->data, sizeof(ehc->data), "%s%s"MHTTP_CRLF MHTTP_CRLF, WEBSOCKET_RESPONSE_HEADER, ehc->uri);
 
 			/* Send response */
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Sending (%d):'%s'", index, mhc->data));
-			tcp_write(mhc->pcb, mhc->data, index, TCP_WRITE_FLAG_COPY);
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("[WS] Sending (%d):'%s'", index, ehc->data));
+			tcp_write(ehc->pcb, ehc->data, index, TCP_WRITE_FLAG_COPY);
 		}
 
-		return EXIT_SUCCESS;
+		return ERR_OK;
 		
 	}
 
@@ -276,8 +276,9 @@ char extHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t da
 
 badWebSocketReq:
 
-	extHttpWebSocketSendClose(mhc);
-	return EXIT_SUCCESS;
+//extHttpWebSocketSendClose(ehc);
+	
+	return ERR_VAL;
 	
 }
 

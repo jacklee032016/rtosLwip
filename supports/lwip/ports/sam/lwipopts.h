@@ -194,7 +194,7 @@ a lot of data that needs to be copied, this should be set high. */
  * To achieve good performance, this should be at least 2 * TCP_MSS.
  */
 //#define TCP_SND_BUF             2048
-#define TCP_SND_BUF					(2 * TCP_MSS)
+#define TCP_SND_BUF					(2 * TCP_MSS)			/* TCP reply performance. JL */
 
 
 /* TCP sender buffer space (pbufs). This must be at least = 2 *

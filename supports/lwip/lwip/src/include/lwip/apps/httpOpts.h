@@ -73,7 +73,7 @@
 #endif
 
 /** Set this to 1 to use a memp pool for allocating 
- * MuxHttpConn instead of the heap.
+ * ExtHttpConn instead of the heap.
  */
 #if !defined MHTTPD_USE_MEM_POOL
 #define	MHTTPD_USE_MEM_POOL			0
@@ -182,7 +182,7 @@
 #endif
 
 /** Set this to 1 to kill the oldest connection when running out of
- * memory for 'MuxHttpConn' or 'struct mhttp_ssi_state'.
+ * memory for 'ExtHttpConn' or 'struct mhttp_ssi_state'.
  * ATTENTION: This puts all connections on a linked list, so may be kind of slow.
  */
 #if !defined	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
@@ -194,7 +194,7 @@
 #define	MHTTPD_OMIT_HEADER_FOR_EXTENSIONLESS_URI		0
 #endif
 
-/** Default: Tags are sent from MuxHttpConn and are therefore volatile */
+/** Default: Tags are sent from ExtHttpConn and are therefore volatile */
 #if !defined MHTTP_IS_TAG_VOLATILE
 #define	MHTTP_IS_TAG_VOLATILE(ptr)		TCP_WRITE_FLAG_COPY
 #endif
@@ -260,6 +260,11 @@
 #if !defined	MHTTPD_USE_CUSTOM_FSDATA
 #define	MHTTPD_USE_CUSTOM_FSDATA 0
 #endif
+
+/* Oct.23, 2018 J.L. */
+#define		LWIP_EXT_HTTPD_TASK							1
+
+#define		EXT_HTTPD_MBOX_SIZE						4*2
 
 #endif
 

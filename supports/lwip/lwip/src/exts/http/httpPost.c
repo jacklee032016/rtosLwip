@@ -12,9 +12,6 @@
 
 extern	const struct _MuxUploadContext extUpload;
 
-#define	_FIND_HEADER_END(data, data_len) \
-		lwip_strnstr((char *)(data), MHTTP_CRLF MHTTP_CRLF, (data_len))
-
 
 #define	CONTENT_MULTIPART_FORMAT			"multipart/form-data"
 
@@ -24,7 +21,7 @@ extern	const struct _MuxUploadContext extUpload;
 
 #define	UPLOAD_FORM_FILENAME				"filename"
 
-static int __httpWebPagePrintHeader(char *data, unsigned int size, MuxHttpConn *mhc)
+static int __httpWebPagePrintHeader(char *data, unsigned int size, ExtHttpConn *mhc)
 {
 	int index = 0;
 	
@@ -41,7 +38,7 @@ static int __httpWebPagePrintHeader(char *data, unsigned int size, MuxHttpConn *
 }
 
 #if UPLOAD_PROGRESS_BAR
-static char _updatePageBegin(MuxHttpConn  *mhc, char *title, char *msg)
+static char _updatePageBegin(ExtHttpConn  *mhc, char *title, char *msg)
 {
 	int index = 0;
 	int headerLength = 0;
@@ -71,7 +68,7 @@ static char _updatePageBegin(MuxHttpConn  *mhc, char *title, char *msg)
 	return EXIT_SUCCESS;
 }
 
-static char _updatePageRefresh(MuxHttpConn  *mhc, char *msg)
+static char _updatePageRefresh(ExtHttpConn  *mhc, char *msg)
 {
 	int index = 0;
 
@@ -89,7 +86,7 @@ static char _updatePageRefresh(MuxHttpConn  *mhc, char *msg)
 	return EXIT_SUCCESS;
 }
 
-static char _updatePageEnd(MuxHttpConn  *mhc)
+static char _updatePageEnd(ExtHttpConn  *mhc)
 {
 	int index = 0;
 
@@ -106,7 +103,7 @@ static char _updatePageEnd(MuxHttpConn  *mhc)
 	return EXIT_SUCCESS;
 }
 #else
-static char _updatePageResult(MuxHttpConn  *mhc, char *title, char *msg)
+static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 {
 	int index = 0;
 	int headerLength = 0;
@@ -134,124 +131,109 @@ static char _updatePageResult(MuxHttpConn  *mhc, char *title, char *msg)
 #endif
 
 
-/** Handle a post request. Called from http_parse_request when method 'POST' is found.
- * @return ERR_OK: POST correctly parsed and accepted by the application.
- *         ERR_INPROGRESS: POST not completely parsed (no error yet)
- *         another err_t: Error parsing POST or denied by the application
- */
-char extHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
+/* */
+err_t extHttpPostCheckUpdate(ExtHttpConn *ehc)
 {
 #if LWIP_EXT_NMOS
 	char	ret;
 #endif
+
 	int contentLen;
 	char *endOfLine;
 //	struct pbuf *inp =  mhc->req;
 	
-	/* search for end-of-header (first double-CRLF) */
-	char* crlfcrlf = _FIND_HEADER_END(data, data_len);
-
-	if (crlfcrlf != NULL)
+	char* boundary = lwip_strnstr((char *)ehc->headers, HTTP_BUNDARY, ehc->headerLength);
+	if( ! boundary )
 	{
-
-		contentLen = extHttpParseContentLength(mhc, data, crlfcrlf);
-		if(contentLen<0)
-		{
-			goto badPostRequest;
-		}
-
-		char* boundary = lwip_strnstr((char *)data, HTTP_BUNDARY, crlfcrlf - (char *)data );
-		if(boundary )
-		{
-			mhc->reqType = EXT_HTTP_REQ_T_UPLOAD;
-			if( !IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_MCU) && !IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_FPGA)  )
-			{
-				goto badPostRequest;
-			}	
-
-			mhc->uploadCtx = (struct _MuxUploadContext *)&extUpload;
-//			mhc->uploadCtx->priv = mhc;
-
-			boundary += (9);
-//			boundary += (sizeof(char) * 9);
-			endOfLine = strchr((char *)boundary, ASCII_KEY_LF);//, crlfcrlf - boundary );
-//			endOfLine = strstr((char *)boundary, MHTTP_CRLF MHTTP_CRLF);
-			memset(mhc->boundary, 0, sizeof(mhc->boundary) );
-			snprintf(mhc->boundary, sizeof(mhc->boundary), "%.*s", endOfLine -1 - boundary, boundary);
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD: bounary(%d):'%.*s'", strlen(mhc->boundary), strlen(mhc->boundary), mhc->boundary));
-		}
-		else
-		{
-			mhc->reqType = EXT_HTTP_REQ_T_REST;
-#if LWIP_EXT_NMOS
-			ret = extNmosPostDataBegin(mhc, data, data_len);
-			if (ret != EXIT_SUCCESS)
-			{/* This is URI is not for POST */
-				return EXIT_SUCCESS;
-			}
-#else
-			return EXIT_FAILURE;
-#endif
-		}
-
-		/* try to pass in data of the first pbuf(s) */
-		struct pbuf *q = mhc->req;
-		u16_t dataOffset = (u16_t)LWIP_MIN(data_len, crlfcrlf + 4 - (char *)data);
-		
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Receiving %d data, %d content at offset: %d", data_len, contentLen, dataOffset) );
-#if MHTTPD_POST_MANUAL_WND
-		mhc->no_auto_wnd = !isAutoWnd;
-#endif /* LWIP_HTTPD_POST_MANUAL_WND */
-
-		/* set the Content-Length to be received for this POST */
-		mhc->postDataLeft = (u32_t)contentLen;
-
-		/* get to the pbuf where the body starts */
-		while((q != NULL) && (q->len <= dataOffset))
-		{
-			dataOffset -= q->len;
-			q = q->next;
-		}
-		
-		if (q != NULL)
-		{
-			/* hide the remaining HTTP header */
-			pbuf_header(q, -(s16_t)dataOffset);
-#if	MHTTPD_POST_MANUAL_WND
-			if (!isAutoWnd)
-			{
-				/* already tcp_recved() this data... */
-				mhc->unrecved_bytes = q->tot_len;
-			}
-#endif
-			pbuf_ref(q);
-			return extHttpPostRxDataPbuf(mhc, q);
-		}
-		else if (mhc->postDataLeft == 0)
-		{/* when the first pbuf only contains headers, no data */
-			q = pbuf_alloc(PBUF_RAW, 0, PBUF_REF);
-			return extHttpPostRxDataPbuf(mhc, q);
-		}
-		else
-		{
-			return ERR_OK;
-		}
-TRACE();
+		return ERR_INPROGRESS;
 	}
 
-TRACE();
-	/* if we come here, the POST is incomplete */
-	return ERR_INPROGRESS;
+	ehc->reqType = EXT_HTTP_REQ_T_UPLOAD;
+	if( !IS_STRING_EQUAL(ehc->uri, EXT_WEBPAGE_UPDATE_MCU) && !IS_STRING_EQUAL(ehc->uri, EXT_WEBPAGE_UPDATE_FPGA)  )
+	{
+		goto badPostRequest;
+	}	
+
+	ehc->uploadCtx = (struct _MuxUploadContext *)&extUpload;
+//			mhc->uploadCtx->priv = mhc;
+
+	boundary += (9);
+//			boundary += (sizeof(char) * 9);
+	endOfLine = strchr((char *)boundary, ASCII_KEY_LF);//, crlfcrlf - boundary );
+//			endOfLine = strstr((char *)boundary, MHTTP_CRLF MHTTP_CRLF);
+	memset(ehc->boundary, 0, sizeof(ehc->boundary) );
+	snprintf(ehc->boundary, sizeof(ehc->boundary), "%.*s", endOfLine -1 - boundary, boundary);
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD: bounary(%d):'%.*s'", strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
+
+	return ERR_OK;
+
+#if 0	
+	{
+		ehc->reqType = EXT_HTTP_REQ_T_REST;
+#if LWIP_EXT_NMOS
+		ret = extNmosPostDataBegin(ehc, ehc->headers, ehc->headerLength);
+		if (ret != EXIT_SUCCESS)
+		{/* This is URI is not for POST */
+			return EXIT_SUCCESS;
+		}
+#else
+		return EXIT_FAILURE;
+#endif
+	}
+
+	/* try to pass in data of the first pbuf(s) */
+	struct pbuf *q = ehc->req;
+	u16_t dataOffset = (u16_t)LWIP_MIN(data_len, crlfcrlf + 4 - (char *)data);
+	
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Receiving %d data, %d content at offset: %d", data_len, contentLen, dataOffset) );
+#if MHTTPD_POST_MANUAL_WND
+	ehc->no_auto_wnd = !isAutoWnd;
+#endif /* LWIP_HTTPD_POST_MANUAL_WND */
+
+	/* set the Content-Length to be received for this POST */
+	ehc->postDataLeft = (u32_t)contentLen;
+
+	/* get to the pbuf where the body starts */
+	while((q != NULL) && (q->len <= dataOffset))
+	{
+		dataOffset -= q->len;
+		q = q->next;
+	}
+	
+	if (q != NULL)
+	{
+		/* hide the remaining HTTP header */
+		pbuf_header(q, -(s16_t)dataOffset);
+#if	MHTTPD_POST_MANUAL_WND
+		if (!isAutoWnd)
+		{
+			/* already tcp_recved() this data... */
+			ehc->unrecved_bytes = q->tot_len;
+		}
+#endif
+		pbuf_ref(q);
+		return extHttpPostRxDataPbuf(ehc, q);
+	}
+	else if (ehc->postDataLeft == 0)
+	{/* when the first pbuf only contains headers, no data */
+		q = pbuf_alloc(PBUF_RAW, 0, PBUF_REF);
+		return extHttpPostRxDataPbuf(ehc, q);
+	}
+	else
+	{
+		return ERR_OK;
+	}
+#endif
 
 badPostRequest:
 TRACE();
-	mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
+	ehc->uploadStatus = _UPLOAD_STATUS_ERROR;
 
 	return ERR_ARG;
 }
 
 
-static char  __findEndingBoundary(MuxHttpConn *mhc)
+static char  __findEndingBoundary(ExtHttpConn *mhc)
 {
 #if 0
 	char* boundary = lwip_strnstr((char *)mhc->data, mhc->boundary, mhc->dataSendIndex );
@@ -281,7 +263,7 @@ static char  __findEndingBoundary(MuxHttpConn *mhc)
 }
 
 /* save data in block and flash/save into spi/file */
-static char __extHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
+static char __extHttpPostData(ExtHttpConn *mhc, struct pbuf *p)
 {
 	unsigned short len, copied = 0;//, total_copied = 0;
 
@@ -343,7 +325,7 @@ static char __extHttpPostData(MuxHttpConn *mhc, struct pbuf *p)
 	return EXIT_SUCCESS;
 }
 
-static char extHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
+static char extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
 {
 	unsigned short len;//, copied;
 	
@@ -420,7 +402,7 @@ static char extHttpPostDataRecv(MuxHttpConn *mhc, struct pbuf *p)
 }
 
 /* begin to execute on the recevied data of POST request or when conn is closed */
-void extHttpPostDataFinished(MuxHttpConn *mhc)
+void extHttpPostDataFinished(ExtHttpConn *mhc)
 {
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST request on '%s' ended: '%.*s' bounary:'%s'", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) );
 //	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) ;
@@ -494,7 +476,7 @@ void extHttpPostDataFinished(MuxHttpConn *mhc)
  * @return ERR_OK if passed successfully, another err_t if the response file
  *         hasn't been found (after POST finished)
  */
-err_t extHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
+err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p)
 {
 	err_t err;
 	unsigned char ret;
@@ -557,4 +539,71 @@ err_t extHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p)
 
 	return ERR_OK;
 }
+
+
+err_t extHttpPostDataBegin(ExtHttpConn *ehc)
+{
+#if LWIP_EXT_NMOS
+	char ret;
+	if(HTTPREQ_IS_REST(ehc))
+	{
+		ret = extNmosPostDataBegin(ehc, ehc->headers, ehc->headerLength);
+		if (ret != EXIT_SUCCESS)
+		{/* This is URI is not for POST */
+			return ERR_OK;
+		}
+		return ERR_VAL;
+	}
+#endif
+
+#if 0
+	/* try to pass in data of the first pbuf(s) */
+	struct pbuf *q = ehc->req;
+
+	u16_t dataOffset = (u16_t)LWIP_MIN(data_len, crlfcrlf + 4 - (char *)data);
+	
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Receiving %d data, %d content at offset: %d", data_len, contentLen, dataOffset) );
+#if MHTTPD_POST_MANUAL_WND
+	ehc->no_auto_wnd = !isAutoWnd;
+#endif /* LWIP_HTTPD_POST_MANUAL_WND */
+
+	/* set the Content-Length to be received for this POST */
+	ehc->postDataLeft = (u32_t)contentLen;
+
+	/* get to the pbuf where the body starts */
+	while((q != NULL) && (q->len <= dataOffset))
+	{
+		dataOffset -= q->len;
+		q = q->next;
+	}
+	
+	if (q != NULL)
+	{
+		/* hide the remaining HTTP header */
+		pbuf_header(q, -(s16_t)dataOffset);
+#if	MHTTPD_POST_MANUAL_WND
+		if (!isAutoWnd)
+		{
+			/* already tcp_recved() this data... */
+			ehc->unrecved_bytes = q->tot_len;
+		}
+#endif
+		pbuf_ref(q);
+		return extHttpPostRxDataPbuf(ehc, q);
+	}
+	else if (ehc->postDataLeft == 0)
+	{/* when the first pbuf only contains headers, no data */
+		q = pbuf_alloc(PBUF_RAW, 0, PBUF_REF);
+		return extHttpPostRxDataPbuf(ehc, q);
+	}
+	else
+	{
+		return ERR_OK;
+	}
+#else
+	/* no data in first pbuf which contains URL/Headers */
+	return ERR_OK;
+#endif
+}
+
 

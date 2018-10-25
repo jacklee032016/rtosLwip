@@ -82,7 +82,7 @@ static void _firmwareUpdateEnd(EXT_RUNTIME_CFG	*runCfg)
 }
 
 
-static char _extUploadOpen(struct _MuxHttpConn *mhc)
+static char _extUploadOpen(struct _ExtHttpConn *mhc)
 {
 //	struct _MuxUploadContext *ctx = mhc->uploadCtx;
 	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
@@ -106,7 +106,7 @@ static char _extUploadOpen(struct _MuxHttpConn *mhc)
 	return _firmwareUpdateInit(runCfg, fmt, (const char *)mhc->filename,  1);
 }
 
-static void  _extUploadClose(struct _MuxHttpConn *mhc)
+static void  _extUploadClose(struct _ExtHttpConn *mhc)
 {
 //	struct _MuxUploadContext *ctx = mhc->uploadCtx;
 	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
@@ -119,7 +119,7 @@ static void  _extUploadClose(struct _MuxHttpConn *mhc)
 }
 
 
-static unsigned short _extUploadWrite(struct _MuxHttpConn *mhc, void *data, unsigned short size)
+static unsigned short _extUploadWrite(struct _ExtHttpConn *mhc, void *data, unsigned short size)
 {
 	int len;
 //	struct _MuxUploadContext *ctx = mhc->uploadCtx;

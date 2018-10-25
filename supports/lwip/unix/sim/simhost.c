@@ -215,7 +215,7 @@ static void simhost_tcpip_init_done(void *arg)
 #if LWIP_SOCKET
 	chargen_init();
 #endif
-	extLwipStartup( runCfg);
+//	extLwipStartup( runCfg);
 
 
 #if LWIP_IPV4

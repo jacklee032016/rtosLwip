@@ -224,7 +224,8 @@ typedef	enum
 
 typedef	enum
 {
-	EXT_HTTP_REQ_T_REST = 0,
+	EXT_HTTP_REQ_T_UNKNOWN = 0,
+	EXT_HTTP_REQ_T_REST,
 	EXT_HTTP_REQ_T_FILE,
 	EXT_HTTP_REQ_T_WEBSOCKET,
 	EXT_HTTP_REQ_T_CGI,		/* web page of info/status, which are created dynamically*/
@@ -258,16 +259,16 @@ typedef	enum
 }_UPLOAD_STATUS;
 
 
-struct _MuxHttpConn;
+struct _ExtHttpConn;
 struct _MuxUploadContext;
 
 struct _MuxUploadContext
 {
-	char (*open)(struct _MuxHttpConn *mhc);
+	char (*open)(struct _ExtHttpConn *mhc);
 
-	void (*close)(struct _MuxHttpConn *mhc);
+	void (*close)(struct _ExtHttpConn *mhc);
 
-	unsigned short (*write)(struct _MuxHttpConn *mhc, void *data, unsigned short size);
+	unsigned short (*write)(struct _ExtHttpConn *mhc, void *data, unsigned short size);
 
 	// void 	*priv;*//
 };
@@ -277,12 +278,57 @@ struct _MuxUploadContext 	MuxUploadContext;
 
 
 
+#if LWIP_EXT_HTTPD_TASK
+typedef	enum
+{
+	H_EVENT_NEW = EXT_EVENT_NONE +1,
+	H_EVENT_RECV,
+	H_EVENT_POLL,
+	H_EVENT_SENT,
 
-typedef struct _MuxHttpConn
+	H_EVENT_CLOSE,
+
+	H_EVENT_ERROR,
+	
+	H_EVENT_MAX,
+}H_EVENT_T;
+
+
+typedef enum
+{
+	H_STATE_INIT = EXT_STATE_CONTINUE +1,
+	H_STATE_REQ,
+	H_STATE_DATA, 
+	H_STATE_RESP,
+	H_STATE_CLOSE,
+	H_STATE_ERROR,		/* error event from TCP stack implementation  */
+	H_STATE_FREE,		/* wait to free memory */
+	H_STATE_MAX
+}H_STATE_T;
+
+#endif
+
+
+#if EXT_HTTPD_DEBUG
+typedef struct _HttpStats
+{
+	u32_t	connCount;
+	u32_t	currentConns;
+	
+}HttpStats;
+#endif
+
+
+typedef struct _ExtHttpConn
 {
 #if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
-	struct _MuxHttpConn		*next;
+	struct _ExtHttpConn		*next;
 #endif /* LWIP_HTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED */
+
+	H_STATE_T				state;
+#if EXT_HTTPD_DEBUG	
+	char						name[32];
+#endif
 
 	struct mfs_file			file_handle;
 	struct mfs_file			*handle;	/* if associated with a file */
@@ -297,6 +343,9 @@ typedef struct _MuxHttpConn
 	unsigned char				isV09;
 
 	char						uri[MHTTPD_URI_BUF_LEN+1];
+	char						*headers;	/* pointer to headers, after url */
+	unsigned short			headerLength;
+	unsigned short			leftData;		/* left data in the first pbuf which contains URL|headers */
 
 	/* HTTP upload file */
 	char						boundary[MHTTPD_URI_BUF_LEN+1];		/* for HTTP upload */
@@ -368,7 +417,7 @@ typedef struct _MuxHttpConn
 #if LWIP_EXT_NMOS
 	MuxNmosNode			*nodeInfo;
 #endif
-}MuxHttpConn;
+}ExtHttpConn;
 
 
 #define	HTTP_IS_GET(mhc)	\
@@ -409,6 +458,9 @@ typedef struct _MuxHttpConn
 #define	HTTP_IS_FINISHED(mhc)	\
 			( (mhc)->httpStatusCode >= WEB_RES_REQUEST_OK)
 
+/* HTTP Header ends with CR-LF + CR_LF */
+#define	_FIND_HEADER_END(data, data_len) \
+		lwip_strnstr((char *)(data), MHTTP_CRLF MHTTP_CRLF, (data_len))
 
 
 
@@ -436,17 +488,17 @@ typedef struct
 
 
 #if MHTTPD_USE_MEM_POOL
-	LWIP_MEMPOOL_DECLARE(MHTTPD_STATE,     MEMP_NUM_PARALLEL_HTTPD_CONNS,     sizeof(MuxHttpConn),     "MHTTPD_STATE")
+	LWIP_MEMPOOL_DECLARE(MHTTPD_STATE,     MEMP_NUM_PARALLEL_HTTPD_CONNS,     sizeof(ExtHttpConn),     "MHTTPD_STATE")
 	#if	MHTTPD_SSI
 		LWIP_MEMPOOL_DECLARE(HTTPD_SSI_STATE, MEMP_NUM_PARALLEL_HTTPD_SSI_CONNS, sizeof(struct mhttp_ssi_state), "MHTTPD_SSI_STATE")
 		#define HTTP_FREE_SSI_STATE(x)  LWIP_MEMPOOL_FREE(HTTPD_SSI_STATE, (x))
 		#define HTTP_ALLOC_SSI_STATE()  (struct mhttp_ssi_state *)LWIP_MEMPOOL_ALLOC(HTTPD_SSI_STATE)
 	#endif
 	
-	#define HTTP_ALLOC_HTTP_STATE() (MuxHttpConn *)LWIP_MEMPOOL_ALLOC(HTTPD_STATE)
+	#define HTTP_ALLOC_HTTP_STATE() (ExtHttpConn *)LWIP_MEMPOOL_ALLOC(HTTPD_STATE)
 	#define HTTP_FREE_HTTP_STATE(x) LWIP_MEMPOOL_FREE(HTTPD_STATE, (x))
 #else
-	#define HTTP_ALLOC_HTTP_STATE() (MuxHttpConn *)mem_malloc(sizeof(MuxHttpConn))
+	#define HTTP_ALLOC_HTTP_STATE() (ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn))
 	#define HTTP_FREE_HTTP_STATE(x) mem_free(x)
 	#if	MHTTPD_SSI
 		#define HTTP_ALLOC_SSI_STATE()  (struct mhttp_ssi_state *)mem_malloc(sizeof(struct mhttp_ssi_state))
@@ -454,77 +506,86 @@ typedef struct
 	#endif
 #endif
 
-MuxHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
-void mhttpConnFree(MuxHttpConn *mhc);
+ExtHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
+void mhttpConnFree(ExtHttpConn *mhc);
 
 
 
-err_t mhttpConnClose(MuxHttpConn *mhc, struct tcp_pcb *pcb);
+err_t mhttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb);
 
-err_t extHttpFileFind(MuxHttpConn *mhc);
+err_t extHttpFileFind(ExtHttpConn *mhc);
 
-err_t mhttpPoll(void *arg, struct tcp_pcb *pcb);
+err_t extHttpPoll(void *arg, struct tcp_pcb *pcb);
 
 #if	MHTTPD_FS_ASYNC_READ
 void mhttpContinue(void *connection);
 #endif
 
 
-u8_t extHttpSend(MuxHttpConn *mhc);
+u8_t extHttpSend(ExtHttpConn *mhc);
 
-err_t extHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags);
+err_t extHttpWrite(ExtHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags);
 
-void mhttpConnEof(MuxHttpConn *mhc);
+void mhttpConnEof(ExtHttpConn *mhc);
 
 
 #if	MHTTPD_URI_BUF_LEN
 extern char mhttpUriBuf[MHTTPD_URI_BUF_LEN+1];
 #endif
 
-err_t extHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp);
+err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp);
 
 
 #if	MHTTPD_SUPPORT_EXTSTATUS
-err_t mhttpFindErrorFile(MuxHttpConn *mhc, u16_t error_nr);
+err_t mhttpFindErrorFile(ExtHttpConn *mhc, u16_t error_nr);
 #else
 #define mhttpFindErrorFile(mhc, error_nr)		ERR_ARG
 #endif
 
 
-err_t extHttpPostRxDataPbuf(MuxHttpConn *mhc, struct pbuf *p);
+err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p);
 
-char extHttpHandleRequest(MuxHttpConn *mhc);
+err_t extNmosHandleRequest(ExtHttpConn *mhc);
 
-char extHttpWebSocketParseHeader(MuxHttpConn *mhc, unsigned char *data, u16_t data_len);
-err_t extHttpWebSocketParseFrame(MuxHttpConn *mhc, struct pbuf *p);
+err_t extHttpWebSocketParseHeader(ExtHttpConn *ehc);
 
-err_t extHttpWebSocketSendClose(MuxHttpConn *mhc);
-unsigned short  extHttpWebSocketWrite(MuxHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode);
+
+err_t extHttpWebSocketParseFrame(ExtHttpConn *mhc, struct pbuf *p);
+
+err_t extHttpWebSocketSendClose(ExtHttpConn *mhc);
+unsigned short  extHttpWebSocketWrite(ExtHttpConn *mhc, const uint8_t *data, uint16_t len, unsigned char opCode);
 
 
 const char *extHttpFindStatusHeader(unsigned short httpStatusCode);
 
-char	extHttpRestError(MuxHttpConn *mhc, unsigned short httpErrorCode, const char *debug);
+char	extHttpRestError(ExtHttpConn *mhc, unsigned short httpErrorCode, const char *debug);
 
 
-char extHttpWebPageRootHander(MuxHttpConn  *mhc, void *data);
+char extHttpWebPageRootHander(ExtHttpConn  *mhc, void *data);
 
-char extHttpWebService(MuxHttpConn *mhc, void *data);
-char extHttpWebPageResult(MuxHttpConn  *mhc, char *title, char *msg);
+char extHttpWebService(ExtHttpConn *mhc, void *data);
+char extHttpWebPageResult(ExtHttpConn  *mhc, char *title, char *msg);
 
+err_t extHttpPostCheckUpdate(ExtHttpConn *ehc);
 
-int	 extHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endHeader);
-
-char extHttpPostDataBegin(MuxHttpConn *mhc, unsigned char *data, unsigned short len, unsigned char *postAutoWnd);
-void extHttpPostDataFinished(MuxHttpConn *mhc);
-char extHttpPostRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len);
+err_t extHttpPostDataBegin(ExtHttpConn *ehc);
+void extHttpPostDataFinished(ExtHttpConn *mhc);
 
 
-char extNmosRootApHander(MuxHttpConn  *mhc, void *data);
-char extNmosNodeDumpHander(MuxHttpConn  *mhc, void *data);
+char extNmosRootApHander(ExtHttpConn  *mhc, void *data);
+char extNmosNodeDumpHander(ExtHttpConn  *mhc, void *data);
 
+#if LWIP_EXT_HTTPD_TASK
+void	httpFsmHandle(HttpEvent *he);
+char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, struct tcp_pcb *pcb);
+#endif
 
 extern	const char *httpCommonHeader;
+
+#if EXT_HTTPD_DEBUG
+extern	HttpStats	httpStats;
+#endif
+
 
 
 #endif

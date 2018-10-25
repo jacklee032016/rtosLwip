@@ -194,13 +194,7 @@ static void _udpSysCtrlThread(void *arg)
 
 static struct udp_pcb *_ipcmdPcb;
 
-#if UDP_CMD_THREAD
-typedef struct
-{
-	struct pbuf		*p;
-	unsigned	int 		ip;
-	unsigned short	port;
-}UdpCmd;
+#if LWIP_EXT_UDP_CMD_TASK
 
 static sys_mbox_t 		_udpCmdMailBox;
 
@@ -248,7 +242,7 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 //	struct pbuf *newBuf = NULL;
 	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
 
-#if UDP_CMD_THREAD
+#if LWIP_EXT_UDP_CMD_TASK
 #else
 	unsigned short size;
 #endif
@@ -265,11 +259,11 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 			p->tot_len - IPCMD_HEADER_LENGTH*2, ((char *)(p->payload)+IPCMD_HEADER_LENGTH)));
 //		CONSOLE_DEBUG_MEM( p->payload, p->len, 0, "RECV IP Cmd");
 
-#if UDP_CMD_THREAD
+#if LWIP_EXT_UDP_CMD_TASK
 		UdpCmd *cmd;
 
 		LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(_udpCmdMailBox));
-		cmd = (UdpCmd *)memp_malloc(MEMP_TCPIP_MSG_API);
+		cmd = (UdpCmd *)memp_malloc(MEMP_EXT_UDP_CMD);
 		if (cmd == NULL)
 		{
 			EXT_ERRORF(("No memory available for IP Cmd now"));
@@ -284,7 +278,7 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 		if (sys_mbox_trypost(&_udpCmdMailBox, cmd) != ERR_OK)
 		{
 			EXT_ERRORF(("Post to UDP Cmd Mailbox failed"));
-			memp_free(MEMP_TCPIP_MSG_API, cmd);
+			memp_free(MEMP_EXT_UDP_CMD, cmd);
 			return;
 		}
 #else
@@ -299,7 +293,7 @@ static void _rawUdpEchoRecv(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 	}
 }
 
-#if UDP_CMD_THREAD
+#if LWIP_EXT_UDP_CMD_TASK
 static void _extUdpCmdThread(void *arg)
 {
 	UdpCmd *cmd;
@@ -328,7 +322,7 @@ static void _extUdpCmdThread(void *arg)
 
 		extIpCmdSendout(parser, (unsigned int *)&cmd->ip, cmd->port );
 		
-		memp_free(MEMP_TCPIP_MSG_API, cmd);
+		memp_free(MEMP_EXT_UDP_CMD, cmd);
 		cmd = NULL;
 	}
 	
@@ -347,7 +341,7 @@ static void _udpCmdInit(void *arg)
 
 	udp_recv(_ipcmdPcb, _rawUdpEchoRecv, arg);
 
-#if UDP_CMD_THREAD
+#if LWIP_EXT_UDP_CMD_TASK
 	if (sys_mbox_new(&_udpCmdMailBox, EXT_MCTRL_MBOX_SIZE) != ERR_OK)
 	{
 		EXT_ASSERT(("failed to create "EXT_TASK_UDP_CMD_NAME" mbox"), 0);

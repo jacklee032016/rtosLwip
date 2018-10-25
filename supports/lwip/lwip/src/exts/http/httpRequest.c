@@ -14,12 +14,14 @@
 #endif
 
 
-static char _mHttpParseUrl(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
+#define	__HTTP_CRLF_SIZE		4
+
+static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	char		*sp;
 	u16_t uri_len;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("parsing URI(%d):'%s'", data_len, data));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("parsing URI(%d):'%.*s'", data_len, data_len, data));
 	sp = lwip_strnstr((char *)data, " ", data_len);
 #if	MHTTPD_SUPPORT_V09
 	if (sp == NULL)
@@ -39,7 +41,7 @@ static char _mHttpParseUrl(MuxHttpConn *mhc, unsigned char *data, u16_t data_len
 	uri_len = (u16_t)(sp - (char *)(data));
 	if ((sp == 0) || uri_len <= 0 ) /* validate URL parsing */
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%s'", data));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%.*s'", data_len, data));
 		return EXIT_SUCCESS;
 	}
 
@@ -66,19 +68,40 @@ static char _mHttpParseUrl(MuxHttpConn *mhc, unsigned char *data, u16_t data_len
 		uri_len = LWIP_MIN(sizeof(mhc->uri), uri_len);
 		memcpy(mhc->uri, data, uri_len );
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received request URI(%hu): '%s'", uri_len, mhc->uri));
-//		snprintf(mhc->uri, sizeof(mhc->uri), "%s", uri);
+		
+		mhc->headers = lwip_strnstr((char *)(data+uri_len),  MHTTP_CRLF, data_len - uri_len);
+		if(mhc->headers )
+		{
+			mhc->headers += 2; /* move CRLF */
+			unsigned short left = data_len - ((unsigned char *)mhc->headers - data);
+			
+			char* crlfcrlf = _FIND_HEADER_END(mhc->headers, left);
+			if(crlfcrlf != NULL )
+			{
+			TRACE();
+				mhc->headerLength = crlfcrlf - mhc->headers;
+			}
+			else
+			{
+				mhc->headerLength = left -__HTTP_CRLF_SIZE;
+			}
+
+			mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
+		}
 		return EXIT_SUCCESS;
 	}
 	else
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%s'", data));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%.*s'", data_len, data));
 	}
 
 	return EXIT_FAILURE;
 }
 
 /* return length of method, otherwise return 0 */
-static int _mHttpParseMethod(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
+static int _httpParseMethod(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	int ret = 0;
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CRLF received, parsing request"));
@@ -134,43 +157,146 @@ static int _mHttpParseMethod(MuxHttpConn *mhc, unsigned char *data, u16_t data_l
 	return ret;
 }
 
-static char _mHttpParseRequest(MuxHttpConn *mhc, unsigned char *data, u16_t data_len)
+
+
+
+/* *data: current pointer of data handled; endHeader: the end of HTTP header */
+static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
+{
+	char *scontent_len_end, *scontent_len;
+	char *content_len_num;
+	int contentLen;
+
+		/* search for "Content-Length: " */
+#define HTTP_HDR_CONTENT_LEN                "Content-Length: "
+#define HTTP_HDR_CONTENT_LEN_LEN            16
+#define HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN  10
+
+	scontent_len = lwip_strnstr((char *)ehc->headers, HTTP_HDR_CONTENT_LEN, ehc->headerLength);
+	if (scontent_len == NULL)
+	{
+		/* If we come here, headers are fully received (double-crlf), but Content-Length
+		was not included. Since this is currently the only supported method, we have to fail in this case! */
+//		EXT_ERRORF(("Error when parsing Content-Length"));
+//		extHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		return ERR_ARG;
+	}
+	
+	scontent_len_end = lwip_strnstr(scontent_len + HTTP_HDR_CONTENT_LEN_LEN, MHTTP_CRLF, HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN);
+	if (scontent_len_end == NULL)
+	{
+		EXT_ERRORF( ("Error when parsing number in Content-Length: '%s'",scontent_len+HTTP_HDR_CONTENT_LEN_LEN ));
+		extHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		return ERR_VAL;
+	}
+
+	content_len_num = scontent_len + HTTP_HDR_CONTENT_LEN_LEN;
+	contentLen = atoi(content_len_num);
+			
+	if (contentLen == 0)
+	{
+		/* if atoi returns 0 on error, fix this */
+		if ((content_len_num[0] != '0') || (content_len_num[1] != '\r'))
+		{
+			contentLen = -1;
+		}
+	}
+			
+	if (contentLen < 0)
+	{
+		EXT_ERRORF( ("POST received invalid Content-Length: %s", content_len_num));
+		extHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		return ERR_VAL;
+	}
+
+	ehc->contentLength = contentLen;
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("Parsing content length: %d bytes", ehc->contentLength));
+
+	return ERR_OK;
+}
+
+char _httpParseHeaders(ExtHttpConn *ehc)
+{
+	if(ehc->headers == NULL || ehc->headerLength == 0)
+	{
+		EXT_INFOF(("%s header length is 0", ehc->name) );
+		return EXIT_FAILURE;
+	}
+
+	/* following check headers */
+	/* WebSocket */
+	if(extHttpWebSocketParseHeader(ehc) != ERR_INPROGRESS)
+	{
+		return EXIT_FAILURE;
+	}
+
+	/* Update Firmware */
+	__httpHeaderContentLength(ehc);
+	
+	if (HTTP_IS_POST(ehc) )
+	{
+		if(extHttpPostCheckUpdate(ehc) != ERR_INPROGRESS)
+		{
+			return EXIT_FAILURE;
+		}
+	}
+
+	/* following check URL */
+#if LWIP_EXT_NMOS
+	if(extNmosHandleRequest(ehc) != ERR_INPROGRESS)
+	{
+		return EXIT_FAILURE;
+	}
+		
+#endif
+
+	if(extHttpWebService(ehc, NULL) == EXIT_SUCCESS)
+	{
+		return EXIT_SUCCESS;
+	}
+	else if(extHttpFileFind(ehc) == ERR_OK)
+	{
+		ehc->reqType = EXT_HTTP_REQ_T_FILE;
+		return EXIT_SUCCESS;
+	}
+	else
+	{
+	}
+
+	ehc->reqType = EXT_HTTP_REQ_T_REST;
+	extHttpRestError(ehc, WEB_RES_NOT_FOUND, "URI not exist in server");
+
+
+	return EXIT_SUCCESS;
+}
+
+static char _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	int ret;
 //	err_t err;
 
-	ret = _mHttpParseMethod(mhc, data, data_len);
+	ret = _httpParseMethod(mhc, data, data_len);
 	if( ret == 0)
 	{
 		return EXIT_FAILURE;
 	}
 
-	if( _mHttpParseUrl(mhc, data+ret, data_len-ret) == EXIT_FAILURE)
+	if( _httpParseUrl(mhc, data+ret, data_len-ret) == EXIT_FAILURE)
 	{
 		return EXIT_FAILURE;
 	}
 
-	if (HTTP_IS_POST(mhc) )
-	{
-		return extHttpPostRequest(mhc, data, data_len);
-	}
-
-	if(extHttpHandleRequest(mhc) == EXIT_FAILURE)
-	{
-//		err = ERR_ARG;
-		return EXIT_FAILURE;
-	}
+	return _httpParseHeaders(mhc);
 
 	mhc->postDataLeft = 0;
 	return EXIT_SUCCESS;
 }
-/**
- * When data has been received in the correct state, try to parse it as a HTTP request.
- * @return ERR_OK if request was OK and mhc has been initialized correctly, response is sent in tcp_recv
- *         ERR_INPROGRESS if request was OK so far but not fully received
- *         another err_t otherwise
+
+
+/*
+* return ERR_OK, goto next state based on reqType; ERR_INPROCESS, stay in same state; others, CLOSE state to close connection
  */
-err_t extHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
+err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 {
 	unsigned char *data;
 	char *crlf;
@@ -231,7 +357,7 @@ err_t extHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 		}
 	}
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data %d:'%s'", data_len, data ));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", data_len, data ));
 
 	/* received enough data for minimal request? */
 	if (data_len >= MHTTP_MIN_REQ_LEN)
@@ -243,12 +369,7 @@ err_t extHttpRequestParse( MuxHttpConn *mhc, struct pbuf *inp)
 			goto badrequest;
 		}
 
-		if( extHttpWebSocketParseHeader(mhc, data, data_len) == EXIT_SUCCESS)
-		{
-			return ERR_OK;
-		}
-
-		if(_mHttpParseRequest(mhc, data, data_len) == EXIT_SUCCESS)
+		if(_httpParseRequest(mhc, data, data_len) == EXIT_SUCCESS)
 		{
 			return ERR_OK;
 		}
@@ -267,62 +388,6 @@ badrequest:
 		/* could not parse request */
 		return mhttpFindErrorFile(mhc, WEB_RES_BAD_REQUEST);
 	}
-}
-
-
-
-/* *data: current pointer of data handled; endHeader: the end of HTTP header */
-int	 extHttpParseContentLength(MuxHttpConn *mhc, unsigned char *data, char *endHeader)
-{
-	char *scontent_len_end, *scontent_len;
-	char *content_len_num;
-	int contentLen;
-
-		/* search for "Content-Length: " */
-#define HTTP_HDR_CONTENT_LEN                "Content-Length: "
-#define HTTP_HDR_CONTENT_LEN_LEN            16
-#define HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN  10
-
-	scontent_len = lwip_strnstr((char *)data, HTTP_HDR_CONTENT_LEN, endHeader - (char *)data );
-	if (scontent_len == NULL)
-	{
-		/* If we come here, headers are fully received (double-crlf), but Content-Length
-		was not included. Since this is currently the only supported method, we have to fail in this case! */
-		EXT_ERRORF(("Error when parsing Content-Length"));
-		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
-		return -1;
-	}
-	
-	scontent_len_end = lwip_strnstr(scontent_len + HTTP_HDR_CONTENT_LEN_LEN, MHTTP_CRLF, HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN);
-	if (scontent_len_end == NULL)
-	{
-		EXT_ERRORF( ("Error when parsing number in Content-Length: '%s'",scontent_len+HTTP_HDR_CONTENT_LEN_LEN ));
-		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
-		return -1;
-	}
-
-	content_len_num = scontent_len + HTTP_HDR_CONTENT_LEN_LEN;
-	contentLen = atoi(content_len_num);
-			
-	if (contentLen == 0)
-	{
-		/* if atoi returns 0 on error, fix this */
-		if ((content_len_num[0] != '0') || (content_len_num[1] != '\r'))
-		{
-			contentLen = -1;
-		}
-	}
-			
-	if (contentLen < 0)
-	{
-		EXT_ERRORF( ("POST received invalid Content-Length: %s", content_len_num));
-		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
-		return -1;
-	}
-
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("Parsing content length: %d bytes", contentLen));
-
-	return contentLen;
 }
 
 

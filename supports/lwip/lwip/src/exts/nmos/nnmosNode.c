@@ -12,7 +12,7 @@
 
 #if 0
 /* based on request in MHC, and print response with node info */
-static char	extNmosRestResponse(MuxNmosNode	*node, MuxHttpConn *mhc)
+static char	extNmosRestResponse(MuxNmosNode	*node, ExtHttpConn *mhc)
 {
 
 	return EXIT_SUCCESS;
@@ -67,7 +67,7 @@ static int _nmosReceiverOneHander(char *data, unsigned int size, MuxNmosReceiver
 	return index;
 }
 
-static char _nmosReceiversHander(MuxHttpConn  *mhc, void *data)
+static char _nmosReceiversHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int srcIndex = 0;
@@ -170,7 +170,7 @@ static int _nmosSenderOneHander(char *data, unsigned int size, MuxNmosSender *sn
 	return index;
 }
 
-static char _nmosSendersHander(MuxHttpConn  *mhc, void *data)
+static char _nmosSendersHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int srcIndex = 0;
@@ -302,7 +302,7 @@ static int _nmosFlowOneHander(char *data, unsigned int size, MuxNmosFlow *flow )
 	return index;
 }
 
-static char _nmosFlowsHander(MuxHttpConn  *mhc, void *data)
+static char _nmosFlowsHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int srcIndex = 0;
@@ -412,7 +412,7 @@ static int _nmosSourceOneHander(char *data, unsigned int size, MuxNmosSource *sr
 	return index;
 }
 
-static char _nmosSourcesHander(MuxHttpConn  *mhc, void *data)
+static char _nmosSourcesHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int srcIndex = 0;
@@ -482,7 +482,7 @@ static char _nmosSourcesHander(MuxHttpConn  *mhc, void *data)
 }
 
 
-static char _nmosDeviceHander(MuxHttpConn  *mhc, void *data)
+static char _nmosDeviceHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	int i = 0;
@@ -563,7 +563,7 @@ static char _nmosDeviceHander(MuxHttpConn  *mhc, void *data)
 	return EXIT_SUCCESS;
 }
 
-static char _nmosSelfHander(MuxHttpConn  *mhc, void *data)
+static char _nmosSelfHander(ExtHttpConn  *mhc, void *data)
 {
 	int index = 0;
 	const ApiAccessPoint	*apiAp = (const ApiAccessPoint *)data;

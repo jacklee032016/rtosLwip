@@ -405,11 +405,11 @@ void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg)
 		}
 		else if(_mediaParams.isConnect == EXT_TRUE && runCfg->runtime.isConnect == EXT_FALSE )
 		{
-			EXT_DEBUGF(EXT_DBG_ON, ("SDI CONNECT event"));
+			EXT_DEBUGF(EXT_DBG_OFF, ("SDI CONNECT event"));
 
 			if(_extMediaCompareParams(&runCfg->runtime, &_mediaParams))	
 			{
-				EXT_DEBUGF(EXT_DBG_ON, ("CONNECT event : New Media Params need to be updated now!"));
+				EXT_DEBUGF(EXT_DBG_OFF, ("CONNECT event : New Media Params need to be updated now!"));
 				runCfg->runtime.isConnect = EXT_TRUE;
 				extMediaPostEvent(EXT_MEDIA_EVENT_CONNECT, NULL);
 				return;

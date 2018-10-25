@@ -300,7 +300,6 @@
 
 #define	EXT_TASK_NAME					"poll"
 
-#define	UDP_CMD_THREAD				1
 #define	EXT_TASK_UDP_CMD_NAME		"cmd"
 
 
@@ -329,6 +328,16 @@
 /* level used */
 #define	EXT_DBG_TYPES_ON				EXT_DBG_ON
 #define	EXT_DBG_MIN_LEVEL			EXT_DBG_LEVEL_ALL
+
+
+
+#define	EXT_MDNS_CLIENT_DEBUG				EXT_DBG_OFF
+#define	EXT_HTTPD_DEBUG						EXT_DBG_ON
+#define	EXT_NMOS_DEBUG						EXT_DBG_OFF
+
+#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_ON
+
+
 
 
 /*
@@ -370,13 +379,13 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(message)		{printf((ANSI_COLOR_CYAN""));EXT_PRINTF(message);printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
+	#define	EXT_INFOF(message)		{printf(ANSI_COLOR_CYAN "[%s-%u]:",__FILE__, __LINE__);EXT_PRINTF(message);printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
 	
-	#define	EXT_ERRORF(message)		{printf((ERROR_TEXT_BEGIN"ERROR: "));_TRACE_OUT(message); printf((ERROR_TEXT_END  EXT_NEW_LINE));}
+	#define	EXT_ERRORF(message)		{printf(ERROR_TEXT_BEGIN "ERROR:[%s-%u]:", __FILE__, __LINE__);_TRACE_OUT(message); printf((ERROR_TEXT_END  EXT_NEW_LINE));}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(msg, x)			{if((x)==0) {printf((ERROR_TEXT_BEGIN"ERROR: "));printf msg ;printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
-	#define	EXT_ABORT(fmt, args... )		printf("ERROR in " __FILE__ ", line %u:" fmt EXT_NEW_LINE, __LINE__, ##args );while(1){}
+	#define	EXT_ASSERT(msg, x)			{if((x)==0) {printf(ERROR_TEXT_BEGIN"ASSERT: [%s-%u]:", __FILE__, __LINE__ );printf msg ;printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
+	#define	EXT_ABORT(fmt, args... )		printf("ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, __LINE__, ##args );while(1){}
 #else
 	#define	EXT_PRINTF(x)						{;}
 
@@ -667,6 +676,8 @@ typedef	enum
 {
 	CMN_STR_T_RS_PARITY = 0,
 	CMN_STR_T_V_COLORSPACE,
+	CMN_STR_T_HTTP_STATES,
+	CMN_STR_T_HTTP_EVENTS
 }CMN_STR_TYPE;
 
 
@@ -677,17 +688,28 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 #define	CMN_FIND_RS_PARITY(type)		\
 	extCmnStringFind(CMN_STR_T_RS_PARITY, (type) )
 
-
 #define	CMN_FIND_V_COLORSPACE(type)		\
 	extCmnStringFind(CMN_STR_T_V_COLORSPACE, (type) )
+
+#define	CMN_FIND_HTTP_STATE(type)		\
+	extCmnStringFind(CMN_STR_T_HTTP_STATES, (type) )
+
+#define	CMN_FIND_HTTP_EVENT(type)		\
+	extCmnStringFind(CMN_STR_T_HTTP_EVENTS, (type) )
+
 
 
 #define	CMN_FIND_STR_RS_PARITY(str)		\
 	extCmnTypeFind(CMN_STR_T_RS_PARITY, (str) )
 
-
 #define	CMN_FIND_STR_V_COLORSPACE(str)		\
 	extCmnTypeFind(CMN_STR_T_V_COLORSPACE, (str) )
+
+#define	CMN_FIND_STR_HTTP_STATE(str)		\
+	extCmnTypeFind(CMN_STR_T_HTTP_STATES, (str) )
+
+#define	CMN_FIND_STR_HTTP_EVENT(str)		\
+	extCmnTypeFind(CMN_STR_T_HTTP_EVENTS, (str) )
 
 
 

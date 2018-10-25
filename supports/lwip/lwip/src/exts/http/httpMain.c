@@ -38,6 +38,107 @@ char *http_cgi_param_vals[MHTTPD_MAX_CGI_PARAMETERS]; /* Values for each extract
 char mhttpUriBuf[MHTTPD_URI_BUF_LEN+1];
 #endif
 
+HttpStats	httpStats;
+
+#if LWIP_EXT_HTTPD_TASK
+
+static sys_mbox_t 		_httpdMailBox;
+
+static void _extHttpdTask(void *arg)
+{
+	HttpEvent	*he;
+#if 1	
+	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+#else
+	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
+#endif
+
+	while (1)
+	{
+		ExtHttpConn *ehc = NULL;
+		
+		sys_mbox_fetch(&_httpdMailBox, (void **)&he);
+		if (he == NULL)
+		{
+			EXT_ASSERT((EXT_TASK_HTTP" task: invalid message"), 0);
+			continue;
+		}
+
+		if(he->type == H_EVENT_NEW)
+		{
+			struct tcp_pcb *pcb = (struct tcp_pcb *)he->pcb;
+			
+			/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
+			ehc = mhttpConnAlloc(runCfg);
+			if (ehc == NULL)
+			{
+				EXT_ERRORF(("http_accept: Out of memory, RST"));
+//				tcp_abort(he->pcb);
+				continue;
+			}
+
+#if EXT_HTTPD_DEBUG
+			EXT_DEBUGF(EXT_HTTPD_DEBUG,("Accept new connection %s from %s:%d", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port ) );
+#endif
+
+			runCfg->currentHttpConns++;
+			
+			ehc->pcb = pcb;
+			/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
+			tcp_arg(pcb, ehc);
+
+TRACE();
+		}
+		else
+		{
+			httpFsmHandle(he);
+			ehc = (ExtHttpConn *)he->mhc;
+			if(ehc && ehc->state == H_STATE_FREE)
+			{
+				HTTP_FREE_HTTP_STATE(ehc);
+			}
+		}
+		
+TRACE();
+		memp_free(MEMP_EXT_HTTPD, he);
+		he = NULL;
+	}
+	
+}
+
+
+char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, struct tcp_pcb *pcb)
+{
+	HttpEvent *mhe;
+
+	EXT_ASSERT(( "%s: post event failed MHC and PCB all are null", __FUNCTION__), (pcb != NULL || mhc !=NULL) );
+
+	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(_httpdMailBox));
+	mhe = (HttpEvent *)memp_malloc(MEMP_EXT_HTTPD);
+	if (mhe == NULL)
+	{
+		EXT_ERRORF(("No memory available for HTTP Event now"));
+		return EXIT_FAILURE;
+	}
+	memset(mhe, 0, sizeof(HttpEvent));
+	
+	mhe->mhc = mhc;
+	mhe->type = eventType;
+	mhe->pBuf = p;
+	mhe->pcb = pcb;
+
+	if (sys_mbox_trypost(&_httpdMailBox, mhe) != ERR_OK)
+	{
+		EXT_ERRORF(("Post to "EXT_TASK_HTTP" Mailbox failed"));
+		memp_free(MEMP_EXT_HTTPD, mhe);
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+#endif
+
 
 
 #if	MHTTPD_FS_ASYNC_READ
@@ -46,7 +147,7 @@ char mhttpUriBuf[MHTTPD_URI_BUF_LEN+1];
  */
 static void mhttpContinue(void *connection)
 {
-	MuxHttpConn *mhc = (MuxHttpConn*)connection;
+	ExtHttpConn *mhc = (ExtHttpConn*)connection;
 	if (mhc && (mhc->pcb) && (mhc->handle))
 	{
 		EXT_ASSERT(("mhc->pcb != NULL"), mhc->pcb != NULL);
@@ -65,31 +166,37 @@ static void mhttpContinue(void *connection)
  * The pcb had an error and is already deallocated.
  * The argument might still be valid (if != NULL).
  */
-static void __mhttpErr(void *arg, err_t err)
+static void __extHttpErr(void *arg, err_t err)
 {
-	MuxHttpConn *mhc = (MuxHttpConn *)arg;
+	ExtHttpConn *mhc = (ExtHttpConn *)arg;
 	LWIP_UNUSED_ARG(err);
 
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_err: %s", lwip_strerr(err)));
 
+#if LWIP_EXT_HTTPD_TASK
+	extHttpPostEvent(mhc, H_EVENT_ERROR, NULL, NULL);
+#else
 	if (mhc != NULL)
 	{
 		mhttpConnFree(mhc);
 	}
+#endif
 }
 
 /**
  * Data has been sent and acknowledged by the remote host.
  * This means that more data can be sent.
  */
-static err_t __mhttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
+static err_t __extHttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 {
-	MuxHttpConn *mhc = (MuxHttpConn *)arg;
+	ExtHttpConn *mhc = (ExtHttpConn *)arg;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_sent %p", (void*)pcb));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_sent %p: sent len : %d", (void*)pcb, len));
 
+#if LWIP_EXT_HTTPD_TASK
+	extHttpPostEvent(mhc, H_EVENT_SENT, NULL, pcb);
+#else
 	LWIP_UNUSED_ARG(len);
-
 	if (mhc == NULL)
 	{
 		return ERR_OK;
@@ -97,6 +204,7 @@ static err_t __mhttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 
 	mhc->retries = 0;
 	extHttpSend( mhc);
+#endif
 
 	return ERR_OK;
 }
@@ -109,10 +217,14 @@ static err_t __mhttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
  * This could be increased, but we don't want to waste resources for bad connections.
  * poll to control this pcb; the arg is come from 'tcp_arg()'.
  */
-err_t mhttpPoll(void *arg, struct tcp_pcb *pcb)
+err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 {
-	MuxHttpConn *mhc = (MuxHttpConn *)arg;
+	ExtHttpConn *mhc = (ExtHttpConn *)arg;
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: pcb=%p mhc=%p pcb_state=%s", (void*)pcb, (void*)mhc, tcp_debug_state_str(pcb->state)));
+
+#if LWIP_EXT_HTTPD_TASK
+	extHttpPostEvent(mhc, H_EVENT_POLL, NULL, pcb);
+#else
 
 	if (mhc == NULL)
 	{
@@ -153,6 +265,7 @@ err_t mhttpPoll(void *arg, struct tcp_pcb *pcb)
 			}
 		}
 	}
+#endif		
 
 	return ERR_OK;
 }
@@ -165,9 +278,9 @@ static char		_debugBuf[2048];
  * Data has been received on this pcb.
  * For HTTP 1.0, this should normally only happen once (if the request fits in one packet).
  */
-static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
+static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
-	MuxHttpConn *mhc = (MuxHttpConn *)arg;
+	ExtHttpConn *mhc = (ExtHttpConn *)arg;
 	
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("http_recv: pcb=%p pbuf=%p err=%s", (void*)pcb, (void*)p, lwip_strerr(err)));
 
@@ -181,11 +294,16 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 		
 		if (mhc == NULL)
 		{/* this should not happen, only to be robust */
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error, http_recv: mhc is NULL, close"));
+			EXT_ERRORF(("Error, http_recv: mhc is NULL, close"));
 		}
 		
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("HTTP Connection is broken by peer"));
+		
+#if LWIP_EXT_HTTPD_TASK
+		extHttpPostEvent( mhc, H_EVENT_CLOSE, p, pcb);
+#else
 		mhttpConnClose(mhc, pcb);
+#endif
 		return ERR_OK;
 	}
 
@@ -209,6 +327,13 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , p->tot_len,_debugBuf) );
 //	CONSOLE_DEBUG_MEM(mhc->data, p->tot_len, 0, "RECV HTTP Data");
 #endif
+
+#if LWIP_EXT_HTTPD_TASK
+	if(extHttpPostEvent(mhc, H_EVENT_RECV, p, pcb) == EXIT_FAILURE)
+	{
+		return ERR_MEM;
+	}
+#else
 
 	if ( HTTPREQ_IS_WEBSOCKET(mhc) )
 	{
@@ -291,19 +416,22 @@ static err_t __mhttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
 			pbuf_free(p);
 		}
 	}
+#endif
+	
 	return ERR_OK;
 }
 
 /* A new incoming connection has been accepted */
-static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
+static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 {
-	MuxHttpConn *mhc;
+	ExtHttpConn *mhc;
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 	
 	LWIP_UNUSED_ARG(err);
 
 	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
 //	EXT_ERRORF(("_mhttpAccept %p / total Connection %d", (void*)pcb, runCfg->currentHttpConns ));
+
 
 	if ((err != ERR_OK) || (pcb == NULL))
 	{
@@ -313,25 +441,34 @@ static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	/* Set priority */
 	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
 
+#if LWIP_EXT_HTTPD_TASK
+	extHttpPostEvent(NULL, H_EVENT_NEW, NULL, pcb);
+#else
 	/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
 	mhc = mhttpConnAlloc(runCfg);
 	if (mhc == NULL)
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_accept: Out of memory, RST"));
+		EXT_ERRORF(("http_accept: Out of memory, RST"));
+		tcp_abort(pcb);
 		return ERR_MEM;
 	}
+
+#if EXT_HTTPD_DEBUG
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("Accept new connection %s from %s:%d", mhc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port ) );
+#endif
 
 	runCfg->currentHttpConns++;
 	
 	mhc->pcb = pcb;
 	/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
 	tcp_arg(pcb, mhc);
+#endif
 
 	/* Set up the various callback functions */
-	tcp_recv(pcb, __mhttpRecv);
-	tcp_err(pcb,  __mhttpErr);
-	tcp_poll(pcb, mhttpPoll,	MHTTPD_POLL_INTERVAL);
-	tcp_sent(pcb, __mhttpSent);
+	tcp_recv(pcb, __extHttpRecv);
+	tcp_err(pcb,  __extHttpErr);
+	tcp_poll(pcb, extHttpPoll,	MHTTPD_POLL_INTERVAL);
+	tcp_sent(pcb, __extHttpSent);
 
 	return ERR_OK;
 }
@@ -340,36 +477,50 @@ static err_t _mhttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
  * @ingroup httpd
  * Initialize the httpd: set up a listening PCB and bind it to the defined port
  */
-void mHttpSvrMain(void *data)
+void extHttpSvrMain(void *data)
 {
 	struct tcp_pcb *pcb;
 	err_t err;
 
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
+#if EXT_HTTPD_DEBUG	
+	memset(&httpStats, 0, sizeof(HttpStats));
+#endif
+
 #if	MHTTPD_USE_MEM_POOL
 	LWIP_MEMPOOL_INIT(MHTTPD_STATE);
 #if	MHTTPD_SSI
 	LWIP_MEMPOOL_INIT(MHTTPD_SSI_STATE);
 #endif
 #endif
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("mHttpSvrMain"));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, (__FUNCTION__));
 
 	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	EXT_ASSERT(("mHttpSvrMain: tcp_new failed"), pcb != NULL);
+	EXT_ASSERT(( "%s: tcp_new failed", __FUNCTION__), pcb != NULL);
 	
 	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
 	/* set SOF_REUSEADDR here to explicitly bind httpd to multiple interfaces */
 	err = tcp_bind(pcb, IP_ANY_TYPE, runCfg->httpPort);
 	
 	LWIP_UNUSED_ARG(err); /* in case of LWIP_NOASSERT */
-	EXT_ASSERT(("mHttpSvrMain: tcp_bind failed"), err == ERR_OK);
+	EXT_ASSERT(( "%s: tcp_bind on port %d failed: %d",__FUNCTION__, runCfg->httpPort, err), err == ERR_OK);
 	
 	pcb = tcp_listen(pcb);
-	EXT_ASSERT(("mHttpSvrMain: tcp_listen failed"), pcb != NULL);
+	EXT_ASSERT(( "%s: tcp_listen failed", __FUNCTION__), pcb != NULL);
 
 	tcp_arg(pcb, runCfg);
 
-	tcp_accept(pcb, _mhttpAccept);
+	tcp_accept(pcb, _extHttpAccept);
+
+#if LWIP_EXT_HTTPD_TASK
+	if (sys_mbox_new(&_httpdMailBox, EXT_HTTPD_MBOX_SIZE) != ERR_OK)
+	{
+		EXT_ASSERT(("failed to create "EXT_TASK_HTTP" mbox"), 0);
+	}
+
+	sys_thread_new(EXT_TASK_HTTP, _extHttpdTask, runCfg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY );
+#endif
+	
 }
 
 #if	MHTTPD_SSI

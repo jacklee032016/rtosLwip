@@ -65,7 +65,13 @@ LWIP_MEMPOOL(NETCONN,        MEMP_NUM_NETCONN,         sizeof(struct netconn),  
 #endif /* LWIP_NETCONN || LWIP_SOCKET */
 
 #if NO_SYS==0
+/* SYS is enabled, but no APIs is used in our program. J.L. */
 LWIP_MEMPOOL(TCPIP_MSG_API,  MEMP_NUM_TCPIP_MSG_API,   sizeof(struct tcpip_msg),      "TCPIP_MSG_API")
+
+LWIP_MEMPOOL(EXT_UDP_CMD,  MEMP_NUM_UDP_CMD,   sizeof(struct _UdpCmd),      "UDP_CMD_TASK")
+LWIP_MEMPOOL(EXT_HTTPD,  MEMP_NUM_HTTPD,   sizeof(struct _HttpEvent),      "HTTPD_TASK")
+
+
 #if LWIP_MPU_COMPATIBLE
 LWIP_MEMPOOL(API_MSG,        MEMP_NUM_API_MSG,         sizeof(struct api_msg),        "API_MSG")
 #if LWIP_DNS
@@ -78,6 +84,7 @@ LWIP_MEMPOOL(SOCKET_SETGETSOCKOPT_DATA, MEMP_NUM_SOCKET_SETGETSOCKOPT_DATA, size
 LWIP_MEMPOOL(NETIFAPI_MSG,   MEMP_NUM_NETIFAPI_MSG,    sizeof(struct netifapi_msg),   "NETIFAPI_MSG")
 #endif
 #endif /* LWIP_MPU_COMPATIBLE */
+
 #if !LWIP_TCPIP_CORE_LOCKING_INPUT
 LWIP_MEMPOOL(TCPIP_MSG_INPKT,MEMP_NUM_TCPIP_MSG_INPKT, sizeof(struct tcpip_msg),      "TCPIP_MSG_INPKT")
 #endif /* !LWIP_TCPIP_CORE_LOCKING_INPUT */

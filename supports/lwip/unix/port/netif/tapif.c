@@ -379,7 +379,7 @@ static void low_level_init(struct netif *netif)
   	}
 
 #if !NO_SYS
-	sys_thread_new("tapif_thread", tapif_thread, netif, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+	sys_thread_new("tapifd", tapif_thread, netif, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 #endif /* !NO_SYS */
 }
 

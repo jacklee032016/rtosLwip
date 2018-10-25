@@ -2,24 +2,23 @@
 
 #include "lwipExt.h"
 
-#include "http.h"
-
-/* Initialize a MuxHttpConn */
-static void _mhttpStateInit(MuxHttpConn* mhc)
+/* Initialize a ExtHttpConn */
+static void _extHttpStateInit(ExtHttpConn* mhc)
 {
 	/* Initialize the structure. */
-	memset(mhc, 0, sizeof(MuxHttpConn));
+	memset(mhc, 0, sizeof(ExtHttpConn));
 
 	mhc->httpStatusCode = WEB_RES_CONTINUE;
+	mhc->state = H_STATE_REQ;
 #if LWIP_EXT_NMOS
 	mhc->nodeInfo = &nmosNode;
 #endif
 }
 
-/** Free a MuxHttpConn.
+/** Free a ExtHttpConn.
  * Also frees the file data if dynamic.
  */
-static void _mhttpStateEof(MuxHttpConn *mhc)
+static void _mhttpStateEof(ExtHttpConn *mhc)
 {
 	if(mhc->handle)
 	{
@@ -63,10 +62,13 @@ static void _mhttpStateEof(MuxHttpConn *mhc)
  * @param pcb the tcp pcb to reset callbacks
  * @param mhc connection state to free
  */
-static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t abort_conn)
+static err_t _mhttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_t abort_conn)
 {
 	err_t err = ERR_OK;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Closing connection %p\n", (void*)pcb));
+
+#if EXT_HTTPD_DEBUG
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Closing connection %s on %p\n", (mhc)?mhc->name:"NULL CONN", (void*)pcb));
+#endif
 	EXT_RUNTIME_CFG *runCfg = NULL;
 
 	if (mhc != NULL)
@@ -89,7 +91,7 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 
 	}
 	EXT_ASSERT(("HTTP Connection is null"), mhc!= NULL);
-	runCfg = mhc->runCfg;
+	runCfg = mhc->runCfg;  ///????
 
 
 	tcp_arg(pcb, NULL);
@@ -106,7 +108,11 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 
 	if (abort_conn)
 	{
-		EXT_INFOF( ("TCP %p is abort"EXT_NEW_LINE, (void*)pcb));
+#if EXT_HTTPD_DEBUG
+		EXT_INFOF( ("TCP connection %s %p is abort"EXT_NEW_LINE, mhc->name,  (void*)pcb));
+#else
+		EXT_INFOF( ("TCP connection %p is abort"EXT_NEW_LINE, (void*)pcb));
+#endif
 		tcp_abort(pcb);
 		return ERR_OK;
 	}
@@ -118,23 +124,23 @@ static err_t _mhttpConnCloseOrAbort(MuxHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
 		EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
 		/* error closing, try again later in poll */
-		tcp_poll(pcb, mhttpPoll,  MHTTPD_POLL_INTERVAL);
+		tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
 	}
 	return err;
 }
 
 #if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
 /** global list of active HTTP connections, use to kill the oldest when running out of memory */
-static MuxHttpConn *_mhttpConns;
+static ExtHttpConn *_mhttpConns;
 
-static void _addConnection(MuxHttpConn *mhc)
+static void _addConnection(ExtHttpConn *mhc)
 {
 	/* add the connection to the list */
 	mhc->next = _mhttpConns;
 	_mhttpConns = mhc;
 }
 
-static void _removeConnection(MuxHttpConn *mhc)
+static void _removeConnection(ExtHttpConn *mhc)
 {
 	/* take the connection off the list */
 	if (_mhttpConns)
@@ -145,7 +151,7 @@ static void _removeConnection(MuxHttpConn *mhc)
 		}
 		else
 		{
-			MuxHttpConn *last;
+			ExtHttpConn *last;
 			for(last = _mhttpConns; last->next != NULL; last = last->next)
 			{
 				if (last->next == mhc)
@@ -160,8 +166,8 @@ static void _removeConnection(MuxHttpConn *mhc)
 
 static void _killOldestConnection(u8_t ssi_required)
 {
-	MuxHttpConn *mhc = _mhttpConns;
-	MuxHttpConn *hs_free_next = NULL;
+	ExtHttpConn *mhc = _mhttpConns;
+	ExtHttpConn *hs_free_next = NULL;
 
 	while(mhc && mhc->next)
 	{
@@ -200,10 +206,10 @@ static void _killOldestConnection(u8_t ssi_required)
 #endif
 
 
-/** Allocate a MuxHttpConn. */
-MuxHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
+/** Allocate a ExtHttpConn. */
+ExtHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 {
-	MuxHttpConn *mhc = HTTP_ALLOC_HTTP_STATE();
+	ExtHttpConn *mhc = HTTP_ALLOC_HTTP_STATE();
 #if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
 	if (mhc == NULL)
 	{
@@ -214,7 +220,13 @@ MuxHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 
 	if (mhc != NULL)
 	{
-		_mhttpStateInit(mhc);
+		_extHttpStateInit(mhc);
+
+#if EXT_HTTPD_DEBUG
+		httpStats.connCount++;
+		httpStats.currentConns++;
+		snprintf(mhc->name, sizeof(mhc->name), "CONN#%d", httpStats.connCount);
+#endif
 		
 		mhc->runCfg = runCfg;
 		_addConnection(mhc);
@@ -223,16 +235,28 @@ MuxHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 	return mhc;
 }
 
-/** Free a MuxHttpConn.
+/** Free a ExtHttpConn.
  * Also frees the file data if dynamic.
  */
-void mhttpConnFree(MuxHttpConn *mhc)
+void mhttpConnFree(ExtHttpConn *mhc)
 {
 	if (mhc != NULL)
 	{
 		_mhttpStateEof(mhc);
 		_removeConnection(mhc);
+#if EXT_HTTPD_DEBUG
+//		httpStats.connCount--;
+		httpStats.currentConns--;
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("Connection %s is freed, total %d CONNs now ", mhc->name, httpStats.currentConns) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", mhc->uri, mhc->headerLength, mhc->headerLength, mhc->headers));
+#endif
+
+#if 0
 		HTTP_FREE_HTTP_STATE(mhc);
+#else
+		mhc->state = H_STATE_FREE;
+#endif
+TRACE();
 	}
 }
 
@@ -244,7 +268,7 @@ void mhttpConnFree(MuxHttpConn *mhc)
  * @param pcb the tcp pcb to reset callbacks
  * @param mhc connection state to free
  */
-err_t mhttpConnClose(MuxHttpConn *mhc, struct tcp_pcb *pcb)
+err_t mhttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb)
 {
 	return _mhttpConnCloseOrAbort(mhc, pcb, 0);
 }
@@ -252,7 +276,7 @@ err_t mhttpConnClose(MuxHttpConn *mhc, struct tcp_pcb *pcb)
 /** End of file: either close the connection (Connection: close) or
  * close the file (Connection: keep-alive)
  */
-void mhttpConnEof(MuxHttpConn *mhc)
+void mhttpConnEof(ExtHttpConn *mhc)
 {
   /* HTTP/1.1 persistent connection? (Not supported for SSI) */
 #if	MHTTPD_SUPPORT_11_KEEPALIVE
@@ -287,7 +311,7 @@ void mhttpConnEof(MuxHttpConn *mhc)
  * @param apiflags directly passed to tcp_write
  * @return the return value of tcp_write
  */
-err_t extHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags)
+err_t extHttpWrite(ExtHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags)
 {
 	u16_t len, max_len;
 	err_t err;
@@ -297,15 +321,20 @@ err_t extHttpWrite(MuxHttpConn *mhc, const void* ptr, u16_t *length, u8_t apifla
 	{
 		return ERR_OK;
 	}
+	
 	/* We cannot send more data than space available in the send buffer. */
 	max_len = tcp_sndbuf(mhc->pcb);
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("max length %d , length:%d", max_len, len));
 	if (max_len < len)
 	{
 		len = max_len;
 	}
-#ifdef MHTTPD_MAX_WRITE_LEN
+
+	/* Oct.24, 2018,  SND_BUF_SIZE has limits its size, more limitation is not needed. JL*/
+#if 0//def MHTTPD_MAX_WRITE_LEN
 	/* Additional limitation: e.g. don't enqueue more than 2*mss at once */
 	max_len = MHTTPD_MAX_WRITE_LEN(mhc->pcb);
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("max length2 %d , length2:%d", max_len, len));
 	if(len > max_len)
 	{
 		len = max_len;

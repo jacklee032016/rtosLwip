@@ -34,7 +34,7 @@ static const default_filename _psDefaultFilenames[] =
  * @param params pointer to the NULL-terminated parameter string from the URI
  * @return number of parameters extracted
  */
-static int _extractUriParameters(MuxHttpConn *mhc, char *params)
+static int _extractUriParameters(ExtHttpConn *mhc, char *params)
 {
 	char *pair;
 	char *equals;
@@ -105,11 +105,12 @@ static int _extractUriParameters(MuxHttpConn *mhc, char *params)
  * @param uri pointer that receives the actual file name URI
  * @return file struct for the error page or NULL no matching file was found
  */
-static struct mfs_file *_mhttpFileGet404(MuxHttpConn *mhc)
+static struct mfs_file *_mhttpFileGet404(ExtHttpConn *mhc)
 {
 	err_t err;
 	const char *filename = "/404.html";
 
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Opening 404 as '%s'", mhc->uri));
 	err = mfsOpen(&mhc->file_handle, filename);
 	if (err != ERR_OK)
 	{/* 404.html doesn't exist. Try 404.htm instead. */
@@ -145,7 +146,7 @@ static struct mfs_file *_mhttpFileGet404(MuxHttpConn *mhc)
  * @return ERR_OK if file was found and mhc has been initialized correctly
  *         another err_t otherwise
  */
-static err_t _mhttpFileInit(MuxHttpConn *mhc, struct mfs_file *file, u8_t tag_check, char* params)
+static err_t _mhttpFileInit(ExtHttpConn *mhc, struct mfs_file *file, u8_t tag_check, char* params)
 {
 	if (file != NULL)
 	{
@@ -275,7 +276,7 @@ static err_t _mhttpFileInit(MuxHttpConn *mhc, struct mfs_file *file, u8_t tag_ch
  * @return ERR_OK if file was found and mhc has been initialized correctly
  *         another err_t otherwise
  */
-err_t mhttpFindErrorFile(MuxHttpConn *mhc, u16_t error_nr)
+err_t mhttpFindErrorFile(ExtHttpConn *mhc, u16_t error_nr)
 {
 	const char *uri1, *uri2, *uri3;
 	err_t err;
@@ -323,7 +324,7 @@ err_t mhttpFindErrorFile(MuxHttpConn *mhc, u16_t error_nr)
  * @return ERR_OK if file was found and mhc has been initialized correctly
  *         another err_t otherwise
  */
-err_t extHttpFileFind(MuxHttpConn *mhc )
+err_t extHttpFileFind(ExtHttpConn *mhc )
 {
 //	size_t loop;
 	struct mfs_file *file = NULL;
@@ -430,6 +431,7 @@ err_t extHttpFileFind(MuxHttpConn *mhc )
 		err = mfsOpen(&mhc->file_handle, mhc->uri);
 		if (err == ERR_OK)
 		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Opening '%s' OK", mhc->uri));
 			file = &mhc->file_handle;
 		}
 		else

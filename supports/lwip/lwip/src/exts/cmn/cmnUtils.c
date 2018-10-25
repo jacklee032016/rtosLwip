@@ -35,6 +35,77 @@ unsigned int cmnMuxCRC32b(void *message, int len)
 }
 
 
+#if EXT_HTTPD_DEBUG
+static const	EXT_CONST_STR	_httpStringStates[] =
+{
+	{
+		type	: H_STATE_INIT,
+		name	: "INIT"
+	},
+	{
+		type	: H_STATE_REQ,
+		name	: "REQ"
+	},
+	{
+		type	: H_STATE_DATA,
+		name	: "DATA"
+	},
+	{
+		type	: H_STATE_RESP,
+		name	: "RESP"
+	},
+	{
+		type	: H_STATE_CLOSE,
+		name	: "CLOSE"
+	},
+	{
+		type	: H_STATE_ERROR,
+		name	: "ERROR"
+	},
+	{
+		type	: H_STATE_FREE,
+		name	: "FREE"
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+
+static const	EXT_CONST_STR	_httpStringEvents[] =
+{
+	{
+		type	: H_EVENT_NEW,
+		name	: "NEW"
+	},
+	{
+		type	: H_EVENT_RECV,
+		name	: "RECV"
+	},
+	{
+		type	: H_EVENT_POLL,
+		name	: "POLL"
+	},
+	{
+		type	: H_EVENT_SENT,
+		name	: "SENT"
+	},
+	{
+		type	: H_EVENT_CLOSE,
+		name	: "CLOSE"
+	},
+	{
+		type	: H_EVENT_ERROR,
+		name	: "ERROR"
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+#endif
 
 static const	EXT_CONST_STR	_ipcmdStringRsParities[] =
 {
@@ -116,6 +187,14 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 		case CMN_STR_T_V_COLORSPACE:
 			_str = _videoColorSpaces;
 			break;
+#if EXT_HTTPD_DEBUG
+		case CMN_STR_T_HTTP_STATES:
+			_str = _httpStringStates;
+			break;
+		case CMN_STR_T_HTTP_EVENTS:
+			_str = _httpStringEvents;
+			break;
+#endif
 		default:
 			return "Unknown String Type";
 			break;
@@ -147,6 +226,14 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 		case CMN_STR_T_V_COLORSPACE:
 			_str = _videoColorSpaces;
 			break;
+#if EXT_HTTPD_DEBUG
+		case CMN_STR_T_HTTP_STATES:
+			_str = _httpStringStates;
+			break;
+		case CMN_STR_T_HTTP_EVENTS:
+			_str = _httpStringEvents;
+			break;
+#endif
 		default:
 			return -1;
 			break;

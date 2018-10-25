@@ -158,7 +158,7 @@ char extLwipStartup(EXT_RUNTIME_CFG *runCfg)
 
 #if LWIP_EXT_HTTP
 	EXT_INFOF(("HTTP sever start..."));
-	mHttpSvrMain(runCfg);
+	extHttpSvrMain(runCfg);
 #endif
 
 #if LWIP_EXT_TCP_PERF

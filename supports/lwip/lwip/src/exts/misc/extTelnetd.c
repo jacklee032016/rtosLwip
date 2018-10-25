@@ -587,7 +587,7 @@ void extNetRawTelnetInit(EXT_RUNTIME_CFG *runCfg)
 		else
 		{
 		/* abort? output diagnostic? */
-			EXT_ERRORF(("telent bind failed"));
+			EXT_ERRORF(("telent bind on port %d failed: %d",EXT_TELNET_PORT , err));
 		}
 	}
 	else

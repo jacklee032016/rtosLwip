@@ -8,7 +8,7 @@
 #define		CMD_TAG_RESPONSE						(0xa0fb)		/* response */
 
 
-#define		EXT_IPCMD_DEBUG						EXT_DBG_ON
+#define		EXT_IPCMD_DEBUG						EXT_DBG_OFF
 
 
 #define	EXT_IP_CMD_MAX_LENGTH					1020
