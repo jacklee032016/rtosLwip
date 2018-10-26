@@ -69,7 +69,7 @@ LWIP_MEMPOOL(NETCONN,        MEMP_NUM_NETCONN,         sizeof(struct netconn),  
 LWIP_MEMPOOL(TCPIP_MSG_API,  MEMP_NUM_TCPIP_MSG_API,   sizeof(struct tcpip_msg),      "TCPIP_MSG_API")
 
 LWIP_MEMPOOL(EXT_UDP_CMD,  MEMP_NUM_UDP_CMD,   sizeof(struct _UdpCmd),      "UDP_CMD_TASK")
-LWIP_MEMPOOL(EXT_HTTPD,  MEMP_NUM_HTTPD,   sizeof(struct _HttpEvent),      "HTTPD_TASK")
+LWIP_MEMPOOL(EXT_HTTPD,  MEMP_NUM_HTTPD,   sizeof(struct _HttpEvent),      "HTTP_EVENT")
 
 
 #if LWIP_MPU_COMPATIBLE

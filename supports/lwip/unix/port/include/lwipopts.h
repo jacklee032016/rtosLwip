@@ -50,8 +50,8 @@
 #define SLIP_DEBUG					LWIP_DBG_OFF
 #define PPP_DEBUG					LWIP_DBG_OFF
 
-#define MEM_DEBUG					LWIP_DBG_OFF
-#define MEMP_DEBUG					LWIP_DBG_OFF
+#define MEM_DEBUG					LWIP_DBG_ON
+#define MEMP_DEBUG					LWIP_DBG_ON
 #define PBUF_DEBUG					LWIP_DBG_OFF
 
 #define API_LIB_DEBUG				LWIP_DBG_OFF
@@ -107,7 +107,7 @@ extern unsigned char debug_flags;
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
-#define MEM_SIZE               10240 
+#define MEM_SIZE               (10240 + 5120)		/* at least 4 concurrent HTTP connections */
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
@@ -121,7 +121,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define MEMP_NUM_UDP_PCB        12*2 /* 6 */
 /* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP
    connections. */
-#define MEMP_NUM_TCP_PCB					16
+#define MEMP_NUM_TCP_PCB					24  //16   /* from 16 to 24, Oct.25, 2018 */
 /* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP
    connections. */
 #define MEMP_NUM_TCP_PCB_LISTEN			16

@@ -101,7 +101,8 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 		tcp_abort(pcb);
 		return ERR_OK;
 	}
-	
+
+#if 0	
 	err = tcp_close(pcb);
 	if (err != ERR_OK)
 	{
@@ -122,6 +123,12 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 #else
 			HTTP_SET_FREE(mhc);
 #endif
+			mhc->state = H_STATE_FREE;
+#if EXT_HTTPD_DEBUG
+			EXT_INFOF( ("TCP connection %s %p set FREE"EXT_NEW_LINE, mhc->name,  (void*)pcb));
+#else
+			EXT_INFOF( ("TCP connection %p set FREE"EXT_NEW_LINE, (void*)pcb));
+#endif
 		}
 		runCfg->currentHttpConns --;
 		
@@ -131,7 +138,8 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 		tcp_poll(pcb, NULL, 0);
 		tcp_sent(pcb, NULL);
 	}
-	
+#endif
+
 	return err;
 }
 
@@ -296,13 +304,17 @@ static ExtHttpConn *_mhttpConns;
 
 static void _addConnection(ExtHttpConn *mhc)
 {
+	HTTP_LOCK();
 	/* add the connection to the list */
 	mhc->next = _mhttpConns;
 	_mhttpConns = mhc;
+
+	HTTP_UNLOCK();	
 }
 
 static void _removeConnection(ExtHttpConn *mhc)
 {
+	HTTP_LOCK();
 	/* take the connection off the list */
 	if (_mhttpConns)
 	{
@@ -323,6 +335,8 @@ static void _removeConnection(ExtHttpConn *mhc)
 			}
 		}
 	}
+
+	HTTP_UNLOCK();	
 }
 
 static void _killOldestConnection(u8_t ssi_required)
@@ -370,89 +384,126 @@ static void _killOldestConnection(u8_t ssi_required)
 /** Allocate a ExtHttpConn. */
 ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 {
-	ExtHttpConn *mhc = HTTP_ALLOC_HTTP_STATE();
+	ExtHttpConn *ehc = NULL;
+
+#if 0	
+	HTTP_ALLOC_HTTP_STATE(ehc);
+#else
+	HTTP_LOCK();
+	ehc = (ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn));
+	HTTP_UNLOCK();
+#endif		
+
 #if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
-	if (mhc == NULL)
+	if (ehc == NULL)
 	{
 		_killOldestConnection(0);
-		mhc = HTTP_ALLOC_HTTP_STATE();
+		HTTP_LOCK();
+		ehc = (ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn));
+		HTTP_UNLOCK();
 	}
 #endif
 
-	if (mhc != NULL)
+	if (ehc != NULL)
 	{
-		_extHttpStateInit(mhc);
+		_extHttpStateInit(ehc);
 
 #if EXT_HTTPD_DEBUG
 		httpStats.connCount++;
 		httpStats.currentConns++;
-		snprintf(mhc->name, sizeof(mhc->name), "CONN#%d", httpStats.connCount);
+		snprintf(ehc->name, sizeof(ehc->name), "CONN#%d", httpStats.connCount);
 #endif
 		
-		mhc->runCfg = runCfg;
-		_addConnection(mhc);
+		ehc->runCfg = runCfg;
+		_addConnection(ehc);
 	}
 	
-	return mhc;
+	return ehc;
 }
 
 /** Free a ExtHttpConn.
  * Also frees the file data if dynamic.
  */
-void extHttpConnFree(ExtHttpConn *mhc)
+void extHttpConnFree(ExtHttpConn *ehc)
 {
-	if (mhc != NULL)
+	err_t err;
+	
+	if (ehc == NULL)
 	{
-		_mhttpStateEof(mhc);
-		_removeConnection(mhc);
+		return;
+	}
+
+	if(ehc->state !=  H_STATE_ERROR)
+	{/* when TCP error happens, TCP_PCB has been deallocated */
+		struct tcp_pcb *pcb;
+		pcb = ehc->pcb;
+		EXT_ASSERT(("PCB for CONN %s is null", ehc->name), pcb != NULL);
+		ehc->pcb = NULL;
+
+		err = tcp_close(pcb);
+		if (err != ERR_OK)
+		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %s: %p"EXT_NEW_LINE, err, ehc->name, (void*)pcb));
+			EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+			/* error closing, try again later in poll */
+			tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
+
+			return;
+		}
+
+
+		ehc->runCfg->currentHttpConns --;
+		
+		tcp_arg(pcb, NULL);
+		
+		tcp_recv(pcb, NULL);
+		tcp_err(pcb, NULL);
+		tcp_poll(pcb, NULL, 0);
+		tcp_sent(pcb, NULL);
+		
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d) is freed, ", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port) );
+	}
+
+	
+	_mhttpStateEof(ehc);
+	_removeConnection(ehc);
 #if EXT_HTTPD_DEBUG
 //		httpStats.connCount--;
-		httpStats.currentConns--;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("Connection %s is freed, total %d CONNs now ", mhc->name, httpStats.currentConns) );
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", mhc->uri, mhc->headerLength, mhc->headerLength, mhc->headers));
+
+	httpStats.currentConns--;
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s is freed, total %d CONNs now ", ehc->name, httpStats.currentConns) );
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", ehc->uri, ehc->headerLength, ehc->headerLength, ehc->headers));
 #endif
 
-#if 0
-		HTTP_FREE_HTTP_STATE(mhc);
-#else
-		mhc->state = H_STATE_FREE;
-#endif
-TRACE();
-	}
+	HTTP_FREE_HTTP_STATE(ehc);
+
 }
 
 
-void extHttpConnectionFree(void)
+ExtHttpConn *extHttpConnFind(struct tcp_pcb *pcb)
 {
-	ExtHttpConn *last = NULL, *next, *ehc;
-
-	ehc = _mhttpConns;
+	ExtHttpConn *_ehc = NULL;
+	
+	ExtHttpConn *ehc = _mhttpConns;
+	HTTP_LOCK();
+	
 	/* take the connection off the list */
 	while(ehc)
 	{
-		if (HTTP_CHECK_FREE(ehc) )
+		if (ehc->pcb == pcb)
 		{
-			if(last == NULL)
-			{
-				_mhttpConns = ehc->next;
-			}
-			else
-			{
-				last->next = ehc->next;
-			}
-			
-			next = ehc->next;
-
-			extHttpConnFree(ehc);
-			ehc = next;
+			_ehc = ehc;
+			break;
 		}
 		else
 		{
-			last = ehc;
 			ehc = ehc->next;
 		}
-		
 	}
+
+	HTTP_UNLOCK();
+
+	return _ehc;
 }
 
 

@@ -44,6 +44,8 @@ HttpStats	httpStats;
 
 static sys_mbox_t 		_httpdMailBox;
 
+sys_mutex_t			_httpMutex;
+
 static void _extHttpdTask(void *arg)
 {
 	HttpEvent	*he;
@@ -52,6 +54,12 @@ static void _extHttpdTask(void *arg)
 #else
 	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
 #endif
+
+	if (sys_mutex_new(&_httpMutex) != ERR_OK)
+	{
+		EXT_ASSERT(("failed to create HTTP Mutex"), 0);
+	}
+
 
 	while (1)
 	{
@@ -64,42 +72,23 @@ static void _extHttpdTask(void *arg)
 			continue;
 		}
 
-		if(he->type == H_EVENT_NEW)
-		{
-			struct tcp_pcb *pcb = (struct tcp_pcb *)he->pcb;
-			
-			/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
-			ehc = extHttpConnAlloc(runCfg);
-			if (ehc == NULL)
-			{
-				EXT_ERRORF(("http_accept: Out of memory, RST"));
-//				tcp_abort(he->pcb);
-				continue;
-			}
-
-#if EXT_HTTPD_DEBUG
-			EXT_DEBUGF(EXT_HTTPD_DEBUG,("Accept new connection %s from %s:%d", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port ) );
-#endif
-
-			runCfg->currentHttpConns++;
-			
-			ehc->pcb = pcb;
-			/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
-			tcp_arg(pcb, ehc);
-
-TRACE();
-		}
-		else
 		{
 			httpFsmHandle(he);
 			ehc = (ExtHttpConn *)he->mhc;
-			if(ehc && ehc->state == H_STATE_FREE)
+			
+			HTTP_LOCK();
+			ehc->eventCount--;
+			HTTP_UNLOCK();
+			
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s: state is %s", ehc->name, CMN_FIND_HTTP_STATE(ehc->state) ));
+			if(ehc && ehc->eventCount==0 && (ehc->state == H_STATE_FREE||ehc->state == H_STATE_CLOSE||ehc->state == H_STATE_ERROR))
 			{
-				HTTP_FREE_HTTP_STATE(ehc);
+//				HTTP_FREE_HTTP_STATE(ehc);
+				extHttpConnFree(ehc);
 			}
+			
 		}
 		
-TRACE();
 		memp_free(MEMP_EXT_HTTPD, he);
 		he = NULL;
 	}
@@ -107,35 +96,59 @@ TRACE();
 }
 
 
-char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, struct tcp_pcb *pcb)
+char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, struct tcp_pcb *pcb)
 {
-	HttpEvent *mhe;
+	HttpEvent *he;
+	ExtHttpConn *_ehc;
 
-	EXT_ASSERT(( "%s: post event failed MHC and PCB all are null", __FUNCTION__), (pcb != NULL || mhc !=NULL) );
+	EXT_ASSERT(( "%s: post event failed MHC and PCB all are null", __FUNCTION__), (pcb != NULL || ehc !=NULL) );
+
+	if(eventType != H_EVENT_ERROR)
+	{/* TCP error means TCP_PCB has been deallocated */
+		_ehc = extHttpConnFind(pcb);
+		if(_ehc == NULL)
+		{
+			EXT_INFOF(("CONN for PCB %p: from %s:%d has been freed, event '%s' is ignored", 
+				(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, CMN_FIND_HTTP_EVENT(eventType)));
+			return EXIT_FAILURE;
+		}
+	}
+	else
+	{
+		_ehc = ehc;
+	}
 
 	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(_httpdMailBox));
-	mhe = (HttpEvent *)memp_malloc(MEMP_EXT_HTTPD);
-	if (mhe == NULL)
+	he = (HttpEvent *)memp_malloc(MEMP_EXT_HTTPD);
+	if (he == NULL)
 	{
 		EXT_ERRORF(("No memory available for HTTP Event now"));
 		return EXIT_FAILURE;
 	}
-	memset(mhe, 0, sizeof(HttpEvent));
-	
-	mhe->mhc = mhc;
-	mhe->type = eventType;
-	mhe->pBuf = p;
-	mhe->pcb = pcb;
+	memset(he, 0, sizeof(HttpEvent));
 
-	if (sys_mbox_trypost(&_httpdMailBox, mhe) != ERR_OK)
+	HTTP_LOCK();	
+	he->mhc = _ehc;
+	he->type = eventType;
+	he->pBuf = p;
+	he->pcb = pcb;
+
+	ehc->eventCount++;
+	
+	HTTP_UNLOCK();
+	
+	EXT_INFOF(("%s: Event.Count %d: '%s' in state %s", ehc->name, ehc->eventCount, CMN_FIND_HTTP_EVENT(eventType), CMN_FIND_HTTP_STATE(ehc->state) ));
+
+	if (sys_mbox_trypost(&_httpdMailBox, he) != ERR_OK)
 	{
 		EXT_ERRORF(("Post to "EXT_TASK_HTTP" Mailbox failed"));
-		memp_free(MEMP_EXT_HTTPD, mhe);
+		memp_free(MEMP_EXT_HTTPD, he);
 		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
 }
+
 
 #endif
 
@@ -168,19 +181,24 @@ static void mhttpContinue(void *connection)
  */
 static void __extHttpErr(void *arg, err_t err)
 {
-	ExtHttpConn *mhc = (ExtHttpConn *)arg;
+	ExtHttpConn *ehc = (ExtHttpConn *)arg;
 	LWIP_UNUSED_ARG(err);
 
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_err: %s", lwip_strerr(err)));
 
-#if LWIP_EXT_HTTPD_TASK
-	extHttpPostEvent(mhc, H_EVENT_ERROR, NULL, NULL);
-#else
-	if (mhc != NULL)
+	if (ehc != NULL)
 	{
-		extHttpConnFree(mhc);
-	}
+		ehc->pcb = NULL;
+#if LWIP_EXT_HTTPD_TASK
+		extHttpPostEvent(ehc, H_EVENT_ERROR, NULL, NULL);
+#else
+		extHttpConnFree(ehc);
 #endif
+	}
+	else
+	{
+		EXT_ERRORF(("CONN and PCB can't be all null when TCP error happens"));
+	}
 }
 
 /**
@@ -224,6 +242,7 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 
 #if LWIP_EXT_HTTPD_TASK
 	extHttpPostEvent(mhc, H_EVENT_POLL, NULL, pcb);
+
 #else
 
 	if (mhc == NULL)
@@ -320,10 +339,10 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 
 #ifdef	ARM
 #else
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, (EXT_NEW_LINE EXT_NEW_LINE"Received %"U16_F" bytes", p->tot_len));
-	memset(_debugBuf,0 , sizeof(_debugBuf));
+//	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, (EXT_NEW_LINE "Received %"U16_F" bytes", p->tot_len));
+//	memset(_debugBuf,0 , sizeof(_debugBuf));
 	
-	pbuf_copy_partial(p, _debugBuf, p->tot_len, 0);
+//	pbuf_copy_partial(p, _debugBuf, p->tot_len, 0);
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , p->tot_len,_debugBuf) );
 //	CONSOLE_DEBUG_MEM(mhc->data, p->tot_len, 0, "RECV HTTP Data");
 #endif
@@ -429,8 +448,8 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	
 	LWIP_UNUSED_ARG(err);
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p / total Connection %d:%s", (void*)pcb, runCfg->currentHttpConns, runCfg->name ));
-//	EXT_ERRORF(("_mhttpAccept %p / total Connection %d", (void*)pcb, runCfg->currentHttpConns ));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d / total Connection %d:%s", 
+		(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, runCfg->currentHttpConns, runCfg->name ));
 
 
 	if ((err != ERR_OK) || (pcb == NULL))
@@ -441,7 +460,7 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	/* Set priority */
 	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
 
-#if LWIP_EXT_HTTPD_TASK
+#if 0//LWIP_EXT_HTTPD_TASK
 	extHttpPostEvent(NULL, H_EVENT_NEW, NULL, pcb);
 #else
 	/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
@@ -467,7 +486,7 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	/* Set up the various callback functions */
 	tcp_recv(pcb, __extHttpRecv);
 	tcp_err(pcb,  __extHttpErr);
-	tcp_poll(pcb, extHttpPoll,	MHTTPD_POLL_INTERVAL);
+	tcp_poll(pcb, extHttpPoll,	MHTTPD_POLL_INTERVAL/4);
 	tcp_sent(pcb, __extHttpSent);
 
 	return ERR_OK;

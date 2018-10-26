@@ -44,22 +44,22 @@ static char _updatePageBegin(ExtHttpConn  *mhc, char *title, char *msg)
 	int headerLength = 0;
 	int contentLength = 0;
 
-	memset(mhc->updateProgress, 0, sizeof(mhc->updateProgress));
-	index += __httpWebPagePrintHeader((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, mhc);
+	memset(httpStats.updateProgress, 0, sizeof(httpStats.updateProgress));
+	index += __httpWebPagePrintHeader((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, mhc);
 	headerLength = index;
 
-//	contentLength += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "<DIV class=\"title\"><H2>%s</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV></DIV>",
+//	contentLength += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<DIV class=\"title\"><H2>%s</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV></DIV>",
 //		title, msg);
 
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<DIV class=\"title\"><H2>%s</H2></DIV>", title);
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, "<DIV class=\"title\"><H2>%s</H2></DIV>", title);
 
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, " <progress id='progressBar1' value='0'></progress> <br>");
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, " <progress id='progressBar1' value='0'></progress> <br>");
 
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<script>");
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index -contentLength, " document.getElementById('progressBar1').max = %hd; ", mhc->contentLength);
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index -contentLength, "</script>");
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, "<script>");
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index -contentLength, " document.getElementById('progressBar1').max = %hd; ", mhc->contentLength);
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index -contentLength, "</script>");
 
-	index += snprintf((char *)mhc->updateProgress+headerLength-8, 5, "%d", contentLength);
+	index += snprintf((char *)httpStats.updateProgress+headerLength-8, 5, "%d", contentLength);
 
 	mhc->updateLength = (unsigned short)(index+contentLength);
 	mhc->updateIndex = 0;
@@ -72,12 +72,12 @@ static char _updatePageRefresh(ExtHttpConn  *mhc, char *msg)
 {
 	int index = 0;
 
-//	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "%s",
+//	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "%s",
 //		msg);
 
-	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "<script>");
-	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->runCfg->firmUpdateInfo.size );
-	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "</script>");
+	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<script>");
+	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->runCfg->firmUpdateInfo.size );
+	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "</script>");
 
 	mhc->updateLength = (unsigned short)(index);
 	mhc->updateIndex = 0;
@@ -90,11 +90,11 @@ static char _updatePageEnd(ExtHttpConn  *mhc)
 {
 	int index = 0;
 
-//	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "<DIV id=\"nav\"><a data-text=\"Info\" id=\"nav_info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Info</a>", 
+//	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<DIV id=\"nav\"><a data-text=\"Info\" id=\"nav_info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Info</a>", 
 //		EXT_WEBPAGE_INFO);
-	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "<script>");
-	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->contentLength);
-	index += snprintf((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, "</script>");
+	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<script>");
+	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->contentLength);
+	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "</script>");
 
 	mhc->updateLength = (unsigned short)(index);
 	mhc->updateIndex = 0;
@@ -109,17 +109,17 @@ static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 	int headerLength = 0;
 	int contentLength = 0;
 
-	memset(mhc->updateProgress, 0, sizeof(mhc->updateProgress));
-	index += __httpWebPagePrintHeader((char *)mhc->updateProgress+index, sizeof(mhc->updateProgress)-index, mhc);
+	memset(httpStats.updateProgress, 0, sizeof(httpStats.updateProgress));
+	index += __httpWebPagePrintHeader((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, mhc);
 	headerLength = index;
 
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<DIV class=\"title\"><H2>%s</H2></DIV>Result:%s. Please reboot system</DIV>",
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, "<DIV class=\"title\"><H2>%s</H2></DIV>Result:%s. Please reboot system</DIV>",
 		title, msg);
 #if 0
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<a href=\"%s\">Reboot</a><BR>", EXT_WEBPAGE_REBOOT);
-	contentLength += snprintf((char *)mhc->updateProgress+index+contentLength, sizeof(mhc->updateProgress)-index-contentLength, "<a data-text=\"Info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Reboot</a>", EXT_WEBPAGE_REBOOT);
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, "<a href=\"%s\">Reboot</a><BR>", EXT_WEBPAGE_REBOOT);
+	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, "<a data-text=\"Info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Reboot</a>", EXT_WEBPAGE_REBOOT);
 #endif
-	index += snprintf((char *)mhc->updateProgress+headerLength-8, 5, "%d", contentLength);
+	index += snprintf((char *)httpStats.updateProgress+headerLength-8, 5, "%d", contentLength);
 
 	mhc->updateLength = (unsigned short)(index+contentLength);
 	mhc->updateIndex = 0;

@@ -312,8 +312,10 @@ typedef enum
 #if EXT_HTTPD_DEBUG
 typedef struct _HttpStats
 {
-	u32_t	connCount;
-	u32_t	currentConns;
+	u32_t					connCount;
+	u32_t					currentConns;
+
+	unsigned char				updateProgress[1024];		/* used for request and response both */
 	
 }HttpStats;
 #endif
@@ -326,6 +328,7 @@ typedef struct _ExtHttpConn
 #endif /* LWIP_HTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED */
 
 	H_STATE_T				state;
+	unsigned char				eventCount;
 #if EXT_HTTPD_DEBUG	
 	char						name[32];
 #endif
@@ -360,7 +363,10 @@ typedef struct _ExtHttpConn
 	unsigned short			dataSendIndex;
 	unsigned short			contentLength;
 
+#if 0
+	/* move to HttpState to save memory */
 	unsigned char				updateProgress[1024];		/* used for request and response both */
+#endif
 	unsigned short			updateIndex;
 	unsigned short			updateLength;
 	
@@ -501,8 +507,13 @@ typedef struct
 	#define HTTP_ALLOC_HTTP_STATE() (ExtHttpConn *)LWIP_MEMPOOL_ALLOC(HTTPD_STATE)
 	#define HTTP_FREE_HTTP_STATE(x) LWIP_MEMPOOL_FREE(HTTPD_STATE, (x))
 #else
-	#define HTTP_ALLOC_HTTP_STATE() (ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn))
-	#define HTTP_FREE_HTTP_STATE(x) mem_free(x)
+
+	#define HTTP_ALLOC_HTTP_STATE(x) \
+		do{ HTTP_LOCK(); (x) =(ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn)); HTTP_UNLOCK();}while(0)
+			
+	#define HTTP_FREE_HTTP_STATE(x) \
+		do{ HTTP_LOCK(); mem_free(x); HTTP_UNLOCK();}while(0)
+	
 	#if	MHTTPD_SSI
 		#define HTTP_ALLOC_SSI_STATE()  (struct mhttp_ssi_state *)mem_malloc(sizeof(struct mhttp_ssi_state))
 		#define HTTP_FREE_SSI_STATE(x)  mem_free(x)
@@ -512,6 +523,7 @@ typedef struct
 ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
 void extHttpConnFree(ExtHttpConn *mhc);
 
+ExtHttpConn *extHttpConnFind(struct tcp_pcb *pcb);
 
 
 err_t extHttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb);
@@ -581,9 +593,21 @@ char extNmosNodeDumpHander(ExtHttpConn  *mhc, void *data);
 #if LWIP_EXT_HTTPD_TASK
 void	httpFsmHandle(HttpEvent *he);
 char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, struct tcp_pcb *pcb);
+
+sys_mutex_t			_httpMutex;
+
+#define	HTTP_LOCK()		\
+		do{sys_mutex_lock(&_httpMutex);}while(0)
+
+
+#define	HTTP_UNLOCK()	\
+		do{sys_mutex_unlock(&_httpMutex);}while(0)
+
+
 #endif
 
 extern	const char *httpCommonHeader;
+
 
 #if EXT_HTTPD_DEBUG
 extern	HttpStats	httpStats;

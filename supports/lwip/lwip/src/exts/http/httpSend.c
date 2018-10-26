@@ -327,10 +327,10 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 	else if( (HTTPREQ_IS_UPLOAD(mhc) && mhc->uploadStatus >= _UPLOAD_STATUS_COPY) )
 	{
 		unsigned short len = mhc->updateLength - mhc->updateIndex;
-		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send Update progress web page, %d bytes %s", len, mhc->updateProgress));
+		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send Update progress web page, %d bytes %s", len, httpStats.updateProgress));
 		if(len > 0)
 		{
-			extHttpWrite(mhc, mhc->updateProgress, &len, TCP_WRITE_FLAG_COPY);
+			extHttpWrite(mhc, httpStats.updateProgress, &len, TCP_WRITE_FLAG_COPY);
 			if(len < (mhc->updateLength - mhc->updateIndex) )
 			{
 				ret = MHTTP_DATA_TO_SEND_CONTINUE;
@@ -349,7 +349,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 		ret = MHTTP_NO_DATA_TO_SEND;
 	}
 	
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send_data end: %d", ret));
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("%s send_data end: %s", mhc->name,  (ret==MHTTP_NO_DATA_TO_SEND)?"End":(ret==MHTTP_DATA_TO_SEND_CONTINUE)?"More":"Break"));
 	return ret;
 }
 

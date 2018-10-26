@@ -21,7 +21,7 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 	char		*sp;
 	u16_t uri_len;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("parsing URI(%d):'%.*s'", data_len, data_len, data));
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("parsing URI(%d):'%.*s'", data_len, data_len, data));
 	sp = lwip_strnstr((char *)data, " ", data_len);
 #if	MHTTPD_SUPPORT_V09
 	if (sp == NULL)
@@ -78,7 +78,6 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 			char* crlfcrlf = _FIND_HEADER_END(mhc->headers, left);
 			if(crlfcrlf != NULL )
 			{
-			TRACE();
 				mhc->headerLength = crlfcrlf - mhc->headers;
 			}
 			else
@@ -87,8 +86,8 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 			}
 
 			mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
+//			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
+//			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
 		}
 		return EXIT_SUCCESS;
 	}
@@ -316,7 +315,7 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 		return ERR_USE;
 	}
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received %"U16_F" bytes", p->tot_len));
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received %"U16_F" bytes", p->tot_len));
 #if 0
 	pbuf_copy_partial(p, mhc->data, p->tot_len, 0);
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%s'", mhc->data) );
@@ -357,7 +356,7 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 		}
 	}
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", data_len, data ));
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", data_len, data ));
 
 	/* received enough data for minimal request? */
 	if (data_len >= MHTTP_MIN_REQ_LEN)

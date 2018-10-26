@@ -22,6 +22,7 @@ static unsigned char _httpEventRecvInReqState(void *arg)
 		return H_STATE_CLOSE;
 	}
 
+#if 0
 	if(extHttpFileFind(ehc) == ERR_OK)
 	{
 		if( (ehc->reqType == EXT_HTTP_REQ_T_UPLOAD) 
@@ -33,6 +34,7 @@ static unsigned char _httpEventRecvInReqState(void *arg)
 			return H_STATE_DATA;
 		}
 	}
+#endif
 	
 	return H_STATE_RESP;
 }
@@ -52,12 +54,7 @@ static unsigned char _httpEventRecvInDataState(void *arg)
 		return H_STATE_CLOSE;
 	}
 
-	if(1)
-	{
-		return H_STATE_RESP;
-	}
-	
-	return H_STATE_ERROR;
+	return H_STATE_RESP;
 }
 
 
@@ -128,12 +125,16 @@ static unsigned char _httpEventClose(void *arg)
 
 static unsigned char _httpEventError(void *arg)
 {
+#if 0
 	HttpEvent *he = (HttpEvent *)arg;
 	if(he->mhc)
 	{
 		ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
-		extHttpConnClose(ehc, ehc->pcb);
+//		extHttpConnClose(ehc, ehc->pcb);
+//		extHttpConnFree(ehc);
 	}
+#endif
+
 	return H_STATE_ERROR;
 }
 
@@ -155,12 +156,14 @@ static void _httpEnterStateClose(void *arg)
 	extHttpConnClose(he->mhc, he->pcb);
 }
 
-/* only free resource, not abort or close connection */
+/* only free resource, not abort or close connection, eg. PCB has been deallocated by TCP  */
 static void _httpEnterStateError(void *arg)
 {
+#if 0
 	HttpEvent *he = (HttpEvent *)arg;
 	
-	extHttpConnFree(he->mhc);
+	extHttpConnClose(he->mhc, he->pcb);
+#endif	
 }
 
 
@@ -323,10 +326,8 @@ void	httpFsmHandle(HttpEvent *he)
 		return;
 	}
 
-TRACE();
 	_state = _httpFsmFindState(_fsm, ehc->state);
 	
-TRACE();
 //	EXT_DEBUGF(EXT_DBG_ON, ("states %p ", _states)) ;
 //	EXT_DEBUGF(EXT_DBG_ON, ("state %d in FSM, current state is %d", _states->state, fsm->currentState)) ;
 	const transition_t *handle = _state->eventHandlers;
@@ -347,7 +348,7 @@ TRACE();
 #if EXT_HTTPD_DEBUG
 				EXT_INFOF(("%s from state %s enter into state %s", ehc->name, CMN_FIND_HTTP_STATE(ehc->state), CMN_FIND_HTTP_STATE(newState)));
 #endif
-TRACE();
+
 				_state = _httpFsmFindState(_fsm, newState);
 				if(_state->enter_handle )
 				{

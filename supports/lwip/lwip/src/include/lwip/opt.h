@@ -2903,7 +2903,7 @@
 #endif
 
 #if !defined MEMP_NUM_HTTPD || defined __DOXYGEN__
-#define	MEMP_NUM_HTTPD						8
+#define	MEMP_NUM_HTTPD						32
 #endif
 
 #endif /* LWIP_HDR_OPT_H */
