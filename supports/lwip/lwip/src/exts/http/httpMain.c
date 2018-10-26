@@ -69,7 +69,7 @@ static void _extHttpdTask(void *arg)
 			struct tcp_pcb *pcb = (struct tcp_pcb *)he->pcb;
 			
 			/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
-			ehc = mhttpConnAlloc(runCfg);
+			ehc = extHttpConnAlloc(runCfg);
 			if (ehc == NULL)
 			{
 				EXT_ERRORF(("http_accept: Out of memory, RST"));
@@ -178,7 +178,7 @@ static void __extHttpErr(void *arg, err_t err)
 #else
 	if (mhc != NULL)
 	{
-		mhttpConnFree(mhc);
+		extHttpConnFree(mhc);
 	}
 #endif
 }
@@ -231,7 +231,7 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 		err_t closed;
 		/* arg is null, close. */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: arg is NULL, close"));
-		closed = mhttpConnClose(NULL, pcb);
+		closed = extHttpConnClose(NULL, pcb);
 		LWIP_UNUSED_ARG(closed);
 #if	MHTTPD_ABORT_ON_CLOSE_MEM_ERROR
 		if (closed == ERR_MEM)
@@ -248,7 +248,7 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 		if (mhc->retries == MHTTPD_MAX_RETRIES)
 		{
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: too many retries, close"));
-			mhttpConnClose(mhc, pcb);
+			extHttpConnClose(mhc, pcb);
 			return ERR_OK;
 		}
 
@@ -302,7 +302,7 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 #if LWIP_EXT_HTTPD_TASK
 		extHttpPostEvent( mhc, H_EVENT_CLOSE, p, pcb);
 #else
-		mhttpConnClose(mhc, pcb);
+		extHttpConnClose(mhc, pcb);
 #endif
 		return ERR_OK;
 	}
@@ -347,7 +347,7 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 		
 		if (ret == ERR_CLSD)
 		{
-			mhttpConnClose(mhc, pcb);
+			extHttpConnClose(mhc, pcb);
 		}
 		
 		/* reset timeout */
@@ -406,7 +406,7 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 			}
 			else if (parsed == ERR_ARG)
 			{/* @todo: close on ERR_USE? */
-				mhttpConnClose(mhc, pcb);
+				extHttpConnClose(mhc, pcb);
 			}
 		}
 		else
@@ -445,7 +445,7 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	extHttpPostEvent(NULL, H_EVENT_NEW, NULL, pcb);
 #else
 	/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
-	mhc = mhttpConnAlloc(runCfg);
+	mhc = extHttpConnAlloc(runCfg);
 	if (mhc == NULL)
 	{
 		EXT_ERRORF(("http_accept: Out of memory, RST"));

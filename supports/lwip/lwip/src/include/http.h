@@ -462,6 +462,9 @@ typedef struct _ExtHttpConn
 #define	_FIND_HEADER_END(data, data_len) \
 		lwip_strnstr((char *)(data), MHTTP_CRLF MHTTP_CRLF, (data_len))
 
+#define	HTTP_SET_FREE(ehc) 		do{(ehc)->state = H_STATE_FREE;}while(0)
+
+#define	HTTP_CHECK_FREE(ehc) 		((ehc)->state == H_STATE_FREE)
 
 
 typedef struct
@@ -506,12 +509,12 @@ typedef struct
 	#endif
 #endif
 
-ExtHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
-void mhttpConnFree(ExtHttpConn *mhc);
+ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
+void extHttpConnFree(ExtHttpConn *mhc);
 
 
 
-err_t mhttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb);
+err_t extHttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb);
 
 err_t extHttpFileFind(ExtHttpConn *mhc);
 
@@ -526,7 +529,7 @@ u8_t extHttpSend(ExtHttpConn *mhc);
 
 err_t extHttpWrite(ExtHttpConn *mhc, const void* ptr, u16_t *length, u8_t apiflags);
 
-void mhttpConnEof(ExtHttpConn *mhc);
+void extHttpConnEof(ExtHttpConn *mhc);
 
 
 #if	MHTTPD_URI_BUF_LEN

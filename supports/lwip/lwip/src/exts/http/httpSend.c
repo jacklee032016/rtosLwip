@@ -23,7 +23,7 @@ static u8_t _mhttpSendCheckEof(ExtHttpConn *mhc)
 	if (mhc->handle == NULL)
 	{
 		/* No - close the connection. */
-//		mhttpConnEof(mhc);
+//		extHttpConnEof(mhc);
 		return MHTTP_NO_DATA_TO_SEND;
 	}
 	
@@ -32,7 +32,7 @@ static u8_t _mhttpSendCheckEof(ExtHttpConn *mhc)
 	{
 		/* We reached the end of the file so this request is done. */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
-//		mhttpConnEof( mhc);
+//		extHttpConnEof( mhc);
 		return MHTTP_NO_DATA_TO_SEND;
 	}
 	
@@ -99,7 +99,7 @@ static u8_t _mhttpSendCheckEof(ExtHttpConn *mhc)
 		/* We reached the end of the file so this request is done.
 		* @todo: close here for HTTP/1.1 when reading file fails */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
-//		mhttpConnEof( mhc);
+//		extHttpConnEof( mhc);
 		return MHTTP_NO_DATA_TO_SEND;
 	}
 
@@ -183,7 +183,7 @@ static u8_t _mHttpSendFile( ExtHttpConn *mhc)
 	{
 		/* We reached the end of the file so this request is done. This adds the FIN flag right into the last data segment. */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("End of file."));
-//		mhttpConnEof( mhc); /* free in state of close */
+//		extHttpConnEof( mhc); /* free in state of close */
 		return MHTTP_NO_DATA_TO_SEND;
 	}
 	
@@ -262,7 +262,7 @@ static char	_mHttpSendRest(ExtHttpConn *mhc)
 	if((mhc->contentLength == mhc->dataSendIndex) )
 	{
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%d byte data sent, End of REST HMC", mhc->dataSendIndex));
-		mhttpConnEof( mhc);
+		extHttpConnEof( mhc);
 TRACE();
 	}
 
@@ -320,7 +320,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 		else
 		{
 			ret = MHTTP_NO_DATA_TO_SEND;
-			mhttpConnEof(mhc);
+			extHttpConnEof(mhc);
 		}
 		mhc->dataSendIndex += len;
 	}
@@ -338,7 +338,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 			else
 			{
 				ret = MHTTP_NO_DATA_TO_SEND;
-				mhttpConnEof(mhc);
+				extHttpConnEof(mhc);
 			}
 		}
 		ret = MHTTP_DATA_TO_SEND_CONTINUE;

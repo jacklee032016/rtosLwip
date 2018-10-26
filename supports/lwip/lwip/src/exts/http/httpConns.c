@@ -62,7 +62,7 @@ static void _mhttpStateEof(ExtHttpConn *mhc)
  * @param pcb the tcp pcb to reset callbacks
  * @param mhc connection state to free
  */
-static err_t _mhttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_t abort_conn)
+static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_t abort_conn)
 {
 	err_t err = ERR_OK;
 
@@ -90,21 +90,6 @@ static err_t _mhttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 		}
 
 	}
-	EXT_ASSERT(("HTTP Connection is null"), mhc!= NULL);
-	runCfg = mhc->runCfg;  ///????
-
-
-	tcp_arg(pcb, NULL);
-	tcp_recv(pcb, NULL);
-	tcp_err(pcb, NULL);
-	tcp_poll(pcb, NULL, 0);
-	tcp_sent(pcb, NULL);
-
-	
-	if (mhc != NULL)
-	{
-		mhttpConnFree(mhc);
-	}
 
 	if (abort_conn)
 	{
@@ -117,7 +102,6 @@ static err_t _mhttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 		return ERR_OK;
 	}
 	
-	runCfg->currentHttpConns --;
 	err = tcp_close(pcb);
 	if (err != ERR_OK)
 	{
@@ -126,138 +110,29 @@ static err_t _mhttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_t 
 		/* error closing, try again later in poll */
 		tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
 	}
-	return err;
-}
-
-#if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
-/** global list of active HTTP connections, use to kill the oldest when running out of memory */
-static ExtHttpConn *_mhttpConns;
-
-static void _addConnection(ExtHttpConn *mhc)
-{
-	/* add the connection to the list */
-	mhc->next = _mhttpConns;
-	_mhttpConns = mhc;
-}
-
-static void _removeConnection(ExtHttpConn *mhc)
-{
-	/* take the connection off the list */
-	if (_mhttpConns)
+	else
 	{
-		if (_mhttpConns == mhc)
-		{
-			_mhttpConns = mhc->next;
-		}
-		else
-		{
-			ExtHttpConn *last;
-			for(last = _mhttpConns; last->next != NULL; last = last->next)
-			{
-				if (last->next == mhc)
-				{
-					last->next = mhc->next;
-					break;
-				}
-			}
-		}
-	}
-}
-
-static void _killOldestConnection(u8_t ssi_required)
-{
-	ExtHttpConn *mhc = _mhttpConns;
-	ExtHttpConn *hs_free_next = NULL;
-
-	while(mhc && mhc->next)
-	{
-#if	MHTTPD_SSI
-		if (ssi_required)
-		{
-			if (mhc->next->ssi != NULL)
-			{
-				hs_free_next = mhc;
-			}
-		}
-		else
-#else
-		LWIP_UNUSED_ARG(ssi_required);
-#endif
-		{
-			hs_free_next = mhc;
-		}
-		EXT_ASSERT(("broken list"), mhc != mhc->next);
-		mhc = mhc->next;
-	}
-	
-	if (hs_free_next != NULL)
-	{
-		EXT_ASSERT(("hs_free_next->next != NULL"), hs_free_next->next != NULL);
-		EXT_ASSERT(("hs_free_next->next->pcb != NULL"), hs_free_next->next->pcb != NULL);
-		/* send RST when killing a connection because of memory shortage */
-		_mhttpConnCloseOrAbort(hs_free_next->next, hs_free_next->next->pcb, 1); /* this also unlinks the mhttp_state from the list */
-	}
-}
-#else /* MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED */
-
-#define _addConnection(mhc)
-#define _removeConnection(mhc)
-
-#endif
-
-
-/** Allocate a ExtHttpConn. */
-ExtHttpConn *mhttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
-{
-	ExtHttpConn *mhc = HTTP_ALLOC_HTTP_STATE();
-#if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
-	if (mhc == NULL)
-	{
-		_killOldestConnection(0);
-		mhc = HTTP_ALLOC_HTTP_STATE();
-	}
-#endif
-
-	if (mhc != NULL)
-	{
-		_extHttpStateInit(mhc);
-
-#if EXT_HTTPD_DEBUG
-		httpStats.connCount++;
-		httpStats.currentConns++;
-		snprintf(mhc->name, sizeof(mhc->name), "CONN#%d", httpStats.connCount);
-#endif
+		EXT_ASSERT(("HTTP Connection is null"), mhc!= NULL);
+		runCfg = mhc->runCfg;  ///????
 		
-		mhc->runCfg = runCfg;
-		_addConnection(mhc);
+		if (mhc != NULL)
+		{
+#if 0		
+			extHttpConnFree(mhc);
+#else
+			HTTP_SET_FREE(mhc);
+#endif
+		}
+		runCfg->currentHttpConns --;
+		
+		tcp_arg(pcb, NULL);
+		tcp_recv(pcb, NULL);
+		tcp_err(pcb, NULL);
+		tcp_poll(pcb, NULL, 0);
+		tcp_sent(pcb, NULL);
 	}
 	
-	return mhc;
-}
-
-/** Free a ExtHttpConn.
- * Also frees the file data if dynamic.
- */
-void mhttpConnFree(ExtHttpConn *mhc)
-{
-	if (mhc != NULL)
-	{
-		_mhttpStateEof(mhc);
-		_removeConnection(mhc);
-#if EXT_HTTPD_DEBUG
-//		httpStats.connCount--;
-		httpStats.currentConns--;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("Connection %s is freed, total %d CONNs now ", mhc->name, httpStats.currentConns) );
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", mhc->uri, mhc->headerLength, mhc->headerLength, mhc->headers));
-#endif
-
-#if 0
-		HTTP_FREE_HTTP_STATE(mhc);
-#else
-		mhc->state = H_STATE_FREE;
-#endif
-TRACE();
-	}
+	return err;
 }
 
 
@@ -268,15 +143,15 @@ TRACE();
  * @param pcb the tcp pcb to reset callbacks
  * @param mhc connection state to free
  */
-err_t mhttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb)
+err_t extHttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb)
 {
-	return _mhttpConnCloseOrAbort(mhc, pcb, 0);
+	return _extHttpConnCloseOrAbort(mhc, pcb, 0);
 }
 
 /** End of file: either close the connection (Connection: close) or
  * close the file (Connection: keep-alive)
  */
-void mhttpConnEof(ExtHttpConn *mhc)
+void extHttpConnEof(ExtHttpConn *mhc)
 {
   /* HTTP/1.1 persistent connection? (Not supported for SSI) */
 #if	MHTTPD_SUPPORT_11_KEEPALIVE
@@ -296,7 +171,7 @@ void mhttpConnEof(ExtHttpConn *mhc)
 	else
 #endif
 	{
-		mhttpConnClose(mhc, mhc->pcb);
+		extHttpConnClose(mhc, mhc->pcb);
 	}
 }
 
@@ -413,4 +288,171 @@ static void http_ssi_state_free(struct mhttp_ssi_state *ssi)
 }
 
 #endif
+
+/* resource allocation and free must be in the  context of tcpip task */
+#if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
+/** global list of active HTTP connections, use to kill the oldest when running out of memory */
+static ExtHttpConn *_mhttpConns;
+
+static void _addConnection(ExtHttpConn *mhc)
+{
+	/* add the connection to the list */
+	mhc->next = _mhttpConns;
+	_mhttpConns = mhc;
+}
+
+static void _removeConnection(ExtHttpConn *mhc)
+{
+	/* take the connection off the list */
+	if (_mhttpConns)
+	{
+		if (_mhttpConns == mhc)
+		{
+			_mhttpConns = mhc->next;
+		}
+		else
+		{
+			ExtHttpConn *last;
+			for(last = _mhttpConns; last->next != NULL; last = last->next)
+			{
+				if (last->next == mhc)
+				{
+					last->next = mhc->next;
+					break;
+				}
+			}
+		}
+	}
+}
+
+static void _killOldestConnection(u8_t ssi_required)
+{
+	ExtHttpConn *mhc = _mhttpConns;
+	ExtHttpConn *hs_free_next = NULL;
+
+	while(mhc && mhc->next)
+	{
+#if	MHTTPD_SSI
+		if (ssi_required)
+		{
+			if (mhc->next->ssi != NULL)
+			{
+				hs_free_next = mhc;
+			}
+		}
+		else
+#else
+		LWIP_UNUSED_ARG(ssi_required);
+#endif
+		{
+			hs_free_next = mhc;
+		}
+		EXT_ASSERT(("broken list"), mhc != mhc->next);
+		mhc = mhc->next;
+	}
+	
+	if (hs_free_next != NULL)
+	{
+		EXT_ASSERT(("hs_free_next->next != NULL"), hs_free_next->next != NULL);
+		EXT_ASSERT(("hs_free_next->next->pcb != NULL"), hs_free_next->next->pcb != NULL);
+		/* send RST when killing a connection because of memory shortage */
+		_extHttpConnCloseOrAbort(hs_free_next->next, hs_free_next->next->pcb, 1); /* this also unlinks the mhttp_state from the list */
+	}
+}
+#else /* MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED */
+
+#define _addConnection(mhc)
+#define _removeConnection(mhc)
+
+#endif
+
+
+/** Allocate a ExtHttpConn. */
+ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
+{
+	ExtHttpConn *mhc = HTTP_ALLOC_HTTP_STATE();
+#if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
+	if (mhc == NULL)
+	{
+		_killOldestConnection(0);
+		mhc = HTTP_ALLOC_HTTP_STATE();
+	}
+#endif
+
+	if (mhc != NULL)
+	{
+		_extHttpStateInit(mhc);
+
+#if EXT_HTTPD_DEBUG
+		httpStats.connCount++;
+		httpStats.currentConns++;
+		snprintf(mhc->name, sizeof(mhc->name), "CONN#%d", httpStats.connCount);
+#endif
+		
+		mhc->runCfg = runCfg;
+		_addConnection(mhc);
+	}
+	
+	return mhc;
+}
+
+/** Free a ExtHttpConn.
+ * Also frees the file data if dynamic.
+ */
+void extHttpConnFree(ExtHttpConn *mhc)
+{
+	if (mhc != NULL)
+	{
+		_mhttpStateEof(mhc);
+		_removeConnection(mhc);
+#if EXT_HTTPD_DEBUG
+//		httpStats.connCount--;
+		httpStats.currentConns--;
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("Connection %s is freed, total %d CONNs now ", mhc->name, httpStats.currentConns) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", mhc->uri, mhc->headerLength, mhc->headerLength, mhc->headers));
+#endif
+
+#if 0
+		HTTP_FREE_HTTP_STATE(mhc);
+#else
+		mhc->state = H_STATE_FREE;
+#endif
+TRACE();
+	}
+}
+
+
+void extHttpConnectionFree(void)
+{
+	ExtHttpConn *last = NULL, *next, *ehc;
+
+	ehc = _mhttpConns;
+	/* take the connection off the list */
+	while(ehc)
+	{
+		if (HTTP_CHECK_FREE(ehc) )
+		{
+			if(last == NULL)
+			{
+				_mhttpConns = ehc->next;
+			}
+			else
+			{
+				last->next = ehc->next;
+			}
+			
+			next = ehc->next;
+
+			extHttpConnFree(ehc);
+			ehc = next;
+		}
+		else
+		{
+			last = ehc;
+			ehc = ehc->next;
+		}
+		
+	}
+}
+
 

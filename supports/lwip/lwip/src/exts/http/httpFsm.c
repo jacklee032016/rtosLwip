@@ -128,7 +128,12 @@ static unsigned char _httpEventClose(void *arg)
 
 static unsigned char _httpEventError(void *arg)
 {
-//	HttpEvent *he = (HttpEvent *)arg;
+	HttpEvent *he = (HttpEvent *)arg;
+	if(he->mhc)
+	{
+		ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
+		extHttpConnClose(ehc, ehc->pcb);
+	}
 	return H_STATE_ERROR;
 }
 
@@ -147,7 +152,7 @@ static void _httpEnterStateResp(void *arg)
 static void _httpEnterStateClose(void *arg)
 {
 	HttpEvent *he = (HttpEvent *)arg;
-	mhttpConnClose(he->mhc, he->pcb);
+	extHttpConnClose(he->mhc, he->pcb);
 }
 
 /* only free resource, not abort or close connection */
@@ -155,7 +160,7 @@ static void _httpEnterStateError(void *arg)
 {
 	HttpEvent *he = (HttpEvent *)arg;
 	
-	mhttpConnFree(he->mhc);
+	extHttpConnFree(he->mhc);
 }
 
 
