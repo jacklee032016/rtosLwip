@@ -18,39 +18,40 @@ static void _extHttpStateInit(ExtHttpConn* mhc)
 /** Free a ExtHttpConn.
  * Also frees the file data if dynamic.
  */
-static void _mhttpStateEof(ExtHttpConn *mhc)
+static void _mhttpStateEof(ExtHttpConn *ehc)
 {
-	if(mhc->handle)
+	if(ehc->handle)
 	{
 #if	MHTTPD_TIMING
-		u32_t ms_needed = sys_now() - mhc->time_started;
+		u32_t ms_needed = sys_now() - ehc->time_started;
 		u32_t needed = LWIP_MAX(1, (ms_needed/100));
-		LWIP_DEBUGF(HTTPD_DEBUG_TIMING, ("httpd: needed %"U32_F" ms to send file of %d bytes -> %"U32_F" bytes/sec\n", ms_needed, mhc->handle->len, ((((u32_t)mhc->handle->len) * 10) / needed)));
+		LWIP_DEBUGF(HTTPD_DEBUG_TIMING, ("httpd: needed %"U32_F" ms to send file of %d bytes -> %"U32_F" bytes/sec\n", ms_needed, ehc->handle->len, ((((u32_t)mhc->handle->len) * 10) / needed)));
 #endif
-		mfsClose(mhc->handle);
-		mhc->handle = NULL;
+		mfsClose(ehc->handle);
+		ehc->handle = NULL;
 	}
 	
 #if	MHTTPD_DYNAMIC_FILE_READ
-	if (mhc->buf != NULL)
+	if (ehc->buf != NULL)
 	{
-		mem_free(mhc->buf);
-		mhc->buf = NULL;
+		mem_free(ehc->buf);
+		ehc->buf = NULL;
 	}
 #endif
 
 #if	MHTTPD_SSI
-	if (mhc->ssi)
+	if (ehc->ssi)
 	{
-		mhttp_ssi_state_free(mhc->ssi);
-		mhc->ssi = NULL;
+		mhttp_ssi_state_free(ehc->ssi);
+		ehc->ssi = NULL;
 	}
 #endif
 
-	if (mhc->req)
+	if (ehc->req)
 	{
-		pbuf_free(mhc->req);
-		mhc->req = NULL;
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s free pbuf 0x%p for request", ehc->name, ehc->req ) );
+		pbuf_free(ehc->req);
+		ehc->req = NULL;
 	}
 }
 
@@ -386,8 +387,8 @@ ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 {
 	ExtHttpConn *ehc = NULL;
 
-#if 0	
-	HTTP_ALLOC_HTTP_STATE(ehc);
+#if 1	
+	HTTP_CONN_ALLOC(ehc);
 #else
 	HTTP_LOCK();
 	ehc = (ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn));
@@ -475,7 +476,7 @@ void extHttpConnFree(ExtHttpConn *ehc)
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", ehc->uri, ehc->headerLength, ehc->headerLength, ehc->headers));
 #endif
 
-	HTTP_FREE_HTTP_STATE(ehc);
+	HTTP_CONN_FREE(ehc);
 
 }
 

@@ -759,6 +759,7 @@ u8_t pbuf_free(struct pbuf *p)
 	{
 		u16_t ref;
 		SYS_ARCH_DECL_PROTECT(old_level);
+		
 		/* Since decrementing ref cannot be guaranteed to be a single machine operation
 		* we must protect it. We put the new ref into a local variable to prevent
 		* further protection. */
@@ -773,6 +774,7 @@ u8_t pbuf_free(struct pbuf *p)
 		{
 			/* remember next pbuf in chain for next iteration */
 			q = p->next;
+//			LWIP_DEBUGF( LWIP_DBG_ON | LWIP_DBG_TRACE, ("pbuf_free: deallocating %p"LWIP_NEW_LINE, (void *)p));
 			LWIP_DEBUGF( PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_free: deallocating %p"LWIP_NEW_LINE, (void *)p));
 			type = p->type;
 #if LWIP_SUPPORT_CUSTOM_PBUF

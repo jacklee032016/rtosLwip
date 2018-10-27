@@ -68,9 +68,12 @@ LWIP_MEMPOOL(NETCONN,        MEMP_NUM_NETCONN,         sizeof(struct netconn),  
 /* SYS is enabled, but no APIs is used in our program. J.L. */
 LWIP_MEMPOOL(TCPIP_MSG_API,  MEMP_NUM_TCPIP_MSG_API,   sizeof(struct tcpip_msg),      "TCPIP_MSG_API")
 
-LWIP_MEMPOOL(EXT_UDP_CMD,  MEMP_NUM_UDP_CMD,   sizeof(struct _UdpCmd),      "UDP_CMD_TASK")
-LWIP_MEMPOOL(EXT_HTTPD,  MEMP_NUM_HTTPD,   sizeof(struct _HttpEvent),      "HTTP_EVENT")
 
+LWIP_MEMPOOL(EXT_UDP_CMD,  MEMP_NUM_UDP_CMD,   sizeof(struct _UdpCmd),      "UDP_CMD_TASK")
+LWIP_MEMPOOL(EXT_HTTP_EVENT,  MEMP_NUM_HTTP_EVENT,   sizeof(struct _HttpEvent),      "HTTP_EVENT")
+#if  MHTTPD_USE_MEM_POOL
+LWIP_MEMPOOL(EXT_HTTP_CONN,  MEMP_NUM_HTTP_CONN,   sizeof(struct _ExtHttpConn),      "HTTP_CONNT")
+#endif
 
 #if LWIP_MPU_COMPATIBLE
 LWIP_MEMPOOL(API_MSG,        MEMP_NUM_API_MSG,         sizeof(struct api_msg),        "API_MSG")

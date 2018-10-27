@@ -99,61 +99,62 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 	return EXIT_FAILURE;
 }
 
-/* return length of method, otherwise return 0 */
-static int _httpParseMethod(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
+struct _HttpMethod
 {
-	int ret = 0;
+	const char *name;
+	const unsigned char type;
+	const unsigned char length;
+};
+
+const struct _HttpMethod _methods[] =
+{
+	{
+		"GET ",
+		HTTP_METHOD_GET	
+	},
+	{
+		"PUT ",
+		HTTP_METHOD_PUT	
+	},
+	{
+		"POST ",
+		HTTP_METHOD_POST	
+	},
+	{
+		"DELETE ",
+		HTTP_METHOD_DELETE	
+	},
+	{
+		"PATCH ",
+		HTTP_METHOD_PATCH	
+	},
+	{
+		NULL,
+		HTTP_METHOD_UNKNOWN
+	}
+};
+
+/* return length of method, otherwise return 0 */
+static int _httpParseMethod(ExtHttpConn *ehc, unsigned char *data, u16_t data_len)
+{
+	const struct _HttpMethod *method = _methods;
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CRLF received, parsing request"));
 
-	/* parse method */
-	if (!strncmp((char *)data, "GET ", 4)) 
+	while(method->type != HTTP_METHOD_UNKNOWN)
 	{
-		/* received GET request */
-		mhc->method = HTTP_METHOD_GET;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received GET request"));
-		ret = 4;
-	}
-	else if (!strncmp((char *)data, "PUT ", 4)) 
-	{
-		mhc->method = HTTP_METHOD_PUT;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received PUT request"));
-		ret = 4;
-	}
-	else if (!strncmp((char *)data, "POST ", 5))
-	{
-		/* store request type */
-		mhc->method = HTTP_METHOD_POST;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received POST request"));
-		ret = 5;
-	}
-	else if (!strncmp((char *)data, "DELETE ", 7))
-	{
-		/* store request type */
-		mhc->method = HTTP_METHOD_DELETE;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received DELETE request"));
-		ret = 7;
-	}
-	else if (!strncmp((char *)data, "PATCH ", 6))
-	{
-		/* store request type */
-		mhc->method = HTTP_METHOD_PATCH;
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received PATCH request"));
-		ret = 6;
-	}
-	else
-	{
-		/* null-terminate the METHOD (pbuf is freed anyway wen returning) */
-		data[4] = 0;
-		/* unsupported method! */
-		EXT_ERRORF( ("Unsupported request method (not implemented): \"%s\"", data));
-		//mhttpFindErrorFile(mhc, WEB_RES_NOT_IMP);
-//		return 0;
+		/* parse method */
+		if (!strncmp((char *)data, method->name, strlen(method->name)) ) 
+		{
+			/* received GET request */
+			ehc->method = method->type;
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received %s request", method->name));
+			return strlen(method->name);
+		}
+
+		method++;
 	}
 	
-	/* if we come here, method is OK, parse URI */
-//	left_len = (u16_t)(data_len - ((sp1 +1) - data));
-			
-	return ret;
+	return 0;
 }
 
 
@@ -286,9 +287,6 @@ static char _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_
 	}
 
 	return _httpParseHeaders(mhc);
-
-	mhc->postDataLeft = 0;
-	return EXIT_SUCCESS;
 }
 
 
@@ -298,13 +296,11 @@ static char _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_
 err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 {
 	unsigned char *data;
-	char *crlf;
-	u16_t data_len;
-	struct pbuf *p = inp;
+	u16_t reqLen;
 	u16_t clen;
 //	err_t err;
 
-	EXT_ASSERT(("p != NULL"), p != NULL);
+	EXT_ASSERT(("p != NULL"), inp != NULL);
 	EXT_ASSERT(("mhc != NULL"), mhc != NULL);
 
 	if ((mhc->handle != NULL) || (mhc->file != NULL))
@@ -327,66 +323,62 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 	/* enqueue the pbuf */
 	if (mhc->req == NULL)
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("First pbuf"));
-		mhc->req = p;
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("First pbuf 0x%p", inp));
+		mhc->req = inp;
 	}
 	else
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("pbuf enqueued"));
-		pbuf_cat(mhc->req, p);
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("pbuf 0x%p enqueued", inp));
+		pbuf_cat(mhc->req, inp);
 	}
 	
-	/* increase pbuf ref counter as it is freed when we return but we want to keep it on the req list */
-	pbuf_ref(p);
-
 	if (mhc->req->next != NULL)
 	{
-		data_len = LWIP_MIN(mhc->req->tot_len, sizeof(mhc->data));
-		pbuf_copy_partial(mhc->req, mhc->data, data_len, 0);
-		mhc->contentLength = data_len;
+		reqLen = LWIP_MIN(mhc->req->tot_len, sizeof(mhc->data));
+		pbuf_copy_partial(mhc->req, mhc->data, reqLen, 0);
+		mhc->contentLength = reqLen;
 		data = mhc->data;
 	}
 	else
 	{
-		data = p->payload;
-		data_len = p->len;
-		if (p->len != p->tot_len)
+		data = inp->payload;
+		reqLen = inp->len;
+		if (inp->len != inp->tot_len)
 		{
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Warning: incomplete header due to chained pbufs"));
 		}
 	}
 
-//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", data_len, data ));
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", reqLen, data ));
+	clen = pbuf_clen(mhc->req);
 
 	/* received enough data for minimal request? */
-	if (data_len >= MHTTP_MIN_REQ_LEN)
+	if (reqLen >= MHTTP_MIN_REQ_LEN)
 	{
 		/* wait for CRLF before parsing anything */
-		crlf = lwip_strnstr((char *)data, MHTTP_CRLF, data_len);
-		if (crlf == NULL)
+		if ( lwip_strnstr((char *)data, MHTTP_CRLF, reqLen)== NULL)
 		{
 			goto badrequest;
 		}
 
-		if(_httpParseRequest(mhc, data, data_len) == EXIT_SUCCESS)
+		if(_httpParseRequest(mhc, data, reqLen) == EXIT_SUCCESS)
 		{
 			return ERR_OK;
 		}
 
 	}
-
-	clen = pbuf_clen(mhc->req);
-	if ((mhc->req->tot_len <= MHTTPD_REQ_BUFSIZE) && (clen <= MHTTPD_REQ_QUEUELEN))
+	else if((reqLen < MHTTPD_REQ_BUFSIZE) && (clen <= MHTTPD_REQ_QUEUELEN) )
+	//if ((mhc->req->tot_len <= MHTTPD_REQ_BUFSIZE) )
 	{/* request not fully received (too short or CRLF is missing) */
 		return ERR_INPROGRESS;
 	}
-	else
-	{
+
 badrequest:
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("bad request"));
-		/* could not parse request */
-		return mhttpFindErrorFile(mhc, WEB_RES_BAD_REQUEST);
-	}
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("bad request"));
+	/* could not parse request */
+	mhttpFindErrorFile(mhc, WEB_RES_BAD_REQUEST);
+
+	return ERR_OK;
 }
 
 

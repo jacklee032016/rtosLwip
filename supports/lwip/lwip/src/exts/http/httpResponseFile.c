@@ -268,7 +268,6 @@ static err_t _mhttpFileInit(ExtHttpConn *mhc, struct mfs_file *file, u8_t tag_ch
 }
 
 
-#if	MHTTPD_SUPPORT_EXTSTATUS
 /** Initialize a http connection with a file to send for an error message
  *
  * @param mhc http connection state
@@ -290,7 +289,7 @@ err_t mhttpFindErrorFile(ExtHttpConn *mhc, u16_t error_nr)
 	else
 	{
 		/* 400 (bad request is the default) */
-		uri1 = "/400.html";
+		uri1 = "/404.html";
 		uri2 = "/400.htm";
 		uri3 = "/400.shtml";
 	}
@@ -310,9 +309,8 @@ err_t mhttpFindErrorFile(ExtHttpConn *mhc, u16_t error_nr)
 		}
 	}
 	
-	return _mhttpFileInit(mhc, &mhc->file_handle, 0, NULL, 0, NULL);
+	return _mhttpFileInit(mhc, &mhc->file_handle, 0, NULL);
 }
-#endif
 
 
 

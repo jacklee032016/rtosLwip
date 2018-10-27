@@ -83,14 +83,14 @@ static void _extHttpdTask(void *arg)
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s: state is %s", ehc->name, CMN_FIND_HTTP_STATE(ehc->state) ));
 			if(ehc && ehc->eventCount==0 && (ehc->state == H_STATE_FREE||ehc->state == H_STATE_CLOSE||ehc->state == H_STATE_ERROR))
 			{
-//				HTTP_FREE_HTTP_STATE(ehc);
 				extHttpConnFree(ehc);
 			}
 			
 		}
-		
-		memp_free(MEMP_EXT_HTTPD, he);
-		he = NULL;
+
+		HTTP_EVENT_FREE(he);
+//		memp_free(MEMP_EXT_HTTPD, he);
+//		he = NULL;
 	}
 	
 }
@@ -119,7 +119,9 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 	}
 
 	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(_httpdMailBox));
-	he = (HttpEvent *)memp_malloc(MEMP_EXT_HTTPD);
+	
+	HTTP_EVENT_ALLOC(he);
+	//he = (HttpEvent *)memp_malloc(MEMP_EXT_HTTPD);
 	if (he == NULL)
 	{
 		EXT_ERRORF(("No memory available for HTTP Event now"));
@@ -142,7 +144,8 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 	if (sys_mbox_trypost(&_httpdMailBox, he) != ERR_OK)
 	{
 		EXT_ERRORF(("Post to "EXT_TASK_HTTP" Mailbox failed"));
-		memp_free(MEMP_EXT_HTTPD, he);
+		HTTP_EVENT_FREE(he);
+		//memp_free(MEMP_EXT_HTTPD, he);
 		return EXIT_FAILURE;
 	}
 
@@ -506,7 +509,7 @@ void extHttpSvrMain(void *data)
 	memset(&httpStats, 0, sizeof(HttpStats));
 #endif
 
-#if	MHTTPD_USE_MEM_POOL
+#if	0//MHTTPD_USE_MEM_POOL
 	LWIP_MEMPOOL_INIT(MHTTPD_STATE);
 #if	MHTTPD_SSI
 	LWIP_MEMPOOL_INIT(MHTTPD_SSI_STATE);

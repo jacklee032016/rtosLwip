@@ -497,28 +497,48 @@ typedef struct
 
 
 #if MHTTPD_USE_MEM_POOL
-	LWIP_MEMPOOL_DECLARE(MHTTPD_STATE,     MEMP_NUM_PARALLEL_HTTPD_CONNS,     sizeof(ExtHttpConn),     "MHTTPD_STATE")
+
+	//LWIP_MEMPOOL_DECLARE(MHTTPD_STATE,     MEMP_NUM_PARALLEL_HTTPD_CONNS,     sizeof(ExtHttpConn),     "MHTTPD_STATE")
+	
+	#define HTTP_CONN_ALLOC(ehc) \
+		do{HTTP_LOCK(); (ehc)= (ExtHttpConn *)memp_malloc(MEMP_EXT_HTTP_CONN);HTTP_UNLOCK();}while(0)
+
+//		do{HTTP_LOCK(); (ehc)= (ExtHttpConn *)LWIP_MEMPOOL_ALLOC(EXT_HTTP_CONN);HTTP_UNLOCK();}while(0)
+		
+	#define HTTP_CONN_FREE(ehc) \
+		do{HTTP_LOCK(); memp_free(MEMP_EXT_HTTP_CONN, (ehc)); HTTP_UNLOCK();}while(0)
+
+//		do{HTTP_LOCK(); LWIP_MEMPOOL_FREE(EXT_HTTP_CONN, (ehc)); HTTP_UNLOCK();}while(0)
+			
 	#if	MHTTPD_SSI
-		LWIP_MEMPOOL_DECLARE(HTTPD_SSI_STATE, MEMP_NUM_PARALLEL_HTTPD_SSI_CONNS, sizeof(struct mhttp_ssi_state), "MHTTPD_SSI_STATE")
+		//LWIP_MEMPOOL_DECLARE(HTTPD_SSI_STATE, MEMP_NUM_PARALLEL_HTTPD_SSI_CONNS, sizeof(struct mhttp_ssi_state), "MHTTPD_SSI_STATE")
 		#define HTTP_FREE_SSI_STATE(x)  LWIP_MEMPOOL_FREE(HTTPD_SSI_STATE, (x))
 		#define HTTP_ALLOC_SSI_STATE()  (struct mhttp_ssi_state *)LWIP_MEMPOOL_ALLOC(HTTPD_SSI_STATE)
 	#endif
 	
-	#define HTTP_ALLOC_HTTP_STATE() (ExtHttpConn *)LWIP_MEMPOOL_ALLOC(HTTPD_STATE)
-	#define HTTP_FREE_HTTP_STATE(x) LWIP_MEMPOOL_FREE(HTTPD_STATE, (x))
 #else
 
-	#define HTTP_ALLOC_HTTP_STATE(x) \
-		do{ HTTP_LOCK(); (x) =(ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn)); HTTP_UNLOCK();}while(0)
+	#define HTTP_CONN_ALLOC(ehc) \
+		do{ HTTP_LOCK(); (ehc) =(ExtHttpConn *)mem_malloc(sizeof(ExtHttpConn)); HTTP_UNLOCK();}while(0)
 			
-	#define HTTP_FREE_HTTP_STATE(x) \
-		do{ HTTP_LOCK(); mem_free(x); HTTP_UNLOCK();}while(0)
+	#define HTTP_CONN_FREE(ehc) \
+		do{ HTTP_LOCK(); mem_free(ehc); HTTP_UNLOCK();}while(0)
 	
 	#if	MHTTPD_SSI
 		#define HTTP_ALLOC_SSI_STATE()  (struct mhttp_ssi_state *)mem_malloc(sizeof(struct mhttp_ssi_state))
 		#define HTTP_FREE_SSI_STATE(x)  mem_free(x)
 	#endif
 #endif
+
+
+/* event is managed in task tcp */
+#define	HTTP_EVENT_ALLOC(he) \
+		do{(he) = (HttpEvent *)memp_malloc(MEMP_EXT_HTTP_EVENT);}while(0)
+
+#define	HTTP_EVENT_FREE(he) \
+		do{memp_free(MEMP_EXT_HTTP_EVENT, (he)); (he) = NULL;}while(0)
+
+
 
 ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
 void extHttpConnFree(ExtHttpConn *mhc);
@@ -551,11 +571,7 @@ extern char mhttpUriBuf[MHTTPD_URI_BUF_LEN+1];
 err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp);
 
 
-#if	MHTTPD_SUPPORT_EXTSTATUS
 err_t mhttpFindErrorFile(ExtHttpConn *mhc, u16_t error_nr);
-#else
-#define mhttpFindErrorFile(mhc, error_nr)		ERR_ARG
-#endif
 
 
 err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p);

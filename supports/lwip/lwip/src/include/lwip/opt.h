@@ -2902,8 +2902,21 @@
 #define	MEMP_NUM_UDP_CMD					8
 #endif
 
-#if !defined MEMP_NUM_HTTPD || defined __DOXYGEN__
-#define	MEMP_NUM_HTTPD						32
+#if !defined MEMP_NUM_HTTP_EVENT || defined __DOXYGEN__
+#define	MEMP_NUM_HTTP_EVENT						32
+#endif
+
+/** Set this to 1 to use a memp pool for allocating 
+ * ExtHttpConn instead of the heap.
+ */
+#if !defined MHTTPD_USE_MEM_POOL
+#define	MHTTPD_USE_MEM_POOL			1
+#endif
+
+#if  MHTTPD_USE_MEM_POOL
+#if !defined MEMP_NUM_HTTP_CONN || defined __DOXYGEN__
+#define	MEMP_NUM_HTTP_CONN						6
+#endif
 #endif
 
 #endif /* LWIP_HDR_OPT_H */

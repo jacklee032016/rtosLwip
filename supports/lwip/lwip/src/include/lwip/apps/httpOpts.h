@@ -72,12 +72,6 @@
 #define	MHTTPD_DEBUG					LWIP_DBG_ON
 #endif
 
-/** Set this to 1 to use a memp pool for allocating 
- * ExtHttpConn instead of the heap.
- */
-#if !defined MHTTPD_USE_MEM_POOL
-#define	MHTTPD_USE_MEM_POOL			0
-#endif
 
 /** The server port for HTTPD to use */
 #if !defined MHTTPD_SERVER_PORT
@@ -114,11 +108,6 @@
 #define	MHTTPD_DEBUG_TIMING				LWIP_DBG_OFF
 #endif
 
-/** Set this to one to show error pages when parsing a request fails instead
-    of simply closing the connection. */
-#if !defined MHTTPD_SUPPORT_EXTSTATUS
-#define	MHTTPD_SUPPORT_EXTSTATUS			0
-#endif
 
 /** Set this to 0 to drop support for HTTP/0.9 clients (to save some bytes) */
 #if !defined	MHTTPD_SUPPORT_V09
@@ -136,7 +125,7 @@
 
 /** Number of rx pbufs to enqueue to parse an incoming request (up to the first newline) */
 #if !defined 	MHTTPD_REQ_QUEUELEN
-#define	MHTTPD_REQ_QUEUELEN				5
+#define	MHTTPD_REQ_QUEUELEN				3//5
 #endif
 
 /** Number of (TCP payload-) bytes (in pbufs) to enqueue to parse and incoming

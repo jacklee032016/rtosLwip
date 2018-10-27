@@ -320,7 +320,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 		else
 		{
 			ret = MHTTP_NO_DATA_TO_SEND;
-			extHttpConnEof(mhc);
+//			extHttpConnEof(mhc);
 		}
 		mhc->dataSendIndex += len;
 	}
@@ -338,7 +338,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 			else
 			{
 				ret = MHTTP_NO_DATA_TO_SEND;
-				extHttpConnEof(mhc);
+//				extHttpConnEof(mhc);
 			}
 		}
 		ret = MHTTP_DATA_TO_SEND_CONTINUE;
