@@ -2,6 +2,8 @@
 
 #include "lwipExt.h"
 
+#include "lwip/tcpip.h"
+
 /* Initialize a ExtHttpConn */
 static void _extHttpStateInit(ExtHttpConn* mhc)
 {
@@ -20,6 +22,7 @@ static void _extHttpStateInit(ExtHttpConn* mhc)
  */
 static void _mhttpStateEof(ExtHttpConn *ehc)
 {
+TRACE();
 	if(ehc->handle)
 	{
 #if	MHTTPD_TIMING
@@ -47,12 +50,14 @@ static void _mhttpStateEof(ExtHttpConn *ehc)
 	}
 #endif
 
+TRACE();
 	if (ehc->req)
 	{
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s free pbuf 0x%p for request", ehc->name, ehc->req ) );
 		pbuf_free(ehc->req);
 		ehc->req = NULL;
 	}
+TRACE();
 }
 
 
@@ -67,11 +72,17 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 {
 	err_t err = ERR_OK;
 
+	EXT_ASSERT(("CONN is null now"), mhc!=NULL);
 #if EXT_HTTPD_DEBUG
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Closing connection %s on %p\n", (mhc)?mhc->name:"NULL CONN", (void*)pcb));
 #endif
-	EXT_RUNTIME_CFG *runCfg = NULL;
 
+//	EXT_RUNTIME_CFG *runCfg = NULL;
+	if(mhc->pcb == NULL)
+	{/* CONN is broken by peer, and PCB is deallocated now */
+		return err;
+	}
+	
 	if (mhc != NULL)
 	{
 		if ((mhc->postDataLeft != 0)
@@ -395,7 +406,7 @@ ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 	HTTP_UNLOCK();
 #endif		
 
-#if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
+#if	0//MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
 	if (ehc == NULL)
 	{
 		_killOldestConnection(0);
@@ -429,18 +440,27 @@ void extHttpConnFree(ExtHttpConn *ehc)
 {
 	err_t err;
 	
+TRACE();
 	if (ehc == NULL)
 	{
 		return;
 	}
 
-	if(ehc->state !=  H_STATE_ERROR)
+	/* maybe ERROR event has happened, but CONN is in state of others */
+	if(ehc->state !=  H_STATE_ERROR && ehc->pcb != NULL )
 	{/* when TCP error happens, TCP_PCB has been deallocated */
 		struct tcp_pcb *pcb;
-		pcb = ehc->pcb;
-		EXT_ASSERT(("PCB for CONN %s is null", ehc->name), pcb != NULL);
-		ehc->pcb = NULL;
 
+//		LOCK_TCPIP_CORE();
+HTTP_LOCK();
+TRACE();
+		pcb = ehc->pcb;
+//		EXT_ASSERT(("PCB for CONN %s is null", ehc->name), pcb != NULL);
+		ehc->pcb = NULL;
+		tcp_arg(pcb, NULL);
+
+
+#if 0		
 		err = tcp_close(pcb);
 		if (err != ERR_OK)
 		{
@@ -449,20 +469,25 @@ void extHttpConnFree(ExtHttpConn *ehc)
 			/* error closing, try again later in poll */
 			tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
 
+HTTP_UNLOCK();
+//		UNLOCK_TCPIP_CORE();
 			return;
 		}
 
-
-		ehc->runCfg->currentHttpConns --;
-		
+		/* refuse event from TCP task */
 		tcp_arg(pcb, NULL);
+
 		
 		tcp_recv(pcb, NULL);
 		tcp_err(pcb, NULL);
 		tcp_poll(pcb, NULL, 0);
 		tcp_sent(pcb, NULL);
-		
+#endif
+
+HTTP_UNLOCK();
+//		UNLOCK_TCPIP_CORE();
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d) is freed, ", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port) );
+		
 	}
 
 	
@@ -478,6 +503,7 @@ void extHttpConnFree(ExtHttpConn *ehc)
 
 	HTTP_CONN_FREE(ehc);
 
+TRACE();
 }
 
 
@@ -506,5 +532,31 @@ ExtHttpConn *extHttpConnFind(struct tcp_pcb *pcb)
 
 	return _ehc;
 }
+
+
+char extHttpConnCheck(ExtHttpConn  *_ehc)
+{
+	ExtHttpConn *ehc = _mhttpConns;
+	HTTP_LOCK();
+	
+	/* take the connection off the list */
+	while(ehc)
+	{
+		if (ehc == _ehc)
+		{
+			HTTP_UNLOCK();
+			return EXT_TRUE;
+		}
+		else
+		{
+			ehc = ehc->next;
+		}
+	}
+
+	HTTP_UNLOCK();
+
+	return EXT_FALSE;
+}
+
 
 

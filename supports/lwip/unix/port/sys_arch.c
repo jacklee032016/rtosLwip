@@ -334,50 +334,54 @@ sys_arch_mbox_tryfetch(struct sys_mbox **mb, void **msg)
 
 u32_t sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
 {
-  u32_t time_needed = 0;
-  struct sys_mbox *mbox;
-  LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
-  mbox = *mb;
+	u32_t time_needed = 0;
+	struct sys_mbox *mbox;
+	LWIP_ASSERT(("invalid mbox"), (mb != NULL) && (*mb != NULL));
+	mbox = *mb;
 
-  /* The mutex lock is quick so we don't bother with the timeout
-     stuff here. */
-  sys_arch_sem_wait(&mbox->mutex, 0);
+	/* The mutex lock is quick so we don't bother with the timeout stuff here. */
+	sys_arch_sem_wait(&mbox->mutex, 0);
 
-  while (mbox->first == mbox->last) {
-    sys_sem_signal(&mbox->mutex);
+	while (mbox->first == mbox->last)
+	{
+		sys_sem_signal(&mbox->mutex);
 
-    /* We block while waiting for a mail to arrive in the mailbox. We
-       must be prepared to timeout. */
-    if (timeout != 0) {
-      time_needed = sys_arch_sem_wait(&mbox->not_empty, timeout);
+		/* We block while waiting for a mail to arrive in the mailbox. We
+		must be prepared to timeout. */
+		if (timeout != 0)
+		{
+			time_needed = sys_arch_sem_wait(&mbox->not_empty, timeout);
 
-      if (time_needed == SYS_ARCH_TIMEOUT) {
-        return SYS_ARCH_TIMEOUT;
-      }
-    } else {
-      sys_arch_sem_wait(&mbox->not_empty, 0);
-    }
+			if (time_needed == SYS_ARCH_TIMEOUT)
+			{
+				return SYS_ARCH_TIMEOUT;
+			}
+		}
+		else 
+		{
+			sys_arch_sem_wait(&mbox->not_empty, 0);
+		}
 
-    sys_arch_sem_wait(&mbox->mutex, 0);
-  }
+		sys_arch_sem_wait(&mbox->mutex, 0);
+	}
 
-  if (msg != NULL) {
-    LWIP_DEBUGF(SYS_DEBUG, ("sys_mbox_fetch: mbox %p msg %p\n", (void *)mbox, *msg));
-    *msg = mbox->msgs[mbox->first % SYS_MBOX_SIZE];
-  }
-  else{
-    LWIP_DEBUGF(SYS_DEBUG, ("sys_mbox_fetch: mbox %p, null msg\n", (void *)mbox));
-  }
+	if (msg != NULL) {
+		LWIP_DEBUGF(SYS_DEBUG, ("sys_mbox_fetch: mbox %p msg %p\n", (void *)mbox, *msg));
+		*msg = mbox->msgs[mbox->first % SYS_MBOX_SIZE];
+	}
+	else{
+		LWIP_DEBUGF(SYS_DEBUG, ("sys_mbox_fetch: mbox %p, null msg\n", (void *)mbox));
+	}
 
-  mbox->first++;
+	mbox->first++;
 
-  if (mbox->wait_send) {
-    sys_sem_signal(&mbox->not_full);
-  }
+	if (mbox->wait_send) {
+		sys_sem_signal(&mbox->not_full);
+	}
 
-  sys_sem_signal(&mbox->mutex);
+	sys_sem_signal(&mbox->mutex);
 
-  return time_needed;
+	return time_needed;
 }
 
 /*-----------------------------------------------------------------------------------*/
@@ -481,22 +485,21 @@ sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
   return (u32_t)time_needed;
 }
 
-void
-sys_sem_signal(struct sys_sem **s)
+void sys_sem_signal(struct sys_sem **s)
 {
-  struct sys_sem *sem;
-  LWIP_ASSERT(("invalid sem"), (s != NULL) && (*s != NULL));
-  sem = *s;
+	struct sys_sem *sem;
+	LWIP_ASSERT(("invalid sem"), (s != NULL) && (*s != NULL));
+	sem = *s;
 
-  pthread_mutex_lock(&(sem->mutex));
-  sem->c++;
+	pthread_mutex_lock(&(sem->mutex));
+	sem->c++;
 
-  if (sem->c > 1) {
-    sem->c = 1;
-  }
+	if (sem->c > 1) {
+		sem->c = 1;
+	}
 
-  pthread_cond_broadcast(&(sem->cond));
-  pthread_mutex_unlock(&(sem->mutex));
+	pthread_cond_broadcast(&(sem->cond));
+	pthread_mutex_unlock(&(sem->mutex));
 }
 
 static void
@@ -1032,4 +1035,5 @@ void sys_timer_stop(sys_timer_t *timer)
 void sys_timer_free(sys_timer_t *timer)
 {
 }
+
 

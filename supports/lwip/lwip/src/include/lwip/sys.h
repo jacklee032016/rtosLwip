@@ -447,6 +447,14 @@ void sys_arch_unprotect(sys_prot_t pval);
                               } while(0)
 #endif /* SYS_ARCH_SET */
 
+char	*sysTaskName(void);
+
+#ifdef X86
+#define	TASK_NAME() 	sysTaskName()
+#else
+#define	TASK_NAME() 	""
+#endif
+
 
 #ifdef __cplusplus
 }

@@ -65,12 +65,15 @@ static void _extHttpdTask(void *arg)
 	{
 		ExtHttpConn *ehc = NULL;
 		
+TRACE();
 		sys_mbox_fetch(&_httpdMailBox, (void **)&he);
+TRACE();
 		if (he == NULL)
 		{
 			EXT_ASSERT((EXT_TASK_HTTP" task: invalid message"), 0);
 			continue;
 		}
+TRACE();
 
 		{
 			httpFsmHandle(he);
@@ -80,7 +83,7 @@ static void _extHttpdTask(void *arg)
 			ehc->eventCount--;
 			HTTP_UNLOCK();
 			
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s: state is %s", ehc->name, CMN_FIND_HTTP_STATE(ehc->state) ));
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s: state is %s, event count:%d", ehc->name, CMN_FIND_HTTP_STATE(ehc->state), ehc->eventCount));
 			if(ehc && ehc->eventCount==0 && (ehc->state == H_STATE_FREE||ehc->state == H_STATE_CLOSE||ehc->state == H_STATE_ERROR))
 			{
 				extHttpConnFree(ehc);
@@ -88,9 +91,13 @@ static void _extHttpdTask(void *arg)
 			
 		}
 
+TRACE();
+		HTTP_LOCK();	
 		HTTP_EVENT_FREE(he);
 //		memp_free(MEMP_EXT_HTTPD, he);
 //		he = NULL;
+		HTTP_UNLOCK();	
+TRACE();
 	}
 	
 }
@@ -110,16 +117,43 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 		{
 			EXT_INFOF(("CONN for PCB %p: from %s:%d has been freed, event '%s' is ignored", 
 				(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, CMN_FIND_HTTP_EVENT(eventType)));
+
+		err_t err = tcp_close(pcb);
+		if (err != ERR_OK)
+		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %s: %p"EXT_NEW_LINE, err, ehc->name, (void*)pcb));
+			EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+			/* error closing, try again later in poll */
+			tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
+
+HTTP_UNLOCK();
+//		UNLOCK_TCPIP_CORE();
+			return;
+		}
+
+
+			tcp_arg(pcb, NULL);
+			
+			tcp_recv(pcb, NULL);
+			tcp_err(pcb, NULL);
+			tcp_poll(pcb, NULL, 0);
+			tcp_sent(pcb, NULL);
+
 			return EXIT_FAILURE;
 		}
 	}
 	else
 	{
+		if(extHttpConnCheck(ehc)== EXT_FALSE)
+		{
+			return EXIT_FAILURE;
+		}
 		_ehc = ehc;
 	}
 
 	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(_httpdMailBox));
 	
+	HTTP_LOCK();	
 	HTTP_EVENT_ALLOC(he);
 	//he = (HttpEvent *)memp_malloc(MEMP_EXT_HTTPD);
 	if (he == NULL)
@@ -129,11 +163,16 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 	}
 	memset(he, 0, sizeof(HttpEvent));
 
-	HTTP_LOCK();	
 	he->mhc = _ehc;
 	he->type = eventType;
 	he->pBuf = p;
 	he->pcb = pcb;
+
+	/* ERROR means TCP_PCB has been deallocated in TCP */	
+	if(eventType == H_EVENT_ERROR)
+	{
+		_ehc->pcb = NULL;
+	}
 
 	ehc->eventCount++;
 	
@@ -149,9 +188,51 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 		return EXIT_FAILURE;
 	}
 
+TRACE();
 	return EXIT_SUCCESS;
 }
 
+
+/* TCP_PCB can only handled in context of TCP task */
+err_t extHttpClosePcb(ExtHttpConn *ehc)
+{
+	err_t err = ERR_OK;
+	
+	if(ehc->state !=  H_STATE_ERROR && ehc->pcb != NULL )
+	{/* when TCP error happens, TCP_PCB has been deallocated */
+		struct tcp_pcb *pcb;
+
+TRACE();
+		pcb = ehc->pcb;
+//		EXT_ASSERT(("PCB for CONN %s is null", ehc->name), pcb != NULL);
+		ehc->pcb = NULL;
+
+
+		err = tcp_close(pcb);
+		if (err != ERR_OK)
+		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %s (%d) closing %s: %p"EXT_NEW_LINE, lwip_strerr(err), err, ehc->name, (void*)pcb));
+			EXT_ERRORF( ("Error %s (%d) closing %p"EXT_NEW_LINE, lwip_strerr(err), err, (void*)pcb));
+			/* error closing, try again later in poll */
+			tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
+
+			return err;
+		}
+
+
+		
+		tcp_arg(pcb, NULL);
+		
+		tcp_recv(pcb, NULL);
+		tcp_err(pcb, NULL);
+		tcp_poll(pcb, NULL, 0);
+		tcp_sent(pcb, NULL);
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d) is freed, ", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port) );
+		
+	}
+
+	return err;
+}
 
 #endif
 
@@ -184,15 +265,19 @@ static void mhttpContinue(void *connection)
  */
 static void __extHttpErr(void *arg, err_t err)
 {
-	ExtHttpConn *ehc = (ExtHttpConn *)arg;
+	ExtHttpConn *ehc = NULL;
 	LWIP_UNUSED_ARG(err);
 
+TRACE();
+
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_err: %s", lwip_strerr(err)));
+	ehc = (ExtHttpConn *)arg;
 
 	if (ehc != NULL)
 	{
 		ehc->pcb = NULL;
 #if LWIP_EXT_HTTPD_TASK
+		
 		extHttpPostEvent(ehc, H_EVENT_ERROR, NULL, NULL);
 #else
 		extHttpConnFree(ehc);
@@ -210,9 +295,11 @@ static void __extHttpErr(void *arg, err_t err)
  */
 static err_t __extHttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 {
-	ExtHttpConn *mhc = (ExtHttpConn *)arg;
+	ExtHttpConn *mhc = NULL;
+TRACE();
 
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_sent %p: sent len : %d", (void*)pcb, len));
+	mhc = (ExtHttpConn *)arg;
 
 #if LWIP_EXT_HTTPD_TASK
 	extHttpPostEvent(mhc, H_EVENT_SENT, NULL, pcb);
@@ -240,11 +327,41 @@ static err_t __extHttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
  */
 err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 {
-	ExtHttpConn *mhc = (ExtHttpConn *)arg;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: pcb=%p mhc=%p pcb_state=%s", (void*)pcb, (void*)mhc, tcp_debug_state_str(pcb->state)));
+	ExtHttpConn *mhc = NULL;
+TRACE();
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: pcb=%p pcb_state=%s", (void*)pcb, tcp_debug_state_str(pcb->state)));
+	mhc = (ExtHttpConn *)arg;
 
 #if LWIP_EXT_HTTPD_TASK
-	extHttpPostEvent(mhc, H_EVENT_POLL, NULL, pcb);
+	if (mhc == NULL)
+	{
+		tcp_close(pcb);
+	}
+	else
+	{
+		mhc->retries++;
+		if (mhc->retries == MHTTPD_MAX_RETRIES)
+		{
+			extHttpPostEvent(mhc, H_EVENT_CLOSE, NULL, pcb);
+		}
+
+
+#if 0
+		/* If this connection has a file open, try to send some more data. If
+		* it has not yet received a GET request, don't do this since it will
+		* cause the connection to close immediately. */
+		if(mhc )//&& (mhc->handle))
+		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POLL: try to send more data"));
+			if(extHttpSend( mhc))
+			{/* If we wrote anything to be sent, go ahead and send it now. */
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
+				tcp_output(he->pcb);
+			}
+		}
+#endif		
+		extHttpPostEvent(mhc, H_EVENT_POLL, NULL, pcb);
+	}
 
 #else
 
@@ -302,9 +419,11 @@ static char		_debugBuf[2048];
  */
 static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
-	ExtHttpConn *mhc = (ExtHttpConn *)arg;
+	ExtHttpConn *mhc = NULL;
 	
+TRACE();
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("http_recv: pcb=%p pbuf=%p err=%s", (void*)pcb, (void*)p, lwip_strerr(err)));
+	mhc = (ExtHttpConn *)arg;
 
 	if ((err != ERR_OK) || (p == NULL) || (mhc == NULL))
 	{/* error or closed by other side? */
@@ -319,10 +438,12 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 			EXT_ERRORF(("Error, http_recv: mhc is NULL, close"));
 		}
 		
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("HTTP Connection is broken by peer"));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CONN %s is broken by peer", (mhc!=NULL)?mhc->name:"Unknown"));
 		
 #if LWIP_EXT_HTTPD_TASK
+//		extHttpClosePcb(mhc);
 		extHttpPostEvent( mhc, H_EVENT_CLOSE, p, pcb);
+//		extHttpPostEvent( mhc, H_EVENT_ERROR, p, pcb);
 #else
 		extHttpConnClose(mhc, pcb);
 #endif
@@ -447,12 +568,14 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 {
 	ExtHttpConn *mhc;
-	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+	EXT_RUNTIME_CFG *runCfg = NULL;
 	
+TRACE();
 	LWIP_UNUSED_ARG(err);
+	runCfg = (EXT_RUNTIME_CFG *)arg;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d / total Connection %d:%s", 
-		(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, runCfg->currentHttpConns, runCfg->name ));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d / total Connection %d", 
+		(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, httpStats.currentConns ));
 
 
 	if ((err != ERR_OK) || (pcb == NULL))

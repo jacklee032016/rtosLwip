@@ -75,7 +75,7 @@ typedef uintptr_t          mem_ptr_t;
 
 /* Debug facilities. LWIP_DEBUG must be defined to read output */
 #ifdef LWIP_DEBUG
-#define LWIP_PLATFORM_DIAG(x)		{printf("[%s-%u]: ", __FILE__, __LINE__); printf x ;}
+#define LWIP_PLATFORM_DIAG(x)		{printf("%s[%s-%u]: ", sysTaskName(), __FILE__, __LINE__); printf x ;}
 #define LWIP_PLATFORM_ASSERT(x)	{printf (ANSI_COLOR_RED"Assertion "); printf x; printf(" failed at line %d in %s" LWIP_NEW_LINE ERROR_TEXT_END, __LINE__, __FILE__); while(0);}
 #else
 #define LWIP_PLATFORM_DIAG(x)   {;}

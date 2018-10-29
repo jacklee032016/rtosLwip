@@ -105,6 +105,7 @@ static unsigned char _httpEventSend(void *arg)
 
 	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
 	ehc->retries = 0;
+
 	ret = extHttpSend( he->mhc);
 	if(ret == MHTTP_NO_DATA_TO_SEND)
 	{
@@ -113,6 +114,7 @@ static unsigned char _httpEventSend(void *arg)
 	else if (ret == MHTTP_DATA_TO_SEND_BREAK)
 	{
 		return H_STATE_CLOSE;
+		//return EXT_STATE_CONTINUE;
 	}
 	return EXT_STATE_CONTINUE;
 }

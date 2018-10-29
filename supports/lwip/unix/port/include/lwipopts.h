@@ -81,6 +81,7 @@
 #define TCP_QLEN_DEBUG				LWIP_DBG_OFF
 #define TCP_RST_DEBUG				LWIP_DBG_OFF
 
+#define	SYS_DEBUG					LWIP_DBG_OFF
 
 extern unsigned char debug_flags;
 #define LWIP_DBG_TYPES_ON debug_flags

@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef	X86
+#include <errno.h>
+#endif
 
 #include "extSysParams.h"
 
@@ -255,4 +258,24 @@ void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg)
 	runCfg->bufWrite = _writeBuffer;
 	runCfg->bufLength = sizeof(_readBuffer);
 }
+
+char	*sysTaskName(void)
+{
+#ifdef	X86
+	static char threadName[16] = "Unknown";
+	pthread_t             self = pthread_self();
+
+	if(pthread_getname_np(self, threadName, sizeof(threadName)) != 0)
+	{
+		printf(("Fail in get thread name: %s", strerror(errno)));
+		return "Unknown";
+	}
+
+	return threadName;
+#else
+	return "";
+#endif
+}
+
+
 

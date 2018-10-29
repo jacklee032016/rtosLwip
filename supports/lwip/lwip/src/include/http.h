@@ -544,6 +544,7 @@ ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg);
 void extHttpConnFree(ExtHttpConn *mhc);
 
 ExtHttpConn *extHttpConnFind(struct tcp_pcb *pcb);
+char extHttpConnCheck(ExtHttpConn  *_ehc);
 
 
 err_t extHttpConnClose(ExtHttpConn *mhc, struct tcp_pcb *pcb);

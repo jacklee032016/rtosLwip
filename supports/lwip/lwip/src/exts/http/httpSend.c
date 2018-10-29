@@ -280,6 +280,11 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 
 	/* If we were passed a NULL state structure pointer, ignore the call. */
 	EXT_ASSERT(("MHC is null"), mhc != NULL);
+
+	if(mhc->pcb == NULL)
+	{/* ERROR event has been happened, but FSM still handle existed events */
+		return MHTTP_DATA_TO_SEND_BREAK;
+	}
 	
 	if( HTTPREQ_IS_REST(mhc) && HTTP_IS_FINISHED(mhc) )
 	{

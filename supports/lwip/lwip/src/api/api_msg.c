@@ -381,72 +381,75 @@ sent_tcp(void *arg, struct tcp_pcb *pcb, u16_t len)
  *
  * @see tcp.h (struct tcp_pcb.err) for parameters
  */
-static void
-err_tcp(void *arg, err_t err)
+static void err_tcp(void *arg, err_t err)
 {
-  struct netconn *conn;
-  enum netconn_state old_state;
+	struct netconn *conn;
+	enum netconn_state old_state;
 
-  conn = (struct netconn *)arg;
-  LWIP_ASSERT(("conn != NULL"), (conn != NULL));
+	conn = (struct netconn *)arg;
+	LWIP_ASSERT(("conn != NULL"), (conn != NULL));
 
-  conn->pcb.tcp = NULL;
+	conn->pcb.tcp = NULL;
 
-  /* reset conn->state now before waking up other threads */
-  old_state = conn->state;
-  conn->state = NETCONN_NONE;
+	/* reset conn->state now before waking up other threads */
+	old_state = conn->state;
+	conn->state = NETCONN_NONE;
 
-  if (old_state == NETCONN_CLOSE) {
-    /* RST during close: let close return success & dealloc the netconn */
-    err = ERR_OK;
-    NETCONN_SET_SAFE_ERR(conn, ERR_OK);
-  } else {
-    /* no check since this is always fatal! */
-    SYS_ARCH_SET(conn->last_err, err);
-  }
+	if (old_state == NETCONN_CLOSE) {
+		/* RST during close: let close return success & dealloc the netconn */
+		err = ERR_OK;
+		NETCONN_SET_SAFE_ERR(conn, ERR_OK);
+	}
+	else
+	{
+		/* no check since this is always fatal! */
+		SYS_ARCH_SET(conn->last_err, err);
+	}
 
-  /* @todo: the type of NETCONN_EVT created should depend on 'old_state' */
+	/* @todo: the type of NETCONN_EVT created should depend on 'old_state' */
 
-  /* Notify the user layer about a connection error. Used to signal select. */
-  API_EVENT(conn, NETCONN_EVT_ERROR, 0);
-  /* Try to release selects pending on 'read' or 'write', too.
-     They will get an error if they actually try to read or write. */
-  API_EVENT(conn, NETCONN_EVT_RCVPLUS, 0);
-  API_EVENT(conn, NETCONN_EVT_SENDPLUS, 0);
+	/* Notify the user layer about a connection error. Used to signal select. */
+	API_EVENT(conn, NETCONN_EVT_ERROR, 0);
+	/* Try to release selects pending on 'read' or 'write', too.
+	They will get an error if they actually try to read or write. */
+	API_EVENT(conn, NETCONN_EVT_RCVPLUS, 0);
+	API_EVENT(conn, NETCONN_EVT_SENDPLUS, 0);
 
-  /* pass NULL-message to recvmbox to wake up pending recv */
-  if (sys_mbox_valid(&conn->recvmbox)) {
-    /* use trypost to prevent deadlock */
-    sys_mbox_trypost(&conn->recvmbox, NULL);
-  }
-  /* pass NULL-message to acceptmbox to wake up pending accept */
-  if (sys_mbox_valid(&conn->acceptmbox)) {
-    /* use trypost to preven deadlock */
-    sys_mbox_trypost(&conn->acceptmbox, NULL);
-  }
+	/* pass NULL-message to recvmbox to wake up pending recv */
+	if (sys_mbox_valid(&conn->recvmbox)) {
+	/* use trypost to prevent deadlock */
+		sys_mbox_trypost(&conn->recvmbox, NULL);
+	}
+	/* pass NULL-message to acceptmbox to wake up pending accept */
+	if (sys_mbox_valid(&conn->acceptmbox)) {
+	/* use trypost to preven deadlock */
+		sys_mbox_trypost(&conn->acceptmbox, NULL);
+	}
 
-  if ((old_state == NETCONN_WRITE) || (old_state == NETCONN_CLOSE) ||
-      (old_state == NETCONN_CONNECT)) {
-    /* calling lwip_netconn_do_writemore/lwip_netconn_do_close_internal is not necessary
-       since the pcb has already been deleted! */
-    int was_nonblocking_connect = IN_NONBLOCKING_CONNECT(conn);
-    SET_NONBLOCKING_CONNECT(conn, 0);
+	if ((old_state == NETCONN_WRITE) || (old_state == NETCONN_CLOSE) ||
+	(old_state == NETCONN_CONNECT))
+	{
+		/* calling lwip_netconn_do_writemore/lwip_netconn_do_close_internal is not necessary
+		since the pcb has already been deleted! */
+		int was_nonblocking_connect = IN_NONBLOCKING_CONNECT(conn);
+		SET_NONBLOCKING_CONNECT(conn, 0);
 
-    if (!was_nonblocking_connect) {
-      sys_sem_t* op_completed_sem;
-      /* set error return code */
-      LWIP_ASSERT(("conn->current_msg != NULL"), conn->current_msg != NULL);
-      conn->current_msg->err = err;
-      op_completed_sem = LWIP_API_MSG_SEM(conn->current_msg);
-      LWIP_ASSERT(("inavlid op_completed_sem"), sys_sem_valid(op_completed_sem));
-      conn->current_msg = NULL;
-      /* wake up the waiting task */
-      NETCONN_SET_SAFE_ERR(conn, err);
-      sys_sem_signal(op_completed_sem);
-    }
-  } else {
-    LWIP_ASSERT(("conn->current_msg == NULL"), conn->current_msg == NULL);
-  }
+		if (!was_nonblocking_connect) {
+			sys_sem_t* op_completed_sem;
+			/* set error return code */
+			LWIP_ASSERT(("conn->current_msg != NULL"), conn->current_msg != NULL);
+			conn->current_msg->err = err;
+			op_completed_sem = LWIP_API_MSG_SEM(conn->current_msg);
+			LWIP_ASSERT(("inavlid op_completed_sem"), sys_sem_valid(op_completed_sem));
+			conn->current_msg = NULL;
+			/* wake up the waiting task */
+			NETCONN_SET_SAFE_ERR(conn, err);
+			sys_sem_signal(op_completed_sem);
+		}
+	}
+	else {
+		LWIP_ASSERT(("conn->current_msg == NULL"), conn->current_msg == NULL);
+	}
 }
 
 /**

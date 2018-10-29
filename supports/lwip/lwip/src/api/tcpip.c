@@ -114,7 +114,7 @@ static void tcpip_thread(void *arg)
 			LWIP_ASSERT(("tcpip_thread: invalid message"), 0);
 			continue;
 		}
-		
+
 		switch (msg->type)
 		{
 #if !LWIP_TCPIP_CORE_LOCKING

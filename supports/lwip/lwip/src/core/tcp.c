@@ -1901,8 +1901,8 @@ tcp_pcb_remove(struct tcp_pcb **pcblist, struct tcp_pcb *pcb)
   }
 
   if (pcb->state != LISTEN) {
-    LWIP_ASSERT(("unsent segments leaking"), pcb->unsent == NULL);
-    LWIP_ASSERT(("unacked segments leaking"), pcb->unacked == NULL);
+    EXT_ASSERT(("unsent segments leaking on PCB :%x%p", pcb), pcb->unsent == NULL);
+    EXT_ASSERT(("unacked segments leaking on PCB : 0x%p", pcb), pcb->unacked == NULL);
 #if TCP_QUEUE_OOSEQ
     LWIP_ASSERT(("ooseq segments leaking"), pcb->ooseq == NULL);
 #endif /* TCP_QUEUE_OOSEQ */
