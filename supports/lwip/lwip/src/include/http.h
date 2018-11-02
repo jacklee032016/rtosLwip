@@ -486,6 +486,8 @@ typedef struct
 
 #define	EXT_WEBPAGE_INFO						"/info"
 #define	EXT_WEBPAGE_MEDIA					"/media"
+#define	EXT_WEBPAGE_SETTING					"/setting"
+
 #define	EXT_WEBPAGE_UPDATE_MCU				"/mcuUpdate"
 #define	EXT_WEBPAGE_UPDATE_FPGA			"/fpgaUpdate"
 
@@ -494,6 +496,64 @@ typedef struct
 
 #define	EXT_WEBPAGE_UPDATE_MCU_HTML		"/upgradeMcu.html"
 #define	EXT_WEBPAGE_UPDATE_FPGA_HTML		"/upgradeFpga.html"
+
+#define	EXT_WEBPAGE_SDP_VIDEO				"/video.sdp"
+#define	EXT_WEBPAGE_SDP_AUDIO				"/audio.sdp"
+
+#define	EXT_WEBPAGE_API_SERVICE				"/service"
+
+
+#define	EXT_WEB_CFG_FIELD_MODEL					"model"
+#define	EXT_WEB_CFG_FIELD_PRODUCT				"name"
+#define	EXT_WEB_CFG_FIELD_VERSION				"version"
+
+#define	EXT_WEB_CFG_FIELD_ADDRESS				"address"
+#define	EXT_WEB_CFG_FIELD_GATEWAY				"gateway"
+#define	EXT_WEB_CFG_FIELD_IS_DHCP				"isDHCP"
+
+#define	EXT_WEB_CFG_FIELD_MAC					"MAC"
+
+#define	EXT_WEB_CFG_FIELD_SDP_VEDIO				"urlSdpVideo"
+#define	EXT_WEB_CFG_FIELD_SDP_AUDIO				"urlSdpAudio"
+
+#define	EXT_WEB_CFG_FIELD_IP_VEDIO				"ipVideo"
+#define	EXT_WEB_CFG_FIELD_IP_AUDIO				"ipAudio"
+
+#define	EXT_WEB_CFG_FIELD_PORT_VEDIO			"portVideo"
+#define	EXT_WEB_CFG_FIELD_PORT_AUDIO			"portAudio"
+#define	EXT_WEB_CFG_FIELD_PORT_DATA				"portData"
+#define	EXT_WEB_CFG_FIELD_PORT_STREM			"portStrem"
+
+#define	EXT_WEB_CFG_FIELD_VIDEO_WIDTH			"videoWidth"
+#define	EXT_WEB_CFG_FIELD_VIDEO_HEIGHT			"videoHeight"
+
+#define	EXT_WEB_CFG_FIELD_COLOR_SPACE			"colorSpace"
+#define	EXT_WEB_CFG_FIELD_COLOR_DEPTH			"colorDepth"
+#define	EXT_WEB_CFG_FIELD_FRAME_RATE			"videoFps"
+#define	EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED		"videoIsSgmt"
+
+#define	EXT_WEB_CFG_FIELD_AUDIO_CHANNEL		"audioChannels"
+#define	EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE		"audioSampRate"
+#define	EXT_WEB_CFG_FIELD_AUDIO_DEPTH			"audioDepth"
+#define	EXT_WEB_CFG_FIELD_IS_CONNECT			"isConnect"	/* 811 send to TX(stop/start) or RX(connect/disconnect) */
+
+
+#define	EXT_HTTP_VERSION_11						"HTTP/1.1 "
+
+
+#define	EXT_HTTP_HDR_S_STATUS_200				EXT_HTTP_VERSION_11"200 OK"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_STATUS_101				EXT_HTTP_VERSION_11"101 Switching Protocols"MHTTP_CRLF"Upgrade: websocket"MHTTP_CRLF"Connection: Upgrade"MHTTP_CRLF
+
+#define	EXT_HTTP_HDR_S_STATUS_307				EXT_HTTP_VERSION_11"307 Temporary Redirect"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_STATUS_400				EXT_HTTP_VERSION_11"400 Bad Request"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_STATUS_404				EXT_HTTP_VERSION_11"404 Not Found"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_STATUS_405				EXT_HTTP_VERSION_11"405 Method Not Allowed"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_STATUS_423				EXT_HTTP_VERSION_11"423 Locked"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_STATUS_500				EXT_HTTP_VERSION_11"500 Internal Server Error"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_STATUS_501				EXT_HTTP_VERSION_11"501 Not Implemented"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_SERVER					"Server: "MHTTPD_SERVER_AGENT MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_CONTENT_TYPE_JSON		"Content-Type: application/json"MHTTP_CRLF
+#define	EXT_HTTP_HDR_S_CONTENT_LENGTH			"Content-Length: "
 
 
 #if MHTTPD_USE_MEM_POOL
@@ -611,6 +671,14 @@ char extNmosNodeDumpHander(ExtHttpConn  *mhc, void *data);
 void	httpFsmHandle(HttpEvent *he);
 char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, struct tcp_pcb *pcb);
 
+
+char extHttpSimpleApi(ExtHttpConn  *mhc, void *data);
+
+char extHttpSdpAudio(ExtHttpConn  *mhc, void *data);
+
+char extHttpSdpVideo(ExtHttpConn  *mhc, void *data);
+
+
 sys_mutex_t			_httpMutex;
 
 #define	HTTP_LOCK()		\
@@ -629,6 +697,11 @@ extern	const char *httpCommonHeader;
 #if EXT_HTTPD_DEBUG
 extern	HttpStats	httpStats;
 #endif
+
+
+#define	__HTTP_CRLF_SIZE		4
+
+char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);
 
 
 

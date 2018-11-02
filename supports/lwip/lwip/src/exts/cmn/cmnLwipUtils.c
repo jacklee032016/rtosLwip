@@ -112,6 +112,10 @@ char cmnCmdLwipStats(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 {
 	stats_display(outBuffer, bufferLen);
 
+#if 0
+	extEtherDebug();
+#endif
+
 	return EXT_FALSE;
 }
 

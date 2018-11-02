@@ -127,7 +127,7 @@ static const	EXT_CONST_STR	_ipcmdStringRsParities[] =
 	}
 };
 
-static const	EXT_CONST_STR	_videoColorSpaces[] =
+const	EXT_CONST_STR	_videoColorSpaces[] =
 {
 	{
 		type	: EXT_V_COLORSPACE_YCBCR_422,
@@ -174,6 +174,74 @@ static const	EXT_CONST_STR	_videoColorSpaces[] =
 	}
 };
 
+
+const short	videoWidthList[]=
+{
+	480,
+	576,	
+	640,
+	720,
+	800,
+	1024,
+	1280,
+	1360,
+	1440,
+	1600,
+	1680,
+	1920,
+	2048,
+	2560,
+	3840,
+	4096,
+	0
+};
+
+const short videoHeightList[]=
+{
+	480,
+	600,
+	720,
+	768,
+	800,
+	1024,
+	1050,
+	1080,
+	1200,
+	1440,
+	1600,
+	2160,
+	0
+};
+
+const char videoFpsList[]  =
+{
+	EXT_V_FRAMERATE_T_23,
+	EXT_V_FRAMERATE_T_24,
+	EXT_V_FRAMERATE_T_25,
+	EXT_V_FRAMERATE_T_29,
+	EXT_V_FRAMERATE_T_30,
+	EXT_V_FRAMERATE_T_50,
+	EXT_V_FRAMERATE_T_59,
+	EXT_V_FRAMERATE_T_60,
+	0
+};
+
+const char videoColorDepthList[] =
+{
+	EXT_V_DEPTH_8,	
+	EXT_V_DEPTH_10,	
+	EXT_V_DEPTH_12,	
+	EXT_V_DEPTH_16,
+	0
+};
+
+const char audioChannelsList[] =
+{
+	4,	
+	8,	
+	16,	
+	0
+};
 
 const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 {
@@ -260,6 +328,68 @@ int	cmnParseGetHexIntValue(char *hexString)
 	value = (int)strtol(hexString, NULL, 16);
 
 	return value;
+}
+
+char cmnUtilsParseIp(char *strIpAddress, uint32_t  *ip)
+{
+	*ip = ipaddr_addr(strIpAddress);
+	
+	if(*ip == IPADDR_NONE)
+	{
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		return EXIT_SUCCESS;
+	}
+}
+
+char cmnUtilsParseInt32(char *strValue, uint32_t  *value)
+{
+//	if (1 != sscanf(strValue, "%"PRIu32, value))
+	if (1 != sscanf(strValue, "%u", value))
+	{
+		printf("Token was not an short int.");
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		return EXIT_SUCCESS;
+	}
+}
+
+char cmnUtilsParseInt16(char *strValue, uint16_t  *value)
+{
+#ifdef	ARM
+	if (1 != sscanf(strValue, "%"PRIu16, value))
+#else
+	if (1 != sscanf(strValue, "%hu", value))
+#endif		
+	{
+		printf("Token was not an short int.");
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		return EXIT_SUCCESS;
+	}
+}
+
+char cmnUtilsParseInt8(char *strValue, uint8_t  *value)
+{
+#ifdef	ARM
+	if (1 != sscanf(strValue, "%"PRIu8, value))
+#else
+	if (1 != sscanf(strValue, "%hhu", value))
+#endif		
+	{
+		printf("Token was not an short int.");
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		return EXIT_SUCCESS;
+	}
 }
 
 

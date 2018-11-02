@@ -105,6 +105,8 @@ EXTS_WEB_SRC += \
 	$(EXT_HOME)/http/httpWebSocket.c \
 	$(EXT_HOME)/http/httpWebPages.c \
 	$(EXT_HOME)/http/httpFsm.c \
+	$(EXT_HOME)/http/httpSdpApi.c \
+	$(EXT_HOME)/http/httpParseData.c \
 	$(EXT_HOME)/http/httpMain.c \
 
 
@@ -168,6 +170,7 @@ EXTS_LWIP_SRC += \
 	$(EXT_HOME)/extMediaTask.c \
 	$(EXT_HOME)/extLwipStart.c \
 	$(EXT_HOME)/extSys.c \
+	$(EXT_HOME)/extSysCtrl.c \
 
 
 #	src/lwip/frozen.c \

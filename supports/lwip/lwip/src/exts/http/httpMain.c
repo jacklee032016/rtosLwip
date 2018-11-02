@@ -50,7 +50,7 @@ static void _extHttpdTask(void *arg)
 {
 	HttpEvent	*he;
 #if 1	
-	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
+//	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)arg;
 #else
 	EXT_JSON_PARSER  *parser = (EXT_JSON_PARSER *)arg;
 #endif
@@ -65,15 +65,15 @@ static void _extHttpdTask(void *arg)
 	{
 		ExtHttpConn *ehc = NULL;
 		
-TRACE();
+//TRACE();
 		sys_mbox_fetch(&_httpdMailBox, (void **)&he);
-TRACE();
+//TRACE();
 		if (he == NULL)
 		{
 			EXT_ASSERT((EXT_TASK_HTTP" task: invalid message"), 0);
 			continue;
 		}
-TRACE();
+//TRACE();
 
 		{
 			httpFsmHandle(he);
@@ -91,13 +91,13 @@ TRACE();
 			
 		}
 
-TRACE();
+//TRACE();
 		HTTP_LOCK();	
 		HTTP_EVENT_FREE(he);
 //		memp_free(MEMP_EXT_HTTPD, he);
 //		he = NULL;
 		HTTP_UNLOCK();	
-TRACE();
+//TRACE();
 	}
 	
 }
@@ -118,19 +118,18 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 			EXT_INFOF(("CONN for PCB %p: from %s:%d has been freed, event '%s' is ignored", 
 				(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, CMN_FIND_HTTP_EVENT(eventType)));
 
-		err_t err = tcp_close(pcb);
-		if (err != ERR_OK)
-		{
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %s: %p"EXT_NEW_LINE, err, ehc->name, (void*)pcb));
-			EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
-			/* error closing, try again later in poll */
-			tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
+			err_t err = tcp_close(pcb);
+			if (err != ERR_OK)
+			{
+				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %s: %p"EXT_NEW_LINE, err, ehc->name, (void*)pcb));
+				EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+				/* error closing, try again later in poll */
+				tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
 
-HTTP_UNLOCK();
-//		UNLOCK_TCPIP_CORE();
-			return;
-		}
-
+	HTTP_UNLOCK();
+	//		UNLOCK_TCPIP_CORE();
+				return EXIT_FAILURE;
+			}
 
 			tcp_arg(pcb, NULL);
 			
@@ -574,7 +573,7 @@ TRACE();
 	LWIP_UNUSED_ARG(err);
 	runCfg = (EXT_RUNTIME_CFG *)arg;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d / total Connection %d", 
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d, total Connection %d", 
 		(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, httpStats.currentConns ));
 
 

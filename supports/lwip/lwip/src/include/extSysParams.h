@@ -22,6 +22,8 @@
 #define EXT_TRUE				(!EXT_FALSE)
 #endif
 
+#include <stdint.h>
+
 
 /***************** system options ******************/
 
@@ -295,6 +297,7 @@
 #define	EXT_TASK_CONSOLE				"console"
 #define	EXT_TASK_MAC					"mac"	/* GMAC controller */
 #define	EXT_TASK_HTTP					"httpd"
+#define	EXT_TASK_HTTP_CLIENT			"hClient"
 #define	EXT_TASK_TELNET				"telnetd"
 #define	EXT_TASK_SYS_CTRL				"sysd"
 
@@ -385,7 +388,7 @@
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
 	#define	EXT_ASSERT(msg, x)			{if((x)==0) {printf(ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf msg ;printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
-	#define	EXT_ABORT(fmt, args... )		printf("%s: ABORT in ["  sysTaskName(), __FILE__ "-%u]:" fmt EXT_NEW_LINE, __LINE__, ##args );while(1){}
+	#define	EXT_ABORT(fmt, args... )		printf("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
 #else
 	#define	EXT_PRINTF(x)						{;}
 
@@ -566,6 +569,7 @@ typedef struct
 {
 	EXT_MAC_ADDRESS		mac;
 	unsigned	int				ip;
+	unsigned	int				audioIp;
 
 	unsigned short			vport;
 	unsigned short			aport;
@@ -891,6 +895,15 @@ typedef	struct _EXT_RUNTIME_CFG		EXT_RUNTIME_CFG;
 typedef	char (*MuxDelayJob)(void *data);
 
 
+#define	CMN_SN_PRINTF(data, size, index, ...)   \
+	do{ if((size)-(index) > 0 ){\
+		(index) += snprintf((data)+(index), ((size)-(index)), __VA_ARGS__);}else{EXT_DEBUGF(EXT_DBG_ON, ("index %d is out of range of size %d", (index), (size)) );}			\
+		}while(0)
+
+/* ##__VA_ARGS__*/
+	
+
+
 char extSysAtoInt8(const char *str, unsigned char *value);
 char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr);
 
@@ -993,6 +1006,37 @@ char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 #else
 #define	FOR_U32	"u"
 #endif
+
+
+extern	const	EXT_CONST_STR	_videoColorSpaces[];
+extern	const short	videoWidthList[];
+extern	const short 	videoHeightList[];
+
+extern	const char 	videoFpsList[];
+extern	const char 	videoColorDepthList[];
+
+extern	const char 	audioChannelsList[];
+
+extern	EXT_RUNTIME_CFG tmpRuntime;
+
+
+char cmnUtilsParseIp(char *strIpAddress, uint32_t  *ip);
+char cmnUtilsParseInt32(char *strValue, uint32_t  *value);
+char cmnUtilsParseInt16(char *strValue, uint16_t  *value);
+char cmnUtilsParseInt8(char *strValue, uint8_t  *value);
+
+
+#define	FIELD_INVALIDATE( field) 						((field) = -1)
+
+#define	FIELD_IS_CHANGED(field)						((field) != -1)
+
+
+
+void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg);
+
+char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
+char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
+
 
 
 #endif

@@ -14,8 +14,6 @@
 #endif
 
 
-#define	__HTTP_CRLF_SIZE		4
-
 static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	char		*sp;
@@ -86,8 +84,8 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 			}
 
 			mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
-//			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
-//			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
 		}
 		return EXIT_SUCCESS;
 	}
@@ -349,7 +347,7 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 		}
 	}
 
-//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", reqLen, data ));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", reqLen, data ));
 	clen = pbuf_clen(mhc->req);
 
 	/* received enough data for minimal request? */

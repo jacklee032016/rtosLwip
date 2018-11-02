@@ -903,9 +903,7 @@ again:
  *         ERR_OK if connect request has been sent
  *         other err_t values if connect request couldn't be sent
  */
-err_t
-tcp_connect(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port,
-      tcp_connected_fn connected)
+err_t tcp_connect(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port, tcp_connected_fn connected)
 {
   err_t ret;
   u32_t iss;
@@ -1901,7 +1899,7 @@ tcp_pcb_remove(struct tcp_pcb **pcblist, struct tcp_pcb *pcb)
   }
 
   if (pcb->state != LISTEN) {
-    EXT_ASSERT(("unsent segments leaking on PCB :%x%p", pcb), pcb->unsent == NULL);
+    EXT_ASSERT(("unsent segments leaking on PCB :0x%p", pcb), pcb->unsent == NULL);
     EXT_ASSERT(("unacked segments leaking on PCB : 0x%p", pcb), pcb->unacked == NULL);
 #if TCP_QUEUE_OOSEQ
     LWIP_ASSERT(("ooseq segments leaking"), pcb->ooseq == NULL);

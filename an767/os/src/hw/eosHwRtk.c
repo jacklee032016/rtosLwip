@@ -109,6 +109,107 @@ static void _printPortAbility(rtk_port_link_ability_t *ability)
 
 	printf("NWAY=%i\r\n", ability->nway);
 }
+
+static void _printPortState(rtk_port_t port)
+{
+	rtk_port_link_status_t	portStatus = {0};
+	rtk_mode_ext_t mode;
+	int ret;
+
+	printf("Port#%d\r\n", port);
+	
+	ret = rtk_port_linkStatus_get(port, &portStatus);
+	if(ret != RT_ERR_OK)
+	{
+		EXT_ERRORF(("port %d status ERROR, return : %s, \t", port, rtk_errMsg_get(ret)));
+		return;
+	}
+
+	if(portStatus.link==PORT_LINKUP)
+	{
+		printf("\tSpeed:");
+		switch(portStatus.speed)
+		{
+			case  PORT_SPEED_1000M:
+				printf("\t\t1000M\r\n");
+				break;
+			case  PORT_SPEED_100M:
+				printf("\t\t100M\r\n");
+				break;
+			case  PORT_SPEED_10M:
+				printf("\t\t10M\r\n");
+				break;
+			default:
+				printf("\t\tUnknown\r\n");
+				break;
+		}
+
+		printf("\tDuplex:%s\r\n", (portStatus.duplex == PORT_FULL_DUPLEX)?"Full":"Half");
+		printf("\tPause:%s\r\n", (portStatus.txpause == ENABLED )?"Enable":"Disable");
+		printf("\tAsymetric Pause:%s\r\n", (portStatus.rxpause == ENABLED)?"Enable":"Disable");
+
+	}
+	else
+	{
+		printf("\tLink Down\r\n");
+	}
+
+	ret = rtk_port_mode_get(port, &mode);
+	if(ret != RT_ERR_OK)
+	{
+		EXT_ERRORF(("port %d mode ERROR, return : %s, \t", port, rtk_errMsg_get(ret)));
+		return;
+	}
+
+	printf("\t");
+	switch(mode)
+	{
+		case MODE_EXT_RGMII_NODELAY:
+			printf("MODE_EXT_RGMII_NODELAY");
+			break;
+
+		case MODE_EXT_RGMII_RXDELAY_ONLY:
+			printf("MODE_EXT_RGMII_RXDELAY_ONLY");
+			break;
+		case MODE_EXT_RGMII_TXDELAY_ONLY:
+			printf("MODE_EXT_RGMII_TXDELAY_ONLY");
+			break;
+		case MODE_EXT_RGMII_RXTXDELAY:
+			printf("MODE_EXT_RGMII_RXTXDELAY");
+			break;
+		case MODE_EXT_TMII_MII_MAC:
+			printf("MODE_EXT_TMII_MII_MAC");
+			break;
+		case MODE_EXT_MII_PHY:
+			printf("MODE_EXT_MII_PHY");
+			break;
+		case MODE_EXT_TMII_PHY:
+			printf("MODE_EXT_TMII_PHY");
+			break;
+		case MODE_EXT_RMII_INPUT:
+			printf("MODE_EXT_RMII_INPUT");
+			break;
+		case MODE_EXT_RMII_OUTPUT:
+			printf("MODE_EXT_RMII_OUTPUT");
+			break;
+		case MODE_EXT_HEAC:
+			printf("MODE_EXT_HEAC");
+			break;
+		case MODE_EXT_FAST_ETHERNET:
+			printf("MODE_EXT_FAST_ETHERNET");
+			break;
+		case MODE_EXT_GIGA:
+			printf("MODE_EXT_GIGA");
+			break;
+		default:
+			printf("Unknown mode");
+			break;
+	}
+
+	printf("\r\n");
+}
+
+
 #endif
 
 static char _extConfigRtkOnePort(uint8_t port)
@@ -156,6 +257,8 @@ static char _extConfigRtkOnePort(uint8_t port)
 #if RTK_DEBUG_IF
 	printf("Port#%d\t", port);
    	_printPortAbility(&linkAbility);
+	
+	_printPortState(port);
 #endif
 	return EXIT_SUCCESS;
 }
@@ -202,6 +305,7 @@ char extBspRtl8305Config(void)
 #endif
 
 #if 1
+#if 1
 	if(_extConfigRtkOnePort(PN_PORT0) != EXIT_SUCCESS)
 		return EXIT_FAILURE;/* timeout */
 	if(_extConfigRtkOnePort(PN_PORT1) != EXIT_SUCCESS)
@@ -240,6 +344,9 @@ char extBspRtl8305Config(void)
 	__RTK_CHECK_PORT_START(PN_PORT5, retVal, "start");
 	retVal = rtk_stat_port_start(PN_PORT6);
 	__RTK_CHECK_PORT_START(PN_PORT6, retVal, "start");
+#endif
+
+	_printPortState(PN_PORT5);
 
 	return EXIT_SUCCESS;
 }

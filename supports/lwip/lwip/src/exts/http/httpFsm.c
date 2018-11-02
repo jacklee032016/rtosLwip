@@ -10,7 +10,7 @@
 static unsigned char _httpEventRecvInReqState(void *arg)
 {
 	HttpEvent *he = (HttpEvent *)arg;
-	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
+//	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
 	
 	err_t err = extHttpRequestParse(he->mhc, he->pBuf);
 	if( err == ERR_INPROGRESS)
@@ -60,7 +60,7 @@ static unsigned char _httpEventRecvInDataState(void *arg)
 
 static unsigned char _httpEventPoll(void *arg)
 {
-	u8_t ret;
+//	u8_t ret;
 	HttpEvent *he = (HttpEvent *)arg;
 	
 	ExtHttpConn *mhc = (ExtHttpConn *)he->mhc;

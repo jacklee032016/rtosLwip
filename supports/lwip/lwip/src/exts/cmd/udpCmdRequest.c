@@ -258,13 +258,13 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_DHCP, &intValue)== EXIT_SUCCESS)
 	{
-		tmpCfg->netMode = intValue+1;
+		tmpCfg->netMode = intValue;
 		count++;
 	}
 	
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_IS_DIP, &intValue)== EXIT_SUCCESS)
 	{
-		tmpCfg->isDipOn = intValue+1;
+		tmpCfg->isDipOn = intValue;
 		count++;
 	}
 
@@ -282,7 +282,6 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 			return EXIT_FAILURE;
 		}
 	}
-	
 	
 
 	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_RS_DATABITS, &tmpCfg->rs232Cfg.charLength ) == EXIT_SUCCESS)
@@ -323,7 +322,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 				return EXIT_FAILURE;
 			}
-			tmpCfg->rs232Cfg.parityType = type +1;
+			tmpCfg->rs232Cfg.parityType = type;
 		}
 	}
 	
@@ -332,7 +331,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_IS_MCAST, &intValue)== EXIT_SUCCESS)
 	{
 		count++;
-		tmpCfg->isMCast = intValue+1;
+		tmpCfg->isMCast = intValue;
 	}
 	
 	if(extJsonParseIpAddress(parser, EXT_IPCMD_DATA_MCAST_IP, &tmpCfg->dest.ip) == EXIT_SUCCESS)
@@ -377,12 +376,12 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_VIDEO_INTERLACED, &intValue)== EXIT_SUCCESS)
 	{
 		count++;
-		tmpCfg->runtime.vIsInterlaced = intValue+1;
+		tmpCfg->runtime.vIsInterlaced = intValue;
 	}
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_VIDEO_SEGMENTED, &intValue)== EXIT_SUCCESS)
 	{
 		count++;
-		tmpCfg->runtime.vIsSegmented = intValue+1;
+		tmpCfg->runtime.vIsSegmented = intValue;
 	}
 
 //	extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_VIDEO_COLORSPACE, CMN_FIND_V_COLORSPACE(tmpCfg->runtime.vColorSpace) );
@@ -401,7 +400,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 				return EXIT_FAILURE;
 			}
-			tmpCfg->runtime.vColorSpace = type +1;
+			tmpCfg->runtime.vColorSpace = type;
 		}
 	}
 
@@ -444,7 +443,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_IS_CONNECT, &intValue)== EXIT_SUCCESS)
 	{
 		count++;
-		tmpCfg->runtime.isConnect = intValue+1;
+		tmpCfg->runtime.isConnect = intValue;
 	}
 
 	

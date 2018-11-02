@@ -138,8 +138,8 @@
     copied from pbuf into this a global buffer when pbuf- or packet-queues
     are received - otherwise the input pbuf is used directly) */
 #if !defined	MHTTPD_MAX_REQ_LENGTH
-//#define	MHTTPD_MAX_REQ_LENGTH		(2048+1024)//LWIP_MIN(1023, (MHTTPD_REQ_QUEUELEN * PBUF_POOL_BUFSIZE))
-#define	MHTTPD_MAX_REQ_LENGTH		(2048)//LWIP_MIN(1023, (MHTTPD_REQ_QUEUELEN * PBUF_POOL_BUFSIZE))
+#define	MHTTPD_MAX_REQ_LENGTH		(2048+1024+2048)//LWIP_MIN(1023, (MHTTPD_REQ_QUEUELEN * PBUF_POOL_BUFSIZE))
+//#define	MHTTPD_MAX_REQ_LENGTH		(2048)//LWIP_MIN(1023, (MHTTPD_REQ_QUEUELEN * PBUF_POOL_BUFSIZE))
 #endif
 
 /** This is the size of a static buffer used when URIs end with '/'.

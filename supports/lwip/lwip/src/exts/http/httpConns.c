@@ -5,7 +5,7 @@
 #include "lwip/tcpip.h"
 
 /* Initialize a ExtHttpConn */
-static void _extHttpStateInit(ExtHttpConn* mhc)
+static void _extHttpConnInit(ExtHttpConn* mhc)
 {
 	/* Initialize the structure. */
 	memset(mhc, 0, sizeof(ExtHttpConn));
@@ -20,9 +20,8 @@ static void _extHttpStateInit(ExtHttpConn* mhc)
 /** Free a ExtHttpConn.
  * Also frees the file data if dynamic.
  */
-static void _mhttpStateEof(ExtHttpConn *ehc)
+static void _extHttpConnEof(ExtHttpConn *ehc)
 {
-TRACE();
 	if(ehc->handle)
 	{
 #if	MHTTPD_TIMING
@@ -50,14 +49,13 @@ TRACE();
 	}
 #endif
 
-TRACE();
 	if (ehc->req)
 	{
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s free pbuf 0x%p for request", ehc->name, ehc->req ) );
 		pbuf_free(ehc->req);
 		ehc->req = NULL;
 	}
-TRACE();
+
 }
 
 
@@ -85,11 +83,11 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 	
 	if (mhc != NULL)
 	{
-		if ((mhc->postDataLeft != 0)
+		if ( HTTPREQ_IS_UPLOAD(mhc) && ((mhc->postDataLeft != 0 )
 #if	MHTTPD_POST_MANUAL_WND
-			|| ((mhc->no_auto_wnd != 0) && (mhc->unrecved_bytes != 0))
+			|| ((mhc->no_auto_wnd != 0) && (mhc->unrecved_bytes != 0))  
 #endif
-			)
+			) )
 		{
 
 			/* make sure the post code knows that the connection is closed */
@@ -179,8 +177,8 @@ void extHttpConnEof(ExtHttpConn *mhc)
 	{
 		_removeConnection(mhc);
 
-		_mhttpStateEof(mhc);
-		_mhttpStateInit(mhc);
+		_extHttpConnEof(mhc);
+		_extHttpConnInit(mhc);
 		/* restore state: */
 //		mhc->pcb = pcb;
 		mhc->keepalive = 1;
@@ -418,7 +416,7 @@ ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 
 	if (ehc != NULL)
 	{
-		_extHttpStateInit(ehc);
+		_extHttpConnInit(ehc);
 
 #if EXT_HTTPD_DEBUG
 		httpStats.connCount++;
@@ -440,7 +438,6 @@ void extHttpConnFree(ExtHttpConn *ehc)
 {
 	err_t err;
 	
-TRACE();
 	if (ehc == NULL)
 	{
 		return;
@@ -453,7 +450,6 @@ TRACE();
 
 //		LOCK_TCPIP_CORE();
 HTTP_LOCK();
-TRACE();
 		pcb = ehc->pcb;
 //		EXT_ASSERT(("PCB for CONN %s is null", ehc->name), pcb != NULL);
 		ehc->pcb = NULL;
@@ -486,12 +482,12 @@ HTTP_UNLOCK();
 
 HTTP_UNLOCK();
 //		UNLOCK_TCPIP_CORE();
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d) is freed, ", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d for URL %s) is freed, ", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, ehc->uri) );
 		
 	}
 
 	
-	_mhttpStateEof(ehc);
+	_extHttpConnEof(ehc);
 	_removeConnection(ehc);
 #if EXT_HTTPD_DEBUG
 //		httpStats.connCount--;
@@ -503,7 +499,6 @@ HTTP_UNLOCK();
 
 	HTTP_CONN_FREE(ehc);
 
-TRACE();
 }
 
 
