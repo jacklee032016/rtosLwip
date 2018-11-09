@@ -7,7 +7,7 @@
 
 #include "jsmn.h"
 #include "extUdpCmd.h"
-
+#include "httpClient.h"
 
 unsigned int cmnMuxCRC32b(void *message, int len)
 {
@@ -106,6 +106,78 @@ static const	EXT_CONST_STR	_httpStringEvents[] =
 };
 
 #endif
+
+
+
+static const	EXT_CONST_STR	_hcStringStates[] =
+{
+	{
+		type	: HC_STATE_WAIT,
+		name	: "WAIT"
+	},
+	{
+		type	: HC_STATE_INIT,
+		name	: "INIT"
+	},
+	{
+		type	: HC_STATE_CONN,
+		name	: "CONN"
+	},
+	{
+		type	: HC_STATE_DATA,
+		name	: "DATA"
+	},
+	{
+		type	: HC_STATE_ERROR,
+		name	: "ERROR"
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+
+static const	EXT_CONST_STR	_hcStringEvents[] =
+{
+	{
+		type	: HC_EVENT_NEW,
+		name	: "NEW"
+	},
+	{
+		type	: HC_EVENT_TIMEOUT,
+		name	: "TIMEOUT"
+	},
+	{
+		type	: HC_EVENT_CONNECTED,
+		name	: "CONN"
+	},
+	{
+		type	: HC_EVENT_RECV,
+		name	: "RECV"
+	},
+	{
+		type	: HC_EVENT_POLL,
+		name	: "POLL"
+	},
+	{
+		type	: HC_EVENT_SENT,
+		name	: "SENT"
+	},
+	{
+		type	: HC_EVENT_CLOSE,
+		name	: "CLOSE"
+	},
+	{
+		type	: HC_EVENT_ERROR,
+		name	: "ERROR"
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
 
 static const	EXT_CONST_STR	_ipcmdStringRsParities[] =
 {
@@ -263,6 +335,12 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 			_str = _httpStringEvents;
 			break;
 #endif
+		case CMN_STR_T_HC_STATES:
+			_str = _hcStringStates;
+			break;
+		case CMN_STR_T_HC_EVENTS:
+			_str = _hcStringEvents;
+			break;
 		default:
 			return "Unknown String Type";
 			break;
@@ -302,6 +380,12 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 			_str = _httpStringEvents;
 			break;
 #endif
+		case CMN_STR_T_HC_STATES:
+			_str = _hcStringStates;
+			break;
+		case CMN_STR_T_HC_EVENTS:
+			_str = _hcStringEvents;
+			break;
 		default:
 			return -1;
 			break;
@@ -390,6 +474,61 @@ char cmnUtilsParseInt8(char *strValue, uint8_t  *value)
 	{
 		return EXIT_SUCCESS;
 	}
+}
+
+
+
+
+/* return < 0, error; 0 : on this header; others, content length */
+uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength)
+{
+	char *scontent_len_end, *scontent_len;
+	char *content_len_num;
+	int contentLen;
+
+		/* search for "Content-Length: " */
+#define HTTP_HDR_CONTENT_LEN                "Content-Length: "
+#define HTTP_HDR_CONTENT_LEN_LEN            16
+#define HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN  10
+
+	scontent_len = lwip_strnstr(headers, HTTP_HDR_CONTENT_LEN, headerLength);
+	if (scontent_len == NULL)
+	{
+		/* If we come here, headers are fully received (double-crlf), but Content-Length
+		was not included. Since this is currently the only supported method, we have to fail in this case! */
+//		EXT_ERRORF(("Error when parsing Content-Length"));
+//		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		return ERR_OK;
+	}
+	
+	scontent_len_end = lwip_strnstr(scontent_len + HTTP_HDR_CONTENT_LEN_LEN, MHTTP_CRLF, HTTP_HDR_CONTENT_LEN_DIGIT_MAX_LEN);
+	if (scontent_len_end == NULL)
+	{
+		EXT_ERRORF( ("Error when parsing number in Content-Length: '%s'",scontent_len+HTTP_HDR_CONTENT_LEN_LEN ));
+//		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		return ERR_VAL;
+	}
+
+	content_len_num = scontent_len + HTTP_HDR_CONTENT_LEN_LEN;
+	contentLen = atoi(content_len_num);
+			
+	if (contentLen == 0)
+	{
+		/* if atoi returns 0 on error, fix this */
+		if ((content_len_num[0] != '0') || (content_len_num[1] != '\r'))
+		{
+			contentLen = -1;
+		}
+	}
+			
+	if (contentLen < 0)
+	{
+		EXT_ERRORF( ("POST received invalid Content-Length: %s", content_len_num));
+//		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		return ERR_VAL;
+	}
+
+	return contentLen;
 }
 
 

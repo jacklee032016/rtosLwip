@@ -104,7 +104,7 @@ static char _nmosReceiversHander(ExtHttpConn  *mhc, void *data)
 		}
 		if(!rcv)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
 		}
 	}
 	else 
@@ -207,7 +207,7 @@ static char _nmosSendersHander(ExtHttpConn  *mhc, void *data)
 		}
 		if(!snd)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 	else 
@@ -339,7 +339,7 @@ static char _nmosFlowsHander(ExtHttpConn  *mhc, void *data)
 		}
 		if(!flow)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for flow");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for flow");
 		}
 	}
 	else 
@@ -449,7 +449,7 @@ static char _nmosSourcesHander(ExtHttpConn  *mhc, void *data)
 		}
 		if(!src)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for source");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for source");
 		}
 	}
 	else 
@@ -499,7 +499,7 @@ static char _nmosDeviceHander(ExtHttpConn  *mhc, void *data)
 	{
 		if(!extUuidEqual(&mhc->apiReq.uuid, &dev->resourceId.nmosId.uuid) )
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for device");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for device");
 		}
 		isArray = 0;
 	}

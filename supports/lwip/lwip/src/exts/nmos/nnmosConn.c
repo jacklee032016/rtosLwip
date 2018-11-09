@@ -76,7 +76,7 @@ static char _connSingleReceiverActiveHander(ExtHttpConn  *mhc, void *data)
 
 		if(rcv == NULL)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -181,7 +181,7 @@ static char _connSingleReceiveConstraintsHander(ExtHttpConn  *mhc, void *data)
 
 		if(rcv == NULL)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
 		}
 	}
 
@@ -233,7 +233,7 @@ static char _connSingleReceiversHander(ExtHttpConn  *mhc, void *data)
 			rcv = rcv->next;
 		}
 		
-		return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
+		return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for receiver");
 	}
 
 	index += snprintf((char *)mhc->data+index, sizeof(mhc->data)-index, "[" );
@@ -295,7 +295,7 @@ static char _connSingleSenderTransportFileHander(ExtHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -345,7 +345,7 @@ static char _connSingleSenderActiveHander(ExtHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -452,7 +452,7 @@ static char _connSingleSenderStageHander(ExtHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -551,7 +551,7 @@ static char _connSingleSenderConstraintsHander(ExtHttpConn  *mhc, void *data)
 
 		if(snd == NULL)
 		{
-			return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+			return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 		}
 	}
 
@@ -608,7 +608,7 @@ static char _connSingleSendersHander(ExtHttpConn  *mhc, void *data)
 			snd = snd->next;
 		}
 		
-		return extHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
+		return cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "ID not found for sender");
 	}
 
 	if(snd)
@@ -669,7 +669,7 @@ static char _connBulkReceiversHander(ExtHttpConn  *mhc, void *data)
 
 	if(mhc->method == HTTP_METHOD_GET )
 	{
-		extHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
+		cmnHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
 		return EXIT_SUCCESS;
 	}
 
@@ -754,7 +754,7 @@ static char _connBulkSendersHander(ExtHttpConn  *mhc, void *data)
 
 	if(mhc->method == HTTP_METHOD_GET )
 	{
-		extHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
+		cmnHttpRestError(mhc, WEB_RES_METHOD_NA, "GET is not allowed");
 		return EXIT_SUCCESS;
 	}
 

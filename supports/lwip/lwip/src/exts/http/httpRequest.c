@@ -157,7 +157,7 @@ static int _httpParseMethod(ExtHttpConn *ehc, unsigned char *data, u16_t data_le
 
 
 
-
+#if 0
 /* *data: current pointer of data handled; endHeader: the end of HTTP header */
 static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 {
@@ -176,7 +176,7 @@ static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 		/* If we come here, headers are fully received (double-crlf), but Content-Length
 		was not included. Since this is currently the only supported method, we have to fail in this case! */
 //		EXT_ERRORF(("Error when parsing Content-Length"));
-//		extHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+//		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
 		return ERR_ARG;
 	}
 	
@@ -184,7 +184,7 @@ static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 	if (scontent_len_end == NULL)
 	{
 		EXT_ERRORF( ("Error when parsing number in Content-Length: '%s'",scontent_len+HTTP_HDR_CONTENT_LEN_LEN ));
-		extHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
 		return ERR_VAL;
 	}
 
@@ -203,7 +203,7 @@ static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 	if (contentLen < 0)
 	{
 		EXT_ERRORF( ("POST received invalid Content-Length: %s", content_len_num));
-		extHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
 		return ERR_VAL;
 	}
 
@@ -212,9 +212,11 @@ static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 
 	return ERR_OK;
 }
+#endif
 
 char _httpParseHeaders(ExtHttpConn *ehc)
 {
+	uint32_t ret = 0;
 	if(ehc->headers == NULL || ehc->headerLength == 0)
 	{
 		EXT_INFOF(("%s header length is 0", ehc->name) );
@@ -229,8 +231,20 @@ char _httpParseHeaders(ExtHttpConn *ehc)
 	}
 
 	/* Update Firmware */
+#if 0	
 	__httpHeaderContentLength(ehc);
-	
+#else
+	ret = cmnHttpParseHeaderContentLength(ehc->headers, (uint32_t) ehc->headerLength);
+	if(ret < ERR_OK )
+	{
+		EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", ehc->headerLength, ehc->headers) );
+		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+	}
+	else
+	{
+		ehc->contentLength = ret;
+	}
+#endif
 	if (HTTP_IS_POST(ehc) )
 	{
 		if(extHttpPostCheckUpdate(ehc) != ERR_INPROGRESS)
@@ -262,7 +276,7 @@ char _httpParseHeaders(ExtHttpConn *ehc)
 	}
 
 	ehc->reqType = EXT_HTTP_REQ_T_REST;
-	extHttpRestError(ehc, WEB_RES_NOT_FOUND, "URI not exist in server");
+	cmnHttpRestError(ehc, WEB_RES_NOT_FOUND, "URI not exist in server");
 
 
 	return EXIT_SUCCESS;

@@ -2906,6 +2906,11 @@
 #define	MEMP_NUM_HTTP_EVENT						32
 #endif
 
+#if !defined MEMP_NUM_HC_EVENT || defined __DOXYGEN__
+#define	MEMP_NUM_HC_EVENT						8
+#endif
+
+
 /** Set this to 1 to use a memp pool for allocating 
  * ExtHttpConn instead of the heap.
  */

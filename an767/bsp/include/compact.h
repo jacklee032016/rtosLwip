@@ -280,6 +280,8 @@ typedef    _CODE unsigned char    cBYTE;
 #define	EXT_CMD_PTP_INFO				"ptp"
 #define	EXT_CMD_MAC_INFO				"mac"	/* MAC address */
 
+#define	EXT_CMD_HTTP_CLIENT			"hc"
+
 #define	EXT_CMD_LOCAL_INFO			"local"	/* MAC/IP and A/V port of local, both on TX/RX */
 #define	EXT_CMD_DEST_INFO			"dest"	/* MAC/IP and A/V port of dest, on TX */
 

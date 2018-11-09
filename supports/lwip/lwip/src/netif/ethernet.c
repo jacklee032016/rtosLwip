@@ -81,7 +81,7 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif)
 {
 	struct eth_hdr* ethhdr;
 	u16_t type;
-	
+
 #if LWIP_ARP || ETHARP_SUPPORT_VLAN || LWIP_IPV6
 	s16_t ip_hdr_offset = SIZEOF_ETH_HDR;
 #endif /* LWIP_ARP || ETHARP_SUPPORT_VLAN */
@@ -98,7 +98,7 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif)
   /* points to packet payload, which starts with an Ethernet header */
 	ethhdr = (struct eth_hdr *)p->payload;
 
-  #if 0
+#if 0
 	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet_input: dest:%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F", src:%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F", type:%"X16_F"\n",
 		(unsigned)ethhdr->dest.addr[0], (unsigned)ethhdr->dest.addr[1], (unsigned)ethhdr->dest.addr[2],
 		(unsigned)ethhdr->dest.addr[3], (unsigned)ethhdr->dest.addr[4], (unsigned)ethhdr->dest.addr[5],
@@ -303,7 +303,7 @@ err_t ethernet_output(struct netif* netif, struct pbuf* p, const struct eth_addr
 	LWIP_ASSERT(("netif->hwaddr_len must be 6 (%d) for ethernet_output!", netif->hwaddr_len), (netif->hwaddr_len == ETH_HWADDR_LEN) );
 //	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet etharp_hwaddr_len:%d(%p)"LWIP_NEW_LINE, netif->hwaddr_len, netif));
 
-	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet_output: sending packet %p\n", (void *)p));
+	LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet_output: sending packet %p: length %d\n", (void *)p, p->tot_len));
 
 	/* send the packet */
 	return netif->linkoutput(netif, p);

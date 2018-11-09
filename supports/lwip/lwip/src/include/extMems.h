@@ -27,5 +27,13 @@ typedef struct _HttpEvent
 }HttpEvent;
 
 
+typedef struct _HcEvent
+{
+	uint8_t		event;
+
+	void 		*data;
+}HcEvent;
+
+
 #endif
 

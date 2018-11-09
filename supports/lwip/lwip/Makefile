@@ -10,6 +10,7 @@ CODE_SUBDIRS = \
 	src/api \
 	src/core/ipv4 \
 	src/netif/ppp/polarssl \
+	$(EXT_HOME)/client	\
 	$(EXT_HOME)/cmn	\
 	$(EXT_HOME)/http	\
 	$(EXT_HOME)/iperf	\
@@ -108,6 +109,8 @@ EXTS_WEB_SRC += \
 	$(EXT_HOME)/http/httpSdpApi.c \
 	$(EXT_HOME)/http/httpParseData.c \
 	$(EXT_HOME)/http/httpMain.c \
+	$(EXT_HOME)/client/httpClientFsm.c \
+	$(EXT_HOME)/client/httpClientMain.c \
 
 
 EXTS_CMN_SRC += \
@@ -119,12 +122,12 @@ EXTS_CMN_SRC += \
 	$(EXT_HOME)/cmn/cmnCmdLine.c \
 	$(EXT_HOME)/cmn/jsmn.c \
 	$(EXT_HOME)/cmn/base64.c \
+	$(EXT_HOME)/cmn/cmnHttpUtils.c \
 
 
 
 EXTS_NMOS_SRC += \
 	$(EXT_HOME)/nmos/nnmosHttp.c \
-	$(EXT_HOME)/nmos/nnmosHttpErrors.c \
 	$(EXT_HOME)/nmos/nnmosPost.c \
 	$(EXT_HOME)/nmos/nnmosNode.c \
 	$(EXT_HOME)/nmos/nnmosConn.c \

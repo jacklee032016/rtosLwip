@@ -75,6 +75,9 @@ LWIP_MEMPOOL(EXT_HTTP_EVENT,  MEMP_NUM_HTTP_EVENT,   sizeof(struct _HttpEvent), 
 LWIP_MEMPOOL(EXT_HTTP_CONN,  MEMP_NUM_HTTP_CONN,   sizeof(struct _ExtHttpConn),      "HTTP_CONN")
 #endif
 
+LWIP_MEMPOOL(EXT_HC_EVENT,  MEMP_NUM_HC_EVENT,   sizeof(struct _HcEvent),      "HC_EVENT")
+
+
 #if LWIP_MPU_COMPATIBLE
 LWIP_MEMPOOL(API_MSG,        MEMP_NUM_API_MSG,         sizeof(struct api_msg),        "API_MSG")
 #if LWIP_DNS

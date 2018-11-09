@@ -243,6 +243,41 @@ char	cmnCmdPtpInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 	return EXT_FALSE;
 }
 
+
+char	cmnCmdHttpClient(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
+{
+	int index = 0;
+	unsigned int address;
+	unsigned short port;
+	char err;
+
+	if(argc < 4)
+	{
+		index += snprintf(outBuffer+index, bufferLen-index, EXT_NEW_LINE EXT_CMD_HTTP_CLIENT" only %d arguments :", argc);
+		index += snprintf(outBuffer+index, bufferLen-index, EXT_NEW_LINE EXT_CMD_HTTP_CLIENT" IP Port URI :"EXT_NEW_LINE" Request SDP or JSON data"EXT_NEW_LINE);
+		return EXT_FALSE;
+	}
+	
+	address = ipaddr_addr(argv[1]);
+	if(address == IPADDR_NONE)
+	{
+		index += snprintf(outBuffer+index, bufferLen-index, "\tArgument 1 '%s' is not IP address"EXT_NEW_LINE, argv[1] );
+		return EXT_FALSE;
+	}
+
+	if(cmnUtilsParseInt16(argv[2], &port) == EXIT_FAILURE)
+	{
+		index += snprintf(outBuffer+index, bufferLen-index, "\tArgument 2 '%s' is not validate port"EXT_NEW_LINE, argv[2] );
+		return EXT_FALSE;
+	}
+	
+	err = extHttpClientNewRequest(address, port, argv[3]);
+	index += snprintf(outBuffer+index, bufferLen-index, "\t'http://%s:%d/%s' send %s"EXT_NEW_LINE, ip4addr_ntoa((ip4_addr_t *)&address), port, argv[3], (err==EXIT_SUCCESS)?"OK":"failed");
+
+	return EXT_FALSE;
+}
+
+
 char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
 {
 	unsigned int index = 0;

@@ -57,6 +57,8 @@
 #include "extNmos.h"
 #include "http.h"
 
+//#include "lwip/apps/httpApp.h"
+
 #ifndef	TRACE
 	#define	TRACE()						printf(__FILE__", line %u"EXT_NEW_LINE, __LINE__)
 #endif

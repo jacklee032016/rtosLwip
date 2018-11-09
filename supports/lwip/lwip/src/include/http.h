@@ -472,6 +472,16 @@ typedef struct _ExtHttpConn
 
 #define	HTTP_CHECK_FREE(ehc) 		((ehc)->state == H_STATE_FREE)
 
+/* return content length of response */
+typedef uint16_t (*ExtHttpCallback)(struct _ExtHttpConn  *mhc, void *data);
+
+typedef enum
+{
+	WEB_RESP_HTML,
+	WEB_RESP_JSON,
+	WEB_RESP_SDP,
+	WEB_RESP_UNKNOWN
+}WEB_RESP_T;
 
 typedef struct
 {
@@ -479,7 +489,8 @@ typedef struct
 
 	HTTP_METHOD_T			method;
 	
-	MuxHttpCallback			handler;	/* when handler is NULL, this command is not handled now */
+	ExtHttpCallback			handler;	/* when handler is NULL, this command is not handled now */
+	char						respType;	/* response type */
 }MuxHttpHandle;
 
 
@@ -650,10 +661,10 @@ unsigned short  extHttpWebSocketWrite(ExtHttpConn *mhc, const uint8_t *data, uin
 
 const char *extHttpFindStatusHeader(unsigned short httpStatusCode);
 
-char	extHttpRestError(ExtHttpConn *mhc, unsigned short httpErrorCode, const char *debug);
+char	cmnHttpRestError(ExtHttpConn *mhc, unsigned short httpErrorCode, const char *debug);
 
 
-char extHttpWebPageRootHander(ExtHttpConn  *mhc, void *data);
+uint16_t extHttpWebPageRootHander(ExtHttpConn  *mhc, void *data);
 
 char extHttpWebService(ExtHttpConn *mhc, void *data);
 char extHttpWebPageResult(ExtHttpConn  *mhc, char *title, char *msg);
@@ -672,11 +683,11 @@ void	httpFsmHandle(HttpEvent *he);
 char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, struct tcp_pcb *pcb);
 
 
-char extHttpSimpleApi(ExtHttpConn  *mhc, void *data);
+uint16_t extHttpSimpleRestApi(ExtHttpConn  *mhc, void *data);
 
-char extHttpSdpAudio(ExtHttpConn  *mhc, void *data);
+uint16_t extHttpSdpAudio(ExtHttpConn  *mhc, void *data);
 
-char extHttpSdpVideo(ExtHttpConn  *mhc, void *data);
+uint16_t extHttpSdpVideo(ExtHttpConn  *mhc, void *data);
 
 
 sys_mutex_t			_httpMutex;
@@ -699,10 +710,10 @@ extern	HttpStats	httpStats;
 #endif
 
 
-#define	__HTTP_CRLF_SIZE		4
 
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);
 
+int cmnHttpPrintResponseHeader(ExtHttpConn *mhc, const char contentType);
 
 
 #endif

@@ -1,3 +1,6 @@
+/*
+* Common HTTP utilities in HTTP Service, NMOS and HTTP Client
+*/
 
 #include "lwipExt.h"
 
@@ -75,7 +78,7 @@ const char *extHttpFindStatusHeader(unsigned short httpStatusCode)
 	return EXT_HTTP_HDR_S_STATUS_404;
 }
 
-char	extHttpRestError(ExtHttpConn *mhc, unsigned short httpErrorCode, const char *debug)
+char	cmnHttpRestError(ExtHttpConn *mhc, unsigned short httpErrorCode, const char *debug)
 {
 	int index = 0;
 	const char *statusHdr;
@@ -99,4 +102,29 @@ char	extHttpRestError(ExtHttpConn *mhc, unsigned short httpErrorCode, const char
 	return EXIT_SUCCESS;
 }
 
+
+int cmnHttpPrintResponseHeader(ExtHttpConn *mhc, const char contentType)
+{
+	int index = 0;
+	
+	CMN_SN_PRINTF((char *)mhc->data, sizeof(mhc->data), index, "HTTP/1.0 200 OK"EXT_NEW_LINE );
+	CMN_SN_PRINTF((char *)mhc->data, sizeof(mhc->data), index, "Server: "MHTTPD_SERVER_AGENT"" EXT_NEW_LINE);
+//	index += snprintf(data+index, size-index, "Cache-Control: no-cache" EXT_NEW_LINE );
+	if(contentType == WEB_RESP_SDP)
+	{
+		CMN_SN_PRINTF((char *)mhc->data, sizeof(mhc->data), index, "Content-type: %s" EXT_NEW_LINE, HTTP_HDR_SDP);
+	}
+	else if(contentType == WEB_RESP_JSON)
+	{
+		CMN_SN_PRINTF((char *)mhc->data, sizeof(mhc->data), index, "Content-type: %s" EXT_NEW_LINE, HTTP_HDR_JSON);
+	}
+	else
+	{
+		CMN_SN_PRINTF((char *)mhc->data, sizeof(mhc->data), index, "Content-type: %s" EXT_NEW_LINE, HTTP_HDR_HTML);
+	}
+	
+	CMN_SN_PRINTF((char *)mhc->data, sizeof(mhc->data), index, "Content-Length: 955 " EXT_NEW_LINE EXT_NEW_LINE );
+	
+	return index;
+}
 

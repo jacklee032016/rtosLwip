@@ -51,7 +51,7 @@ char extNmosNodeDumpHander(ExtHttpConn  *mhc, void *data)
 
 	snprintf(mhc->uri + strlen(mhc->uri), sizeof(mhc->uri)-strlen(mhc->uri), "(%s)%s", apiAp->name, " will be implemented in future" );
 	EXT_DEBUGF(EXT_NMOS_DEBUG, ("'%s' is not implemented yet", apiAp->name) );
-	extHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
+	cmnHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
 	return EXIT_SUCCESS;
 }
 
@@ -236,7 +236,7 @@ static char _extRestApiHandle(ExtHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 
 	if( extHttpNmosParseApiRequest(mhc, type) == EXIT_FAILURE)
 	{
-		extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Failed in parsing resources in URI");
+		cmnHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Failed in parsing resources in URI");
 		return EXIT_SUCCESS;
 	}
 	
@@ -277,7 +277,7 @@ static char _extRestApiHandle(ExtHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 		
 	}
 
-	extHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Can't find service of URI");
+	cmnHttpRestError(mhc, WEB_RES_BAD_REQUEST, "Can't find service of URI");
 
 	return EXIT_SUCCESS;
 
@@ -314,7 +314,7 @@ _return:
 	
 	if(ret == EXIT_FAILURE)
 	{
-		extHttpRestError(mhc, WEB_RES_NOT_FOUND, "URI not exist in server");
+		cmnHttpRestError(mhc, WEB_RES_NOT_FOUND, "URI not exist in server");
 		return ERR_VAL;
 	}
 		

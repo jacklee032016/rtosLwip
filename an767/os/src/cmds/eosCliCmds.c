@@ -352,6 +352,12 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 	},
 
 	{
+		name	: EXT_CMD_HTTP_CLIENT,
+		helpString: EXT_NEW_LINE EXT_CMD_HTTP_CLIENT" IP Port URI :"EXT_NEW_LINE" Request SDP or JSON data"EXT_NEW_LINE,
+		callback: cmnCmdHttpClient,
+	},
+	
+	{
 		name	: EXT_CMD_PTP_INFO,
 		helpString: EXT_NEW_LINE EXT_CMD_PTP_INFO" :"EXT_NEW_LINE" Display PTP runtime data"EXT_NEW_LINE,
 		callback: cmnCmdPtpInfo,

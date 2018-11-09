@@ -46,6 +46,8 @@
 
 #define		LWIP_EXT_PTP					1	/* precision time protocol */
 
+#define		LWIP_EXT_HTTP_CLIENT			1	/* HTTP Client */
+
 /* button configuration */
 #define		_RESET_BTN_RESTORE_FACTORY 				1
 #define		_RESET_BTN_STAY_IN_BOOTLOADER			2
@@ -339,6 +341,7 @@
 #define	EXT_NMOS_DEBUG						EXT_DBG_OFF
 
 #define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_ON
+#define	EXT_HTTPC_DEBUG						EXT_DBG_ON
 
 
 
@@ -680,8 +683,12 @@ typedef	enum
 {
 	CMN_STR_T_RS_PARITY = 0,
 	CMN_STR_T_V_COLORSPACE,
+	
 	CMN_STR_T_HTTP_STATES,
-	CMN_STR_T_HTTP_EVENTS
+	CMN_STR_T_HTTP_EVENTS,
+
+	CMN_STR_T_HC_STATES,
+	CMN_STR_T_HC_EVENTS
 }CMN_STR_TYPE;
 
 
@@ -701,6 +708,12 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 #define	CMN_FIND_HTTP_EVENT(type)		\
 	extCmnStringFind(CMN_STR_T_HTTP_EVENTS, (type) )
 
+#define	CMN_FIND_HC_STATE(type)		\
+	extCmnStringFind(CMN_STR_T_HC_STATES, (type) )
+
+#define	CMN_FIND_HC_EVENT(type)		\
+	extCmnStringFind(CMN_STR_T_HC_EVENTS, (type) )
+
 
 
 #define	CMN_FIND_STR_RS_PARITY(str)		\
@@ -714,6 +727,12 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 #define	CMN_FIND_STR_HTTP_EVENT(str)		\
 	extCmnTypeFind(CMN_STR_T_HTTP_EVENTS, (str) )
+
+#define	CMN_FIND_STR_HC_STATE(str)		\
+	extCmnTypeFind(CMN_STR_T_HC_STATES, (str) )
+
+#define	CMN_FIND_STR_HC_EVENT(str)		\
+	extCmnTypeFind(CMN_STR_T_HC_EVENTS, (str) )
 
 
 
@@ -1037,6 +1056,17 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg);
 char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
 char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
 
+
+void extHttpClientMain(void *data);
+char extHttpClientNewRequest(uint32_t dest, uint16_t port, char *uri);
+
+#define	__HTTP_CRLF_SIZE		4
+
+#define		HTTP_HDR_SDP					"application/octet-stream"
+#define		HTTP_HDR_JSON					"application/json"
+#define		HTTP_HDR_HTML					"text/html"
+
+uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength);
 
 
 #endif

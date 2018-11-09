@@ -46,7 +46,6 @@ typedef struct
 #define	MHTTP_HDR_JPG					"Content-type: image/jpeg\r\n\r\n"
 #define	MHTTP_HDR_BMP					"Content-type: image/bmp\r\n\r\n"
 #define	MHTTP_HDR_ICO					"Content-type: image/x-icon\r\n\r\n"
-#define	MHTTP_HDR_APP					"Content-type: application/octet-stream\r\n\r\n"
 #define	MHTTP_HDR_JS					"Content-type: application/javascript\r\n\r\n"
 #define	MHTTP_HDR_RA					"Content-type: application/javascript\r\n\r\n"
 #define	MHTTP_HDR_CSS					"Content-type: text/css\r\n\r\n"

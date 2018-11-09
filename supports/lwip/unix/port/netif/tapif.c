@@ -103,6 +103,8 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	}
 #endif
 
+//	EXT_INFOF(("pbuf:%p: length:%d", p, p->tot_len) );
+
 	/* initiate transfer(); */
 	pbuf_copy_partial(p, buf, p->tot_len, 0);
 
@@ -117,6 +119,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	{
 		MIB2_STATS_NETIF_ADD(netif, ifoutoctets, written);
 	}
+	
 	return ERR_OK;
 }
 
@@ -280,6 +283,7 @@ static void low_level_init(struct netif *netif)
 
 	/* Obtain MAC address from network interface. */
 
+#if 0
 	/* (We just fake an address...) */
 	netif->hwaddr[0] = 0x02;
 	netif->hwaddr[1] = 0x12;
@@ -287,6 +291,7 @@ static void low_level_init(struct netif *netif)
 	netif->hwaddr[3] = 0x56;
 	netif->hwaddr[4] = 0x78;
 	netif->hwaddr[5] = 0xab;
+#endif	
 	netif->hwaddr_len = 6;
 
 	/* device capabilities */

@@ -182,6 +182,11 @@ char extLwipStartup(EXT_RUNTIME_CFG *runCfg)
 #endif	
 #endif
 
+#if LWIP_EXT_HTTP_CLIENT
+	EXT_INFOF(("HTTP client start..."));
+	extHttpClientMain(runCfg);
+#endif /* LWIP_EXT_HTTP_CLIENT */
+
 	EXT_INFOF(("FPGA Polling Service start..."));
 	extMediaInit(runCfg);
 

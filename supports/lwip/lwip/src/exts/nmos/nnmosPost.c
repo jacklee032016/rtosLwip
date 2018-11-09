@@ -17,7 +17,7 @@ char extNmosPostDataBegin(void *conn, unsigned char *data, unsigned short len)
 	}
 
 	EXT_ERRORF(("URI '%s' is not validate for POST", mhc->uri) );
-	extHttpRestError(mhc, WEB_RES_NOT_IMP, "POST is not support in this URI");
+	cmnHttpRestError(mhc, WEB_RES_NOT_IMP, "POST is not support in this URI");
 	return EXIT_FAILURE;
 }
 
@@ -59,7 +59,7 @@ void extNmosPostDataFinished(void *conn)
 
 	snprintf(mhc->uri + strlen(mhc->uri), sizeof(mhc->uri)-strlen(mhc->uri), " %s", "will be implemented in future" );
 
-	extHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
+	cmnHttpRestError(mhc, WEB_RES_NOT_IMP, (const char *)mhc->uri);
 
 	TRACE();
 }
