@@ -347,3 +347,48 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	return EXIT_SUCCESS;
 }
 
+static char _compareOneSdp(ExtSdpUri *dest, ExtSdpUri *src)
+{
+	char ret = EXT_FALSE;
+	
+	if( src->ip != IPADDR_NONE )
+	{
+		dest->ip = src->ip;
+		ret = EXT_TRUE;
+	}
+	
+	if(FIELD_IS_CHANGED(src->port) )
+	{
+		dest->port = src->port;
+		ret = EXT_TRUE;
+	}
+	
+	if(! IS_STRING_NULL(src->uri) )	
+	{
+		memcpy(dest->uri, src->uri, sizeof(dest->uri));
+		ret = EXT_TRUE;
+	}
+
+	return ret;
+}
+
+char extSysConfigSdpClient(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
+{
+	char ret = EXT_FALSE, _ret = EXT_FALSE;
+	
+	ret = _compareOneSdp(&runCfg->sdpUriVideo, &rxCfg->sdpUriVideo);
+
+	ret = _compareOneSdp(&runCfg->sdpUriAudio, &rxCfg->sdpUriAudio);
+	
+	if(ret == EXT_TRUE)
+	{
+#ifdef	ARM
+		bspCfgSave(runCfg, EXT_CFG_MAIN);
+#else
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New SDP configuration is saved!") );
+#endif
+	}
+	
+	return ret;
+}
+

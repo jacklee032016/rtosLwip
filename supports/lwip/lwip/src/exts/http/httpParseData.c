@@ -8,10 +8,70 @@
 #include "http.h"
 
 
+
+char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value)
+{
+	if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_VEDIO_IP, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->sdpUriVideo.ip) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_AUDIO_IP, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->sdpUriAudio.ip) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT, strlen(key)))
+	{
+		if(cmnUtilsParseInt16(value, &tmpCfg->sdpUriVideo.port) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT, strlen(key)))
+	{
+		if(cmnUtilsParseInt16(value, &tmpCfg->sdpUriAudio.port) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_VEDIO_URI, strlen(key)))
+	{
+		snprintf(tmpCfg->sdpUriVideo.uri, sizeof(tmpCfg->sdpUriVideo.uri), "%s", value);
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_AUDIO_URI, strlen(key)))
+	{
+		snprintf(tmpCfg->sdpUriAudio.uri, sizeof(tmpCfg->sdpUriAudio.uri), "%s", value);
+	}
+
+	else
+	{
+		EXT_INFOF(("Key '%s' and value '%s' is not support now", key,  value));
+	}
+
+
+	return EXIT_SUCCESS;
+}
+
+
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value)
 {
 
-	if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_IP_VEDIO, strlen(key)))
+	if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_PRODUCT, strlen(key)))
+	{
+		snprintf(tmpCfg->name, sizeof(tmpCfg->name), "%s", value);
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_IP_VEDIO, strlen(key)))
 	{
 		if(cmnUtilsParseIp(value, &tmpCfg->dest.ip) == EXIT_FAILURE)
 		{

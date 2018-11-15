@@ -210,9 +210,9 @@ int main( void )
 	if (err == ERR_MEM)
 		return ERR_MEM;
 #endif
-	sys_thread_new("reset", _factoryTask, NULL, EXT_TASK_LED_STACK_SIZE*4, EXT_TASK_LED_PRIORITY);
+	sys_thread_new(EXT_TASK_RESET, _factoryTask, NULL, EXT_TASK_LED_STACK_SIZE*4, EXT_TASK_LED_PRIORITY);
 
-	sys_thread_new("rs232", _rs232Task, NULL, EXT_TASK_LED_STACK_SIZE*2, EXT_TASK_LED_PRIORITY-1);
+	sys_thread_new(EXT_TASK_RS232, _rs232Task, NULL, EXT_TASK_LED_STACK_SIZE*2, EXT_TASK_LED_PRIORITY-1);
 	
 	extBspFpgaReload();
 	extBspNetStackInit(&extRun);

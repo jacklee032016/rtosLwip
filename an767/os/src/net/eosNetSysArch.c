@@ -56,8 +56,8 @@ err_t sys_sem_new(sys_sem_t *sem, u8_t count)
 
   #endif /* SYS_STATS */
 
-			if (0 == count) { /* Means we want the sem to be
-			                     unavailable at init state. */
+			if (0 == count)
+			{/* Means we want the sem to be unavailable at init state. */
 				xSemaphoreTake( *sem, 1);
 			}
 

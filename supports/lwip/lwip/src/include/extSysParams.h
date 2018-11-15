@@ -185,8 +185,9 @@
 #define ETHERNET_CONF_NET_MASK2                       255
 #define ETHERNET_CONF_NET_MASK3                       0
 
-#define	EXT_HTTP_SVR_PORT					80
+#define	EXT_HTTP_SVR_PORT						80
 
+#define	EXT_SDP_SVR_PORT						80
 
 #define	EXT_MEDIA_PORT_RANGE					10		/* range of RTP port */
 
@@ -234,6 +235,26 @@
 #define	EXT_CMD_MAX_ARGUMENTS		10
 #define	EXT_CMD_MAX_LENGTH			32
 
+
+
+#define	EXT_WEBPAGE_INFO						"/info"
+#define	EXT_WEBPAGE_MEDIA					"/media"
+#define	EXT_WEBPAGE_SETTING					"/setting"
+#define	EXT_WEBPAGE_SDP_CLIENT				"/sdpClient"
+
+#define	EXT_WEBPAGE_UPDATE_MCU				"/mcuUpdate"
+#define	EXT_WEBPAGE_UPDATE_FPGA				"/fpgaUpdate"
+
+#define	EXT_WEBPAGE_REBOOT					"/reboot"
+
+
+#define	EXT_WEBPAGE_UPDATE_MCU_HTML		"/upgradeMcu.html"
+#define	EXT_WEBPAGE_UPDATE_FPGA_HTML		"/upgradeFpga.html"
+
+#define	EXT_WEBPAGE_SDP_VIDEO				"/video.sdp"
+#define	EXT_WEBPAGE_SDP_AUDIO				"/audio.sdp"
+
+#define	EXT_WEBPAGE_API_SERVICE				"/service"
 
 
 
@@ -298,15 +319,21 @@
 
 #define	EXT_TASK_CONSOLE				"console"
 #define	EXT_TASK_MAC					"mac"	/* GMAC controller */
+
 #define	EXT_TASK_HTTP					"httpd"
-#define	EXT_TASK_HTTP_CLIENT			"hClient"
-#define	EXT_TASK_TELNET				"telnetd"
-#define	EXT_TASK_SYS_CTRL				"sysd"
+#define	EXT_TASK_HTTP_CLIENT			"hcd"
+#define	EXT_TASK_SCHEDULE				"sched"	/* schedule task before HTTP Client */
 
 #define	EXT_TASK_NAME					"poll"
 
-#define	EXT_TASK_UDP_CMD_NAME		"cmd"
+#define	EXT_TASK_UDP_CMD_NAME		"udpd"
 
+#define	EXT_TASK_RS232					"rs232"
+#define	EXT_TASK_RESET					"reset"
+
+/* following are not used */
+#define	EXT_TASK_TELNET				"telnetd"
+#define	EXT_TASK_SYS_CTRL				"sysd"
 
 /** Debug level: ALL messages*/
 #define	EXT_DBG_LEVEL_ALL				0x00
@@ -644,13 +671,13 @@ typedef	enum
 
 typedef	enum
 {
-	EXT_V_FRAMERATE_T_23 = 23,
+	EXT_V_FRAMERATE_T_23 = 23,	/* 24/1.001 */
 	EXT_V_FRAMERATE_T_24,
 	EXT_V_FRAMERATE_T_25,
-	EXT_V_FRAMERATE_T_29 = 29,
+	EXT_V_FRAMERATE_T_29 = 29,	/* 30/1.001 */
 	EXT_V_FRAMERATE_T_30,
 	EXT_V_FRAMERATE_T_50 = 50,
-	EXT_V_FRAMERATE_T_59 = 59,
+	EXT_V_FRAMERATE_T_59 = 59,	/* 60/1.001 */
 	EXT_V_FRAMERATE_T_60
 }EXT_V_FRAMERATE;
 
@@ -683,6 +710,9 @@ typedef	enum
 {
 	CMN_STR_T_RS_PARITY = 0,
 	CMN_STR_T_V_COLORSPACE,
+
+	CMN_STR_T_V_FRAME_RATE,
+
 	
 	CMN_STR_T_HTTP_STATES,
 	CMN_STR_T_HTTP_EVENTS,
@@ -701,6 +731,11 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 #define	CMN_FIND_V_COLORSPACE(type)		\
 	extCmnStringFind(CMN_STR_T_V_COLORSPACE, (type) )
+
+
+#define	CMN_FIND_V_FRAME_RATE(type)		\
+	extCmnStringFind(CMN_STR_T_V_FRAME_RATE, (type) )
+
 
 #define	CMN_FIND_HTTP_STATE(type)		\
 	extCmnStringFind(CMN_STR_T_HTTP_STATES, (type) )
@@ -721,6 +756,9 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 #define	CMN_FIND_STR_V_COLORSPACE(str)		\
 	extCmnTypeFind(CMN_STR_T_V_COLORSPACE, (str) )
+
+#define	CMN_FIND_STR_V_FRAME_RATE(str)		\
+	extCmnTypeFind(CMN_STR_T_V_FRAME_RATE, (str) )
 
 #define	CMN_FIND_STR_HTTP_STATE(str)		\
 	extCmnTypeFind(CMN_STR_T_HTTP_STATES, (str) )
@@ -804,6 +842,13 @@ typedef	enum
 }FPGA_PARAM_STATE_T;
 
 
+typedef	struct
+{
+	uint32_t		ip;
+	uint16_t		port;
+	char			uri[32];
+}ExtSdpUri;
+
 /* IP address, port number and state are all defined as unsigned type */
 struct	_EXT_RUNTIME_CFG
 {
@@ -855,6 +900,9 @@ struct	_EXT_RUNTIME_CFG
 	MuxNmosID			nodeID;
 	MuxNmosID			deviceID;
 
+	ExtSdpUri				sdpUriVideo;
+	ExtSdpUri				sdpUriAudio;
+		
 	/* in order to make old bootloader compatible with new RTOS, all new field must be added after here */
 	/* add for 811. Aug.31, 2018 */
 	unsigned int			ipSvr811;			/* IP of server 811 */	
@@ -1055,14 +1103,19 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg);
 
 char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
 char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
+char extSysConfigSdpClient(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
 
 
 void extHttpClientMain(void *data);
-char extHttpClientNewRequest(uint32_t dest, uint16_t port, char *uri);
+char extHttpClientNewRequest(HttpClientReq *req);
 
 #define	__HTTP_CRLF_SIZE		4
 
+#if 1
 #define		HTTP_HDR_SDP					"application/octet-stream"
+#else
+#define		HTTP_HDR_SDP					"application/sdp"
+#endif
 #define		HTTP_HDR_JSON					"application/json"
 #define		HTTP_HDR_HTML					"text/html"
 

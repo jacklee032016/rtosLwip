@@ -2910,6 +2910,9 @@
 #define	MEMP_NUM_HC_EVENT						8
 #endif
 
+#if !defined MEMP_NUM_HC_REQ || defined __DOXYGEN__
+#define	MEMP_NUM_HC_REQ						4	/* request for HTTP client, from schedule */
+#endif
 
 /** Set this to 1 to use a memp pool for allocating 
  * ExtHttpConn instead of the heap.

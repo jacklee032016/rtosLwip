@@ -247,6 +247,54 @@ const	EXT_CONST_STR	_videoColorSpaces[] =
 };
 
 
+const	EXT_CONST_STR	_videoFramerates[] =
+{
+	{
+		type	: EXT_V_FRAMERATE_T_23,
+		name	: "24000/1001"
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_24,
+		name	: "24"
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_25,
+		name	: "25"
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_29,
+		name	: "30000/1001"
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_30,
+		name	: "30"
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_50,
+		name	: "50"
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_59,
+		name	: "60000/1001"
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_60,
+		name	: "60"
+	},
+	
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+
+
 const short	videoWidthList[]=
 {
 	480,
@@ -327,6 +375,9 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 		case CMN_STR_T_V_COLORSPACE:
 			_str = _videoColorSpaces;
 			break;
+		case CMN_STR_T_V_FRAME_RATE:
+			_str = _videoFramerates;
+			break;
 #if EXT_HTTPD_DEBUG
 		case CMN_STR_T_HTTP_STATES:
 			_str = _httpStringStates;
@@ -371,6 +422,9 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 			break;
 		case CMN_STR_T_V_COLORSPACE:
 			_str = _videoColorSpaces;
+			break;
+		case CMN_STR_T_V_FRAME_RATE:
+			_str = _videoFramerates;
 			break;
 #if EXT_HTTPD_DEBUG
 		case CMN_STR_T_HTTP_STATES:

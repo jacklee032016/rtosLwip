@@ -76,6 +76,7 @@ LWIP_MEMPOOL(EXT_HTTP_CONN,  MEMP_NUM_HTTP_CONN,   sizeof(struct _ExtHttpConn), 
 #endif
 
 LWIP_MEMPOOL(EXT_HC_EVENT,  MEMP_NUM_HC_EVENT,   sizeof(struct _HcEvent),      "HC_EVENT")
+LWIP_MEMPOOL(EXT_HC_REQ,  MEMP_NUM_HC_REQ,   sizeof(struct _HttpClientReq),      "HQ_REQ")
 
 
 #if LWIP_MPU_COMPATIBLE

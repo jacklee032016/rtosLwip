@@ -15,7 +15,7 @@
 #define		HTTPC_POLL_INTERVAL							4	/* in 500 ms*/
 
 
-#define		HTTP_CLIENT_NAME								"HTTP CLIENT"
+#define		HTTP_CLIENT_NAME								"HTTP CLIENT: "
 
 #define		HTTP_CLIENT_DEBUG								EXT_DBG_ON
 
@@ -52,17 +52,10 @@ typedef	enum
 {
 	HC_REQ_SDP,
 	HC_REQ_JSON,
+	HC_REQ_HTML,
 	HC_REQ_UNKNOWN
 }HC_REQ_T;
 
-
-typedef	struct _HttpClientReq
-{
-	uint32_t			destIp;
-	uint16_t			destPort;
-
-	char				url[64];
-}HttpClientReq;
 
 
 typedef	struct _HttpClient
@@ -97,10 +90,22 @@ typedef	struct _HttpClient
 }HttpClient;
 
 extern	sys_mutex_t			_httpClientMutex;
+extern	sys_mutex_t			_httpScheduleMutex;
+
+extern	sys_sem_t			_httpClientSema;	/* wait and wake between client and its scheduler */
 
 extern	HttpClient 			_httpClient;
 
 
+#define	HTTP_CLIENT_WAIT()		\
+	sys_sem_wait(&_httpClientSema);
+
+
+#define	HTTP_CLIENT_SIGNAL()		\
+	sys_sem_signal(&_httpClientSema);
+
+
+/* for http client */
 #define	HC_LOCK()		\
 		do{sys_mutex_lock(&_httpClientMutex);}while(0)
 
@@ -117,18 +122,35 @@ extern	HttpClient 			_httpClient;
 		do{memp_free(MEMP_EXT_HC_EVENT, (he)); (he) = NULL;}while(0)
 
 
+/* for http client request */
+#define	HCQ_LOCK()		\
+		do{sys_mutex_lock(&_httpScheduleMutex);}while(0)
+
+
+#define	HCQ_UNLOCK()	\
+		do{sys_mutex_unlock(&_httpScheduleMutex);}while(0)
+
+
+#define	HCQ_EVENT_ALLOC(req) \
+		do{(req) = (HttpClientReq *)memp_malloc(MEMP_EXT_HC_REQ);}while(0)
+
+#define	HCQ_EVENT_FREE(req) \
+		do{memp_free(MEMP_EXT_HC_REQ, (req)); (req) = NULL;}while(0)
+
+
+
 err_t httpClientConnected(void *arg, struct tcp_pcb *pcb, err_t err);
 
 unsigned char httpClientEventConnected(void *arg);
 
 
-void extHttpClientSetRequest(HttpClient *hc, uint32_t dest, uint16_t port, char *uri);
+void extHttpClientSetRequest(HttpClient *hc, HttpClientReq *req);
 
 void	httpClientFsmHandle(HcEvent *hce);
 
 
 #define	HTTP_CLIENT_CLEAR_REQ(hc) \
-	extHttpClientSetRequest((hc), IPADDR_NONE, -1, NULL)
+	extHttpClientSetRequest((hc), NULL)
 
 /* check whether request is waiting */
 #define	HTTP_CLIENT_IS_NOT_REQ(hc)		\
@@ -136,7 +158,14 @@ void	httpClientFsmHandle(HcEvent *hce);
 	//&& (hc)->req.destPort == -1 )
 
 
+#define	HTTP_CLIENT_SET_PCB(hc, _pcb) 	\
+	do{HC_LOCK(); (hc)->pcb = (_pcb); HC_UNLOCK();}while(0)
+
+
 extern	sys_timer_t		_hcTimer;		/* timer new TCP connection */
+
+
+err_t extHttpClientClosePcb(HttpClient *hc, struct tcp_pcb *_pcb);
 
 
 #endif

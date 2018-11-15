@@ -495,25 +495,6 @@ typedef struct
 
 
 
-#define	EXT_WEBPAGE_INFO						"/info"
-#define	EXT_WEBPAGE_MEDIA					"/media"
-#define	EXT_WEBPAGE_SETTING					"/setting"
-
-#define	EXT_WEBPAGE_UPDATE_MCU				"/mcuUpdate"
-#define	EXT_WEBPAGE_UPDATE_FPGA			"/fpgaUpdate"
-
-#define	EXT_WEBPAGE_REBOOT					"/reboot"
-
-
-#define	EXT_WEBPAGE_UPDATE_MCU_HTML		"/upgradeMcu.html"
-#define	EXT_WEBPAGE_UPDATE_FPGA_HTML		"/upgradeFpga.html"
-
-#define	EXT_WEBPAGE_SDP_VIDEO				"/video.sdp"
-#define	EXT_WEBPAGE_SDP_AUDIO				"/audio.sdp"
-
-#define	EXT_WEBPAGE_API_SERVICE				"/service"
-
-
 #define	EXT_WEB_CFG_FIELD_MODEL					"model"
 #define	EXT_WEB_CFG_FIELD_PRODUCT				"name"
 #define	EXT_WEB_CFG_FIELD_VERSION				"version"
@@ -524,8 +505,14 @@ typedef struct
 
 #define	EXT_WEB_CFG_FIELD_MAC					"MAC"
 
-#define	EXT_WEB_CFG_FIELD_SDP_VEDIO				"urlSdpVideo"
-#define	EXT_WEB_CFG_FIELD_SDP_AUDIO				"urlSdpAudio"
+#define	EXT_WEB_CFG_FIELD_SDP_VEDIO_IP			"sdpVideoIp"
+#define	EXT_WEB_CFG_FIELD_SDP_AUDIO_IP			"sdpAudioIp"
+
+#define	EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT		"sdpVideoPort"
+#define	EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT		"sdpAudioPort"
+
+#define	EXT_WEB_CFG_FIELD_SDP_VEDIO_URI			"sdpVideoUri"
+#define	EXT_WEB_CFG_FIELD_SDP_AUDIO_URI			"sdpAudioUri"
 
 #define	EXT_WEB_CFG_FIELD_IP_VEDIO				"ipVideo"
 #define	EXT_WEB_CFG_FIELD_IP_AUDIO				"ipAudio"
@@ -710,7 +697,7 @@ extern	HttpStats	httpStats;
 #endif
 
 
-
+char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);
 
 int cmnHttpPrintResponseHeader(ExtHttpConn *mhc, const char contentType);

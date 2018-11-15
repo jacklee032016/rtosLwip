@@ -15,7 +15,7 @@ typedef struct _UdpCmd
 }UdpCmd;
 #endif
 
- 
+/* event for HTTP server */ 
 typedef struct _HttpEvent
 {
 	unsigned char			type;
@@ -26,7 +26,7 @@ typedef struct _HttpEvent
 	struct pbuf			*pBuf;
 }HttpEvent;
 
-
+/* event for HTTP client */
 typedef struct _HcEvent
 {
 	uint8_t		event;
@@ -34,6 +34,18 @@ typedef struct _HcEvent
 	void 		*data;
 }HcEvent;
 
+/* event for scheduler */
+typedef	struct _HttpClientReq
+{
+	char				type;
+	
+	uint32_t			destIp;
+	uint16_t			destPort;
+
+	char				url[64];
+}HttpClientReq;
+
+	
 
 #endif
 

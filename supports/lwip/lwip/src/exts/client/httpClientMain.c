@@ -7,11 +7,13 @@
 
 static sys_mbox_t 		_httpClientMailBox;
 
-sys_mutex_t			_httpClientMutex;
+sys_mutex_t			_httpClientMutex;	/* protect data */
 
-HttpClient 	_httpClient;
+sys_timer_t			_hcTimer;			/* timer new TCP connection */
 
-sys_timer_t		_hcTimer;		/* timer new TCP connection */
+sys_sem_t			_httpClientSema;	/* wait and wake between client and its scheduler */
+
+HttpClient 			_httpClient;
 
 
 char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
@@ -34,7 +36,7 @@ char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
 	
 	HC_UNLOCK();
 	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": post event %s", CMN_FIND_HC_EVENT(hce->event)) );
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"post event %s", CMN_FIND_HC_EVENT(hce->event)) );
 
 	if (sys_mbox_trypost(&_httpClientMailBox, hce) != ERR_OK)
 	{
@@ -49,7 +51,8 @@ char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
 static void _connError(void *arg, err_t err)
 {
 	// pcb already deallocated
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"HTTP Client CONN Error : '%s'", lwip_strerr(err)));
+//	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"HTTP Client CONN Error : '%s'", lwip_strerr(err)));
+	EXT_ERRORF((HTTP_CLIENT_NAME"HTTP Client CONN Error : '%s'", lwip_strerr(err)));
 	
 	_httpClientPostEvent(HC_EVENT_ERROR, NULL);
 }
@@ -57,17 +60,10 @@ static void _connError(void *arg, err_t err)
 static err_t _connPoll(void *arg, struct tcp_pcb *pcb)
 {
 #if 0
-	struct hc_state *state = arg;
-
-	state->ConnectionTimeout++;
 	if(state->ConnectionTimeout > 20)
 	{
 		// Close the connection
 		tcp_abort(pcb);
-
-		// Give err msg to callback function 
-		// Call return function
-		(*state->ReturnPage)(state->Num, TIMEOUT, NULL, 0);
 	}
 #else	
 	_httpClientPostEvent(HC_EVENT_POLL, pcb);
@@ -91,103 +87,25 @@ static err_t _connSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 
 static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
-#if 0
-	struct hc_state *state = arg;
-	char * page = NULL;
-	struct pbuf * temp_p;
-	hc_errormsg errormsg = GEN_ERROR;
-	int i;
-#endif
+	HttpClient *hc = (HttpClient *)arg;
  
     if((err == ERR_OK) && (p != NULL))
     {
 		tcp_recved(pcb, p->tot_len);
 
- #if 0
-		// Add payload (p) to state
-		temp_p = p;
-		while(temp_p != NULL)
-		{
-			state->RecvData = realloc(state->RecvData, temp_p->len + state->Len + 1);
- 
-			// CHECK 'OUT OF MEM'
-			if(state->RecvData == NULL)
-			{
-				// OUT OF MEMORY
-				(*state->ReturnPage)(state->Num, OUT_MEM, NULL, 0);	
-				return(ERR_OK);
-			}
- 
-			strncpy(state->RecvData + state->Len, temp_p->payload, temp_p->len);
-			state->RecvData[temp_p->len + state->Len] = '\0';			
-			state->Len += temp_p->len;
- 
-			temp_p = temp_p->next;
-		}
- 
-		// Removing payloads
- 
-		while(p != NULL)
-		{
-			temp_p = p->next;
-			pbuf_free(p);
-			p = temp_p;
-		}
- #else
- 		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": Event RECV : data %d bytes :%.*s", p->tot_len, p->tot_len, (char *)p->payload) );
+ 		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d Event RECV : data %d bytes :%.*s", hc->reqs, p->tot_len, p->tot_len, (char *)p->payload) );
 		_httpClientPostEvent(HC_EVENT_RECV, p);
- #endif
     }
     else if((err == ERR_OK) && (p == NULL))
     {
-#if 0    
-		// Simple code for checking 200 OK
-		for(i=0; i < state->Len; i++)
-		{
-			if(errormsg == GEN_ERROR)
-			{
-				// Check for 200 OK 
-				if((*(state->RecvData+i) == '2') && (*(state->RecvData+ ++i) == '0') && (*(state->RecvData+ ++i) == '0')) errormsg = OK;
-				if(*(state->RecvData+i) == '\n') errormsg = NOT_FOUND;
-			}
-			else
-			{
-				// Remove headers
-				if((*(state->RecvData+i) == '\r') && (*(state->RecvData+ ++i) == '\n') && (*(state->RecvData+ ++i) == '\r') && (*(state->RecvData + ++i) == '\n'))
-				{
-					i++;
-					page = malloc(strlen(state->RecvData+i));
-					strcpy(page, state->RecvData+i);
-					break;
-				}
-			}
-		}
- 
-		if(errormsg == OK)
-		{
-			// Put recv data to ---> p->ReturnPage
-			(*state->ReturnPage)(state->Num, OK, page, state->Len);
-		}
-		else
-		{
-			// 200 OK not found Return NOT_FOUND (WARNING: NOT_FOUND COULD ALSO BE 5xx SERVER ERROR, ...) 
-			(*state->ReturnPage)(state->Num, errormsg, NULL, 0);
-		}
- 
-        // Clear the PCB
-        _hcClearPcb(pcb);
- 
-		// free the memory containing state
-		free(state->RecvData);
-		free(state);
-#else
-		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": Event RECV : CONN closed") );
+		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d Event RECV : CONN closed", hc->reqs) );
+
+		extHttpClientClosePcb(hc, pcb);
 		_httpClientPostEvent(HC_EVENT_CLOSE, NULL);
-#endif
 	}
 	else
 	{/* err is not ERR_OK */
-		EXT_ERRORF((HTTP_CLIENT_NAME": Event RECV error: '%s'", lwip_strerr(err)));
+		EXT_ERRORF((HTTP_CLIENT_NAME"#%d Event RECV error: '%s'", hc->reqs, lwip_strerr(err)));
 		_httpClientPostEvent(HC_EVENT_ERROR, NULL);
 	}
 	
@@ -200,72 +118,10 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 /* err always ERR_OK */
 err_t httpClientConnected(void *arg, struct tcp_pcb *pcb, err_t err)
 {
-#if 1
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": connected"));
+	HttpClient *hc = (HttpClient *)arg;
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d request connected", hc->reqs));
 
 	_httpClientPostEvent(HC_EVENT_CONNECTED, arg);
-#else
-	struct hc_state *state = arg;
-	char  * headers;
-
-	if(err != ERR_OK)
-	{
-		_hcClearPcb(pcb);
-
-		// Call return function
-		(*state->ReturnPage)(state->Num, GEN_ERROR, NULL, 0);
-
-		// Free wc state
-		free(state->RecvData);
-		free(state);
-
-		return(ERR_OK);
-	}
-
-	// Define Headers
-	if(state->PostVars == NULL)
-	{/* GET headers (without page)(+ \0) = 19 */
-		headers = malloc(19 + strlen(state->Page));
-		usprintf(headers,"GET /%s HTTP/1.0\r\n\r\n", state->Page);
-	}
-	else
-	{/* POST headers (without PostVars or Page)(+ \0) = 91 */
-		// Content-length: %d <== 						   ??? (max 10)
-		headers = malloc(91 + strlen(state->PostVars) + strlen(state->Page) + 10);
-		usprintf(headers, "POST /%s HTTP/1.0\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: %d\r\n\r\n%s\r\n\r\n", state->Page, strlen(state->PostVars), state->PostVars);
-	}
-
-	// Check if we are nut running out of memory
-	if(headers == NULL)
-	{
-		_hcClearPcb(pcb);
-
-		// Call return function
-		(*state->ReturnPage)(state->Num, OUT_MEM, NULL, 0);
-
-		// Free wc state
-		free(state->RecvData);
-		free(state);
-
-		return(ERR_OK);
-	}
-
-	tcp_recv(pcb, _connRecv);
-	tcp_err(pcb, _connError);
-
-	// Setup the TCP polling function/interval	 //TCP_POLL IS NOT CORRECT DEFINED @ DOC!!!
-	tcp_poll(pcb, _connPoll, 10);					 	
-	tcp_sent(pcb, _connSent);
-
-	// Send data
-	tcp_write(pcb, headers, strlen(headers), 1);
-	tcp_output(pcb);
-
-	// remove headers
-	free(headers);
-	free(state->PostVars);
-	free(state->Page);
-#endif
 
 	return(ERR_OK);
 }
@@ -296,7 +152,7 @@ unsigned char httpClientEventConnected(void *arg)
 	tcp_write(hc->pcb, hc->buf, index, TCP_WRITE_FLAG_COPY);
 	tcp_output(hc->pcb);
 
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": send HTTP reqeust "EXT_NEW_LINE"'%.*s'", index, hc->buf ));
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d send HTTP reqeust "EXT_NEW_LINE"'%.*s'", hc->reqs, index, hc->buf ));
 
 	return HC_STATE_CONN;
 }
@@ -314,7 +170,7 @@ static void _extHttpClientTask(void *arg)
 
 	if (sys_mutex_new(&_httpClientMutex) != ERR_OK)
 	{
-		EXT_ASSERT((HTTP_CLIENT_NAME": failed to create HTTP Mutex"), 0);
+		EXT_ASSERT((HTTP_CLIENT_NAME"failed to create HTTP Mutex"), 0);
 	}
 
 	sys_timer_new(&_hcTimer, _hcTimerCallback, os_timer_type_once, (void *)arg);
@@ -328,7 +184,7 @@ static void _extHttpClientTask(void *arg)
 //TRACE();
 		if (hce == NULL)
 		{
-			EXT_ASSERT((HTTP_CLIENT_NAME": task: invalid message"), 0);
+			EXT_ASSERT((HTTP_CLIENT_NAME"task: invalid message"), 0);
 			continue;
 		}
 //TRACE();
@@ -347,9 +203,6 @@ static void _extHttpClientTask(void *arg)
 
 void extHttpClientMain(void *data)
 {
-	struct tcp_pcb *pcb;
-	u16_t port= EXT_HTTP_CLIENT_PORT;
-	
 	HttpClient *hc = &_httpClient;
 
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
@@ -360,76 +213,141 @@ void extHttpClientMain(void *data)
 	hc->state = HC_STATE_WAIT;
 	hc->runCfg = runCfg;
 
-	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	EXT_ASSERT(( HTTP_CLIENT_NAME": failed"), pcb != NULL);
-	hc->pcb = pcb;
-	
-	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
-
-	while(tcp_bind(pcb, IP_ADDR_ANY, port) != ERR_OK)
-	{// Local port in use, use port+1
-		port++;
+	err_t err;
+	/* Incoming packet notification semaphore. */
+	err = sys_sem_new(&_httpClientSema, 1);
+	EXT_ASSERT((HTTP_CLIENT_NAME"semaphore allocation ERROR!"), (err == ERR_OK));
+	if (err == ERR_MEM)
+	{
+		return ERR_MEM;
 	}
-	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME ": bind on port %d", port));
-	
-	tcp_arg(pcb, hc);
 
 	if (sys_mbox_new(&_httpClientMailBox, EXT_HTTP_CLIENT_MBOX_SIZE) != ERR_OK)
 	{
-		EXT_ASSERT((HTTP_CLIENT_NAME": failed to create "EXT_TASK_HTTP_CLIENT" mbox"), 0);
+		EXT_ASSERT((HTTP_CLIENT_NAME"failed to create "EXT_TASK_HTTP_CLIENT" mbox"), 0);
 	}
 
 	sys_thread_new(EXT_TASK_HTTP_CLIENT, _extHttpClientTask, hc, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY -1);
 	
 }
 
-
-void extHttpClientSetRequest(HttpClient *hc, uint32_t dest, uint16_t port, char *uri)
+/* called by HTTP Client task, TCP/IP task, HTTP Svr task, Cmd Task */
+void extHttpClientSetRequest(HttpClient *hc, HttpClientReq *req)
 {
 	HC_LOCK();
 
 	memset(hc->buf, 0, sizeof(hc->buf));
 	hc->length = 0;
-	
-	hc->req.destIp = dest;
-	hc->req.destPort = port;
-	if(IS_STRING_NULL(uri))
+
+	if(req==NULL)
 	{
-		memset(hc->req.url, 0, sizeof(hc->req.url) );
+		hc->req.destIp = IPADDR_NONE;
+		hc->req.destPort = -1;
+		hc->req.url[0] = '\0';
 	}
-	else 
+	else
 	{
-		snprintf(hc->req.url, sizeof(hc->req.url), "%s", uri);
+		hc->req.destIp = req->destIp;
+		hc->req.destPort = req->destPort;
+		if(IS_STRING_NULL(req->url))
+		{
+			memset(hc->req.url, 0, sizeof(hc->req.url) );
+		}
+		else 
+		{
+			snprintf(hc->req.url, sizeof(hc->req.url), "%s", req->url);
+		}
 	}
+
 
 	HC_UNLOCK();
 }
 
 
-char extHttpClientNewRequest(uint32_t dest, uint16_t port, char *uri)
+/* called by other tasks, such as sched (from http server) and console(cmd) */
+char extHttpClientNewRequest(HttpClientReq *req)
 {
 	HttpClient *hc = &_httpClient;
 
 	if(! HTTP_CLIENT_IS_NOT_REQ(hc))
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME": has been requesting %s:%d", extCmnIp4addr_ntoa((unsigned int *)&hc->req.destIp), hc->req.destPort ));
+		EXT_ERRORF((HTTP_CLIENT_NAME"#%d has been requesting %s:%d", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req.destIp), hc->req.destPort ));
 //		return ERR_ALREADY;
 		return EXIT_FAILURE;
 	}
 
-	if(dest== IPADDR_NONE || port == -1 || IS_STRING_NULL(uri) )
+	if(req->destIp == IPADDR_NONE || req->destPort == -1 || IS_STRING_NULL(req->url) )
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME": requesting parameter is error %s:%d/%s", extCmnIp4addr_ntoa((unsigned int *)&dest), hc->req.destPort, (uri==NULL)?"None":uri ));
+		EXT_ERRORF((HTTP_CLIENT_NAME"#%d requesting parameter is error %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&req->destIp), hc->req.destPort, (IS_STRING_NULL(req->url==NULL))?"None":uri ));
 //		return ERR_VAL;
 		return EXIT_FAILURE;
 	}
+
+	struct tcp_pcb *pcb;
+	static u16_t localport= EXT_HTTP_CLIENT_PORT;
+
+
+
+	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
+	EXT_ASSERT(( HTTP_CLIENT_NAME"failed"), pcb != NULL);
 	
-	extHttpClientSetRequest(hc, dest, port, uri);
+	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
+
+	while(tcp_bind(pcb, IP_ADDR_ANY, localport) != ERR_OK)
+	{// Local port in use, use port+1
+		localport++;
+	}
+	
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME "#%d request bind on port %d", hc->reqs, localport));
+	localport++;
+	
+	tcp_arg(pcb, hc);
+
+	HTTP_CLIENT_SET_PCB(hc, pcb);
+	
+	extHttpClientSetRequest(hc, req);
 
 	_httpClientPostEvent(HC_EVENT_NEW, NULL);
 
 //	return ERR_OK;
 	return EXIT_SUCCESS;
+}
+
+/* called by TCPIP task and http client task */
+err_t extHttpClientClosePcb(HttpClient *hc, struct tcp_pcb *_pcb)
+{
+	struct tcp_pcb *pcb = pcb;
+
+	if(hc!= NULL)
+	{
+		pcb = hc->pcb;
+	}
+
+	EXT_ASSERT((HTTP_CLIENT_NAME" PCB is null"), pcb!= NULL);
+		
+	err_t err = tcp_close(pcb);
+	if (err != ERR_OK)
+	{
+		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": Error closing : %d(%s): %p"EXT_NEW_LINE, err, lwip_strerr(err), (void*)pcb));
+		EXT_ERRORF( (HTTP_CLIENT_NAME"Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+		/* error closing, try again later in poll */
+		tcp_poll(pcb, _connPoll,  HTTPC_POLL_INTERVAL);
+
+		return err;
+	}
+
+	if(hc != NULL)
+	{
+		HTTP_CLIENT_SET_PCB(hc, NULL);
+	}
+
+	tcp_arg(pcb, NULL);
+	
+	tcp_recv(pcb, NULL);
+	tcp_err(pcb, NULL);
+	tcp_poll(pcb, NULL, 0);
+	tcp_sent(pcb, NULL);
+
+	return err;
 }
 
