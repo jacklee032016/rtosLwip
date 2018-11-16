@@ -351,8 +351,8 @@ typedef struct _ExtHttpConn
 	unsigned short			leftData;		/* left data in the first pbuf which contains URL|headers */
 
 	/* HTTP upload file */
-	char						boundary[MHTTPD_URI_BUF_LEN+1];		/* for HTTP upload */
-	char						filename[MHTTPD_URI_BUF_LEN+1];
+	char						boundary[MHTTPD_URI_BUF_LEN+1];		/* for HTTP upload, also as content of error message */
+	char						filename[MHTTPD_URI_BUF_LEN+1];		/* also as title of error message */
 	char						uploadStatus;
 	unsigned short			recvLength;
 	struct _MuxUploadContext  *uploadCtx;

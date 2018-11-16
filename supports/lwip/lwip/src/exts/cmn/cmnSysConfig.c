@@ -192,14 +192,27 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 		cfg->local.dport = EXT_MEDIA_PORT_RX_DATA;
 		cfg->local.sport = EXT_MEDIA_PORT_RX_STREA;
 
+
+		cfg->sdpUriAudio.type = HC_REQ_SDP;
 		cfg->sdpUriAudio.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		cfg->sdpUriAudio.port = EXT_SDP_SVR_PORT;
 		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), "%s", EXT_WEBPAGE_SDP_AUDIO);
 
+		cfg->sdpUriVideo.type = HC_REQ_SDP;
 		cfg->sdpUriVideo.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		cfg->sdpUriVideo.port = EXT_SDP_SVR_PORT;
 		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), "%s", EXT_WEBPAGE_SDP_VIDEO);
+
+		cfg->restUrl.type = HC_REQ_JSON;
+		cfg->restUrl.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
+		cfg->restUrl.port = EXT_SDP_SVR_PORT;
+		snprintf(cfg->restUrl.uri, sizeof(cfg->restUrl.uri), "%s", EXT_WEBPAGE_API_SERVICE);
 		
+		cfg->htmlUrl.type = HC_REQ_HTML;
+		cfg->htmlUrl.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
+		cfg->htmlUrl.port = EXT_SDP_SVR_PORT;
+		snprintf(cfg->restUrl.uri, sizeof(cfg->restUrl.uri), "%s", EXT_WEBPAGE_MEDIA);
+
 		if(cfg->isMCast == EXT_FALSE)
 		{
 			cfg->dest.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_RX, ETHERNET_CONF_IPADDR2_RX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);

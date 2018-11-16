@@ -138,7 +138,7 @@ unsigned char httpClientEventConnected(void *arg)
 
 	EXT_ASSERT((HTTP_CLIENT_NAME": Client PCB is null"), hc->pcb != NULL);
 
-	CMN_SN_PRINTF(hc->buf, size, index, "GET /%s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, hc->req.url);
+	CMN_SN_PRINTF(hc->buf, size, index, "GET %s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, hc->req.uri);
 
 //	usprintf(headers, "POST /%s HTTP/1.0\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: %d\r\n\r\n%s\r\n\r\n", state->Page, strlen(state->PostVars), state->PostVars);
 
@@ -208,8 +208,8 @@ void extHttpClientMain(void *data)
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
 	
 	memset(hc, 0, sizeof(HttpClient));
-	hc->req.destIp = IPADDR_NONE;
-	hc->req.destPort = -1;
+	hc->req.ip = IPADDR_NONE;
+	hc->req.port = -1;
 	hc->state = HC_STATE_WAIT;
 	hc->runCfg = runCfg;
 
@@ -219,7 +219,7 @@ void extHttpClientMain(void *data)
 	EXT_ASSERT((HTTP_CLIENT_NAME"semaphore allocation ERROR!"), (err == ERR_OK));
 	if (err == ERR_MEM)
 	{
-		return ERR_MEM;
+		return;// ERR_MEM;
 	}
 
 	if (sys_mbox_new(&_httpClientMailBox, EXT_HTTP_CLIENT_MBOX_SIZE) != ERR_OK)
@@ -241,21 +241,21 @@ void extHttpClientSetRequest(HttpClient *hc, HttpClientReq *req)
 
 	if(req==NULL)
 	{
-		hc->req.destIp = IPADDR_NONE;
-		hc->req.destPort = -1;
-		hc->req.url[0] = '\0';
+		hc->req.ip = IPADDR_NONE;
+		hc->req.port = -1;
+		hc->req.uri[0] = '\0';
 	}
 	else
 	{
-		hc->req.destIp = req->destIp;
-		hc->req.destPort = req->destPort;
-		if(IS_STRING_NULL(req->url))
+		hc->req.ip = req->ip;
+		hc->req.port = req->port;
+		if(IS_STRING_NULL(req->uri))
 		{
-			memset(hc->req.url, 0, sizeof(hc->req.url) );
+			memset(hc->req.uri, 0, sizeof(hc->req.uri) );
 		}
 		else 
 		{
-			snprintf(hc->req.url, sizeof(hc->req.url), "%s", req->url);
+			snprintf(hc->req.uri, sizeof(hc->req.uri), "%s", req->uri);
 		}
 	}
 
@@ -265,52 +265,27 @@ void extHttpClientSetRequest(HttpClient *hc, HttpClientReq *req)
 
 
 /* called by other tasks, such as sched (from http server) and console(cmd) */
-char extHttpClientNewRequest(HttpClientReq *req)
+err_t extHttpClientNewRequest(HttpClientReq *req)
 {
 	HttpClient *hc = &_httpClient;
 
+#if 0
 	if(! HTTP_CLIENT_IS_NOT_REQ(hc))
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME"#%d has been requesting %s:%d", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req.destIp), hc->req.destPort ));
-//		return ERR_ALREADY;
-		return EXIT_FAILURE;
+		EXT_ERRORF((HTTP_CLIENT_NAME"#%d is busy on requesting %s:%d/%s, new req on %s failed", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req.ip), hc->req.port, hc->req.uri, req->uri ));
+		return ERR_ALREADY;
 	}
+#endif
 
-	if(req->destIp == IPADDR_NONE || req->destPort == -1 || IS_STRING_NULL(req->url) )
+	if(req->ip == IPADDR_NONE || req->port == -1 || IS_STRING_NULL(req->uri) )
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME"#%d requesting parameter is error %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&req->destIp), hc->req.destPort, (IS_STRING_NULL(req->url==NULL))?"None":uri ));
-//		return ERR_VAL;
-		return EXIT_FAILURE;
+		EXT_ERRORF((HTTP_CLIENT_NAME"#%d requesting parameter is error %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&req->ip), req->port, (IS_STRING_NULL(req->uri))?"None":req->uri ));
+		return ERR_VAL;
 	}
 
-	struct tcp_pcb *pcb;
-	static u16_t localport= EXT_HTTP_CLIENT_PORT;
+	_httpClientPostEvent(HC_EVENT_NEW, req);
 
-
-
-	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	EXT_ASSERT(( HTTP_CLIENT_NAME"failed"), pcb != NULL);
-	
-	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
-
-	while(tcp_bind(pcb, IP_ADDR_ANY, localport) != ERR_OK)
-	{// Local port in use, use port+1
-		localport++;
-	}
-	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME "#%d request bind on port %d", hc->reqs, localport));
-	localport++;
-	
-	tcp_arg(pcb, hc);
-
-	HTTP_CLIENT_SET_PCB(hc, pcb);
-	
-	extHttpClientSetRequest(hc, req);
-
-	_httpClientPostEvent(HC_EVENT_NEW, NULL);
-
-//	return ERR_OK;
-	return EXIT_SUCCESS;
+	return ERR_OK;
 }
 
 /* called by TCPIP task and http client task */

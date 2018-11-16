@@ -271,7 +271,8 @@ char	cmnCmdHttpClient(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t b
 		return EXT_FALSE;
 	}
 	
-	err = extHttpClientNewRequest(address, port, argv[3]);
+//	err = extHttpClientNewRequest(address, port, argv[3]);
+	err = ERR_CLSD;
 	index += snprintf(outBuffer+index, bufferLen-index, "\t'http://%s:%d/%s' send %s"EXT_NEW_LINE, ip4addr_ntoa((ip4_addr_t *)&address), port, argv[3], (err==EXIT_SUCCESS)?"OK":"failed");
 
 	return EXT_FALSE;

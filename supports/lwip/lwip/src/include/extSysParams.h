@@ -842,12 +842,27 @@ typedef	enum
 }FPGA_PARAM_STATE_T;
 
 
-typedef	struct
+typedef	enum
 {
-	uint32_t		ip;
-	uint16_t		port;
-	char			uri[32];
-}ExtSdpUri;
+	HC_REQ_SDP,
+	HC_REQ_JSON,
+	HC_REQ_HTML,
+	HC_REQ_UNKNOWN
+}HC_REQ_T;
+
+
+
+/* event for scheduler */
+typedef	struct _HttpClientReq
+{
+	char				type;
+	
+	uint32_t			ip;
+	uint16_t			port;
+
+	char				uri[64];
+}HttpClientReq;
+
 
 /* IP address, port number and state are all defined as unsigned type */
 struct	_EXT_RUNTIME_CFG
@@ -900,8 +915,10 @@ struct	_EXT_RUNTIME_CFG
 	MuxNmosID			nodeID;
 	MuxNmosID			deviceID;
 
-	ExtSdpUri				sdpUriVideo;
-	ExtSdpUri				sdpUriAudio;
+	HttpClientReq			sdpUriVideo;
+	HttpClientReq			sdpUriAudio;
+	HttpClientReq			restUrl;		/* REST API */
+	HttpClientReq			htmlUrl;
 		
 	/* in order to make old bootloader compatible with new RTOS, all new field must be added after here */
 	/* add for 811. Aug.31, 2018 */
@@ -1107,7 +1124,6 @@ char extSysConfigSdpClient(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
 
 
 void extHttpClientMain(void *data);
-char extHttpClientNewRequest(HttpClientReq *req);
 
 #define	__HTTP_CRLF_SIZE		4
 

@@ -272,5 +272,8 @@ void extMediaInit( void *arg);
 void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg);
 
 
+err_t extHttpClientNewRequest(HttpClientReq *req);
+
+
 #endif
 

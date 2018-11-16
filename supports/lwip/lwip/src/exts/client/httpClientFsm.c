@@ -15,10 +15,34 @@ static unsigned char _hcEventNewReq(void *arg)
 	err_t err;
 	ip4_addr_t destIp;
 
-	destIp.addr = hc->req.destIp;
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"sent #%d TCP request to %s:%d", hc->reqs++, ip4addr_ntoa(&destIp), hc->req.destPort)) ;
-//	err = tcp_connect(hc->pcb, &destIp, lwip_htons(hc->req.destPort),  httpClientConnected);
-	err = tcp_connect(hc->pcb, &destIp, hc->req.destPort,  httpClientConnected);
+	HcEvent *he = hc->evt;
+	HttpClientReq *req = he->data;/* this pointer to RunCfg */
+	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
+
+	destIp.addr = req->ip;
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"sent #%d TCP request to %s:%d", hc->reqs++, ip4addr_ntoa(&destIp), req->port)) ;
+
+	struct tcp_pcb *pcb;
+	static u16_t localport= EXT_HTTP_CLIENT_PORT;
+
+	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
+	EXT_ASSERT(( HTTP_CLIENT_NAME"failed"), pcb != NULL);
+	
+	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
+
+	while(tcp_bind(pcb, IP_ADDR_ANY, localport) != ERR_OK)
+	{// Local port in use, use port+1
+		localport++;
+	}
+	
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME "#%d request bind on port %d", hc->reqs, localport));
+	localport++;
+	
+	tcp_arg(pcb, hc);
+
+	HTTP_CLIENT_SET_PCB(hc, pcb);
+	
+	err = tcp_connect(hc->pcb, &destIp, req->port,  httpClientConnected);
 	if(err != ERR_OK)
 	{
 		EXT_ERRORF((HTTP_CLIENT_NAME"send TCP req failed: '%s': %d", lwip_strerr(err), hc->pcb->state));
@@ -26,11 +50,30 @@ static unsigned char _hcEventNewReq(void *arg)
 		return EXT_STATE_CONTINUE;
 	}
 
+	extHttpClientSetRequest(hc, req);
+
 // 	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN);
 //	hc->reqs++;
 
 	return HC_STATE_INIT;
 }
+
+static unsigned char _hcEventNewReqInOtherStates(void *arg)
+{
+	HttpClient *hc = (HttpClient *)arg;
+
+	HcEvent *he = hc->evt;
+	HttpClientReq *req = he->data;/* this pointer to RunCfg */
+	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
+
+//	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"New REQ when current req is working")) ;
+	EXT_INFOF( (HTTP_CLIENT_NAME"New REQ when current req is working")) ;
+
+	extHttpClientNewRequest(req);
+	return EXT_STATE_CONTINUE;
+}
+
+
 
 static unsigned char _hcEventTimeout(void *arg)
 {
@@ -268,6 +311,14 @@ const transition_t	_hcStateWait[] =
 const transition_t	_hcStateInit[] =
 {
 	{
+		HC_EVENT_NEW,
+		_hcEventNewReqInOtherStates,
+	},
+	{
+		HC_EVENT_NEW,
+		_hcEventNewReqInOtherStates,
+	},
+	{
 		HC_EVENT_TIMEOUT,
 		_hcEventTimeout,
 	},
@@ -297,6 +348,10 @@ const transition_t	_hcStateInit[] =
 const transition_t	_hcStateConn[] =
 {
 	{
+		HC_EVENT_NEW,
+		_hcEventNewReqInOtherStates,
+	},
+	{
 		HC_EVENT_RECV,
 		_hcEventRecv,
 	},
@@ -323,6 +378,10 @@ const transition_t	_hcStateConn[] =
 const transition_t	_hcStateData[] =
 {
 	{
+		HC_EVENT_NEW,
+		_hcEventNewReqInOtherStates,
+	},
+	{
 		HC_EVENT_TIMEOUT,
 		_hcEventTimeout,
 	},
@@ -347,6 +406,10 @@ const transition_t	_hcStateData[] =
 
 const transition_t	_hcStateError[] =
 {
+	{
+		HC_EVENT_NEW,
+		_hcEventNewReqInOtherStates,
+	},
 	{
 		HC_EVENT_TIMEOUT,
 		_hcEventTimeout,

@@ -48,14 +48,6 @@ typedef enum
 	HC_STATE_MAX
 }HC_STATE_T;
 
-typedef	enum
-{
-	HC_REQ_SDP,
-	HC_REQ_JSON,
-	HC_REQ_HTML,
-	HC_REQ_UNKNOWN
-}HC_REQ_T;
-
 
 
 typedef	struct _HttpClient
@@ -154,8 +146,8 @@ void	httpClientFsmHandle(HcEvent *hce);
 
 /* check whether request is waiting */
 #define	HTTP_CLIENT_IS_NOT_REQ(hc)		\
-	((hc)->req.destIp == IPADDR_NONE ) 
-	//&& (hc)->req.destPort == -1 )
+	((hc)->req.ip == IPADDR_NONE ) 
+	//&& (hc)->req.port == -1 )
 
 
 #define	HTTP_CLIENT_SET_PCB(hc, _pcb) 	\

@@ -347,7 +347,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	return EXIT_SUCCESS;
 }
 
-static char _compareOneSdp(ExtSdpUri *dest, ExtSdpUri *src)
+static char _compareOneSdp(HttpClientReq *dest, HttpClientReq *src)
 {
 	char ret = EXT_FALSE;
 	

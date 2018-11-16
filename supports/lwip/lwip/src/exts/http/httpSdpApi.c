@@ -187,10 +187,20 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_MAC"\":\"%02x:%02x:%02x:%02x:%02x:%02x\","EXT_NEW_LINE, 
 		runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5]);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO"\":\"http://%s%s\","EXT_NEW_LINE, 
-		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_VIDEO );
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO"\":\"http://%s%s\","EXT_NEW_LINE, 
-		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_AUDIO);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_IP"\":\"%s\","EXT_NEW_LINE, 
+		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT"\":\"%d\","EXT_NEW_LINE, 
+		EXT_SDP_SVR_PORT);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_URI"\":\"%s\","EXT_NEW_LINE, 
+		EXT_WEBPAGE_SDP_VIDEO );
+
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\":\"%s\","EXT_NEW_LINE, 
+		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\":\"%d\","EXT_NEW_LINE, 
+		EXT_SDP_SVR_PORT);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_URI"\":\"%s\","EXT_NEW_LINE, 
+		EXT_WEBPAGE_SDP_AUDIO );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IP_VEDIO"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IP_AUDIO"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)) );

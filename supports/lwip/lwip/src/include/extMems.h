@@ -34,17 +34,6 @@ typedef struct _HcEvent
 	void 		*data;
 }HcEvent;
 
-/* event for scheduler */
-typedef	struct _HttpClientReq
-{
-	char				type;
-	
-	uint32_t			destIp;
-	uint16_t			destPort;
-
-	char				url[64];
-}HttpClientReq;
-
 	
 
 #endif
