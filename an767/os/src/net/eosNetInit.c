@@ -152,7 +152,7 @@ void extBspNetStackInit(EXT_RUNTIME_CFG *runCfg)
 	lwip_init();
 #endif
 
-//	printf("Initializing LwIP, netif:%d(%p)..."EXT_NEW_LINE, netif->hwaddr_len, netif );
+	printf("Initializing LwIP, netif:%d(%p)..."EXT_NEW_LINE, netif->hwaddr_len, netif );
 
 
 	/* Set hw and IP parameters, initialize MAC too. */

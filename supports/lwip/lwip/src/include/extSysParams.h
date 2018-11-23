@@ -235,26 +235,28 @@
 #define	EXT_CMD_MAX_ARGUMENTS		10
 #define	EXT_CMD_MAX_LENGTH			32
 
+/* when server send uri without root, client always append root in their requesting uri */
+
+#define	EXT_WEBPAGE_ROOT						"/"
+
+#define	EXT_WEBPAGE_INFO						"info"
+#define	EXT_WEBPAGE_MEDIA					"media"
+#define	EXT_WEBPAGE_SETTING					"setting"
+#define	EXT_WEBPAGE_SDP_CLIENT				"sdpClient"
+
+#define	EXT_WEBPAGE_UPDATE_MCU				"mcuUpdate"
+#define	EXT_WEBPAGE_UPDATE_FPGA				"fpgaUpdate"
+
+#define	EXT_WEBPAGE_REBOOT					"reboot"
 
 
-#define	EXT_WEBPAGE_INFO						"/info"
-#define	EXT_WEBPAGE_MEDIA					"/media"
-#define	EXT_WEBPAGE_SETTING					"/setting"
-#define	EXT_WEBPAGE_SDP_CLIENT				"/sdpClient"
+#define	EXT_WEBPAGE_UPDATE_MCU_HTML		"upgradeMcu.html"
+#define	EXT_WEBPAGE_UPDATE_FPGA_HTML		"upgradeFpga.html"
 
-#define	EXT_WEBPAGE_UPDATE_MCU				"/mcuUpdate"
-#define	EXT_WEBPAGE_UPDATE_FPGA				"/fpgaUpdate"
+#define	EXT_WEBPAGE_SDP_VIDEO				"video.sdp"
+#define	EXT_WEBPAGE_SDP_AUDIO				"audio.sdp"
 
-#define	EXT_WEBPAGE_REBOOT					"/reboot"
-
-
-#define	EXT_WEBPAGE_UPDATE_MCU_HTML		"/upgradeMcu.html"
-#define	EXT_WEBPAGE_UPDATE_FPGA_HTML		"/upgradeFpga.html"
-
-#define	EXT_WEBPAGE_SDP_VIDEO				"/video.sdp"
-#define	EXT_WEBPAGE_SDP_AUDIO				"/audio.sdp"
-
-#define	EXT_WEBPAGE_API_SERVICE				"/service"
+#define	EXT_WEBPAGE_API_SERVICE				"service"
 
 
 
@@ -469,7 +471,7 @@
 				{ if(value==0) {CFG_CLEAR_FLAGS((runCfg)->netMode,(EXT_IP_CFG_DHCP_ENABLE));} \
 				else{CFG_SET_FLAGS((runCfg)->netMode, (EXT_IP_CFG_DHCP_ENABLE));} }
 
-
+/* add at the header of list */
 #define ADD_ELEMENT(header, element)	\
 	if (header == NULL){					\
 		header  = element;				\
@@ -479,6 +481,19 @@
 		element->next   = header;		\
 		header = element;				\
 	}
+
+
+/* add at the tail of list */
+#define APPEND_ELEMENT(header, element, type)	\
+	if ((header) == NULL){					\
+		(header)  = (element);				\
+		(element)->next   = NULL;			\
+	}									\
+	else	{ type *cur = (header), *_next = (header)->next; \
+		while(_next){cur = _next; _next = cur->next;};		\
+		cur->next = (element);				\
+	}
+
 
 
 #define REMOVE_ELEMENT(header, element, type)	\
@@ -855,12 +870,13 @@ typedef	enum
 /* event for scheduler */
 typedef	struct _HttpClientReq
 {
-	char				type;
+	char					type;
 	
-	uint32_t			ip;
-	uint16_t			port;
+	uint32_t				ip;
+	uint16_t				port;
 
-	char				uri[64];
+	char					uri[64];
+	struct _HttpClientReq 	*next;
 }HttpClientReq;
 
 

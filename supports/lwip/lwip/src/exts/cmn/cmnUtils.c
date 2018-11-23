@@ -406,7 +406,8 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 
 		_str++;
 	}
-	
+
+	EXT_ERRORF(("unknown type %d in constant type :%d", type, strType) );
 	return "Unknown String";
 }
 
@@ -455,6 +456,7 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 		_str++;
 	}
 	
+	EXT_ERRORF(("unknown type %s in constant type :%d", str, strType) );
 	return -1;
 }
 
@@ -474,6 +476,7 @@ char cmnUtilsParseIp(char *strIpAddress, uint32_t  *ip)
 	
 	if(*ip == IPADDR_NONE)
 	{
+		printf("Token '%s' was not IP address.", strIpAddress);
 		return EXIT_FAILURE;
 	}
 	else
@@ -487,7 +490,7 @@ char cmnUtilsParseInt32(char *strValue, uint32_t  *value)
 //	if (1 != sscanf(strValue, "%"PRIu32, value))
 	if (1 != sscanf(strValue, "%u", value))
 	{
-		printf("Token was not an short int.");
+		printf("Token '%s' was not an 32-bit int.", strValue );
 		return EXIT_FAILURE;
 	}
 	else
@@ -504,7 +507,7 @@ char cmnUtilsParseInt16(char *strValue, uint16_t  *value)
 	if (1 != sscanf(strValue, "%hu", value))
 #endif		
 	{
-		printf("Token was not an short int.");
+		printf("Token '%s' was not an short int.", strValue);
 		return EXIT_FAILURE;
 	}
 	else
@@ -521,7 +524,7 @@ char cmnUtilsParseInt8(char *strValue, uint8_t  *value)
 	if (1 != sscanf(strValue, "%hhu", value))
 #endif		
 	{
-		printf("Token was not an short int.");
+		printf("Token '%s' was not an 8-bit int.", strValue );
 		return EXIT_FAILURE;
 	}
 	else
@@ -582,6 +585,7 @@ uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength)
 		return ERR_VAL;
 	}
 
+//	printf("Content length:%d\r\n", contentLen);
 	return contentLen;
 }
 

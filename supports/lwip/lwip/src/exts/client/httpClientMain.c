@@ -138,7 +138,7 @@ unsigned char httpClientEventConnected(void *arg)
 
 	EXT_ASSERT((HTTP_CLIENT_NAME": Client PCB is null"), hc->pcb != NULL);
 
-	CMN_SN_PRINTF(hc->buf, size, index, "GET %s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, hc->req.uri);
+	CMN_SN_PRINTF(hc->buf, size, index, "GET %s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, hc->req->uri);
 
 //	usprintf(headers, "POST /%s HTTP/1.0\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: %d\r\n\r\n%s\r\n\r\n", state->Page, strlen(state->PostVars), state->PostVars);
 
@@ -208,8 +208,8 @@ void extHttpClientMain(void *data)
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
 	
 	memset(hc, 0, sizeof(HttpClient));
-	hc->req.ip = IPADDR_NONE;
-	hc->req.port = -1;
+	hc->req = NULL;
+//	hc->req.port = -1;
 	hc->state = HC_STATE_WAIT;
 	hc->runCfg = runCfg;
 
@@ -232,50 +232,33 @@ void extHttpClientMain(void *data)
 }
 
 /* called by HTTP Client task, TCP/IP task, HTTP Svr task, Cmd Task */
-void extHttpClientSetRequest(HttpClient *hc, HttpClientReq *req)
+void extHttpClientClearCurrentRequest(HttpClient *hc)
 {
+	HttpClientReq *req = hc->req;
+	
+	EXT_ASSERT(("No Client request is need to clean"), (req != NULL) );
+
 	HC_LOCK();
 
 	memset(hc->buf, 0, sizeof(hc->buf));
 	hc->length = 0;
 
-	if(req==NULL)
-	{
-		hc->req.ip = IPADDR_NONE;
-		hc->req.port = -1;
-		hc->req.uri[0] = '\0';
-	}
-	else
-	{
-		hc->req.ip = req->ip;
-		hc->req.port = req->port;
-		if(IS_STRING_NULL(req->uri))
-		{
-			memset(hc->req.uri, 0, sizeof(hc->req.uri) );
-		}
-		else 
-		{
-			snprintf(hc->req.uri, sizeof(hc->req.uri), "%s", req->uri);
-		}
-	}
-
+	hc->req = req->next;
+	req->next = NULL;
 
 	HC_UNLOCK();
-}
+	
+	if(hc->req )
+	{
+		_httpClientPostEvent(HC_EVENT_NEW, hc->req);
+	}
 
+}
 
 /* called by other tasks, such as sched (from http server) and console(cmd) */
 err_t extHttpClientNewRequest(HttpClientReq *req)
 {
 	HttpClient *hc = &_httpClient;
-
-#if 0
-	if(! HTTP_CLIENT_IS_NOT_REQ(hc))
-	{
-		EXT_ERRORF((HTTP_CLIENT_NAME"#%d is busy on requesting %s:%d/%s, new req on %s failed", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req.ip), hc->req.port, hc->req.uri, req->uri ));
-		return ERR_ALREADY;
-	}
-#endif
 
 	if(req->ip == IPADDR_NONE || req->port == -1 || IS_STRING_NULL(req->uri) )
 	{
@@ -283,7 +266,21 @@ err_t extHttpClientNewRequest(HttpClientReq *req)
 		return ERR_VAL;
 	}
 
+	/* protect */
+#if 1
+	if(! HTTP_CLIENT_IS_NOT_REQ(hc))
+	{
+		EXT_INFOF((HTTP_CLIENT_NAME"#%d is busy on requesting %s:%d%s, new req on %s will wait", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req->ip), hc->req->port, hc->req->uri, req->uri ));
+		APPEND_ELEMENT(hc->req, req, HttpClientReq);
+		return ERR_ALREADY;
+	}
+#endif
+
+	APPEND_ELEMENT(hc->req, req, HttpClientReq);
+
 	_httpClientPostEvent(HC_EVENT_NEW, req);
+	EXT_INFOF((HTTP_CLIENT_NAME"#%d requesting %s:%d%s", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req->ip), hc->req->port, hc->req->uri));
+
 
 	return ERR_OK;
 }

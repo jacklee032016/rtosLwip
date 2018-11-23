@@ -149,7 +149,7 @@ err_t extHttpPostCheckUpdate(ExtHttpConn *ehc)
 	}
 
 	ehc->reqType = EXT_HTTP_REQ_T_UPLOAD;
-	if( !IS_STRING_EQUAL(ehc->uri, EXT_WEBPAGE_UPDATE_MCU) && !IS_STRING_EQUAL(ehc->uri, EXT_WEBPAGE_UPDATE_FPGA)  )
+	if( !IS_STRING_EQUAL(ehc->uri, EXT_WEBPAGE_ROOT EXT_WEBPAGE_UPDATE_MCU) && !IS_STRING_EQUAL(ehc->uri, EXT_WEBPAGE_ROOT EXT_WEBPAGE_UPDATE_FPGA)  )
 	{
 		goto badPostRequest;
 	}	
@@ -532,12 +532,12 @@ err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p)
 		mhc->post_finished = 1;
 #endif
 
-//		EXT_INFOF(("HTTP Post data finished"));
+		EXT_INFOF(("HTTP Post data finished"));
 		extHttpPostDataFinished(mhc);
 		return ERR_OK;
 	}
 
-	return ERR_OK;
+	return ERR_INPROGRESS;
 }
 
 

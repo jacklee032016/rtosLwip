@@ -64,6 +64,11 @@
 #endif
 
 
+#define	_CHAR_SEPERATE			"&"
+#define	_CHAR_EQUAL				"="
+
+
+
 void extLwipHttpSvrInit(void *data);
 
 void extHttpSvrMain(void *data);

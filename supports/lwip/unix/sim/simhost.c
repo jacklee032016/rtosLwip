@@ -458,14 +458,17 @@ static void main_thread(void *arg)
 	extSysParamsInit(runCfg);
 	extCfgInitAfterReadFromFlash(runCfg);
 
+TRACE();
 	if(sys_sem_new(&sem, 0) != ERR_OK)
 	{
 		LWIP_ASSERT(("Failed to create semaphore"), 0);
 	}
 
 	runCfg->data = &sem;
+TRACE();
 	tcpip_init(simhost_tcpip_init_done, runCfg);
 	
+TRACE();
 	sys_sem_wait(&sem);
 
 	printf("TCP/IP initialized.\n");

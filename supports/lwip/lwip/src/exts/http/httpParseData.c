@@ -7,8 +7,7 @@
 
 #include "http.h"
 
-
-
+/* data from HTTP form for SDP client */
 char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value)
 {
 	if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_VEDIO_IP, strlen(key)))
@@ -64,6 +63,7 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 }
 
 
+/* parse data from form of setting web page */
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value)
 {
 

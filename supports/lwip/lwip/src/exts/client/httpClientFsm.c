@@ -6,6 +6,8 @@
 
 #include "extFsm.h"
 
+err_t extHttpSdpParse(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size);
+
 /*
 * Event handlers 
 */
@@ -46,11 +48,9 @@ static unsigned char _hcEventNewReq(void *arg)
 	if(err != ERR_OK)
 	{
 		EXT_ERRORF((HTTP_CLIENT_NAME"send TCP req failed: '%s': %d", lwip_strerr(err), hc->pcb->state));
-		HTTP_CLIENT_CLEAR_REQ(hc);
+		extHttpClientClearCurrentRequest(hc);
 		return EXT_STATE_CONTINUE;
 	}
-
-	extHttpClientSetRequest(hc, req);
 
 // 	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN);
 //	hc->reqs++;
@@ -120,7 +120,7 @@ static unsigned char _hcEventError(void *arg)
 {
 	HttpClient *hc = (HttpClient *)arg;
 
-	HTTP_CLIENT_CLEAR_REQ(hc);
+	extHttpClientClearCurrentRequest(hc);
 
 	return HC_STATE_ERROR;
 }
@@ -264,7 +264,7 @@ static void _hcEnterStateWait(void *arg)
 	/* stop timer which is started by entering state of DATA or ERROR */
  	sys_timer_stop(&_hcTimer);
 	
-	HTTP_CLIENT_CLEAR_REQ(hc);
+	extHttpClientClearCurrentRequest(hc);
 }
 
 
@@ -272,13 +272,45 @@ static void _hcEnterStateWait(void *arg)
 static void _hcEnterStateData(void *arg)
 {
 	HttpClient *hc = (HttpClient *)arg;
+	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
+	err_t ret = ERR_OK;
+
+//	extSysClearConfig(rxCfg);
 	
  	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_2_WAIT);
 
+	if(hc->req->type == HC_REQ_SDP)
+	{
+		ret = extHttpSdpParse(hc, rxCfg, hc->data, hc->dataLength);
+	}
+	else if(hc->req->type == HC_REQ_JSON )
+	{
+		if(cmnHttpParseRestJson(rxCfg, hc->data, hc->dataLength) == EXIT_FAILURE)
+		{
+			EXT_ERRORF((HTTP_CLIENT_NAME"Response is not supported type of JSON or SDP"));
+		}
+		else
+		{
+			extSysCompareParams(hc->runCfg, rxCfg);
+			extSysConfigCtrl(hc->runCfg, rxCfg);
+		}
+	}
+	else
+	{
+	
+	}
+
+#if 0	
 	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"recv %d bytes "EXT_NEW_LINE"'%.*s', data length %d:"EXT_NEW_LINE"'%.*s'", 
 		hc->length, hc->length, hc->buf, hc->dataLength, hc->dataLength, hc->data) );
+#endif
+
+	if(ret  != ERR_OK)
+	{
 	
-	hc->statusCode = 200;
+	}
+	
+	hc->statusCode = WEB_RES_REQUEST_OK;
 	
 }
 

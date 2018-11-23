@@ -14,7 +14,7 @@
 #endif
 
 
-static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
+static err_t _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	char		*sp;
 	u16_t uri_len;
@@ -31,7 +31,7 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 		if (mhc->method == HTTP_METHOD_POST )
 		{
 			/* HTTP/0.9 does not support POST */
-			return EXIT_FAILURE;
+			return ERR_ARG;
 		}
 	}
 #endif /* MHTTPD_SUPPORT_V09 */
@@ -40,7 +40,7 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 	if ((sp == 0) || uri_len <= 0 ) /* validate URL parsing */
 	{
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%.*s'", data_len, data));
-		return EXIT_SUCCESS;
+		return ERR_ARG;
 	}
 
 	/* wait for CRLFCRLF (indicating end of HTTP headers) before parsing anything */
@@ -87,14 +87,15 @@ static char _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
 		}
-		return EXIT_SUCCESS;
+		
+		return ERR_OK;
 	}
 	else
 	{
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("invalid URI:'%.*s'", data_len, data));
 	}
 
-	return EXIT_FAILURE;
+	return ERR_ARG;
 }
 
 struct _HttpMethod
@@ -214,42 +215,47 @@ static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 }
 #endif
 
-char _httpParseHeaders(ExtHttpConn *ehc)
+err_t _httpParseHeaders(ExtHttpConn *ehc)
 {
-	uint32_t ret = 0;
+	int  contentLength = 0;
+//	err_t err = ERR_OK;
+	
 	if(ehc->headers == NULL || ehc->headerLength == 0)
 	{
 		EXT_INFOF(("%s header length is 0", ehc->name) );
-		return EXIT_FAILURE;
+		return ERR_ARG;
 	}
 
 	/* following check headers */
 	/* WebSocket */
 	if(extHttpWebSocketParseHeader(ehc) != ERR_INPROGRESS)
 	{
-		return EXIT_FAILURE;
+		return ERR_ARG;
 	}
 
 	/* Update Firmware */
 #if 0	
 	__httpHeaderContentLength(ehc);
 #else
-	ret = cmnHttpParseHeaderContentLength(ehc->headers, (uint32_t) ehc->headerLength);
-	if(ret < ERR_OK )
+	contentLength = cmnHttpParseHeaderContentLength(ehc->headers, (uint32_t) ehc->headerLength);
+	if(contentLength < ERR_OK )
 	{
 		EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", ehc->headerLength, ehc->headers) );
 		cmnHttpRestError(ehc, WEB_RES_BAD_REQUEST, "Content-Length is wrong");
+		return ERR_ARG;
 	}
 	else
 	{
-		ehc->contentLength = ret;
+		ehc->contentLength = contentLength;
 	}
 #endif
+
 	if (HTTP_IS_POST(ehc) )
 	{
-		if(extHttpPostCheckUpdate(ehc) != ERR_INPROGRESS)
-		{
-			return EXIT_FAILURE;
+		if(extHttpPostCheckUpdate(ehc) == ERR_OK)
+		{/* it is update firmware, so return IP_PROCESS to enter DATA state */
+			ehc->postDataLeft = (u32_t)contentLength;
+			return ERR_INPROGRESS;
 		}
 	}
 
@@ -257,19 +263,19 @@ char _httpParseHeaders(ExtHttpConn *ehc)
 #if LWIP_EXT_NMOS
 	if(extNmosHandleRequest(ehc) != ERR_INPROGRESS)
 	{
-		return EXIT_FAILURE;
+		return ERR_ARG;
 	}
 		
 #endif
 
 	if(extHttpWebService(ehc, NULL) == EXIT_SUCCESS)
-	{
-		return EXIT_SUCCESS;
+	{/* web page: SDP, JSON and HTML */
+		return ERR_OK;
 	}
 	else if(extHttpFileFind(ehc) == ERR_OK)
 	{
 		ehc->reqType = EXT_HTTP_REQ_T_FILE;
-		return EXIT_SUCCESS;
+		return ERR_OK;
 	}
 	else
 	{
@@ -278,24 +284,23 @@ char _httpParseHeaders(ExtHttpConn *ehc)
 	ehc->reqType = EXT_HTTP_REQ_T_REST;
 	cmnHttpRestError(ehc, WEB_RES_NOT_FOUND, "URI not exist in server");
 
-
-	return EXIT_SUCCESS;
+	return ERR_OK;
 }
 
-static char _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
+static err_t _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
 {
 	int ret;
-//	err_t err;
+	err_t err = ERR_OK;
 
 	ret = _httpParseMethod(mhc, data, data_len);
 	if( ret == 0)
 	{
-		return EXIT_FAILURE;
+		return ERR_ARG;
 	}
 
-	if( _httpParseUrl(mhc, data+ret, data_len-ret) == EXIT_FAILURE)
+	if( _httpParseUrl(mhc, data+ret, data_len-ret) != ERR_OK)
 	{
-		return EXIT_FAILURE;
+		return ERR_ARG;
 	}
 
 	return _httpParseHeaders(mhc);
@@ -310,7 +315,7 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 	unsigned char *data;
 	u16_t reqLen;
 	u16_t clen;
-//	err_t err;
+	err_t err;
 
 	EXT_ASSERT(("p != NULL"), inp != NULL);
 	EXT_ASSERT(("mhc != NULL"), mhc != NULL);
@@ -373,9 +378,10 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 			goto badrequest;
 		}
 
-		if(_httpParseRequest(mhc, data, reqLen) == EXIT_SUCCESS)
+		err = _httpParseRequest(mhc, data, reqLen);
+		if(err == ERR_OK || err == ERR_INPROGRESS)
 		{
-			return ERR_OK;
+			return err;
 		}
 
 	}

@@ -59,36 +59,36 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 //	<FORM method="post" id="formSettings" enctype=" action="action_page.php">    
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Video/Audio Settings</H2></DIV>"EXT_NEW_LINE "<DIV class=\"fields\">"EXT_NEW_LINE);
 	
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_SDP"\" >" );
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >SDP Video:</LABEL>");
 	if(EXT_IS_TX(runCfg) )
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "http://%s%s", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_VIDEO);
+		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_VIDEO);
 	}
 	else
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "http://<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_VEDIO_IP"\" value=\"%s\" style=\"width: 115px;\"/>:" 
-			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT"\" value=\"%d\" style=\"width: 30px;\"/>"
-			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_VEDIO_URI"\" value=\"%s\"/>",
+		CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_SDP"\" >" EXT_NEW_LINE );
+		CMN_SN_PRINTF(dataBuf, size, index, "http://<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_VEDIO_IP"\" value=\"%s\" style=\"width: 115px;\"/>:" EXT_NEW_LINE
+			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT"\" value=\"%d\" style=\"width: 30px;\"/>"EXT_NEW_LINE
+			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_VEDIO_URI"\" value=\"%s\"/>" EXT_NEW_LINE,
 			inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriVideo.ip)), runCfg->sdpUriVideo.port, runCfg->sdpUriVideo.uri );
 	}
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "</DIV>"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >SDP Audio:</LABEL>");
 	if(EXT_IS_TX(runCfg) )
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "http://%s%s", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_AUDIO);
+		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_AUDIO);
 	}
 	else
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "http://<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\" value=\"%s\" style=\"width: 115px;\"/>:"
-			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\" value=\"%d\" style=\"width: 30px;\"/>"
-			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_URI"\" value=\"%s\"/>",
+		CMN_SN_PRINTF(dataBuf, size, index, "http://<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\" value=\"%s\" style=\"width: 115px;\"/>:"EXT_NEW_LINE
+			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\" value=\"%d\" style=\"width: 30px;\"/>"EXT_NEW_LINE
+			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_URI"\" value=\"%s\"/>" EXT_NEW_LINE,
 			inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriAudio.ip)), runCfg->sdpUriAudio.port, runCfg->sdpUriAudio.uri );
 		
 	//<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
 #if 1
-		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Setting\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Apply\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
 #else
 		CMN_SN_PRINTF(data, size, index,  "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" id=\"btnSubmit\" />"EXT_NEW_LINE
 #endif
@@ -98,10 +98,10 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	}
 
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_DATA"\" >" );
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_DATA"\" >" );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "</DIV>"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Name:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PRODUCT"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
-		runCfg->name);
+	CMN_SN_PRINTF(dataBuf, size, index, ""EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Name:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PRODUCT"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+		runCfg->name);//
 
 //	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Video IP Address:</LABEL><DIV class=\"label\" ><INPUT type=\"text\" id=\""EXT_WEB_CFG_FIELD_IP_VEDIO"\" value=\"%s\"/></DIV></DIV>", 
 //		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
@@ -187,9 +187,10 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
+
 //<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
 #if 1
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
 #else
 	CMN_SN_PRINTF(data, size, index,  "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" id=\"btnSubmit\" />"EXT_NEW_LINE
 #endif
@@ -287,7 +288,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	short left = ehc->leftData;
 	char *data = ehc->headers + ehc->headerLength+__HTTP_CRLF_SIZE;
 	char *key, *value, *nextKey;
-	char ret;
+	err_t ret, ret2 ;
 	int i = 0;
 	uint16_t headerLength;
 
@@ -344,7 +345,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	extSysConfigSdpClient(ehc->runCfg, rxCfg);
 
 	ret = extHttpClientNewRequest(&ehc->runCfg->sdpUriVideo) ;
-	ret = extHttpClientNewRequest(&ehc->runCfg->sdpUriAudio);
+	ret2 = extHttpClientNewRequest(&ehc->runCfg->sdpUriAudio);
 
 	EXT_DEBUGF(EXT_DBG_ON, ("Data:%d:%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
@@ -352,11 +353,11 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	ehc->headerLength = headerLength;
 	headerLength = 0;
 
-	if(ret == ERR_OK)
+	if(ret == ERR_OK && ret2 == ERR_ALREADY )
 	{
 		CMN_SN_PRINTF((char *)ehc->data+ehc->headerLength, sizeof(ehc->data)-ehc->headerLength, headerLength, 
 			"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
-			"OK", "Requesting, parsing SDP, and configuring hardware now...");
+			"OK, Waiting", "Requesting, parsing SDP, and configuring hardware now...");
 		
 		ehc->httpStatusCode = WEB_RES_REQUEST_OK;
 	}
@@ -376,8 +377,6 @@ error:
 static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 {
 //	int index = 0;
-#define	_CHAR_SEPERATE			"&"
-#define	_CHAR_EQUAL				"="
 
 	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
 	MuxHttpHandle *page = (MuxHttpHandle *)pageHandle;
@@ -491,8 +490,12 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 
 
 	CMN_SN_PRINTF(dataBuf, size, index,  
-		"<SCRIPT type=\"text/javascript\">"EXT_NEW_LINE 
+		"<SCRIPT type=\"text/javascript\">"EXT_NEW_LINE);
+
+#if 0
+	CMN_SN_PRINTF(dataBuf, size, index,  
 			"function submit_firmware(formId, chip){" EXT_NEW_LINE \
+
 /*			
 		       "\tvar data = new FormData(); data.append('user', 'person');"
 		       "\tvar params = 'orem=ipsum&name=binny';"
@@ -517,6 +520,36 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 			"\t\tif (xhr.status !== 200) {alert('Request failed.  Returned status of ' + xhr.status);} "EXT_NEW_LINE
 			"\t\telse{document.getElementById('content').innerHTML=xhr.responseText;}" EXT_NEW_LINE
 			"\t}"EXT_NEW_LINE"}" EXT_NEW_LINE EXT_NEW_LINE);
+#else
+
+	CMN_SN_PRINTF(dataBuf, size, index,  
+			"function submit_firmware(form, url){" EXT_NEW_LINE \
+		     "\t if (form == 'formFirmware')	{"EXT_NEW_LINE 
+		           "\t\tvar fileInput = document.querySelector('input[type=\"file\"]');"EXT_NEW_LINE
+		           "\t\tvar data = new FormData();"EXT_NEW_LINE
+		           "\t\tdata.append('file', fileInput.files[0]);"EXT_NEW_LINE"\t} "EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, 
+		       "\telse{"EXT_NEW_LINE
+		       	"\t\tvar data = new URLSearchParams();"EXT_NEW_LINE
+		       	"\t\tfor (const pair of new FormData(document.getElementById(form))){"EXT_NEW_LINE
+		       		"\t\t\tdata.append(pair[0], pair[1]);"EXT_NEW_LINE
+		       	 "\t\t}"EXT_NEW_LINE
+		       "\t}"EXT_NEW_LINE EXT_NEW_LINE); 
+	
+	CMN_SN_PRINTF(dataBuf, size, index, 
+			"\tfetch(url,{\tmode: 'no-cors', \tmethod: 'POST',\tbody: data,	})"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, 
+			"\t.then(function(response){	\t return response.text();})"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, 
+			"\t.then(function(text){\t document.getElementById('content').innerHTML = text;})"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, 
+			"\t.catch(function(err){\t document.getElementById('content').innerHTML = err;});"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, 
+			"}"EXT_NEW_LINE EXT_NEW_LINE);
+#endif
+
 	
 	CMN_SN_PRINTF(dataBuf, size, index, 
 			"function reboot_device(){"EXT_NEW_LINE
@@ -539,6 +572,8 @@ function (fd)
             return s;
         }	
 #endif
+
+#if 0
 	CMN_SN_PRINTF(dataBuf, size, index, 
 			"function urlencodeFormData(fd){"EXT_NEW_LINE
 			"\tvar s = '';" EXT_NEW_LINE
@@ -547,6 +582,9 @@ function (fd)
 			"\t\t if(typeof pair[1]=='string'){"EXT_NEW_LINE
 			"\t\t\t s += (s?'\r\n':'') + encode(pair[0])+'='+encode(pair[1]);"EXT_NEW_LINE
 			"\t}"EXT_NEW_LINE"}" EXT_NEW_LINE " return s;"EXT_NEW_LINE"}"EXT_NEW_LINE EXT_NEW_LINE);
+
+#endif
+
 
 #if 0
 #if 0
@@ -588,28 +626,28 @@ static const MuxHttpHandle	_webpages[] =
 {
 	/* HTML URIs */
 	{
-		uri 		: 	"/",
+		uri 		: 	EXT_WEBPAGE_ROOT,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	extHttpWebPageRootHander,
 		respType: 	WEB_RESP_HTML
 	},
 	
 	{
-		uri 		: 	EXT_WEBPAGE_INFO,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_INFO,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	_extHttpWebPageInfoHander,
 		respType: 	WEB_RESP_HTML
 	},
 	
 	{
-		uri 		: 	EXT_WEBPAGE_MEDIA,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_MEDIA,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	_extHttpWebPageMediaHander,
 		respType: 	WEB_RESP_HTML
 	},
 
 	{
-		uri 		: 	EXT_WEBPAGE_REBOOT,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_REBOOT,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	_extHttpWebPageReboot,
 		respType: 	WEB_RESP_HTML
@@ -617,14 +655,14 @@ static const MuxHttpHandle	_webpages[] =
 
 	/* HTML POST */
 	{
-		uri 		: 	EXT_WEBPAGE_SETTING,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SETTING,
 		method	: 	HTTP_METHOD_POST,
 		handler	:	_extHttpWebSettingHander,
 		respType: 	WEB_RESP_HTML
 	},
 
 	{
-		uri 		: 	EXT_WEBPAGE_SDP_CLIENT,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SDP_CLIENT,
 		method	: 	HTTP_METHOD_POST,
 		handler	:	_extHttpWebSdpClientHander,
 		respType: 	WEB_RESP_HTML
@@ -632,14 +670,14 @@ static const MuxHttpHandle	_webpages[] =
 	
 	/* SDP URIs */
 	{
-		uri 		: 	EXT_WEBPAGE_SDP_VIDEO,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SDP_VIDEO,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	extHttpSdpVideo,
 		respType: 	WEB_RESP_SDP
 	},
 
 	{
-		uri 		: 	EXT_WEBPAGE_SDP_AUDIO,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SDP_AUDIO,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	extHttpSdpAudio,
 		respType: 	WEB_RESP_SDP
@@ -647,7 +685,7 @@ static const MuxHttpHandle	_webpages[] =
 
 	/* JSON URIs */
 	{
-		uri 		: 	EXT_WEBPAGE_API_SERVICE,
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_API_SERVICE,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	extHttpSimpleRestApi,
 		respType: 	WEB_RESP_JSON
@@ -673,7 +711,7 @@ uint16_t _httpWebPageResult(ExtHttpConn  *ehc, char *title, char *msg)
 		title, msg);
 
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
-	return EXIT_SUCCESS;
+	return contentLength;
 }
 
 

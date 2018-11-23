@@ -2903,7 +2903,7 @@
 #endif
 
 #if !defined MEMP_NUM_HTTP_EVENT || defined __DOXYGEN__
-#define	MEMP_NUM_HTTP_EVENT						32
+#define	MEMP_NUM_HTTP_EVENT						32*3
 #endif
 
 #if !defined MEMP_NUM_HC_EVENT || defined __DOXYGEN__

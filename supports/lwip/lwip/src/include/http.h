@@ -528,6 +528,7 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_COLOR_SPACE			"colorSpace"
 #define	EXT_WEB_CFG_FIELD_COLOR_DEPTH			"colorDepth"
 #define	EXT_WEB_CFG_FIELD_FRAME_RATE			"videoFps"
+#define	EXT_WEB_CFG_FIELD_VIDEO_INTERLACE		"videoIsIntlce"
 #define	EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED		"videoIsSgmt"
 
 #define	EXT_WEB_CFG_FIELD_AUDIO_CHANNEL		"audioChannels"
@@ -701,6 +702,7 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);
 
 int cmnHttpPrintResponseHeader(ExtHttpConn *mhc, const char contentType);
+int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size);
 
 
 #endif

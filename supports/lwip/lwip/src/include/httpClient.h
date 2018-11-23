@@ -66,7 +66,7 @@ typedef	struct _HttpClient
 //	uint32_t				destIp;
 //	uint16_t				destPort;
 	
-	HttpClientReq			req;
+	HttpClientReq			*req;
 
 	struct tcp_pcb 		*pcb;
 	uint8_t				retryCount;		/* poll count */
@@ -136,17 +136,16 @@ err_t httpClientConnected(void *arg, struct tcp_pcb *pcb, err_t err);
 unsigned char httpClientEventConnected(void *arg);
 
 
-void extHttpClientSetRequest(HttpClient *hc, HttpClientReq *req);
+void extHttpClientClearCurrentRequest(HttpClient *hc);
 
 void	httpClientFsmHandle(HcEvent *hce);
 
 
-#define	HTTP_CLIENT_CLEAR_REQ(hc) \
-	extHttpClientSetRequest((hc), NULL)
-
 /* check whether request is waiting */
 #define	HTTP_CLIENT_IS_NOT_REQ(hc)		\
-	((hc)->req.ip == IPADDR_NONE ) 
+	((hc)->req == NULL ) 
+
+//	((hc)->req.ip == IPADDR_NONE ) 
 	//&& (hc)->req.port == -1 )
 
 

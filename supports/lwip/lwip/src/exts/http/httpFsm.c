@@ -10,12 +10,14 @@
 static unsigned char _httpEventRecvInReqState(void *arg)
 {
 	HttpEvent *he = (HttpEvent *)arg;
-//	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
+	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
 	
-	err_t err = extHttpRequestParse(he->mhc, he->pBuf);
+	ehc->retries=0;
+	err_t err = extHttpRequestParse(ehc, he->pBuf);
 	if( err == ERR_INPROGRESS)
-	{
-		return EXT_STATE_CONTINUE;
+	{/* update firmware, receive more data, not HTML forms */
+//		return EXT_STATE_CONTINUE;
+		return H_STATE_DATA;
 	}
 	else if(err != ERR_OK )
 	{/* error to close connection */
@@ -44,6 +46,7 @@ static unsigned char _httpEventRecvInDataState(void *arg)
 	HttpEvent *he = (HttpEvent *)arg;
 	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
 
+	ehc->retries=0;
 	err_t err = extHttpPostRxDataPbuf(ehc, he->pBuf);
 	if( err == ERR_INPROGRESS)
 	{
@@ -63,9 +66,9 @@ static unsigned char _httpEventPoll(void *arg)
 //	u8_t ret;
 	HttpEvent *he = (HttpEvent *)arg;
 	
-	ExtHttpConn *mhc = (ExtHttpConn *)he->mhc;
+	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
 
-	if (mhc == NULL)
+	if (ehc == NULL)
 	{
 		/* arg is null, close. */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POLL: arg is NULL, close"));
@@ -73,8 +76,8 @@ static unsigned char _httpEventPoll(void *arg)
 	}
 	else
 	{
-		mhc->retries++;
-		if (mhc->retries == MHTTPD_MAX_RETRIES)
+		ehc->retries++;
+		if (ehc->retries == MHTTPD_MAX_RETRIES)
 		{
 			return H_STATE_CLOSE;
 		}
@@ -82,10 +85,10 @@ static unsigned char _httpEventPoll(void *arg)
 		/* If this connection has a file open, try to send some more data. If
 		* it has not yet received a GET request, don't do this since it will
 		* cause the connection to close immediately. */
-		if(mhc )//&& (mhc->handle))
+		if(ehc )//&& (ehc->handle))
 		{
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POLL: try to send more data"));
-			if(extHttpSend( mhc))
+			if(extHttpSend( ehc))
 			{/* If we wrote anything to be sent, go ahead and send it now. */
 				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
 				tcp_output(he->pcb);
@@ -260,6 +263,12 @@ const statemachine_t	_staticPageStateMachine[] =
 		H_STATE_REQ,
 		sizeof(_staticPageStateReq)/sizeof(transition_t),
 		_staticPageStateReq,
+		NULL
+	},
+	{
+		H_STATE_DATA,
+		sizeof(_staticPageStateData)/sizeof(transition_t),
+		_staticPageStateData,
 		NULL
 	},
 	{

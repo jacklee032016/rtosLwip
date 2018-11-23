@@ -292,7 +292,7 @@ char	*sysTaskName(void)
 
 	if(pthread_getname_np(self, threadName, sizeof(threadName)) != 0)
 	{
-		printf(("Fail in get thread name: %s", strerror(errno)));
+		printf("Fail in get thread name: %s", strerror(errno) );
 		return "Unknown";
 	}
 
