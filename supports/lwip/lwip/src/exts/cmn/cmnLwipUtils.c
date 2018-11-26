@@ -57,7 +57,7 @@ void extLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin)
 }
 
 
-char	extNetIsGroupAddress(unsigned int	*ipAddress)
+char	extNetIsGroupAddress(uint32_t	*ipAddress)
 {
 	const ip4_addr_t *mcIpAddr = (ip4_addr_t *)ipAddress;
 	if( ip4_addr_ismulticast(mcIpAddr))
@@ -68,7 +68,7 @@ char	extNetIsGroupAddress(unsigned int	*ipAddress)
 	return 0;
 }
 
-char extNetMulticastIP4Mac(unsigned int	*ipAddress, EXT_MAC_ADDRESS *macAddress)
+char extNetMulticastIP4Mac(uint32_t	*ipAddress, EXT_MAC_ADDRESS *macAddress)
 {
 #if 1
 	const ip4_addr_t *mcIpAddr = (ip4_addr_t *)ipAddress;
@@ -731,7 +731,7 @@ char	extCmdUdpTxPerf(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 #endif
 
 
-char *extCmnIp4addr_ntoa(unsigned int *ipp)
+char *extCmnIp4addr_ntoa(uint32_t *ipp)
 {
 	static char str[IP4ADDR_STRLEN_MAX];
 	//struct in_addr *addr =  *(struct in_addr *)(ipp);

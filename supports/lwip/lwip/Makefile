@@ -19,7 +19,8 @@ CODE_SUBDIRS = \
 	$(EXT_HOME)/nmos	\
 	$(EXT_HOME)/misc	\
 	$(EXT_HOME)/cmd	\
-	$(EXT_HOME)/ptp/dep	\
+
+#	$(EXT_HOME)/ptp/dep	\
 
 
 #	src/core/ipv6 \
@@ -168,13 +169,14 @@ EXTS_LWIP_SRC += \
 	$(EXTS_NMOS_SRC) \
 	$(EXTS_CMD_SRC) \
 	$(EXTS_IPERF_SRC) \
-	$(EXTS_PTPD_SRC) \
 	$(EXT_HOME)/extFsm.c \
 	$(EXT_HOME)/extMediaTask.c \
 	$(EXT_HOME)/extLwipStart.c \
 	$(EXT_HOME)/extSys.c \
 	$(EXT_HOME)/extSysCtrl.c \
 
+
+#	$(EXTS_PTPD_SRC) \
 
 #	src/lwip/frozen.c \
 

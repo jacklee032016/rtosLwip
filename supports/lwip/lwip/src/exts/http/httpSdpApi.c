@@ -78,7 +78,7 @@ uint16_t extSdpSessionDescription(ExtHttpConn  *ehc, char *dataBuf, uint16_t siz
 	CMN_SN_PRINTF(dataBuf, size, index, "v="SDP_VERSION  EXT_NEW_LINE ); 
 	/* originator */
 	/* session ID: 1|0(TX|RX)+1|0(VIDEO|AUDIO)+current_time() */
-	CMN_SN_PRINTF(dataBuf, size, index, "o="SDP_USER_NAME" %d%d%d %d "SDP_NET_TYPE" "SDP_ADDR_TYPE" %s" EXT_NEW_LINE,
+	CMN_SN_PRINTF(dataBuf, size, index, "o="SDP_USER_NAME" %d%d%"FOR_U32" %d "SDP_NET_TYPE" "SDP_ADDR_TYPE" %s" EXT_NEW_LINE,
 		(EXT_IS_TX(runCfg))?1:0, (isVideo)?1:0, sys_now(), SDP_P_SESSION_VERSION, inet_ntoa(*(struct in_addr *)&(_netif->ip_addr))  ); 
 
 	/* session name */
@@ -277,7 +277,7 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 }
 
 /* first field for this media stream */
-uint16_t _sdpParsePort(char *data, uint16_t size, char *mediaKey, uint16_t *port)
+static uint16_t _sdpParsePort(char *data, uint16_t size, const char *mediaKey, uint16_t *port)
 {
 	char *p;
 	
@@ -302,7 +302,7 @@ uint16_t _sdpParsePort(char *data, uint16_t size, char *mediaKey, uint16_t *port
 	return p-data;
 }
 
-err_t _sdpParseIp(char *data, uint16_t size, uint32_t *ip)
+static err_t _sdpParseIp(char *data, uint16_t size, uint32_t *ip)
 {
 	int index = 0;
 	char *p, *pnext;
@@ -344,7 +344,7 @@ err_t _sdpParseIp(char *data, uint16_t size, uint32_t *ip)
 
 
 
-uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
+static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
 {
 	uint16_t  index = 0;
 	char *p, *pnext;
@@ -420,7 +420,7 @@ uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data
 
 
 /* data from HTTP form for SDP client */
-char __sdpVideoParams(EXT_RUNTIME_CFG *rxCfg, char *key, char *value)
+static char __sdpVideoParams(EXT_RUNTIME_CFG *rxCfg, char *key, char *value)
 {
 	uint8_t colorspace;
 	/* string change into integer */
@@ -478,7 +478,7 @@ char __sdpVideoParams(EXT_RUNTIME_CFG *rxCfg, char *key, char *value)
 }
 
 
-uint16_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint16_t size)
+static uint16_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint16_t size)
 {
 #define	_SDP_CHAR_SEPERATE			"; "
 
@@ -528,7 +528,7 @@ uint16_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint16_t size)
 	return size - left;
 }
 
-err_t _sdpParseVideoStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
+static err_t _sdpParseVideoStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
 {
 	uint16_t  index = 0;
 	uint16_t length = 0, left;

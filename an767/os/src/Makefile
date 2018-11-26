@@ -79,15 +79,21 @@ SRC += \
 	$(CMDS_SRC) \
 	$(UTILS_SRC) \
 	$(TASKS_SRC) \
-	eosMain.c	\
 	eosCStartup.c	\
 
+
+#	eosMain.c	\
 
 
 TARGET_LIB_SHARED:=$(TARGET_LIB).so
 TARGET_LIB_STATIC:=$(TARGET_LIB).a
 		 
-LOCAL_ALL=$(EXE).bin 
+LOCAL_ALL=
+
+EXE_TX=$(EXE).tx
+EXE_RX=$(EXE).rx
+
+EXES=$(EXE_TX).bin $(EXE_RX).bin 
 
 include $(RULE_DIR)/Makefile.post
 
@@ -105,11 +111,33 @@ LIBS= -Wl,-L$(BIN_DIR) -lBsp -lAsf $(SUPPORT_LIBS)
 #		$(MOVE) $@ $(BIN_DIR)/sbin
 
 # -nostartfiles : when __libc_init_array is not used
-$(LOCAL_ALL):$(OBJS)
-		$(CC) -mthumb --specs=nano.specs -Wl,--gc-sections -mcpu=cortex-m7 -Wl,-Map=$(EXE).map -Wl,--entry=Reset_Handler -T $(LINK_SCRIPT) $(OBJS) $(LIBS) -lm -o $(EXE).elf 
-		$(OBJCOPY) -O binary $(EXE).elf $@
-		$(COPY) $(EXE).elf $(BIN_DIR)/$(EXE).$(BUILDTIME).elf
-		$(MOVE) $(EXE).elf $(BIN_DIR)
-		$(COPY) $@ $(BIN_DIR)/$(EXE).$(BUILDTIME).bin
+
+
+$(OBJ_DIR)/eosMainRx.o: eosMain.c	
+	$(CC) $(C_FLAGS) $(CFLAGS) -DTX_VERSION=0 -c $< -o $(OUTPUT_FLAG) $@ 
+
+
+$(OBJ_DIR)/eosMainTx.o: eosMain.c	
+	$(CC) $(C_FLAGS) $(CFLAGS) -DTX_VERSION=1 -c $< -o $(OUTPUT_FLAG) $@ 
+
+
+$(EXE_TX).bin:$(OBJS) $(OBJ_DIR)/eosMainTx.o
+		$(CC) -mthumb --specs=nano.specs -Wl,--gc-sections -mcpu=cortex-m7 -Wl,-Map=$(EXE_TX).map -Wl,--entry=Reset_Handler -T $(LINK_SCRIPT) $^ $(LIBS) -lm -o $(EXE_TX).elf 
+		$(OBJCOPY) -O binary $(EXE_TX).elf $@
+		$(COPY) $(EXE_TX).elf $(BIN_DIR)/$(EXE_TX).$(BUILDTIME).elf
+		$(MOVE) $(EXE_TX).elf $(BIN_DIR)
+		$(COPY) $@ $(BIN_DIR)/$(EXE_TX).$(BUILDTIME).bin
 		$(MOVE) $@ $(BIN_DIR)
-		$(MOVE) $(EXE).map $(BIN_DIR)
+		$(MOVE) $(EXE_TX).map $(BIN_DIR)
+
+$(EXE_RX).bin:$(OBJS) $(OBJ_DIR)/eosMainRx.o
+		$(CC) -mthumb --specs=nano.specs -Wl,--gc-sections -mcpu=cortex-m7 -Wl,-Map=$(EXE_RX).map -Wl,--entry=Reset_Handler -T $(LINK_SCRIPT) $^ $(LIBS) -lm -o $(EXE_RX).elf 
+		$(OBJCOPY) -O binary $(EXE_RX).elf $@
+		$(COPY) $(EXE_RX).elf $(BIN_DIR)/$(EXE_RX).$(BUILDTIME).elf
+		$(MOVE) $(EXE_RX).elf $(BIN_DIR)
+		$(COPY) $@ $(BIN_DIR)/$(EXE_RX).$(BUILDTIME).bin
+		$(MOVE) $@ $(BIN_DIR)
+		$(MOVE) $(EXE_RX).map $(BIN_DIR)
+
+
+all:$(EXES)

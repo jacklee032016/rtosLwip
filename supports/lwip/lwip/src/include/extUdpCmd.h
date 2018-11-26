@@ -138,7 +138,7 @@ char extIpCmdRequestHeaderPrint(EXT_JSON_PARSER  *parser, const char *cmd);
 
 char	extIpCmdSendMediaData(EXT_JSON_PARSER  *parser, char isRequest);
 
-char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short port);
+char extIpCmdSendout(EXT_JSON_PARSER  *parser, uint32_t *ip, unsigned short port);
 
 
 char extIpCmdIsLocal(EXT_JSON_PARSER  *parser);

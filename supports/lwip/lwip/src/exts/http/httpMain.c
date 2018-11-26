@@ -116,7 +116,7 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 		if(_ehc == NULL)
 		{
 			EXT_INFOF(("CONN for PCB %p: from %s:%d has been freed, event '%s' is ignored", 
-				(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, CMN_FIND_HTTP_EVENT(eventType)));
+				(void*)pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, CMN_FIND_HTTP_EVENT(eventType)));
 
 			err_t err = tcp_close(pcb);
 			if (err != ERR_OK)
@@ -226,7 +226,7 @@ TRACE();
 		tcp_err(pcb, NULL);
 		tcp_poll(pcb, NULL, 0);
 		tcp_sent(pcb, NULL);
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d) is freed, ", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d) is freed, ", ehc->name, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port) );
 		
 	}
 
@@ -573,8 +573,8 @@ TRACE();
 	LWIP_UNUSED_ARG(err);
 	runCfg = (EXT_RUNTIME_CFG *)arg;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d, total Connection %d", 
-		(void*)pcb, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, httpStats.currentConns ));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d, total Connection %"FOR_U32, 
+		(void*)pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, httpStats.currentConns ));
 
 
 	if ((err != ERR_OK) || (pcb == NULL))
@@ -598,7 +598,7 @@ TRACE();
 	}
 
 #if EXT_HTTPD_DEBUG
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("Accept new connection %s from %s:%d", mhc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port ) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("Accept new connection %s from %s:%d", mhc->name, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );
 #endif
 
 	runCfg->currentHttpConns++;

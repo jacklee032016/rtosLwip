@@ -8,6 +8,8 @@
 #include "http.h"
 #include "jsmn.h"
 
+#define	_JAVA_SCRIPT_OLD		0
+
 
 static uint16_t _extHttpWebPageReboot(ExtHttpConn  *ehc, void *data)
 {
@@ -87,10 +89,10 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 			inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriAudio.ip)), runCfg->sdpUriAudio.port, runCfg->sdpUriAudio.uri );
 		
 	//<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
-#if 1
-		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Apply\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
+#if _JAVA_SCRIPT_OLD
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Apply\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
 #else
-		CMN_SN_PRINTF(data, size, index,  "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" id=\"btnSubmit\" />"EXT_NEW_LINE
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Apply\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
 #endif
 				"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
 
@@ -189,10 +191,11 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 
 //<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
-#if 1
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
+#if _JAVA_SCRIPT_OLD
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
 #else
-	CMN_SN_PRINTF(data, size, index,  "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" id=\"btnSubmit\" />"EXT_NEW_LINE
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
+//	CMN_SN_PRINTF(data, size, index,  "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" id=\"btnSubmit\" />"EXT_NEW_LINE
 #endif
 			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
 
@@ -461,9 +464,12 @@ error:
 
 uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 {
+
+
 	int index = 0;
 	char *dataBuf = (char *)ehc->data+ehc->headerLength;
 	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
+
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "<HTML><HEAD><TITLE>Muxlab %s-500767</TITLE>", EXT_IS_TX(&extRun)?"TX":"RX" );
 	CMN_SN_PRINTF(dataBuf, size, index, "<LINK href=\"/styles.css\" type=\"text/css\" rel=\"stylesheet\"><SCRIPT type=\"text/javascript\" src=\"/load_html.js\"></SCRIPT></HEAD>"EXT_NEW_LINE );
@@ -492,7 +498,7 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index,  
 		"<SCRIPT type=\"text/javascript\">"EXT_NEW_LINE);
 
-#if 0
+#if _JAVA_SCRIPT_OLD
 	CMN_SN_PRINTF(dataBuf, size, index,  
 			"function submit_firmware(formId, chip){" EXT_NEW_LINE \
 
@@ -573,7 +579,7 @@ function (fd)
         }	
 #endif
 
-#if 0
+#if _JAVA_SCRIPT_OLD
 	CMN_SN_PRINTF(dataBuf, size, index, 
 			"function urlencodeFormData(fd){"EXT_NEW_LINE
 			"\tvar s = '';" EXT_NEW_LINE
@@ -701,7 +707,7 @@ static const MuxHttpHandle	_webpages[] =
 };
 
 
-uint16_t _httpWebPageResult(ExtHttpConn  *ehc, char *title, char *msg)
+uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
 {
 	int index = 0;
 	int contentLength = 0;

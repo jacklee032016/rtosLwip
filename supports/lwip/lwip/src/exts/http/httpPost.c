@@ -131,8 +131,202 @@ static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 #endif
 
 
+
+static char  __findEndingBoundary(ExtHttpConn *mhc)
+{
+#if 0
+	char* boundary = lwip_strnstr((char *)mhc->data, mhc->boundary, mhc->dataSendIndex );
+#else
+	char* boundary = memmem(mhc->data, mhc->dataSendIndex , mhc->boundary, strlen(mhc->boundary) );
+#endif
+	if(boundary )
+	{
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Boundary found: last packet %d, content %d bytes", mhc->dataSendIndex, (boundary- (char *)mhc->data - 4) ) );
+		mhc->dataSendIndex = (boundary- (char *)mhc->data - 4);
+
+//		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("last packet %d bytes:'%.*s'", mhc->dataSendIndex, mhc->dataSendIndex, mhc->data) );
+		mhc->uploadStatus = _UPLOAD_STATUS_END;
+//		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->dataSendIndex, mhc->filename );
+		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->runCfg->firmUpdateInfo.size, mhc->filename );
+		return EXT_TRUE;
+	}
+#if 0	
+	else
+	{
+		printf("Boundary '%s' NOT found in '%.*s'", mhc->boundary, mhc->dataSendIndex, (char *)mhc->data) ;
+		EXT_ERRORF( ("\r\nBoundary '%s' NOT found in '%.*s'\r\n", mhc->boundary, mhc->dataSendIndex, (char *)mhc->data) );
+	}
+#endif
+
+	return EXT_FALSE;
+}
+
+/* save data in block and flash/save into spi/file */
+static char __extHttpPostData(ExtHttpConn *mhc, struct pbuf *p)
+{
+	unsigned short len, copied = 0;//, total_copied = 0;
+
+	while(copied != p->tot_len)
+	{/* iterate to copy all data from this pbuf into ehc's buffer */
+		len = LWIP_MIN(p->tot_len - copied, (unsigned short)sizeof(mhc->data)-mhc->dataSendIndex );
+	
+		len = pbuf_copy_partial(p, mhc->data+mhc->dataSendIndex, len, copied );
+		mhc->dataSendIndex += len;
+		copied += len;
+
+#if 0	
+		mhc->data[mhc->dataSendIndex] = 0;
+#endif
+
+		if(mhc->dataSendIndex == sizeof(mhc->data) )
+		{/*write only when buffer is full */
+			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("write to flash: packet %d bytes, copied %d len %d byte data", p->tot_len, copied, len) );
+			__findEndingBoundary(mhc);
+			len =mhc->uploadCtx->write(mhc, mhc->data, mhc->dataSendIndex);
+			if( len != mhc->dataSendIndex)
+			{
+				EXT_ERRORF(("Write %d bytes of %d bytes to %s", len, mhc->dataSendIndex, mhc->filename) );
+				return EXIT_FAILURE;
+			}
+
+#if UPLOAD_PROGRESS_BAR
+			_updatePageRefresh(mhc, "..");
+#endif
+			mhc->dataSendIndex = 0;
+		}
+
+		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("packet %d bytes, copied %d (total %d)byte data", p->tot_len, copied, mhc->dataSendIndex) );
+	}
+	
+
+	if(copied == p->tot_len)
+	{
+#if 1
+		pbuf_free(p);
+#else
+		pbuf_free(mhc->req);
+#endif
+#if 0
+		if(copied != len)
+		{
+			EXT_INFOF(("Only copied %d bytes from %d byte data", copied, len) );
+			return EXIT_FAILURE;
+		}
+#endif
+
+	}
+	else
+	{
+		EXT_ERRORF(("copied %d bytes from %d byte data", copied, len) );
+	}
+
+
+	return EXIT_SUCCESS;
+}
+
+static char _extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
+{
+	unsigned short len;//, copied;
+	
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST DATA:"EXT_NEW_LINE"'%s'", (char *)p->payload) );
+#if LWIP_EXT_NMOS
+	if(HTTPREQ_IS_REST(mhc) )
+	{
+		return extNmosPostDataRecv(mhc, p);
+	}
+#endif
+
+
+	if (p != NULL)
+	{
+		/* adjust remaining Content-Length */
+		if (mhc->postDataLeft < p->tot_len)
+		{
+			mhc->postDataLeft = 0;
+		}
+		else
+		{
+			mhc->postDataLeft -= p->tot_len;
+		}
+	}
+
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("postDataLeft:%"FOR_U32");", mhc->postDataLeft ) );
+
+	if(mhc->uploadStatus == _UPLOAD_STATUS_INIT )
+	{
+		len = LWIP_MIN(p->tot_len, sizeof(mhc->data));
+		//copied = 
+		pbuf_copy_partial(p, mhc->data, len, 0);
+TRACE();
+
+		char *endOfFilename = NULL;
+		char	*filename = lwip_strnstr((char *)mhc->data, UPLOAD_FORM_FILENAME, (unsigned int)len );
+		if(filename )
+		{
+//			filename += ( 10);
+			filename += (sizeof(char) * 10);
+
+			endOfFilename = strchr((char *)filename, '"');
+			snprintf(mhc->filename, sizeof(mhc->filename), "%.*s", (endOfFilename-filename), filename );
+			if(strlen(mhc->filename) == 0)
+			{
+				mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
+				snprintf(mhc->uri, sizeof(mhc->uri), "Error: no file is transmitted"  );
+TRACE();
+
+				return extHttpWebPageResult(mhc,(char *)"Upload Firmware", mhc->uri);
+			}
+			
+			mhc->uploadStatus = _UPLOAD_STATUS_COPY;
+
+			mhc->uploadCtx->open(mhc);
+
+#if UPLOAD_PROGRESS_BAR
+			_updatePageBegin(mhc, (char *)"Upload Firmware", mhc->uri);
+#endif
+
+#if 0
+			char* crlfcrlf = _FIND_HEADER_END(mhc->data, len);
+#else
+			char* crlfcrlf = _FIND_HEADER_END(filename,  len - (filename - (char *)mhc->data) );
+#endif			
+			u16_t dataOffset = crlfcrlf + 4 - (char *)mhc->data;
+
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("offsetData :%d, %d", dataOffset, p->len) );
+			/* get to the pbuf where the body starts */
+			while((p != NULL) && (p->len <= dataOffset))
+			{
+				dataOffset -= p->len;
+				p = p->next;
+			}
+			
+			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD copied %d byte filename: '%s', move header :%d", (endOfFilename-filename), mhc->filename, dataOffset) );
+			/* hide the remaining HTTP header */
+			pbuf_header(p, -(s16_t)dataOffset);
+			mhc->dataSendIndex = 0;
+		}
+		else
+		{
+TRACE();
+			mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
+			return EXIT_FAILURE;
+		}
+	}
+
+TRACE();
+	if(__extHttpPostData(mhc, p) == EXIT_FAILURE )
+	{
+TRACE();
+		return EXIT_FAILURE;
+	}
+	
+	
+	return EXIT_SUCCESS;
+}
+
+
 /* */
-err_t extHttpPostCheckUpdate(ExtHttpConn *ehc)
+err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp)
 {
 #if LWIP_EXT_NMOS
 	char	ret;
@@ -165,8 +359,14 @@ err_t extHttpPostCheckUpdate(ExtHttpConn *ehc)
 	snprintf(ehc->boundary, sizeof(ehc->boundary), "%.*s", endOfLine -1 - boundary, boundary);
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD: bounary(%d):'%.*s'", strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
 
-	return ERR_OK;
+	ehc->postDataLeft = (u32_t)ehc->contentLength;
 
+	if(_extHttpPostDataRecv(ehc, inp) == EXIT_SUCCESS)
+	{
+		return ERR_OK;
+	}
+	
+	return ERR_ARG;
 #if 0	
 	{
 		ehc->reqType = EXT_HTTP_REQ_T_REST;
@@ -230,175 +430,6 @@ TRACE();
 	ehc->uploadStatus = _UPLOAD_STATUS_ERROR;
 
 	return ERR_ARG;
-}
-
-
-static char  __findEndingBoundary(ExtHttpConn *mhc)
-{
-#if 0
-	char* boundary = lwip_strnstr((char *)mhc->data, mhc->boundary, mhc->dataSendIndex );
-#else
-	char* boundary = memmem(mhc->data, mhc->dataSendIndex , mhc->boundary, strlen(mhc->boundary) );
-#endif
-	if(boundary )
-	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Boundary found: last packet %d, content %d bytes", mhc->dataSendIndex, (boundary- (char *)mhc->data - 4) ) );
-		mhc->dataSendIndex = (boundary- (char *)mhc->data - 4);
-
-//		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("last packet %d bytes:'%.*s'", mhc->dataSendIndex, mhc->dataSendIndex, mhc->data) );
-		mhc->uploadStatus = _UPLOAD_STATUS_END;
-//		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->dataSendIndex, mhc->filename );
-		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->runCfg->firmUpdateInfo.size, mhc->filename );
-		return EXT_TRUE;
-	}
-#if 0	
-	else
-	{
-		printf("Boundary '%s' NOT found in '%.*s'", mhc->boundary, mhc->dataSendIndex, (char *)mhc->data) ;
-		EXT_ERRORF( ("\r\nBoundary '%s' NOT found in '%.*s'\r\n", mhc->boundary, mhc->dataSendIndex, (char *)mhc->data) );
-	}
-#endif
-
-	return EXT_FALSE;
-}
-
-/* save data in block and flash/save into spi/file */
-static char __extHttpPostData(ExtHttpConn *mhc, struct pbuf *p)
-{
-	unsigned short len, copied = 0;//, total_copied = 0;
-
-	while(copied != p->tot_len)
-	{
-		len = LWIP_MIN(p->tot_len - copied, (unsigned short)sizeof(mhc->data)-mhc->dataSendIndex );
-	
-		len = pbuf_copy_partial(p, mhc->data+mhc->dataSendIndex, len, copied );
-		mhc->dataSendIndex += len;
-		copied += len;
-
-#if 0	
-		mhc->data[mhc->dataSendIndex] = 0;
-#endif
-
-		if(mhc->dataSendIndex == sizeof(mhc->data) )
-		{
-			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("write to flash: packet %d bytes, copied %d len %d byte data", p->tot_len, copied, len) );
-			__findEndingBoundary(mhc);
-			len =mhc->uploadCtx->write(mhc, mhc->data, mhc->dataSendIndex);
-			if( len != mhc->dataSendIndex)
-			{
-				EXT_ERRORF(("Write %d bytes of %d bytes to %s", len, mhc->dataSendIndex, mhc->filename) );
-				return EXIT_FAILURE;
-			}
-
-#if UPLOAD_PROGRESS_BAR
-			_updatePageRefresh(mhc, "..");
-#endif
-			mhc->dataSendIndex = 0;
-		}
-
-		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("packet %d bytes, copied %d (total %d)byte data", p->tot_len, copied, mhc->dataSendIndex) );
-	}
-	
-
-	if(copied == p->tot_len)
-	{
-#if 1
-		pbuf_free(p);
-#else
-		pbuf_free(mhc->req);
-#endif
-#if 0
-		if(copied != len)
-		{
-			EXT_INFOF(("Only copied %d bytes from %d byte data", copied, len) );
-			return EXIT_FAILURE;
-		}
-#endif
-
-	}
-	else
-	{
-		EXT_ERRORF(("copied %d bytes from %d byte data", copied, len) );
-	}
-
-
-	return EXIT_SUCCESS;
-}
-
-static char extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
-{
-	unsigned short len;//, copied;
-	
-//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("'%s'", (char *)p->payload) );
-#if LWIP_EXT_NMOS
-	if(HTTPREQ_IS_REST(mhc) )
-	{
-		return extNmosPostDataRecv(mhc, p);
-	}
-#endif
-
-	if(mhc->uploadStatus == _UPLOAD_STATUS_INIT )
-	{
-		len = LWIP_MIN(p->tot_len, sizeof(mhc->data));
-		//copied = 
-		pbuf_copy_partial(p, mhc->data, len, 0);
-
-		char *endOfFilename = NULL;
-		char	*filename = lwip_strnstr((char *)mhc->data, UPLOAD_FORM_FILENAME, (unsigned int)len );
-		if(filename )
-		{
-//			filename += ( 10);
-			filename += (sizeof(char) * 10);
-
-			endOfFilename = strchr((char *)filename, '"');
-			snprintf(mhc->filename, sizeof(mhc->filename), "%.*s", (endOfFilename-filename), filename );
-			if(strlen(mhc->filename) == 0)
-			{
-				mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
-				snprintf(mhc->uri, sizeof(mhc->uri), "Error: no file is transmitted"  );
-
-				return extHttpWebPageResult(mhc,(char *)"Upload Firmware", mhc->uri);
-			}
-			
-			mhc->uploadStatus = _UPLOAD_STATUS_COPY;
-
-			mhc->uploadCtx->open(mhc);
-
-#if UPLOAD_PROGRESS_BAR
-			_updatePageBegin(mhc, (char *)"Upload Firmware", mhc->uri);
-#endif
-
-			char* crlfcrlf = _FIND_HEADER_END(mhc->data, len);
-
-			u16_t dataOffset = crlfcrlf + 4 - (char *)mhc->data;
-
-//			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("offsetData :%d, %d", dataOffset, p->len) );
-			/* get to the pbuf where the body starts */
-			while((p != NULL) && (p->len <= dataOffset))
-			{
-				dataOffset -= p->len;
-				p = p->next;
-			}
-			
-			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD copied %d byte filename: '%s', move header :%d", (endOfFilename-filename), mhc->filename, dataOffset) );
-			/* hide the remaining HTTP header */
-			pbuf_header(p, -(s16_t)dataOffset);
-			mhc->dataSendIndex = 0;
-		}
-		else
-		{
-			mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
-			return EXIT_FAILURE;
-		}
-	}
-
-	if(__extHttpPostData(mhc, p) == EXIT_FAILURE )
-	{
-		return EXIT_FAILURE;
-	}
-	
-	
-	return EXIT_SUCCESS;
 }
 
 /* begin to execute on the recevied data of POST request or when conn is closed */
@@ -483,24 +514,12 @@ err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p)
 
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("p->len:%d; p->tot_len:%d(postDataLeft:%"FOR_U32");", p->len, p->tot_len, mhc->postDataLeft ) );
 
-	if (p != NULL)
-	{
-		/* adjust remaining Content-Length */
-		if (mhc->postDataLeft < p->tot_len)
-		{
-			mhc->postDataLeft = 0;
-		}
-		else
-		{
-			mhc->postDataLeft -= p->tot_len;
-		}
-	}
 #if	MHTTPD_POST_MANUAL_WND
 	/* prevent connection being closed if httpd_post_data_recved() is called nested */
 	mhc->unrecved_bytes++;
 #endif
 
-	ret = extHttpPostDataRecv(mhc, p);
+	ret = _extHttpPostDataRecv(mhc, p);
 #if	MHTTPD_POST_MANUAL_WND
 	mhc->unrecved_bytes--;
 #endif
@@ -512,7 +531,9 @@ err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p)
 		return err;
 	}
 
-	if (mhc->postDataLeft == 0)
+
+//	if (mhc->postDataLeft == 0)
+	if (mhc->postDataLeft <= 0)
 	{
 #if	MHTTPD_POST_MANUAL_WND
 		if (mhc->unrecved_bytes != 0)

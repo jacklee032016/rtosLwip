@@ -421,7 +421,7 @@ ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 #if EXT_HTTPD_DEBUG
 		httpStats.connCount++;
 		httpStats.currentConns++;
-		snprintf(ehc->name, sizeof(ehc->name), "CONN#%d", httpStats.connCount);
+		snprintf(ehc->name, sizeof(ehc->name), "CONN#%"FOR_U32, httpStats.connCount);
 #endif
 		
 		ehc->runCfg = runCfg;
@@ -482,7 +482,7 @@ HTTP_UNLOCK();
 
 HTTP_UNLOCK();
 //		UNLOCK_TCPIP_CORE();
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d for URL %s) is freed, ", ehc->name, extCmnIp4addr_ntoa((unsigned int *)&pcb->remote_ip), pcb->remote_port, ehc->uri) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d for URL %s) is freed, ", ehc->name, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, ehc->uri) );
 		
 	}
 
@@ -493,7 +493,7 @@ HTTP_UNLOCK();
 //		httpStats.connCount--;
 
 	httpStats.currentConns--;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s is freed, total %d CONNs now ", ehc->name, httpStats.currentConns) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s is freed, total %"FOR_U32" CONNs now ", ehc->name, httpStats.currentConns) );
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", ehc->uri, ehc->headerLength, ehc->headerLength, ehc->headers));
 #endif
 

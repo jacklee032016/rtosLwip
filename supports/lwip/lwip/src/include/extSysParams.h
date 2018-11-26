@@ -42,9 +42,9 @@
 
 #define		LWIP_EXT_TCP_PERF				0	/* extend for TCP Perf testing */
 
-#define		LWIP_EXT_MQTT_CLIENT			1
+#define		LWIP_EXT_MQTT_CLIENT			0
 
-#define		LWIP_EXT_PTP					1	/* precision time protocol */
+#define		LWIP_EXT_PTP					0	/* precision time protocol */
 
 #define		LWIP_EXT_HTTP_CLIENT			1	/* HTTP Client */
 
@@ -613,8 +613,8 @@ typedef	struct
 typedef struct
 {
 	EXT_MAC_ADDRESS		mac;
-	unsigned	int				ip;
-	unsigned	int				audioIp;
+	uint32_t					ip;
+	uint32_t					audioIp;
 
 	unsigned short			vport;
 	unsigned short			aport;
@@ -907,9 +907,9 @@ struct	_EXT_RUNTIME_CFG
 	unsigned char			netMode;
 
 	EXT_VIDEO_CONFIG	local;
-	unsigned int			ipMask;
-	unsigned int			ipGateway;
-	unsigned int			ipMulticast;	/* save the backup multicast IP which is used when DIP is off. Oct.3, 2018 */
+	uint32_t				ipMask;
+	uint32_t				ipGateway;
+	uint32_t				ipMulticast;	/* save the backup multicast IP which is used when DIP is off. Oct.3, 2018 */
 
 	unsigned char			isMacConfiged;
 
@@ -938,7 +938,7 @@ struct	_EXT_RUNTIME_CFG
 		
 	/* in order to make old bootloader compatible with new RTOS, all new field must be added after here */
 	/* add for 811. Aug.31, 2018 */
-	unsigned int			ipSvr811;			/* IP of server 811 */	
+	uint32_t				ipSvr811;			/* IP of server 811 */	
 	unsigned short		portSvr811;			/* port of server 811 */
 	
 	unsigned char			endMagic[EXT_MAGIC_SIZE];

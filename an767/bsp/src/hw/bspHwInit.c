@@ -239,12 +239,13 @@ static void _bspHwSpiConfig(void)
 	bspHwSpiFlashInit();
 }
 
-void bspHwInit(boot_mode bMode)
+void bspHwInit(boot_mode bMode, uint8_t isTx)
 {
 	EXT_RUNTIME_CFG *runCfg = &extRun;
 	memset(runCfg, 0, sizeof(EXT_RUNTIME_CFG));
 
 	runCfg->bootMode = bMode;
+	runCfg->isTx = isTx;
 	
 	sysclk_init();
 

@@ -360,7 +360,7 @@ typedef struct _ExtHttpConn
 	EXT_HTTP_REQ_T			reqType;
 	unsigned char				data[MHTTPD_MAX_REQ_LENGTH];		/* used for request and response both */
 
-	unsigned short			dataSendIndex;
+	unsigned short			dataSendIndex;		/* index of data buffer before writing to flash */
 	unsigned short			contentLength;
 
 #if 0
@@ -657,7 +657,7 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *mhc, void *data);
 char extHttpWebService(ExtHttpConn *mhc, void *data);
 char extHttpWebPageResult(ExtHttpConn  *mhc, char *title, char *msg);
 
-err_t extHttpPostCheckUpdate(ExtHttpConn *ehc);
+err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp);
 
 err_t extHttpPostDataBegin(ExtHttpConn *ehc);
 void extHttpPostDataFinished(ExtHttpConn *mhc);
@@ -678,7 +678,7 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *mhc, void *data);
 uint16_t extHttpSdpVideo(ExtHttpConn  *mhc, void *data);
 
 
-sys_mutex_t			_httpMutex;
+extern	sys_mutex_t			_httpMutex;
 
 #define	HTTP_LOCK()		\
 		do{sys_mutex_lock(&_httpMutex);}while(0)

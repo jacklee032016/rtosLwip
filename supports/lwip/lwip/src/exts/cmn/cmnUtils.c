@@ -488,7 +488,7 @@ char cmnUtilsParseIp(char *strIpAddress, uint32_t  *ip)
 char cmnUtilsParseInt32(char *strValue, uint32_t  *value)
 {
 //	if (1 != sscanf(strValue, "%"PRIu32, value))
-	if (1 != sscanf(strValue, "%u", value))
+	if (1 != sscanf(strValue, "%"U32_F, value))
 	{
 		printf("Token '%s' was not an 32-bit int.", strValue );
 		return EXIT_FAILURE;

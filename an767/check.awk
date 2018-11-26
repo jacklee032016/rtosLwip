@@ -15,7 +15,7 @@ function getPosition(tag)
     }
 
 		NM_CMD="arm-none-eabi-nm -a "
-		ELF_FILE="BIN/images.AN767/rtosLwipAN767.bin.elf"
+		ELF_FILE="BIN/images.AN767/rtosLwipAN767.rx.elf"
     command = NM_CMD ELF_FILE" | grep '" tag "'"
     
 #    print command
@@ -59,7 +59,7 @@ BEGIN {
 	
 	ramEnd=getPosition("_ram_end_")
 
-  print "Binary summary:"
+  print "Binary(" ELF_FILE ") summary:"
   
   printf("Flash: 0x%x -- 0x%x;\tLength:%d KB (%d KB)\n",textBegin, textEnd, (textEnd-textBegin+1023)/1024, 0x100000/1024 )
   printf("\tCode Section :\tStart: 0x%x;\tLength: %d bytes\n",textBegin, textEnd-textBegin)

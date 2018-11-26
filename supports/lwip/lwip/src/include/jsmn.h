@@ -475,7 +475,7 @@ int extJsonParseString(EXT_JSON_PARSER *parser, const char *key, char *retVal, i
 
 int extJsonFindCommand(EXT_JSON_PARSER  *parser);
 
-int extJsonParseIpAddress(EXT_JSON_PARSER *parser, const char *key, unsigned int *ipAddress);
+int extJsonParseIpAddress(EXT_JSON_PARSER *parser, const char *key, uint32_t *ipAddress);
 int extJsonParseMacAddress(EXT_JSON_PARSER *parser, const char *key, EXT_MAC_ADDRESS *macAddress);
 
 int extJsonParseUuid(EXT_JSON_PARSER *parser, const char *key, EXT_UUID_T *guid);

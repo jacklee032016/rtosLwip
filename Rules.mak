@@ -119,7 +119,7 @@ MAIN_HEAD_HOME:=$(ROOT_DIR)/$(MAIN_HOME)
 
 CFLAGS += 
 
-EXE=rtosLwip$(BOARD_NAME).bin
+EXE=rtosLwip$(BOARD_NAME)
 
 
 # support libries

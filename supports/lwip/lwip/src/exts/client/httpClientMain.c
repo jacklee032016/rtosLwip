@@ -262,7 +262,7 @@ err_t extHttpClientNewRequest(HttpClientReq *req)
 
 	if(req->ip == IPADDR_NONE || req->port == -1 || IS_STRING_NULL(req->uri) )
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME"#%d requesting parameter is error %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&req->ip), req->port, (IS_STRING_NULL(req->uri))?"None":req->uri ));
+		EXT_ERRORF((HTTP_CLIENT_NAME"#%d requesting parameter is error %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa(&req->ip), req->port, (IS_STRING_NULL(req->uri))?"None":req->uri ));
 		return ERR_VAL;
 	}
 
@@ -270,7 +270,7 @@ err_t extHttpClientNewRequest(HttpClientReq *req)
 #if 1
 	if(! HTTP_CLIENT_IS_NOT_REQ(hc))
 	{
-		EXT_INFOF((HTTP_CLIENT_NAME"#%d is busy on requesting %s:%d%s, new req on %s will wait", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req->ip), hc->req->port, hc->req->uri, req->uri ));
+		EXT_INFOF((HTTP_CLIENT_NAME"#%d is busy on requesting %s:%d%s, new req on %s will wait", hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri, req->uri ));
 		APPEND_ELEMENT(hc->req, req, HttpClientReq);
 		return ERR_ALREADY;
 	}
@@ -279,7 +279,7 @@ err_t extHttpClientNewRequest(HttpClientReq *req)
 	APPEND_ELEMENT(hc->req, req, HttpClientReq);
 
 	_httpClientPostEvent(HC_EVENT_NEW, req);
-	EXT_INFOF((HTTP_CLIENT_NAME"#%d requesting %s:%d%s", hc->reqs, extCmnIp4addr_ntoa((unsigned int *)&hc->req->ip), hc->req->port, hc->req->uri));
+	EXT_INFOF((HTTP_CLIENT_NAME"#%d requesting %s:%d%s", hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri));
 
 
 	return ERR_OK;

@@ -200,7 +200,7 @@ static sys_mbox_t 		_udpCmdMailBox;
 
 #endif
 
-char extIpCmdSendout(EXT_JSON_PARSER  *parser, unsigned int *ip, unsigned short port)
+char extIpCmdSendout(EXT_JSON_PARSER  *parser, uint32_t *ip, unsigned short port)
 {
 	struct pbuf *newBuf = NULL;
 	const ip_addr_t *addr =  (ip_addr_t *)ip;
@@ -320,7 +320,7 @@ static void _extUdpCmdThread(void *arg)
 
 		extCmdPaserHandler(parser, parser->runCfg->bufRead, size);
 
-		extIpCmdSendout(parser, (unsigned int *)&cmd->ip, cmd->port );
+		extIpCmdSendout(parser, &cmd->ip, cmd->port );
 		
 		memp_free(MEMP_EXT_UDP_CMD, cmd);
 		cmd = NULL;

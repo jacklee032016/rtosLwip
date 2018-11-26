@@ -170,7 +170,7 @@ int extJsonFindCommand(EXT_JSON_PARSER  *parser)
 }
 
 /* in LwIP, IP address is return in network byte order */
-int extJsonParseIpAddress(EXT_JSON_PARSER *parser, const char *key, unsigned int *ipAddress)
+int extJsonParseIpAddress(EXT_JSON_PARSER *parser, const char *key, uint32_t *ipAddress)
 {
 	if(extJsonParseString(parser, key, parser->msg, EXT_JSON_MESSAGE_SIZE) != EXIT_SUCCESS)
 	{

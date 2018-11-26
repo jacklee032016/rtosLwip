@@ -10,7 +10,7 @@
 typedef struct _UdpCmd
 {
 	struct pbuf		*p;
-	unsigned	int 		ip;
+	uint32_t 			ip;
 	unsigned short	port;
 }UdpCmd;
 #endif

@@ -41,8 +41,10 @@ static const MHTTP_HEAD mHTTPHeaders[] =
 	{ "jpg",  MHTTP_HDR_JPG},
 	{ "bmp",  MHTTP_HDR_BMP},
 	{ "ico",  MHTTP_HDR_ICO},
+#if 0	
 	{ "class", MHTTP_HDR_APP},
 	{ "cls",  MHTTP_HDR_APP},
+#endif	
 	{ "js",   MHTTP_HDR_JS},
 	{ "ram",  MHTTP_HDR_RA},
 	{ "css",  MHTTP_HDR_CSS},

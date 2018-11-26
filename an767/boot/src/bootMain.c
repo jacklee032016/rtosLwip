@@ -204,7 +204,7 @@ int main( void )
 	char stayInBootloader = 0;
 #endif
 
-	bspHwInit(BOOT_MODE_BOOTLOADER);
+	bspHwInit(BOOT_MODE_BOOTLOADER, EXT_FALSE);
 
 	_bootUpdate(&extRun);
 	

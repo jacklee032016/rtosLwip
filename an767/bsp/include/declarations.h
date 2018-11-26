@@ -151,7 +151,7 @@ unsigned long  bspRandom(void);
 
 void bspHwConsoleConfig(void);
 
-void bspHwInit(boot_mode bMode);
+void bspHwInit(boot_mode bMode, uint8_t isTx);
 //void bspButtonConfig(boot_mode bMode);
 void bspButtonConfig(boot_mode bMode, char isRiseEdge);
 
@@ -227,7 +227,7 @@ char	extCmdChangeName(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t b
 
 char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
-char *extCmnIp4addr_ntoa(unsigned int *ipp);
+char *extCmnIp4addr_ntoa(uint32_t *ipp);
 void extCmnNewDestIpEffective(EXT_RUNTIME_CFG *runCfg, unsigned int newIp);
 
 

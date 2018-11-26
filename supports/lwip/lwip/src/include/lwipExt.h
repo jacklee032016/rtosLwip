@@ -92,13 +92,13 @@ void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, ip4_addr_t *gw);
 void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt);
 void extLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin);
 
-char extNetMulticastIP4Mac(unsigned int	*ipAddress, EXT_MAC_ADDRESS *macAddress);
+char extNetMulticastIP4Mac(uint32_t	*ipAddress, EXT_MAC_ADDRESS *macAddress);
 
 
 void extVideoConfigCopy(EXT_VIDEO_CONFIG *dest, EXT_VIDEO_CONFIG *src);
 
 
-char	extNetIsGroupAddress(unsigned int	*ipAddress);
+char	extNetIsGroupAddress(uint32_t	*ipAddress);
 
 
 

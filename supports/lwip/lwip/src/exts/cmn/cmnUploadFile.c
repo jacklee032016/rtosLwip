@@ -75,8 +75,11 @@ static void _firmwareUpdateEnd(EXT_RUNTIME_CFG	*runCfg)
 
 	/* reboot */
 #else	
+	TRACE();
 	fclose(runCfg->firmUpdateInfo.fp);
 #endif
+
+	TRACE();
 
 	EXT_DEBUGF(TFTP_DEBUG|EXT_HTTPD_DATA_DEBUG, ("Received %d bytes %s firmware and save to Flash"EXT_NEW_LINE, runCfg->firmUpdateInfo.size, (runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS)?"RTOS":"FPGA"));
 }
@@ -88,11 +91,11 @@ static char _extUploadOpen(struct _ExtHttpConn *mhc)
 	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 
 	EXT_FM_T	fmt = EXT_FM_TYPE_NONE;
-	if( IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_MCU) )
+	if( IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_ROOT EXT_WEBPAGE_UPDATE_MCU) )
 	{
 		fmt = EXT_FM_TYPE_RTOS;
 	}
-	else if(IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_UPDATE_FPGA) )
+	else if(IS_STRING_EQUAL(mhc->uri, EXT_WEBPAGE_ROOT EXT_WEBPAGE_UPDATE_FPGA) )
 	{
 		fmt = EXT_FM_TYPE_FPGA;
 	}

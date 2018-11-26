@@ -215,7 +215,7 @@ static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 }
 #endif
 
-err_t _httpParseHeaders(ExtHttpConn *ehc)
+err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 {
 	int  contentLength = 0;
 //	err_t err = ERR_OK;
@@ -252,9 +252,8 @@ err_t _httpParseHeaders(ExtHttpConn *ehc)
 
 	if (HTTP_IS_POST(ehc) )
 	{
-		if(extHttpPostCheckUpdate(ehc) == ERR_OK)
+		if(extHttpPostCheckUpdate(ehc, inp) == ERR_OK)
 		{/* it is update firmware, so return IP_PROCESS to enter DATA state */
-			ehc->postDataLeft = (u32_t)contentLength;
 			return ERR_INPROGRESS;
 		}
 	}
@@ -287,7 +286,7 @@ err_t _httpParseHeaders(ExtHttpConn *ehc)
 	return ERR_OK;
 }
 
-static err_t _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_len)
+static err_t _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_len, struct pbuf *inp)
 {
 	int ret;
 	err_t err = ERR_OK;
@@ -303,7 +302,7 @@ static err_t _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data
 		return ERR_ARG;
 	}
 
-	return _httpParseHeaders(mhc);
+	return _httpParseHeaders(mhc, inp);
 }
 
 
@@ -378,7 +377,7 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 			goto badrequest;
 		}
 
-		err = _httpParseRequest(mhc, data, reqLen);
+		err = _httpParseRequest(mhc, data, reqLen, inp);
 		if(err == ERR_OK || err == ERR_INPROGRESS)
 		{
 			return err;

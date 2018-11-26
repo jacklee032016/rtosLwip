@@ -204,7 +204,7 @@ static unsigned char _hcEventRecv(void *arg)
 			}
 			else
 			{
-				EXT_ERRORF((HTTP_CLIENT_NAME"Content Length %d is not same as data length:%d",ret, _dataLen) );
+				EXT_ERRORF((HTTP_CLIENT_NAME"Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
 			}
 		}
 	}

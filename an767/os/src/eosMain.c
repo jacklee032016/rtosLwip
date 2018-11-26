@@ -154,9 +154,11 @@ int main( void )
 #endif
 
 	unsigned int debugOption;
-	
-	bspHwInit(BOOT_MODE_RTOS);
-
+#if TX_VERSION	
+	bspHwInit(BOOT_MODE_RTOS, EXT_TRUE);	/* TX version */
+#else
+	bspHwInit(BOOT_MODE_RTOS, EXT_FALSE);	/* RX version */
+#endif
 
 #if (RESET_BTN_MODE == _RESET_BTN_RESTORE_FACTORY)
 	restoringFactory = gpio_pin_is_low(PIO_PA30_IDX);
