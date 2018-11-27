@@ -379,7 +379,7 @@ void	httpFsmHandle(HttpEvent *he)
 #if EXT_HTTPD_DEBUG
 	EXT_INFOF(("%s no handle for event %s in state %s", ehc->name, CMN_FIND_HTTP_EVENT(he->type), CMN_FIND_HTTP_STATE(ehc->state)));
 #else
-	EXT_INFOF(("State Machine no handle for event %d in state %s", he->type, ehc->state));
+	EXT_INFOF(("State Machine no handle for event %d in state %d", he->type, ehc->state));
 #endif
 
 	return;

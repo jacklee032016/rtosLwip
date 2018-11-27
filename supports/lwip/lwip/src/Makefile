@@ -94,14 +94,14 @@ EXTS_MISC_SRC += \
 	$(EXT_HOME)/misc/tftpServer.c \
 	$(EXT_HOME)/misc/extTelnetd.c \
 	$(EXT_HOME)/misc/extPing.c \
-	$(EXT_HOME)/mqtt/mqtt.c \
-	$(EXT_HOME)/mqtt/mqttClient.c \
 
 #	src/lwip/jsonUtils.c \
 
 EXTS_MDNS_SRC += \
 	$(EXT_HOME)/mdns/mdns.c \
 	$(EXT_HOME)/mdns/mdnsClient.c \
+	$(EXT_HOME)/mqtt/mqtt.c \
+	$(EXT_HOME)/mqtt/mqttClient.c \
 
 
 EXTS_WEB_SRC += \
@@ -171,17 +171,17 @@ EXTS_PTPD_SRC += \
 EXTS_LWIP_SRC += \
 	$(EXTS_CMN_SRC) \
 	$(EXTS_MISC_SRC) \
-	$(EXTS_MDNS_SRC) \
 	$(EXTS_WEB_SRC) \
-	$(EXTS_NMOS_SRC) \
 	$(EXTS_CMD_SRC) \
-	$(EXTS_IPERF_SRC) \
 	$(EXT_HOME)/extFsm.c \
 	$(EXT_HOME)/extMediaTask.c \
 	$(EXT_HOME)/extLwipStart.c \
 	$(EXT_HOME)/extSys.c \
 	$(EXT_HOME)/extSysCtrl.c \
 
+#	$(EXTS_IPERF_SRC) \
+#	$(EXTS_MDNS_SRC) \
+#	$(EXTS_NMOS_SRC) \
 #	$(EXTS_PTPD_SRC) \
 
 #	lwip/frozen.c \

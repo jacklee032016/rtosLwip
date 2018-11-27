@@ -51,7 +51,9 @@ static void _extHttpConnEof(ExtHttpConn *ehc)
 
 	if (ehc->req)
 	{
+#if EXT_HTTPD_DEBUG	
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s free pbuf 0x%p for request", ehc->name, ehc->req ) );
+#endif
 		pbuf_free(ehc->req);
 		ehc->req = NULL;
 	}
@@ -482,8 +484,11 @@ HTTP_UNLOCK();
 
 HTTP_UNLOCK();
 //		UNLOCK_TCPIP_CORE();
+#if EXT_HTTPD_DEBUG	
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d for URL %s) is freed, ", ehc->name, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, ehc->uri) );
-		
+#else
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN (%s:%d for URL %s) is freed, ", extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, ehc->uri) );
+#endif		
 	}
 
 	

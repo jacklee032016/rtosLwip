@@ -331,6 +331,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 	}
 	else if( (HTTPREQ_IS_UPLOAD(mhc) && mhc->uploadStatus >= _UPLOAD_STATUS_COPY) )
 	{
+#if EXT_HTTPD_DEBUG
 		unsigned short len = mhc->updateLength - mhc->updateIndex;
 		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send Update progress web page, %d bytes %s", len, httpStats.updateProgress));
 		if(len > 0)
@@ -346,6 +347,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 //				extHttpConnEof(mhc);
 			}
 		}
+#endif		
 		ret = MHTTP_DATA_TO_SEND_CONTINUE;
 		mhc->updateLength = 0;
 	}
@@ -354,7 +356,11 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 		ret = MHTTP_NO_DATA_TO_SEND;
 	}
 	
+#if EXT_HTTPD_DEBUG
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("%s send_data end: %s", mhc->name,  (ret==MHTTP_NO_DATA_TO_SEND)?"End":(ret==MHTTP_DATA_TO_SEND_CONTINUE)?"More":"Break"));
+#else
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("%p send_data end: %s", mhc,  (ret==MHTTP_NO_DATA_TO_SEND)?"End":(ret==MHTTP_DATA_TO_SEND_CONTINUE)?"More":"Break"));
+#endif
 	return ret;
 }
 

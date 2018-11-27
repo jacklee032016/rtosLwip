@@ -154,7 +154,7 @@ void efcFlashUpdateGpnvm(void)
 
 	if(nvmValue != 0x02)
 	{
-		EXT_ERRORF(("GPNVM is 0x%x, it should be changed and reboot", nvmValue));
+		EXT_ERRORF(("GPNVM is 0x%x, it should be changed and reboot", (unsigned int)nvmValue));
 		nvmValue = 0x02;
 		
 		if(flashd_set_gpnvm_bits(&flash, 0, 8, nvmValue) != FLASH_RC_OK)

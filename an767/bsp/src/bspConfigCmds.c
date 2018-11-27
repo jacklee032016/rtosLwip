@@ -28,7 +28,7 @@ char bspCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
 	if(cfg->magic[0]!=EXT_MAGIC_VALUE_A ||cfg->magic[1] != EXT_MAGIC_VALUE_B ||
 		cfg->endMagic[0]!=EXT_MAGIC_VALUE_B ||cfg->endMagic[1] != EXT_MAGIC_VALUE_A)
 	{
-		EXT_ERRORF(("Configuration data is not corrupted!!"EXT_NEW_LINE));
+		EXT_ERRORF(("Configuration data is corrupted!!"EXT_NEW_LINE));
 		return EXIT_FAILURE;
 	}
 	

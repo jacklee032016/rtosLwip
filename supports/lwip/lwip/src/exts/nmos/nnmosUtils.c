@@ -364,16 +364,4 @@ const char *extNmosStringFindFormat(NMOS_STR_TYPE strType, unsigned short type)
 
 #endif
 
-void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg)
-{
-	runCfg->currentTimestamp = 0;//sys_now();
-
-	extUuidGenerate(&nmosId->uuid, runCfg);
-
-	nmosId->version.seconds = runCfg->currentTimestamp/1000L;
-	nmosId->version.nanoSeconds = runCfg->currentTimestamp * 1000L;
-
-//	printf("%d bytes random long\n\r", sizeof(unsigned long));
-}
-
 

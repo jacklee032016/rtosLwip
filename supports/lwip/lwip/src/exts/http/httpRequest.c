@@ -222,7 +222,11 @@ err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 	
 	if(ehc->headers == NULL || ehc->headerLength == 0)
 	{
+#if EXT_HTTPD_DEBUG
 		EXT_INFOF(("%s header length is 0", ehc->name) );
+#else
+		EXT_INFOF(("%p header length is 0", ehc) );
+#endif
 		return ERR_ARG;
 	}
 

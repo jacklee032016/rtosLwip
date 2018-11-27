@@ -366,12 +366,17 @@
 
 
 #define	EXT_MDNS_CLIENT_DEBUG				EXT_DBG_OFF
-#define	EXT_HTTPD_DEBUG						EXT_DBG_ON
 #define	EXT_NMOS_DEBUG						EXT_DBG_OFF
 
+#ifdef	ARM
+#define	EXT_HTTPD_DEBUG						EXT_DBG_OFF
+#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_OFF
+#define	EXT_HTTPC_DEBUG						EXT_DBG_OFF
+#else
+#define	EXT_HTTPD_DEBUG						EXT_DBG_ON
 #define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_ON
 #define	EXT_HTTPC_DEBUG						EXT_DBG_ON
-
+#endif
 
 
 

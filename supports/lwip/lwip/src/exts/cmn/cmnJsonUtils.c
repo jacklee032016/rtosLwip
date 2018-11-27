@@ -201,6 +201,20 @@ void	extUuidGenerate(EXT_UUID_T *uuid, EXT_RUNTIME_CFG *runCfg)
 //	printf("%d bytes random long\n\r", sizeof(unsigned long));
 }
 
+
+void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg)
+{
+	runCfg->currentTimestamp = 0;//sys_now();
+
+	extUuidGenerate(&nmosId->uuid, runCfg);
+
+	nmosId->version.seconds = runCfg->currentTimestamp/1000L;
+	nmosId->version.nanoSeconds = runCfg->currentTimestamp * 1000L;
+
+//	printf("%d bytes random long\n\r", sizeof(unsigned long));
+}
+
+
 /* UUID string  8-4-4-4-12 */
 char extUuidParse(EXT_UUID_T *uuid, char *strUuid)
 {

@@ -103,6 +103,7 @@ static char _updatePageEnd(ExtHttpConn  *mhc)
 	return EXIT_SUCCESS;
 }
 #else
+#if 0
 static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 {
 	int index = 0;
@@ -127,6 +128,7 @@ static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 	mhc->httpStatusCode = WEB_RES_REQUEST_OK;
 	return EXIT_SUCCESS;
 }
+#endif
 
 #endif
 
@@ -257,7 +259,6 @@ static char _extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
 		len = LWIP_MIN(p->tot_len, sizeof(mhc->data));
 		//copied = 
 		pbuf_copy_partial(p, mhc->data, len, 0);
-TRACE();
 
 		char *endOfFilename = NULL;
 		char	*filename = lwip_strnstr((char *)mhc->data, UPLOAD_FORM_FILENAME, (unsigned int)len );
@@ -272,7 +273,6 @@ TRACE();
 			{
 				mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
 				snprintf(mhc->uri, sizeof(mhc->uri), "Error: no file is transmitted"  );
-TRACE();
 
 				return extHttpWebPageResult(mhc,(char *)"Upload Firmware", mhc->uri);
 			}
@@ -307,16 +307,13 @@ TRACE();
 		}
 		else
 		{
-TRACE();
 			mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
 			return EXIT_FAILURE;
 		}
 	}
 
-TRACE();
 	if(__extHttpPostData(mhc, p) == EXIT_FAILURE )
 	{
-TRACE();
 		return EXIT_FAILURE;
 	}
 	
@@ -433,19 +430,19 @@ TRACE();
 }
 
 /* begin to execute on the recevied data of POST request or when conn is closed */
-void extHttpPostDataFinished(ExtHttpConn *mhc)
+void extHttpPostDataFinished(ExtHttpConn *ehc)
 {
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST request on '%s' ended: '%.*s' bounary:'%s'", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) );
 //	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) ;
 
 #if LWIP_EXT_NMOS
-	if(HTTPREQ_IS_REST(mhc) )
+	if(HTTPREQ_IS_REST(ehc) )
 	{
-		return extNmosPostDataFinished(mhc);
+		return extNmosPostDataFinished(ehc);
 	}
 #endif
 
-	if(mhc->uploadStatus == _UPLOAD_STATUS_ERROR || mhc->uploadStatus == _UPLOAD_STATUS_END)
+	if(ehc->uploadStatus == _UPLOAD_STATUS_ERROR || ehc->uploadStatus == _UPLOAD_STATUS_END)
 	{
 		EXT_ERRORF(("POST request has been handled"));
 		return;
@@ -453,45 +450,47 @@ void extHttpPostDataFinished(ExtHttpConn *mhc)
 
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD last packet") );
 
-	if(__findEndingBoundary(mhc) )
+	if(__findEndingBoundary(ehc) )
 	{
-		snprintf(mhc->uri, sizeof(mhc->uri), "%d bytes uploaded for '%s'", mhc->runCfg->firmUpdateInfo.size+ mhc->dataSendIndex, mhc->filename );
+		snprintf(ehc->uri, sizeof(ehc->uri), "%d bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
 	}
 	else
 	{
-		mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
-		snprintf(mhc->uri, sizeof(mhc->uri), "Error %d bytes uploaded for %s, no boundary found", mhc->runCfg->firmUpdateInfo.size+ mhc->dataSendIndex, mhc->filename );
+		ehc->uploadStatus = _UPLOAD_STATUS_ERROR;
+		snprintf(ehc->uri, sizeof(ehc->uri), "Error %d bytes uploaded for %s, no boundary found", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
 	}
 
-	mhc->uploadCtx->write(mhc, mhc->data, mhc->dataSendIndex);
+	ehc->uploadCtx->write(ehc, ehc->data, ehc->dataSendIndex);
 
-	if (mhc->postDataLeft != 0)
+	if (ehc->postDataLeft != 0)
 	{
-		EXT_INFOF( ("POST upload %d byte from file %s, but left %"FOR_U32, mhc->runCfg->firmUpdateInfo.size, mhc->filename, mhc->postDataLeft   ) );
+		EXT_INFOF( ("POST upload %d byte from file %s, but left %"FOR_U32, ehc->runCfg->firmUpdateInfo.size, ehc->filename, ehc->postDataLeft   ) );
 		/* or move to recv function. J.L. */
 //		if(HTTPREQ_IS_UPLOAD(mhc) )
 		{
-			CANCEL_UPDATE(mhc->runCfg);
+			CANCEL_UPDATE(ehc->runCfg);
 		}
 	}
 	else
 	{
-//		EXT_INFOF( ("POST upload %d byte from file %s, type: %d", mhc->runCfg->firmUpdateInfo.size, mhc->filename, mhc->runCfg->firmUpdateInfo.type ) );
+//		EXT_INFOF( ("POST upload %d byte from file %s, type: %d", ehc->runCfg->firmUpdateInfo.size, ehc->filename, ehc->runCfg->firmUpdateInfo.type ) );
 	}
 
-	mhc->uploadCtx->close(mhc);
+	ehc->uploadCtx->close(ehc);
 
 #if UPLOAD_PROGRESS_BAR
-	_updatePageEnd(mhc);
+	_updatePageEnd(ehc);
 #endif
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST upload %d byte from file %s", mhc->runCfg->firmUpdateInfo.size, mhc->filename ) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST upload %d byte from file %s", ehc->runCfg->firmUpdateInfo.size, ehc->filename ) );
 	
-//	mhc->uploadCtx->priv = NULL;
-	mhc->uploadCtx = NULL;
+//	ehc->uploadCtx->priv = NULL;
+	ehc->uploadCtx = NULL;
 
 #if UPLOAD_PROGRESS_BAR
 #else
-	_updatePageResult(mhc, (char *)"Upload Firmware", mhc->uri);
+//	_updatePageResult(ehc, (char *)"Upload Firmware", ehc->uri);
+
+	extHttpWebPageResult(ehc,  (char *)"Upload Firmware", ehc->uri);
 #endif
 //	TRACE();
 }

@@ -356,7 +356,7 @@ static void _gmac_low_level_init(struct netif *netif)
 
 	/* Enable the copy of data into the buffers
 	   ignore broadcasts, and not copy FCS. */
-#if MUXLAB_GMAC_ENABLE_MULTICAST	   
+#if 0//MUXLAB_GMAC_ENABLE_MULTICAST	   
 	gmac_enable_copy_all(GMAC, true);	/* must be enabled to rx multicast packets. J.L. 08.20,2018 */
 
 	gmac_enable_multicast_hash(GMAC, true);
@@ -775,7 +775,7 @@ err_t ethernetif_init(struct netif *netif)
 	if (err == ERR_MEM)
 		return ERR_MEM;
 	
-	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY);
+	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY -1);
 //	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, netifINTERFACE_TASK_STACK_SIZE*4, EXT_TASK_ETHERNET_PRIORITY);
 	EXT_ASSERT(("ethernetif_init: GMAC Task allocation ERROR!"), (id != 0));
 	if (id == 0)

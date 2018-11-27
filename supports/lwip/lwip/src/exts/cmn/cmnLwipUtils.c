@@ -476,12 +476,12 @@ char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t b
 	if(strcasecmp(argv[1], EXT_CMD_DEBUG_ENABLE) == 0 )
 	{
 		EXT_DEBUG_SET_ENABLE(debugOption);
-		index += snprintf( outBuffer+index, (bufferLen-index), "'%s' is Enabled"EXT_NEW_LINE,  argv[1]);
+		index += snprintf( outBuffer+index, (bufferLen-index), "'%s' is Enabled"EXT_NEW_LINE,  argv[0]);
 	}
 	else if(strcasecmp(argv[1], EXT_CMD_DEBUG_DISABLE) == 0 )
 	{
 		EXT_DEBUG_SET_DISABLE(debugOption);
-		index += snprintf( outBuffer+index, (bufferLen-index), "'%s' is Disabled"EXT_NEW_LINE,  argv[1]);
+		index += snprintf( outBuffer+index, (bufferLen-index), "'%s' is Disabled"EXT_NEW_LINE,  argv[0]);
 	}
 	else
 	{

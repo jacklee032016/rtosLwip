@@ -11,6 +11,21 @@
 #define	_JAVA_SCRIPT_OLD		0
 
 
+
+uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
+{
+	int index = 0;
+	int contentLength = 0;
+
+	contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
+		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
+		title, msg);
+
+	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
+	return contentLength;
+}
+
+
 static uint16_t _extHttpWebPageReboot(ExtHttpConn  *ehc, void *data)
 {
 	int index = 0;
@@ -59,10 +74,26 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 //	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID"\" name=\""FORM_ID"\"  enctype=\"text/plain\" action=\"/setting\">" );
 
 //	<FORM method="post" id="formSettings" enctype=" action="action_page.php">    
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Video/Audio Settings</H2></DIV>"EXT_NEW_LINE "<DIV class=\"fields\">"EXT_NEW_LINE);
-	
-	
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Video/Audio Settings</H2></DIV>"EXT_NEW_LINE);
+
+	if(!EXT_IS_TX(runCfg) )
+	{
+		/* input type */
+		CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE "<DIV class=\"fields\">"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\">"EXT_NEW_LINE"\t\t<DIV class=\"field\"><LABEL >Input Type:</LABEL>"EXT_NEW_LINE);
+
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<select id=\"inputtype\" onchange=\"javascript_:showdiv(this.options[this.selectedIndex].value)\">"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"SDP\">SDP</option>"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"Data\" selected>Data</option>"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "</select>"EXT_NEW_LINE "</DIV></DIV></DIV>"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsSdp\" style=\"display:none;\">"EXT_NEW_LINE);
+	}
+
+	/* SDP */
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"fields\">"EXT_NEW_LINE);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >SDP Video:</LABEL>");
+
+
 	if(EXT_IS_TX(runCfg) )
 	{
 		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_VIDEO);
@@ -96,10 +127,14 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 #endif
 				"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
 
-		CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM>"EXT_NEW_LINE );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM> </div>"EXT_NEW_LINE );
 	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE ); /* DIV of fields */
 
 
+
+	/* DATA */
+	CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsData\"><DIV class=\"fields\">"EXT_NEW_LINE);
 	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_DATA"\" >" );
 
 	CMN_SN_PRINTF(dataBuf, size, index, ""EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Name:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PRODUCT"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
@@ -199,7 +234,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 #endif
 			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM></DIV>"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV>"EXT_NEW_LINE );
 
 #if 0
 #if 1
@@ -215,7 +250,9 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index,  "</SCRIPT>");
 #endif
 
+#if EXT_HTTPD_DEBUG
 	printf("Data:'%s'\r\n", dataBuf);
+#endif
 	
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
 	return index;
@@ -449,14 +486,9 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 	ehc->headerLength = headerLength;
 	headerLength = 0;
 
-	CMN_SN_PRINTF((char *)ehc->data+ehc->headerLength, sizeof(ehc->data)-ehc->headerLength, headerLength, 
-		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
-		"OK", "New Configuration has been active now");
+	return _httpWebPageResult(ehc, "OK", "New configuration has been active now");
 	
-	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
-	return headerLength;
 error:
-
 	ehc->httpStatusCode = WEB_RES_ERROR;
 	return 0;
 }
@@ -464,8 +496,6 @@ error:
 
 uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 {
-
-
 	int index = 0;
 	char *dataBuf = (char *)ehc->data+ehc->headerLength;
 	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
@@ -494,9 +524,25 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"message\"></DIV><DIV id=\"content\"></DIV><DIV id=\"footer\">&copy; MuxLab Inc. %s</DIV></DIV>", EXT_OS_NAME );
 
+	CMN_SN_PRINTF(dataBuf, size, index,  
+		"<iframe width=\"0\" height=\"0\" name=\"dummyframe\" id=\"dummyframe\"></iframe>"EXT_NEW_LINE);
 
 	CMN_SN_PRINTF(dataBuf, size, index,  
 		"<SCRIPT type=\"text/javascript\">"EXT_NEW_LINE);
+
+#if 0
+#endif
+
+
+	CMN_SN_PRINTF(dataBuf, size, index,  
+		"\tfunction showdiv(aval){"EXT_NEW_LINE
+		"\tif (aval == \"SDP\"){"EXT_NEW_LINE
+		"\t\tdivSettingsSdp.style.display= 'inline-block';"EXT_NEW_LINE
+		"\t\tdivSettingsData.style.display='none';}"EXT_NEW_LINE
+		"\telse{"EXT_NEW_LINE
+		"\t\tdivSettingsSdp.style.display='none';"EXT_NEW_LINE
+		"\t\tdivSettingsData.style.display= 'inline-block';}}"EXT_NEW_LINE);
+
 
 #if _JAVA_SCRIPT_OLD
 	CMN_SN_PRINTF(dataBuf, size, index,  
@@ -531,9 +577,14 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index,  
 			"function submit_firmware(form, url){" EXT_NEW_LINE \
 		     "\t if (form == 'formFirmware')	{"EXT_NEW_LINE 
+#if 0
+		           "\t\tdocument.getElementById(form).submit();"EXT_NEW_LINE
+		           "\t\tdocument.getElementById('content').innerHTML = '<img src=\"loading.gif\" />';"EXT_NEW_LINE"\t} "EXT_NEW_LINE);
+#else
 		           "\t\tvar fileInput = document.querySelector('input[type=\"file\"]');"EXT_NEW_LINE
 		           "\t\tvar data = new FormData();"EXT_NEW_LINE
 		           "\t\tdata.append('file', fileInput.files[0]);"EXT_NEW_LINE"\t} "EXT_NEW_LINE);
+#endif
 	CMN_SN_PRINTF(dataBuf, size, index, 
 		       "\telse{"EXT_NEW_LINE
 		       	"\t\tvar data = new URLSearchParams();"EXT_NEW_LINE
@@ -541,6 +592,9 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 		       		"\t\t\tdata.append(pair[0], pair[1]);"EXT_NEW_LINE
 		       	 "\t\t}"EXT_NEW_LINE
 		       "\t}"EXT_NEW_LINE EXT_NEW_LINE); 
+
+	CMN_SN_PRINTF(dataBuf, size, index, 
+			"\tdocument.getElementById('content').innerHTML = '<img src=\"loading.gif\" />';"EXT_NEW_LINE);
 	
 	CMN_SN_PRINTF(dataBuf, size, index, 
 			"\tfetch(url,{\tmode: 'no-cors', \tmethod: 'POST',\tbody: data,	})"EXT_NEW_LINE);
@@ -620,8 +674,10 @@ function (fd)
 
 	CMN_SN_PRINTF(dataBuf, size, index, "</SCRIPT></BODY></HTML>");
 
+#if EXT_HTTPD_DEBUG
 	printf("Data:'%s'\r\n", dataBuf);
-	
+#endif
+
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
 	return index;
 }
@@ -707,20 +763,6 @@ static const MuxHttpHandle	_webpages[] =
 };
 
 
-uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
-{
-	int index = 0;
-	int contentLength = 0;
-
-	contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
-		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
-		title, msg);
-
-	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
-	return contentLength;
-}
-
-
 char extHttpWebService(ExtHttpConn *ehc, void *data)
 {
 	const MuxHttpHandle	*page = _webpages;
@@ -745,11 +787,13 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 			}
 			contentLength = page->handler(ehc, (void *)page);
 
+#if 0
 			if(page->method ==  HTTP_METHOD_POST)
-			{/* POST will keep data */
+			{/* POST will keep data, so POST will output header in its handler  */
 				headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
 				ehc->headerLength = headerLength;
 			}
+#endif
 
 			if(ehc->httpStatusCode != WEB_RES_REQUEST_OK )
 			{
@@ -806,7 +850,7 @@ char extHttpWebPageResult(ExtHttpConn  *ehc, char *title, char *msg)
 	index += snprintf((char *)ehc->data+headerLength-8, 5, "%d", contentLength);
 
 	ehc->contentLength = (unsigned short)(index+contentLength);
-	ehc->dataSendIndex = 0;
+//	ehc->dataSendIndex = 0;
 	
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
 	return EXIT_SUCCESS;

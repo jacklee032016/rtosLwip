@@ -219,10 +219,10 @@ rtk_api_ret_t rtl8307h_mac5_miiMode_get(rtk_mode_ext_t* mode)
     CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, GLOBAL_MAC_INTERFACE_CONTROL0, CHIP_TYPE_2_0, &chipType));
     CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, GLOBAL_MAC_INTERFACE_CONTROL0, MAC5_RGMII_2_0, &ifType));
 
-	printf("\t\tchipType:%x\r\n\r\n", chipType );
+//	printf("\t\tchipType:%x\r\n\r\n", chipType );
     if (0x7 != chipType)
     {
-    	printf("chipType:%x, not suport", chipType );
+		printf("chipType:%x, not suport", chipType );
         return RT_ERR_CHIP_NOT_SUPPORTED;
     }
     
