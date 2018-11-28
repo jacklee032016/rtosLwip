@@ -585,7 +585,7 @@ uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength)
 		return ERR_VAL;
 	}
 
-//	printf("Content length:%d\r\n", contentLen);
+	printf("Content length:%d\r\n", contentLen);
 	return contentLen;
 }
 

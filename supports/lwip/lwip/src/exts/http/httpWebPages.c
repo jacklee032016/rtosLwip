@@ -18,7 +18,7 @@ uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
 	int contentLength = 0;
 
 	contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
-		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
+		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\">Result:%s</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
 		title, msg);
 
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
@@ -843,8 +843,9 @@ char extHttpWebPageResult(ExtHttpConn  *ehc, char *title, char *msg)
 	index += cmnHttpPrintResponseHeader(ehc, WEB_RESP_HTML);
 	headerLength = index;
 
+///	contentLength = _httpWebPageResult(ehc, title, msg);
 	contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
-		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
+		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\">Result:%s</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
 		title, msg);
 
 	index += snprintf((char *)ehc->data+headerLength-8, 5, "%d", contentLength);

@@ -360,8 +360,9 @@ typedef struct _ExtHttpConn
 	EXT_HTTP_REQ_T			reqType;
 	unsigned char				data[MHTTPD_MAX_REQ_LENGTH];		/* used for request and response both */
 
-	unsigned short			dataSendIndex;		/* index of data buffer before writing to flash */
-	unsigned short			contentLength;
+	/* must be 32-bit integers */
+	uint32_t					dataSendIndex;		/* index of data buffer before writing to flash */
+	uint32_t					contentLength;
 
 #if 0
 	/* move to HttpState to save memory */

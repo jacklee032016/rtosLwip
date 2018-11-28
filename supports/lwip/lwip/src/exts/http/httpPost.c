@@ -180,10 +180,10 @@ static char __extHttpPostData(ExtHttpConn *mhc, struct pbuf *p)
 		mhc->data[mhc->dataSendIndex] = 0;
 #endif
 
-		if(mhc->dataSendIndex == sizeof(mhc->data) )
+			__findEndingBoundary(mhc);
+		if(mhc->dataSendIndex == sizeof(mhc->data) && mhc->uploadStatus != _UPLOAD_STATUS_END )
 		{/*write only when buffer is full */
 			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("write to flash: packet %d bytes, copied %d len %d byte data", p->tot_len, copied, len) );
-			__findEndingBoundary(mhc);
 			len =mhc->uploadCtx->write(mhc, mhc->data, mhc->dataSendIndex);
 			if( len != mhc->dataSendIndex)
 			{
@@ -201,7 +201,7 @@ static char __extHttpPostData(ExtHttpConn *mhc, struct pbuf *p)
 	}
 	
 
-	if(copied == p->tot_len)
+	if(copied == p->tot_len || mhc->uploadStatus == _UPLOAD_STATUS_END)
 	{
 #if 1
 		pbuf_free(p);
@@ -230,7 +230,7 @@ static char _extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
 {
 	unsigned short len;//, copied;
 	
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST DATA:"EXT_NEW_LINE"'%s'", (char *)p->payload) );
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST DATA:"EXT_NEW_LINE"'%s'", (char *)p->payload) );
 #if LWIP_EXT_NMOS
 	if(HTTPREQ_IS_REST(mhc) )
 	{
@@ -238,19 +238,22 @@ static char _extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
 	}
 #endif
 
-
+#if 1
 	if (p != NULL)
 	{
 		/* adjust remaining Content-Length */
 		if (mhc->postDataLeft < p->tot_len)
 		{
-			mhc->postDataLeft = 0;
+//			mhc->postDataLeft = 0;
+			mhc->postDataLeft -= p->tot_len;
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Last POST DATA:"EXT_NEW_LINE"'%s'", (char *)p->payload) );
 		}
 		else
 		{
 			mhc->postDataLeft -= p->tot_len;
 		}
 	}
+#endif
 
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("postDataLeft:%"FOR_U32");", mhc->postDataLeft ) );
 
@@ -354,9 +357,9 @@ err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp)
 //			endOfLine = strstr((char *)boundary, MHTTP_CRLF MHTTP_CRLF);
 	memset(ehc->boundary, 0, sizeof(ehc->boundary) );
 	snprintf(ehc->boundary, sizeof(ehc->boundary), "%.*s", endOfLine -1 - boundary, boundary);
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD: bounary(%d):'%.*s'", strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
 
 	ehc->postDataLeft = (u32_t)ehc->contentLength;
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD %d (%d)bytes: bounary(%d):'%.*s'", ehc->postDataLeft, ehc->contentLength, strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
 
 	if(_extHttpPostDataRecv(ehc, inp) == EXIT_SUCCESS)
 	{
@@ -442,14 +445,17 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 	}
 #endif
 
+#if 0
 	if(ehc->uploadStatus == _UPLOAD_STATUS_ERROR || ehc->uploadStatus == _UPLOAD_STATUS_END)
 	{
 		EXT_ERRORF(("POST request has been handled"));
 		return;
 	}
+#endif
 
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD last packet") );
 
+#if 1
 	if(__findEndingBoundary(ehc) )
 	{
 		snprintf(ehc->uri, sizeof(ehc->uri), "%d bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
@@ -459,9 +465,11 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 		ehc->uploadStatus = _UPLOAD_STATUS_ERROR;
 		snprintf(ehc->uri, sizeof(ehc->uri), "Error %d bytes uploaded for %s, no boundary found", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
 	}
+#endif
 
 	ehc->uploadCtx->write(ehc, ehc->data, ehc->dataSendIndex);
 
+#if 0
 	if (ehc->postDataLeft != 0)
 	{
 		EXT_INFOF( ("POST upload %d byte from file %s, but left %"FOR_U32, ehc->runCfg->firmUpdateInfo.size, ehc->filename, ehc->postDataLeft   ) );
@@ -475,6 +483,7 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 	{
 //		EXT_INFOF( ("POST upload %d byte from file %s, type: %d", ehc->runCfg->firmUpdateInfo.size, ehc->filename, ehc->runCfg->firmUpdateInfo.type ) );
 	}
+#endif
 
 	ehc->uploadCtx->close(ehc);
 
@@ -485,6 +494,8 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 	
 //	ehc->uploadCtx->priv = NULL;
 	ehc->uploadCtx = NULL;
+
+	CANCEL_UPDATE(ehc->runCfg);
 
 #if UPLOAD_PROGRESS_BAR
 #else
@@ -532,7 +543,8 @@ err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p)
 
 
 //	if (mhc->postDataLeft == 0)
-	if (mhc->postDataLeft <= 0)
+//	if (mhc->postDataLeft <= 0)
+	if (mhc->uploadStatus == _UPLOAD_STATUS_END )
 	{
 #if	MHTTPD_POST_MANUAL_WND
 		if (mhc->unrecved_bytes != 0)

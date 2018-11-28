@@ -93,7 +93,7 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 		{
 
 			/* make sure the post code knows that the connection is closed */
-			extHttpPostDataFinished(mhc);
+//			extHttpPostDataFinished(mhc);
 		}
 
 		if( HTTPREQ_IS_WEBSOCKET(mhc) )

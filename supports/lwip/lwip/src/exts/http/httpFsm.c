@@ -108,8 +108,13 @@ static unsigned char _httpEventSend(void *arg)
 
 	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
 	ehc->retries = 0;
+	if( HTTPREQ_IS_UPLOAD(ehc) )
+	{
+		return H_STATE_CLOSE;
+		//return EXT_STATE_CONTINUE;
+	}
 
-	ret = extHttpSend( he->mhc);
+	ret = extHttpSend( ehc);
 	if(ret == MHTTP_NO_DATA_TO_SEND)
 	{
 		return H_STATE_CLOSE;
