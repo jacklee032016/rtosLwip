@@ -84,8 +84,8 @@ static err_t _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len
 			}
 
 			mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
+			EXT_DEBUGF(EXT_DBG_OFF, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
+			EXT_DEBUGF(EXT_DBG_OFF, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
 		}
 		
 		return ERR_OK;
@@ -137,7 +137,8 @@ const struct _HttpMethod _methods[] =
 static int _httpParseMethod(ExtHttpConn *ehc, unsigned char *data, u16_t data_len)
 {
 	const struct _HttpMethod *method = _methods;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CRLF received, parsing request"));
+	
+	EXT_DEBUGF(EXT_DBG_OFF, ("CRLF received, parsing request"));
 
 	while(method->type != HTTP_METHOD_UNKNOWN)
 	{
@@ -146,7 +147,7 @@ static int _httpParseMethod(ExtHttpConn *ehc, unsigned char *data, u16_t data_le
 		{
 			/* received GET request */
 			ehc->method = method->type;
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Received %s request", method->name));
+			EXT_DEBUGF(EXT_DBG_OFF, ("Received %s request", method->name));
 			return strlen(method->name);
 		}
 
@@ -222,12 +223,8 @@ err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 	
 	if(ehc->headers == NULL || ehc->headerLength == 0)
 	{
-#if EXT_HTTPD_DEBUG
-		EXT_INFOF(("%s header length is 0", ehc->name) );
-#else
-		EXT_INFOF(("%p header length is 0", ehc) );
-#endif
-		return ERR_ARG;
+ 		EXT_INFOF(("%s header length is 0", ehc->name) );
+ 		return ERR_ARG;
 	}
 
 	/* following check headers */

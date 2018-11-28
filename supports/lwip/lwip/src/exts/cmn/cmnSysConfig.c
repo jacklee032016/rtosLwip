@@ -298,7 +298,7 @@ char	*sysTaskName(void)
 
 	return threadName;
 #else
-	return "";
+	return (char *)"";
 #endif
 }
 

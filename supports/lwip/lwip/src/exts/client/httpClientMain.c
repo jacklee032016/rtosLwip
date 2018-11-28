@@ -89,15 +89,15 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 {
 	HttpClient *hc = (HttpClient *)arg;
  
-    if((err == ERR_OK) && (p != NULL))
-    {
+	if((err == ERR_OK) && (p != NULL))
+	{
 		tcp_recved(pcb, p->tot_len);
 
  		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d Event RECV : data %d bytes :%.*s", hc->reqs, p->tot_len, p->tot_len, (char *)p->payload) );
 		_httpClientPostEvent(HC_EVENT_RECV, p);
-    }
-    else if((err == ERR_OK) && (p == NULL))
-    {
+	}
+	else if((err == ERR_OK) && (p == NULL))
+	{
 		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d Event RECV : CONN closed", hc->reqs) );
 
 		extHttpClientClosePcb(hc, pcb);
@@ -105,6 +105,11 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 	}
 	else
 	{/* err is not ERR_OK */
+		if(p)
+		{
+			pbuf_free(p);
+		}
+		
 		EXT_ERRORF((HTTP_CLIENT_NAME"#%d Event RECV error: '%s'", hc->reqs, lwip_strerr(err)));
 		_httpClientPostEvent(HC_EVENT_ERROR, NULL);
 	}

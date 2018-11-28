@@ -387,7 +387,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	ret = extHttpClientNewRequest(&ehc->runCfg->sdpUriVideo) ;
 	ret2 = extHttpClientNewRequest(&ehc->runCfg->sdpUriAudio);
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Data:%d:%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
+	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
 	ehc->headerLength = headerLength;
@@ -480,13 +480,13 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 	extSysCompareParams(ehc->runCfg, rxCfg);
 	extSysConfigCtrl(ehc->runCfg, rxCfg);
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Data:%d:%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
+	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
 	ehc->headerLength = headerLength;
 	headerLength = 0;
 
-	return _httpWebPageResult(ehc, "OK", "New configuration has been active now");
+	return _httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now");
 	
 error:
 	ehc->httpStatusCode = WEB_RES_ERROR;
@@ -772,7 +772,7 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 	
 	while(page->uri )
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("API:'%s' :: REQ:'%s'", page->uri, ehc->uri));
+		EXT_DEBUGF(EXT_DBG_OFF, ("API:'%s' :: REQ:'%s'", page->uri, ehc->uri));
 		if( IS_STRING_EQUAL(page->uri, ehc->uri))
 		{
 

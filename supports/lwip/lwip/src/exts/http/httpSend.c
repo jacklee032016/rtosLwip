@@ -222,7 +222,7 @@ static char _contentLength[64];
 static char	_mHttpSendRest(ExtHttpConn *mhc)
 {
 	err_t err;
-	u16_t len, sndBufSize;
+	uint32_t len, sndBufSize;
 
 	EXT_ASSERT(("HMC is not REST conn"), HTTPREQ_IS_REST(mhc) );
 
@@ -243,25 +243,25 @@ static char	_mHttpSendRest(ExtHttpConn *mhc)
 		len = (u16_t)strlen(httpCommonHeader);
 		sndBufSize -= _mhttpSendOneHeader(mhc, httpCommonHeader, len, sndBufSize);
 
-		len = snprintf(_contentLength, sizeof(_contentLength), "Content-Length: %d"MHTTP_CRLF MHTTP_CRLF, mhc->contentLength);
+		len = snprintf(_contentLength, sizeof(_contentLength), "Content-Length: %"U32_F MHTTP_CRLF MHTTP_CRLF, mhc->contentLength);
 		sndBufSize -= _mhttpSendOneHeader(mhc, (const void *)_contentLength, len, sndBufSize);
 	}
 	
 	len = mhc->contentLength-mhc->dataSendIndex;
-	err = extHttpWrite(mhc, mhc->data+mhc->dataSendIndex, &len, MHTTP_IS_DATA_VOLATILE(mhc));
+	err = extHttpWrite(mhc, mhc->data+mhc->dataSendIndex, (uint16_t *)&len, MHTTP_IS_DATA_VOLATILE(mhc));
 	if (err != ERR_OK)
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("Output Failed: Content %d bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG,("Output Failed: Content %"U32_F" bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
 		return EXIT_FAILURE;
 	}
 	
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("Output Content %d bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("Output Content %"U32_F" bytes '%s':", len, (char *)mhc->data+mhc->dataSendIndex));
 	CONSOLE_DEBUG_MEM(mhc->data+mhc->dataSendIndex, (uint32_t)len, (uint32_t)mhc->dataSendIndex, "HTTP Output Data");
 	mhc->dataSendIndex += len;
 
 	if((mhc->contentLength == mhc->dataSendIndex) )
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%d byte data sent, End of REST HMC", mhc->dataSendIndex));
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%"U32_F" byte data sent, End of REST HMC", mhc->dataSendIndex));
 		extHttpConnEof( mhc);
 TRACE();
 	}
@@ -315,7 +315,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 	}
 	else if( HTTPREQ_IS_CGI(mhc) )
 	{
-		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send CGI web page data (%d)%s", mhc->contentLength, mhc->data));
+		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send CGI web page data (%"U32_F")\"%s\"", mhc->contentLength, mhc->data));
 		unsigned short len = mhc->contentLength - mhc->dataSendIndex;
 		extHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
 		if(len < (mhc->contentLength - mhc->dataSendIndex) )
@@ -360,7 +360,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 #endif		
 #endif		
 		ret = MHTTP_NO_DATA_TO_SEND;
-		mhc->uploadStatus == _UPLOAD_STATUS_END;
+		mhc->uploadStatus = _UPLOAD_STATUS_END;
 		mhc->updateLength = 0;
 	}
 	else
@@ -368,11 +368,8 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 		ret = MHTTP_NO_DATA_TO_SEND;
 	}
 	
-#if EXT_HTTPD_DEBUG
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("%s send_data end: %s", mhc->name,  (ret==MHTTP_NO_DATA_TO_SEND)?"End":(ret==MHTTP_DATA_TO_SEND_CONTINUE)?"More":"Break"));
-#else
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("%p send_data end: %s", mhc,  (ret==MHTTP_NO_DATA_TO_SEND)?"End":(ret==MHTTP_DATA_TO_SEND_CONTINUE)?"More":"Break"));
-#endif
-	return ret;
+ 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("%s send_data end: %s", mhc->name,  (ret==MHTTP_NO_DATA_TO_SEND)?"End":(ret==MHTTP_DATA_TO_SEND_CONTINUE)?"More":"Break"));
+
+ 	return ret;
 }
 

@@ -374,7 +374,7 @@ static char _compareOneSdp(HttpClientReq *dest, HttpClientReq *src)
 
 char extSysConfigSdpClient(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
-	char ret = EXT_FALSE, _ret = EXT_FALSE;
+	char ret = EXT_FALSE;//, _ret = EXT_FALSE;
 	
 	ret = _compareOneSdp(&runCfg->sdpUriVideo, &rxCfg->sdpUriVideo);
 

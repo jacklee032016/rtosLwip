@@ -492,7 +492,7 @@ void tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 	}
 #endif /* LWIP_TCPIP_CORE_LOCKING */
 
-	sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO );
+	sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO +1 );
 }
 
 /**

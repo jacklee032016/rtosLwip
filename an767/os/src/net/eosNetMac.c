@@ -668,6 +668,8 @@ void ethernetif_input(struct netif *netif)
 #endif /* PPPOE_SUPPORT */
 			/* Send packet to lwIP for processing. */
 			/* call tcpip_input() */
+			
+			EXT_DEBUGF(EXT_DBG_ON, ("MAC input %s packet", (htons(ethhdr->type)==ETHTYPE_IP)?"IP":"Other") );
 			if (netif->input(p, netif) != ERR_OK)
 			{
 				EXT_ERRORF(("ethernetif_input: IP input error"EXT_NEW_LINE ) );
@@ -775,7 +777,7 @@ err_t ethernetif_init(struct netif *netif)
 	if (err == ERR_MEM)
 		return ERR_MEM;
 	
-	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY -1);
+	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY);
 //	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, netifINTERFACE_TASK_STACK_SIZE*4, EXT_TASK_ETHERNET_PRIORITY);
 	EXT_ASSERT(("ethernetif_init: GMAC Task allocation ERROR!"), (id != 0));
 	if (id == 0)

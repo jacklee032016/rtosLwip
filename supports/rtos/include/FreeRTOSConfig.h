@@ -84,7 +84,11 @@ FreeRTOS/Source/tasks.c for limitations. */
 /* Software timer definitions. */
 #define configUSE_TIMERS							1
 
+#if 0
 #define configTIMER_TASK_PRIORITY				( configMAX_PRIORITIES - 2 )
+#else
+#define configTIMER_TASK_PRIORITY				( 4 - 2 )	/* keep timer lower than tcp/mac/http */
+#endif
 #define configTIMER_QUEUE_LENGTH				10
 #define configTIMER_TASK_STACK_DEPTH			( configMINIMAL_STACK_SIZE *2 )
 

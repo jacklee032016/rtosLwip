@@ -3,6 +3,15 @@ LwIP Testing and Coding
 =======================
 
 
+HTTP Performance
+=======================
+
+Response time of HTTP Server:
+
+::
+
+  curl http://192.168.168.101/info -i  -w  "\n%{time_starttransfer}\n"
+
 
 ----------
 UDP perf

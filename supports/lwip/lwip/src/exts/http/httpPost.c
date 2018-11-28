@@ -8,7 +8,6 @@
 
 #include "bspHwSpiFlash.h"
 
-#define	UPLOAD_PROGRESS_BAR		0
 
 extern	const struct _MuxUploadContext extUpload;
 
@@ -21,6 +20,7 @@ extern	const struct _MuxUploadContext extUpload;
 
 #define	UPLOAD_FORM_FILENAME				"filename"
 
+#if 0
 static int __httpWebPagePrintHeader(char *data, unsigned int size, ExtHttpConn *mhc)
 {
 	int index = 0;
@@ -28,81 +28,12 @@ static int __httpWebPagePrintHeader(char *data, unsigned int size, ExtHttpConn *
 	index += snprintf(data+index, size-index, "HTTP/1.0 200 OK"EXT_NEW_LINE );
 	index += snprintf(data+index, size-index, "Server: "MHTTPD_SERVER_AGENT"" EXT_NEW_LINE);
 	index += snprintf(data+index, size-index, "Content-type: text/html" EXT_NEW_LINE );
-#if UPLOAD_PROGRESS_BAR
-	index += snprintf(data+index, size-index, EXT_NEW_LINE EXT_NEW_LINE );
-#else
 	index += snprintf(data+index, size-index, "Content-Length: 955 " EXT_NEW_LINE EXT_NEW_LINE );
-#endif
 	
 	return index;
 }
+#endif
 
-#if UPLOAD_PROGRESS_BAR
-static char _updatePageBegin(ExtHttpConn  *mhc, char *title, char *msg)
-{
-	int index = 0;
-	int headerLength = 0;
-	int contentLength = 0;
-
-	memset(httpStats.updateProgress, 0, sizeof(httpStats.updateProgress));
-	index += __httpWebPagePrintHeader((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, mhc);
-	headerLength = index;
-
-//	contentLength += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<DIV class=\"title\"><H2>%s</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV></DIV>",
-//		title, msg);
-
-	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, "<DIV class=\"title\"><H2>%s</H2></DIV>", title);
-
-	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, " <progress id='progressBar1' value='0'></progress> <br>");
-
-	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index-contentLength, "<script>");
-	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index -contentLength, " document.getElementById('progressBar1').max = %hd; ", mhc->contentLength);
-	contentLength += snprintf((char *)httpStats.updateProgress+index+contentLength, sizeof(httpStats.updateProgress)-index -contentLength, "</script>");
-
-	index += snprintf((char *)httpStats.updateProgress+headerLength-8, 5, "%d", contentLength);
-
-	mhc->updateLength = (unsigned short)(index+contentLength);
-	mhc->updateIndex = 0;
-	
-	mhc->httpStatusCode = WEB_RES_REQUEST_OK;
-	return EXIT_SUCCESS;
-}
-
-static char _updatePageRefresh(ExtHttpConn  *mhc, char *msg)
-{
-	int index = 0;
-
-//	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "%s",
-//		msg);
-
-	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<script>");
-	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->runCfg->firmUpdateInfo.size );
-	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "</script>");
-
-	mhc->updateLength = (unsigned short)(index);
-	mhc->updateIndex = 0;
-	
-	mhc->httpStatusCode = WEB_RES_REQUEST_OK;
-	return EXIT_SUCCESS;
-}
-
-static char _updatePageEnd(ExtHttpConn  *mhc)
-{
-	int index = 0;
-
-//	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<DIV id=\"nav\"><a data-text=\"Info\" id=\"nav_info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Info</a>", 
-//		EXT_WEBPAGE_INFO);
-	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "<script>");
-	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, " document.getElementById('progressBar1').value = %d; ", mhc->contentLength);
-	index += snprintf((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, "</script>");
-
-	mhc->updateLength = (unsigned short)(index);
-	mhc->updateIndex = 0;
-	
-	mhc->httpStatusCode = WEB_RES_REQUEST_OK;
-	return EXIT_SUCCESS;
-}
-#else
 #if 0
 static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 {
@@ -110,7 +41,6 @@ static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 	int headerLength = 0;
 	int contentLength = 0;
 
-	memset(httpStats.updateProgress, 0, sizeof(httpStats.updateProgress));
 	index += __httpWebPagePrintHeader((char *)httpStats.updateProgress+index, sizeof(httpStats.updateProgress)-index, mhc);
 	headerLength = index;
 
@@ -130,9 +60,6 @@ static char _updatePageResult(ExtHttpConn  *mhc, char *title, char *msg)
 }
 #endif
 
-#endif
-
-
 
 static char  __findEndingBoundary(ExtHttpConn *mhc)
 {
@@ -143,7 +70,7 @@ static char  __findEndingBoundary(ExtHttpConn *mhc)
 #endif
 	if(boundary )
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Boundary found: last packet %d, content %d bytes", mhc->dataSendIndex, (boundary- (char *)mhc->data - 4) ) );
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Boundary found: last packet %"U32_F", content %d bytes", mhc->dataSendIndex, (boundary- (char *)mhc->data - 4) ) );
 		mhc->dataSendIndex = (boundary- (char *)mhc->data - 4);
 
 //		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("last packet %d bytes:'%.*s'", mhc->dataSendIndex, mhc->dataSendIndex, mhc->data) );
@@ -170,7 +97,7 @@ static char __extHttpPostData(ExtHttpConn *mhc, struct pbuf *p)
 
 	while(copied != p->tot_len)
 	{/* iterate to copy all data from this pbuf into ehc's buffer */
-		len = LWIP_MIN(p->tot_len - copied, (unsigned short)sizeof(mhc->data)-mhc->dataSendIndex );
+		len = LWIP_MIN(p->tot_len - copied, (unsigned short)(sizeof(mhc->data)-mhc->dataSendIndex) );
 	
 		len = pbuf_copy_partial(p, mhc->data+mhc->dataSendIndex, len, copied );
 		mhc->dataSendIndex += len;
@@ -187,17 +114,14 @@ static char __extHttpPostData(ExtHttpConn *mhc, struct pbuf *p)
 			len =mhc->uploadCtx->write(mhc, mhc->data, mhc->dataSendIndex);
 			if( len != mhc->dataSendIndex)
 			{
-				EXT_ERRORF(("Write %d bytes of %d bytes to %s", len, mhc->dataSendIndex, mhc->filename) );
+				EXT_ERRORF(("Write %d bytes of %"U32_F" bytes to %s", len, mhc->dataSendIndex, mhc->filename) );
 				return EXIT_FAILURE;
 			}
 
-#if UPLOAD_PROGRESS_BAR
-			_updatePageRefresh(mhc, "..");
-#endif
 			mhc->dataSendIndex = 0;
 		}
 
-		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("packet %d bytes, copied %d (total %d)byte data", p->tot_len, copied, mhc->dataSendIndex) );
+		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("packet %d bytes, copied %d (total %"U32_F")byte data", p->tot_len, copied, mhc->dataSendIndex) );
 	}
 	
 
@@ -284,9 +208,6 @@ static char _extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
 
 			mhc->uploadCtx->open(mhc);
 
-#if UPLOAD_PROGRESS_BAR
-			_updatePageBegin(mhc, (char *)"Upload Firmware", mhc->uri);
-#endif
 
 #if 0
 			char* crlfcrlf = _FIND_HEADER_END(mhc->data, len);
@@ -332,7 +253,7 @@ err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp)
 	char	ret;
 #endif
 
-	int contentLen;
+//	int contentLen;
 	char *endOfLine;
 //	struct pbuf *inp =  mhc->req;
 	
@@ -359,7 +280,7 @@ err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp)
 	snprintf(ehc->boundary, sizeof(ehc->boundary), "%.*s", endOfLine -1 - boundary, boundary);
 
 	ehc->postDataLeft = (u32_t)ehc->contentLength;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD %d (%d)bytes: bounary(%d):'%.*s'", ehc->postDataLeft, ehc->contentLength, strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD %"U32_F" (%"U32_F")bytes: bounary(%d):'%.*s'", ehc->postDataLeft, ehc->contentLength, strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
 
 	if(_extHttpPostDataRecv(ehc, inp) == EXIT_SUCCESS)
 	{
@@ -455,17 +376,19 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 
 	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD last packet") );
 
-#if 1
+#if 0
 	if(__findEndingBoundary(ehc) )
 	{
-		snprintf(ehc->uri, sizeof(ehc->uri), "%d bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
+		snprintf(ehc->boundary, sizeof(ehc->boundary), "%d bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
 	}
 	else
 	{
 		ehc->uploadStatus = _UPLOAD_STATUS_ERROR;
-		snprintf(ehc->uri, sizeof(ehc->uri), "Error %d bytes uploaded for %s, no boundary found", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
+		snprintf(ehc->boundary, sizeof(ehc->boundary), "Error %d bytes uploaded for %s, no boundary found", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
 	}
 #endif
+
+	snprintf(ehc->boundary, sizeof(ehc->boundary), "%"U32_F" bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
 
 	ehc->uploadCtx->write(ehc, ehc->data, ehc->dataSendIndex);
 
@@ -487,9 +410,6 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 
 	ehc->uploadCtx->close(ehc);
 
-#if UPLOAD_PROGRESS_BAR
-	_updatePageEnd(ehc);
-#endif
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST upload %d byte from file %s", ehc->runCfg->firmUpdateInfo.size, ehc->filename ) );
 	
 //	ehc->uploadCtx->priv = NULL;
@@ -497,12 +417,10 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 
 	CANCEL_UPDATE(ehc->runCfg);
 
-#if UPLOAD_PROGRESS_BAR
-#else
 //	_updatePageResult(ehc, (char *)"Upload Firmware", ehc->uri);
 
-	extHttpWebPageResult(ehc,  (char *)"Upload Firmware", ehc->uri);
-#endif
+	extHttpWebPageResult(ehc,  (char *)"Upload Firmware", ehc->boundary);
+
 //	TRACE();
 }
 

@@ -51,9 +51,7 @@ static void _extHttpConnEof(ExtHttpConn *ehc)
 
 	if (ehc->req)
 	{
-#if EXT_HTTPD_DEBUG	
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s free pbuf 0x%p for request", ehc->name, ehc->req ) );
-#endif
 		pbuf_free(ehc->req);
 		ehc->req = NULL;
 	}
@@ -68,26 +66,25 @@ static void _extHttpConnEof(ExtHttpConn *ehc)
  * @param pcb the tcp pcb to reset callbacks
  * @param mhc connection state to free
  */
-static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_t abort_conn)
+static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_t abort_conn)
 {
 	err_t err = ERR_OK;
 
-	EXT_ASSERT(("CONN is null now"), mhc!=NULL);
-#if EXT_HTTPD_DEBUG
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Closing connection %s on %p\n", (mhc)?mhc->name:"NULL CONN", (void*)pcb));
-#endif
+	EXT_ASSERT(("CONN is null now"), ehc!=NULL);
+	
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Closing connection %s on %p\n", (ehc)?ehc->name:"NULL CONN", (void*)pcb));
 
 //	EXT_RUNTIME_CFG *runCfg = NULL;
-	if(mhc->pcb == NULL)
+	if(ehc->pcb == NULL)
 	{/* CONN is broken by peer, and PCB is deallocated now */
 		return err;
 	}
 	
-	if (mhc != NULL)
+	if (ehc != NULL)
 	{
-		if ( HTTPREQ_IS_UPLOAD(mhc) && ((mhc->postDataLeft != 0 )
+		if ( HTTPREQ_IS_UPLOAD(ehc) && ((ehc->postDataLeft != 0 )
 #if	MHTTPD_POST_MANUAL_WND
-			|| ((mhc->no_auto_wnd != 0) && (mhc->unrecved_bytes != 0))  
+			|| ((ehc->no_auto_wnd != 0) && (ehc->unrecved_bytes != 0))  
 #endif
 			) )
 		{
@@ -96,25 +93,20 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 //			extHttpPostDataFinished(mhc);
 		}
 
-		if( HTTPREQ_IS_WEBSOCKET(mhc) )
+		if( HTTPREQ_IS_WEBSOCKET(ehc) )
 		{
-			extHttpWebSocketSendClose(mhc);
+			extHttpWebSocketSendClose(ehc);
 		}
 
 	}
 
 	if (abort_conn)
 	{
-#if EXT_HTTPD_DEBUG
-		EXT_INFOF( ("TCP connection %s %p is abort"EXT_NEW_LINE, mhc->name,  (void*)pcb));
-#else
-		EXT_INFOF( ("TCP connection %p is abort"EXT_NEW_LINE, (void*)pcb));
-#endif
+		EXT_INFOF( ("TCP connection %s %p is abort"EXT_NEW_LINE, ehc->name,  (void*)pcb));
 		tcp_abort(pcb);
 		return ERR_OK;
 	}
 
-#if 0	
 	err = tcp_close(pcb);
 	if (err != ERR_OK)
 	{
@@ -125,31 +117,28 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *mhc, struct tcp_pcb *pcb, u8_
 	}
 	else
 	{
-		EXT_ASSERT(("HTTP Connection is null"), mhc!= NULL);
-		runCfg = mhc->runCfg;  ///????
+		EXT_ASSERT(("HTTP Connection is null"), ehc!= NULL);
 		
-		if (mhc != NULL)
+		if (ehc != NULL)
 		{
 #if 0		
-			extHttpConnFree(mhc);
+			extHttpConnFree(ehc);
 #else
-			HTTP_SET_FREE(mhc);
+			HTTP_SET_FREE(ehc);
 #endif
-			mhc->state = H_STATE_FREE;
-#if EXT_HTTPD_DEBUG
-			EXT_INFOF( ("TCP connection %s %p set FREE"EXT_NEW_LINE, mhc->name,  (void*)pcb));
-#else
-			EXT_INFOF( ("TCP connection %p set FREE"EXT_NEW_LINE, (void*)pcb));
-#endif
+			ehc->state = H_STATE_FREE;
+			EXT_INFOF( ("TCP connection %s %p set FREE"EXT_NEW_LINE, ehc->name,  (void*)pcb));
 		}
-		runCfg->currentHttpConns --;
+		ehc->runCfg->currentHttpConns --;
 		
 		tcp_arg(pcb, NULL);
+		
 		tcp_recv(pcb, NULL);
 		tcp_err(pcb, NULL);
 		tcp_poll(pcb, NULL, 0);
 		tcp_sent(pcb, NULL);
 	}
+#if 0	
 #endif
 
 	return err;
@@ -420,11 +409,9 @@ ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
 	{
 		_extHttpConnInit(ehc);
 
-#if EXT_HTTPD_DEBUG
-		httpStats.connCount++;
-		httpStats.currentConns++;
-		snprintf(ehc->name, sizeof(ehc->name), "CONN#%"FOR_U32, httpStats.connCount);
-#endif
+		runCfg->runtime.connHttpCount++;
+		runCfg->runtime.currentHttpConns++;
+		snprintf(ehc->name, sizeof(ehc->name), "CONN#%"FOR_U32, runCfg->runtime.connHttpCount);
 		
 		ehc->runCfg = runCfg;
 		_addConnection(ehc);
@@ -484,23 +471,16 @@ HTTP_UNLOCK();
 
 HTTP_UNLOCK();
 //		UNLOCK_TCPIP_CORE();
-#if EXT_HTTPD_DEBUG	
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d for URL %s) is freed, ", ehc->name, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, ehc->uri) );
-#else
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN (%s:%d for URL %s) is freed, ", extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, ehc->uri) );
-#endif		
 	}
 
 	
 	_extHttpConnEof(ehc);
 	_removeConnection(ehc);
-#if EXT_HTTPD_DEBUG
-//		httpStats.connCount--;
-
-	httpStats.currentConns--;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s is freed, total %"FOR_U32" CONNs now ", ehc->name, httpStats.currentConns) );
-//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("URL:'%s'; Headers %d bytes: '%.*s'", ehc->uri, ehc->headerLength, ehc->headerLength, ehc->headers));
-#endif
+	
+//	ehc->runCfg->runtime.connHttpCount--;
+	ehc->runCfg->runtime.currentHttpConns--;
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s is freed, total %"FOR_U32" CONNs now ", ehc->name, ehc->runCfg->runtime.currentHttpConns) );
 
 	HTTP_CONN_FREE(ehc);
 

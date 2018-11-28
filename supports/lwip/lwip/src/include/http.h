@@ -309,18 +309,6 @@ typedef enum
 #endif
 
 
-#if EXT_HTTPD_DEBUG
-typedef struct _HttpStats
-{
-	u32_t					connCount;
-	u32_t					currentConns;
-
-	unsigned char				updateProgress[1024];		/* used for request and response both */
-	
-}HttpStats;
-#endif
-
-
 typedef struct _ExtHttpConn
 {
 #if	MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED
@@ -329,9 +317,8 @@ typedef struct _ExtHttpConn
 
 	H_STATE_T				state;
 	unsigned char				eventCount;
-#if EXT_HTTPD_DEBUG	
+
 	char						name[32];
-#endif
 
 	struct mfs_file			file_handle;
 	struct mfs_file			*handle;	/* if associated with a file */
@@ -692,11 +679,6 @@ extern	sys_mutex_t			_httpMutex;
 #endif
 
 extern	const char *httpCommonHeader;
-
-
-#if EXT_HTTPD_DEBUG
-extern	HttpStats	httpStats;
-#endif
 
 
 char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);

@@ -38,9 +38,6 @@ char *http_cgi_param_vals[MHTTPD_MAX_CGI_PARAMETERS]; /* Values for each extract
 char mhttpUriBuf[MHTTPD_URI_BUF_LEN+1];
 #endif
 
-#if EXT_HTTPD_DEBUG
-HttpStats	httpStats;
-#endif
 
 #if LWIP_EXT_HTTPD_TASK
 
@@ -85,12 +82,8 @@ static void _extHttpdTask(void *arg)
 			ehc->eventCount--;
 			HTTP_UNLOCK();
 
-#if EXT_HTTPD_DEBUG
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s: state is %s, event count:%d", ehc->name, CMN_FIND_HTTP_STATE(ehc->state), ehc->eventCount));
-#else			
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%p: state is %s, event count:%d", ehc, CMN_FIND_HTTP_STATE(ehc->state), ehc->eventCount));
-#endif
-			if(ehc && ehc->eventCount==0 && (ehc->state == H_STATE_FREE||ehc->state == H_STATE_CLOSE||ehc->state == H_STATE_ERROR))
+			if(ehc && ehc->eventCount==0 && (ehc->state == H_STATE_FREE||ehc->state == H_STATE_CLOSE||ehc->state == H_STATE_ERROR))//
 			{
 				extHttpConnFree(ehc);
 			}
@@ -132,11 +125,7 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 			err_t err = tcp_close(pcb);
 			if (err != ERR_OK)
 			{
-#if EXT_HTTPD_DEBUG
 				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %s: %p"EXT_NEW_LINE, err, ehc->name, (void*)pcb));
-#else
-				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %p: %p"EXT_NEW_LINE, err, ehc, (void*)pcb));
-#endif
 				EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
 				/* error closing, try again later in poll */
 				tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
@@ -226,11 +215,7 @@ err_t extHttpClosePcb(ExtHttpConn *ehc)
 		err = tcp_close(pcb);
 		if (err != ERR_OK)
 		{
-#if EXT_HTTPD_DEBUG
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %s (%d) closing %s: %p"EXT_NEW_LINE, lwip_strerr(err), err, ehc->name, (void*)pcb));
-#else
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %s (%d) closing %p: %p"EXT_NEW_LINE, lwip_strerr(err), err, ehc, (void*)pcb));
-#endif
 			EXT_ERRORF( ("Error %s (%d) closing %p"EXT_NEW_LINE, lwip_strerr(err), err, (void*)pcb));
 			/* error closing, try again later in poll */
 			tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
@@ -246,11 +231,8 @@ err_t extHttpClosePcb(ExtHttpConn *ehc)
 		tcp_err(pcb, NULL);
 		tcp_poll(pcb, NULL, 0);
 		tcp_sent(pcb, NULL);
-#if EXT_HTTPD_DEBUG
+
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s (%s:%d) is freed, ", ehc->name, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port) );
-#else
-		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %p (%s:%d) is freed, ", ehc, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port) );
-#endif		
 	}
 
 	return err;
@@ -322,6 +304,8 @@ static err_t __extHttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
 	mhc = (ExtHttpConn *)arg;
 
 #if LWIP_EXT_HTTPD_TASK
+	tcp_recved(pcb, len);
+
 	extHttpPostEvent(mhc, H_EVENT_SENT, NULL, pcb);
 #else
 	LWIP_UNUSED_ARG(len);
@@ -433,46 +417,9 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 #else
 static char		_debugBuf[2048];
 #endif
-/**
- * Data has been received on this pcb.
- * For HTTP 1.0, this should normally only happen once (if the request fits in one packet).
- */
-static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
+
+static err_t __recvData(ExtHttpConn *ehc, struct tcp_pcb *pcb, struct pbuf *p)
 {
-	ExtHttpConn *ehc = NULL;
-	
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("http_recv: pcb=%p pbuf=%p err=%s", (void*)pcb, (void*)p, lwip_strerr(err)));
-	ehc = (ExtHttpConn *)arg;
-
-	if ((err != ERR_OK) || (p == NULL) || (ehc == NULL))
-	{/* error or closed by other side? */
-		if (p != NULL) 
-		{/* Inform TCP that we have taken the data. */
-			tcp_recved(pcb, p->tot_len);
-			pbuf_free(p);
-		}
-		
-		if (ehc == NULL)
-		{/* this should not happen, only to be robust */
-//			EXT_ERRORF(("Error, http_recv: mhc is NULL, close"));
-		}
-		
-#if EXT_HTTPD_DEBUG
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CONN %s is broken by peer", (ehc!=NULL)?ehc->name:"Unknown"));
-#else
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CONN %p is broken by peer", (ehc!=NULL)?ehc:NULL));
-#endif
-
-#if LWIP_EXT_HTTPD_TASK
-//		extHttpClosePcb(ehc);
-		extHttpPostEvent( ehc, H_EVENT_CLOSE, p, pcb);
-//		extHttpPostEvent( ehc, H_EVENT_ERROR, p, pcb);
-#else
-		extHttpConnClose(ehc, pcb);
-#endif
-		return ERR_OK;
-	}
-
 #if	MHTTPD_POST_MANUAL_WND
 	if (ehc->no_auto_wnd)
 	{
@@ -486,7 +433,7 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 
 #ifdef	ARM
 #else
-//	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, (EXT_NEW_LINE "Received %"U16_F" bytes", p->tot_len));
+	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE "Received %"U16_F" bytes", p->tot_len));
 //	memset(_debugBuf,0 , sizeof(_debugBuf));
 	
 //	pbuf_copy_partial(p, _debugBuf, p->tot_len, 0);
@@ -587,19 +534,101 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 	return ERR_OK;
 }
 
+/**
+ * Data has been received on this pcb.
+ * For HTTP 1.0, this should normally only happen once (if the request fits in one packet).
+ */
+static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
+{
+	ExtHttpConn *ehc = NULL;
+	
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("http_recv: pcb=%p pbuf=%p err=%s", (void*)pcb, (void*)p, lwip_strerr(err)));
+	ehc = (ExtHttpConn *)arg;
+
+	if((err == ERR_OK) && (p != NULL))
+	{/* Data */
+		EXT_ASSERT(("Data is receiving, but conn has been freed"), (ehc != NULL ));
+		return __recvData(ehc, pcb, p);
+	}
+	else if((err == ERR_OK) && (p == NULL))
+	{/* closed by peer */
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s Event RECV : CONN closed",(ehc)?ehc->name:"UNKNOWN") );
+#if 0		
+		err_t err = tcp_close(pcb);
+		if (err != ERR_OK)
+		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error closing : %d(%s): %p"EXT_NEW_LINE, err, lwip_strerr(err), (void*)pcb));
+			EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+			/* error closing, try again later in poll */
+			tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
+
+			return err;
+		}
+#else		
+		extHttpPostEvent( ehc, H_EVENT_CLOSE, p, pcb);
+#endif
+	}
+	else
+	{/* err is not ERR_OK */
+		EXT_ERRORF(("%s Event RECV error: '%s'", (ehc)?ehc->name:"UNKOWN", lwip_strerr(err)));
+#if LWIP_EXT_HTTPD_TASK
+//		extHttpClosePcb(ehc);
+		extHttpPostEvent( ehc, H_EVENT_CLOSE, p, pcb);
+//		extHttpPostEvent( ehc, H_EVENT_ERROR, p, pcb);
+#else
+		extHttpConnClose(ehc, pcb);
+#endif
+	}
+
+
+#if 0
+	if ((err != ERR_OK) || (p == NULL) || (ehc == NULL))
+	{/* error or closed by other side? */
+		if (p != NULL) 
+		{/* Inform TCP that we have taken the data. */
+			tcp_recved(pcb, p->tot_len);
+			pbuf_free(p);
+		}
+		else
+		{/* pbuf is null, peer close connection */
+			if (ehc == NULL)
+			{/* this should not happen, only to be robust */
+//			EXT_ERRORF(("Error, http_recv: mhc is NULL, close"));
+			}
+
+			err_t err = tcp_close(pcb);
+			if (err != ERR_OK)
+			{
+				EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": Error closing : %d(%s): %p"EXT_NEW_LINE, err, lwip_strerr(err), (void*)pcb));
+				EXT_ERRORF( (HTTP_CLIENT_NAME"Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+				/* error closing, try again later in poll */
+				tcp_poll(pcb, _connPoll,  HTTPC_POLL_INTERVAL);
+
+				return err;
+			}
+
+		}
+		
+ 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("CONN %s is broken by peer", (ehc!=NULL)?ehc->name:"Unknown"));
+ 
+		return ERR_OK;
+	}
+#endif
+
+	return ERR_OK;
+}
+
 /* A new incoming connection has been accepted */
 static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 {
-	ExtHttpConn *mhc;
+	ExtHttpConn *ehc;
 	EXT_RUNTIME_CFG *runCfg = NULL;
 	
 	LWIP_UNUSED_ARG(err);
 	runCfg = (EXT_RUNTIME_CFG *)arg;
 
-#if EXT_HTTPD_DEBUG	
 	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d, total Connection %"FOR_U32, 
-		(void*)pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, httpStats.currentConns ));
-#endif
+		(void*)pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, runCfg->runtime.currentHttpConns ));
 
 	if ((err != ERR_OK) || (pcb == NULL))
 	{
@@ -613,29 +642,27 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	extHttpPostEvent(NULL, H_EVENT_NEW, NULL, pcb);
 #else
 	/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
-	mhc = extHttpConnAlloc(runCfg);
-	if (mhc == NULL)
+	ehc = extHttpConnAlloc(runCfg);
+	if (ehc == NULL)
 	{
 		EXT_ERRORF(("http_accept: Out of memory, RST"));
 		tcp_abort(pcb);
 		return ERR_MEM;
 	}
 
-#if EXT_HTTPD_DEBUG
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("Accept new connection %s from %s:%d", mhc->name, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );
-#endif
+	EXT_DEBUGF(EXT_DBG_ON,("Accept new connection %s(on PCB %p) from %s:%d", ehc->name, pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );
 
 	runCfg->currentHttpConns++;
 	
-	mhc->pcb = pcb;
+	ehc->pcb = pcb;
 	/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
-	tcp_arg(pcb, mhc);
+	tcp_arg(pcb, ehc);
 #endif
 
 	/* Set up the various callback functions */
 	tcp_recv(pcb, __extHttpRecv);
 	tcp_err(pcb,  __extHttpErr);
-	tcp_poll(pcb, extHttpPoll,	MHTTPD_POLL_INTERVAL/4);
+	tcp_poll(pcb, extHttpPoll,	MHTTPD_POLL_INTERVAL);
 	tcp_sent(pcb, __extHttpSent);
 
 	return ERR_OK;
@@ -651,9 +678,7 @@ void extHttpSvrMain(void *data)
 	err_t err;
 
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
-#if EXT_HTTPD_DEBUG	
-	memset(&httpStats, 0, sizeof(HttpStats));
-#endif
+
 
 #if	0//MHTTPD_USE_MEM_POOL
 	LWIP_MEMPOOL_INIT(MHTTPD_STATE);
