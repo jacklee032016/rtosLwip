@@ -154,10 +154,15 @@ int main( void )
 #endif
 
 	unsigned int debugOption;
+
 #if TX_VERSION	
 	bspHwInit(BOOT_MODE_RTOS, EXT_TRUE);	/* TX version */
 #else
 	bspHwInit(BOOT_MODE_RTOS, EXT_FALSE);	/* RX version */
+#endif
+
+#if SYS_DEBUG_STARTUP
+	printf("Start BspHwInit..."EXT_NEW_LINE);
 #endif
 
 #if (RESET_BTN_MODE == _RESET_BTN_RESTORE_FACTORY)

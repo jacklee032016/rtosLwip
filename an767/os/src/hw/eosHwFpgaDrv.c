@@ -7,6 +7,114 @@
 #include "lwipExt.h"
 #include "jsmn.h"
 
+struct Tx_Register_Address
+{
+	uint8_t		srcMac;
+	uint8_t		srcIp;
+
+	uint8_t		srcPortV;
+	uint8_t		srcPortA;
+	uint8_t		srcPortAnc;
+	uint8_t		srcPortAuc;
+
+	uint8_t		dstVideoIp;
+	uint8_t		dstVideoMac;
+	uint8_t		dstVideoPort;
+
+	uint8_t		dstAudioIp;
+	uint8_t		dstAudioMac;
+	uint8_t		dstAudioPort;
+
+	uint8_t		dstAncIp;
+	uint8_t		dstAncMac;
+	uint8_t		dstAncPort;
+
+	uint8_t		dstAuxIp;
+	uint8_t		dstAuxMac;
+	uint8_t		dstAuxPort;
+};
+
+
+const struct Tx_Register_Address FTX_ADDRESS =
+{
+	srcMac	: 	46,
+	srcIp	:	52,
+
+	srcPortV		:	56,
+	srcPortA		:	58,
+	srcPortAnc	:	60,
+	srcPortAuc	:	62,
+
+	dstVideoIp	:	88,
+	dstVideoMac	:	64,
+	dstVideoPort	:	104,
+
+	dstAudioIp	:	92,
+	dstAudioMac	:	70,
+	dstAudioPort	:	106,
+
+	dstAncIp		:	96,
+	dstAncMac	:	76,
+	dstAncPort	:	106,
+
+	dstAuxIp		:	100,
+	dstAuxMac	:	82,
+	dstAuxPort	:	110
+};
+
+
+struct Rx_Register_Address
+{
+	uint8_t		localMac;
+	uint8_t		localIp;
+
+	uint8_t		mulIpVideo;
+	uint8_t		mulIpAudio;
+	uint8_t		mulIpAnc;
+	uint8_t		mulIpAux;
+
+	uint8_t		portVideo;
+	uint8_t		portAudio;
+	uint8_t		portAnc;
+	uint8_t		portAux;
+
+	uint8_t		srcIp;
+	uint8_t		srcMac;
+
+	uint8_t		srcPortVideo;
+	uint8_t		srcPortAudio;
+	uint8_t		srcPortAnc;
+	uint8_t		srcPortAux;
+
+};
+
+
+const struct Rx_Register_Address FRX_ADDRESS = 
+{
+	localMac		:	56,
+	localIp		:	52,
+
+	mulIpVideo	:	46,
+	mulIpAudio	:	49,
+	mulIpAnc		:	88,
+	mulIpAux		:	91,
+
+	portVideo		:	62,
+	portAudio		:	76,
+	portAnc		:	80,
+	portAux		:	84,
+
+	srcIp		:	64,
+	srcMac		:	68,
+
+	srcPortVideo	:	74,
+	srcPortAudio	:	78,
+	srcPortAnc	:	82,
+	srcPortAux	:	86,
+};
+
+
+
 #define	_PORT_BYTE_ORDER_CHANGE		0
 
 //#define _FPGA_MUTEX_
@@ -130,6 +238,10 @@ static void	_extFpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, u
 {	_extFpgaRegisterWrite((address), shortVal, 2); }
 
 
+#define	_extFpgaWrite3Bytes(address, intVal) \
+{	unsigned int _value = lwip_ntohl(*((unsigned int *)(intVal))); _extFpgaRegisterWrite((address), (unsigned char *)&_value, 3); }
+
+
 #define	_extFpgaWriteInteger(address, intVal) \
 {	unsigned int _value = lwip_ntohl(*((unsigned int *)(intVal))); _extFpgaRegisterWrite((address), (unsigned char *)&_value, 4); }
 
@@ -245,6 +357,7 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 	/*configure dest, only for TX */
 	if(EXT_IS_TX(runCfg) )
 	{
+#if 0	
 		/* local */
 		_changeByteOrderOfMac(&runCfg->local.mac, address);
 		_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
@@ -275,7 +388,85 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_AUDIO, (unsigned char *)&runCfg->dest.aport);
 		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_ANC_DT, (unsigned char *)&runCfg->dest.dport);
 		_extFpgaWriteShort(EXT_FPGA_REG_DEST_PORT_ANC_ST, (unsigned char *)&runCfg->dest.sport);
+#else
+		/* local */
+		_changeByteOrderOfMac(&runCfg->local.mac, address);
+		_extFpgaRegisterWrite(FTX_ADDRESS.srcMac, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(FTX_ADDRESS.srcIp, &ip);
+
+		_extFpgaWriteShort(FTX_ADDRESS.srcPortV, (unsigned char *)&runCfg->local.vport);
 		
+		_extFpgaWriteShort(FTX_ADDRESS.srcPortA, (unsigned char *)&runCfg->local.aport);
+		_extFpgaWriteShort(FTX_ADDRESS.srcPortAnc, (unsigned char *)&runCfg->local.dport);
+		_extFpgaWriteShort(FTX_ADDRESS.srcPortAuc, (unsigned char *)&runCfg->local.sport);
+
+		/* dest */
+		/* video */
+		ret = extNetMulticastIP4Mac(&runCfg->dest.ip, &destMac);
+		if(ret == EXIT_SUCCESS)
+		{/* dest MAC is multicast MAC address */
+			mac = &destMac;
+		}
+		else
+		{
+			mac = &runCfg->dest.mac;
+		}
+		_changeByteOrderOfMac(mac, address);
+		_extFpgaRegisterWrite(FTX_ADDRESS.dstVideoMac, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(FTX_ADDRESS.dstVideoIp, &runCfg->dest.ip);
+		_extFpgaWriteShort(FTX_ADDRESS.dstVideoPort, (unsigned char *)&runCfg->dest.vport);
+		
+		/* audio */
+		ret = extNetMulticastIP4Mac(&runCfg->dest.audioIp, &destMac);
+		if(ret == EXIT_SUCCESS)
+		{/* dest MAC is multicast MAC address */
+			mac = &destMac;
+		}
+		else
+		{
+			mac = &runCfg->dest.mac;
+		}
+		_changeByteOrderOfMac(mac, address);
+		_extFpgaRegisterWrite(FTX_ADDRESS.dstAudioMac, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(FTX_ADDRESS.dstAudioIp, &runCfg->dest.audioIp);
+		_extFpgaWriteShort(FTX_ADDRESS.dstAudioPort, (unsigned char *)&runCfg->dest.aport);
+
+		/* ANC */
+		ret = extNetMulticastIP4Mac(&runCfg->dest.ancIp, &destMac);
+		if(ret == EXIT_SUCCESS)
+		{/* dest MAC is multicast MAC address */
+			mac = &destMac;
+		}
+		else
+		{
+			mac = &runCfg->dest.mac;
+		}
+		_changeByteOrderOfMac(mac, address);
+		_extFpgaRegisterWrite(FTX_ADDRESS.dstAncMac, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(FTX_ADDRESS.dstAncIp, &runCfg->dest.ancIp);
+		_extFpgaWriteShort(FTX_ADDRESS.dstAncPort, (unsigned char *)&runCfg->dest.dport);
+
+		/* AUX */
+		ret = extNetMulticastIP4Mac(&runCfg->dest.auxIp, &destMac);
+		if(ret == EXIT_SUCCESS)
+		{/* dest MAC is multicast MAC address */
+			mac = &destMac;
+		}
+		else
+		{
+			mac = &runCfg->dest.mac;
+		}
+		_changeByteOrderOfMac(mac, address);
+		_extFpgaRegisterWrite(FTX_ADDRESS.dstAuxMac, address, EXT_MAC_ADDRESS_LENGTH);
+
+		_extFpgaWriteInteger(FTX_ADDRESS.dstAuxIp, &runCfg->dest.auxIp);
+		_extFpgaWriteShort(FTX_ADDRESS.dstAuxPort, (unsigned char *)&runCfg->dest.sport);
+#endif
+
 	//	extFpgaEnable(1);
 	}
 	else
@@ -292,14 +483,15 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 #endif
 		EXT_INFOF(("RX is configuring"));
 
+#if 0
 		_extFpgaReadInteger(EXT_FPGA_REG_IP, (unsigned char *)&intValue);
 		if(intValue != vCfg->ip )
 		{
 
+			_extFpgaWriteInteger(EXT_FPGA_REG_IP, &vCfg->ip);
+
 			_changeByteOrderOfMac(&vCfg->mac, address);
 			_extFpgaRegisterWrite(EXT_FPGA_REG_MAC, address, EXT_MAC_ADDRESS_LENGTH);
-
-			_extFpgaWriteInteger(EXT_FPGA_REG_IP, &vCfg->ip);
 
 			_extFpgaWriteShort(EXT_FPGA_REG_PORT_VIDEO, (unsigned char *)&vCfg->vport);
 			_extFpgaWriteShort(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&vCfg->aport);
@@ -310,7 +502,29 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 		{
 			EXT_DEBUGF(EXT_DBG_ON,  ("MAC/IP is same, so ignore re-configuration"));
 		}
+#else
+		/* local IP/MAC */
+		_extFpgaWriteInteger(FRX_ADDRESS.localIp, &ip);
+		_changeByteOrderOfMac(&vCfg->mac, address);
+		_extFpgaRegisterWrite(FRX_ADDRESS.localMac, address, EXT_MAC_ADDRESS_LENGTH);
 
+		/* dest multi Video */
+		_extFpgaWrite3Bytes(FRX_ADDRESS.mulIpVideo, &vCfg->ip);
+		_extFpgaWriteShort(FRX_ADDRESS.portVideo, (unsigned char *)&vCfg->vport );
+
+		/* dest multi Audio */
+		_extFpgaWrite3Bytes(FRX_ADDRESS.mulIpAudio, &vCfg->audioIp);
+		_extFpgaWriteShort(FRX_ADDRESS.portAudio, (unsigned char *)&vCfg->aport );
+
+		/* dest multi Anx */
+		_extFpgaWrite3Bytes(FRX_ADDRESS.mulIpAnc, &vCfg->ancIp);
+		_extFpgaWriteShort(FRX_ADDRESS.portAnc, (unsigned char *)&vCfg->dport );
+
+		/* dest multi Aux */
+		_extFpgaWrite3Bytes(FRX_ADDRESS.mulIpAux, &vCfg->auxIp);
+		_extFpgaWriteShort(FRX_ADDRESS.portAux, (unsigned char *)&vCfg->sport );
+
+#endif
 
 #if  1
 #define	_USING_OR_OP		1

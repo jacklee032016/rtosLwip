@@ -148,6 +148,14 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_AUDIO"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
 		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)) );
 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >ANC IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_ANC"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ancIp)) );
+
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >AUX IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_AUX"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.auxIp)) );
+
+
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Video Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_VEDIO"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
 		runCfg->dest.vport );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_AUDIO"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
@@ -527,6 +535,7 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index,  
 		"<iframe width=\"0\" height=\"0\" name=\"dummyframe\" id=\"dummyframe\"></iframe>"EXT_NEW_LINE);
 
+#if 0
 	CMN_SN_PRINTF(dataBuf, size, index,  
 		"<SCRIPT type=\"text/javascript\">"EXT_NEW_LINE);
 
@@ -673,6 +682,9 @@ function (fd)
 #endif
 
 	CMN_SN_PRINTF(dataBuf, size, index, "</SCRIPT></BODY></HTML>");
+#endif
+
+	CMN_SN_PRINTF(dataBuf, size, index, "</BODY></HTML>");
 
 #if EXT_HTTPD_DEBUG
 	printf("Data:'%s'\r\n", dataBuf);

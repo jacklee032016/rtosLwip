@@ -297,7 +297,7 @@ static void __extHttpErr(void *arg, err_t err)
  * This means that more data can be sent.
  */
 static err_t __extHttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
-{
+{/* ack packet length, not snd_buf_size */
 	ExtHttpConn *mhc = NULL;
 
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_sent %p: sent len : %d", (void*)pcb, len));
@@ -711,7 +711,7 @@ void extHttpSvrMain(void *data)
 		EXT_ASSERT(("failed to create "EXT_TASK_HTTP" mbox"), 0);
 	}
 
-	sys_thread_new(EXT_TASK_HTTP, _extHttpdTask, runCfg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY );
+	sys_thread_new(EXT_TASK_HTTP, _extHttpdTask, runCfg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY +2 );
 #endif
 	
 }

@@ -70,6 +70,18 @@ int extRs232Write(unsigned char *data, unsigned short size)
 	return EXIT_SUCCESS;
 }
 
+static void _checkRs232Params(EXT_RUNTIME_CFG *runCfg)
+{
+	if(runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_9600 && 
+		runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_19200 && 
+		runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_38400 && 
+		runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_57600 &&  
+		runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_115200 )
+	{
+		runCfg->rs232Cfg.baudRate = EXT_BAUDRATE_115200;
+		EXT_ERRORF(("RS232 configuration is not correct, please reset or configure it"));
+	}
+}
 
 /** 
  * \brief Initializes the Usart in master mode.
@@ -185,6 +197,10 @@ void extHwRs232Config(EXT_RUNTIME_CFG *runCfg)
 /* called when startup. init pin and default params  */
 void extHwRs232Init(EXT_RUNTIME_CFG *runCfg)
 {
+#if EXT_RS232_DEBUG
+	printf("Configure pins of RS232(USART)..."EXT_NEW_LINE);
+#endif
+	_checkRs232Params(runCfg);
 
 	/* Configure USART pins : connect to RS232 */
 	ioport_set_pin_peripheral_mode(USART1_RXD_GPIO, USART1_RXD_FLAGS);
@@ -194,6 +210,9 @@ void extHwRs232Init(EXT_RUNTIME_CFG *runCfg)
 	sysclk_enable_peripheral_clock(ID_USART1);
 
 	/* Configure USART */
+#if EXT_RS232_DEBUG
+	printf("Configure params of RS232(USART)..."EXT_NEW_LINE);
+#endif
 	extHwRs232Config(runCfg);
 
 	extRs232Write((unsigned char *)"RS232 OK", 8);

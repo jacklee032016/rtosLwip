@@ -52,7 +52,8 @@ extern "C" {
 #endif
 
 /* IGMP timer */
-#define IGMP_TMR_INTERVAL              100 /* Milliseconds */
+//#define IGMP_TMR_INTERVAL              100 /* Milliseconds */
+#define IGMP_TMR_INTERVAL              1000 /* Milliseconds */		/* Nov.29,2018 JL*/
 #define IGMP_V1_DELAYING_MEMBER_TMR   (1000/IGMP_TMR_INTERVAL)
 //#define IGMP_JOIN_DELAYING_MEMBER_TMR (500 /IGMP_TMR_INTERVAL)
 

@@ -86,7 +86,6 @@ static unsigned char _httpEventPoll(void *arg)
 	}
 	else
 	{
-		ehc->retries++;
 		if (ehc->retries == MHTTPD_MAX_RETRIES)
 		{
 //			extHttpPostEvent(ehc, H_EVENT_CLOSE, NULL, NULL); /* close in CLOSE event */
@@ -94,6 +93,9 @@ static unsigned char _httpEventPoll(void *arg)
 			extHttpConnClose(he->mhc, he->pcb);
 			return H_STATE_CLOSE;
 		}
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POLL retry : %d", ehc->retries ));
+		
+		ehc->retries++;
 #if 0
 		/* If this connection has a file open, try to send some more data. If
 		* it has not yet received a GET request, don't do this since it will
@@ -127,16 +129,22 @@ static unsigned char _httpEventSend(void *arg)
 		//return EXT_STATE_CONTINUE;
 	}
 
-	ret = extHttpSend( ehc);
-	if(ret == MHTTP_NO_DATA_TO_SEND)
+	/* only file (logo.jpg) need more send out */
+	if( HTTPREQ_IS_FILE(ehc) )
 	{
-		return H_STATE_CLOSE;
+		ret = extHttpSend( ehc);
+		if(ret == MHTTP_NO_DATA_TO_SEND)
+		{
+			return H_STATE_CLOSE;
+		}
+		else if (ret == MHTTP_DATA_TO_SEND_BREAK)
+		{
+			return H_STATE_CLOSE;
+			//return EXT_STATE_CONTINUE;
+		}
+		tcp_output(he->pcb);
 	}
-	else if (ret == MHTTP_DATA_TO_SEND_BREAK)
-	{
-		return H_STATE_CLOSE;
-		//return EXT_STATE_CONTINUE;
-	}
+	
 	return EXT_STATE_CONTINUE;
 }
 
@@ -173,7 +181,11 @@ static unsigned char _httpEventError(void *arg)
 static void _httpEnterStateResp(void *arg)
 {
 	HttpEvent *he = (HttpEvent *)arg;
-	extHttpSend(he->mhc);
+	if(extHttpSend( he->mhc))
+	{/* If we wrote anything to be sent, go ahead and send it now. */
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
+		tcp_output(he->pcb);
+	}
 }
 
 

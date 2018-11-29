@@ -256,6 +256,10 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 
 	_extBspPinsConfig();
 	
+
+#if SYS_DEBUG_STARTUP
+	printf("Setup Hw Console..."EXT_NEW_LINE);
+#endif
 	/* UART must follow PINs configuration, so put it here */
 	bspHwConsoleConfig();
 
@@ -282,6 +286,9 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 	_bspHwSpiConfig();
 
 
+#if SYS_DEBUG_STARTUP
+	printf("Setup Hw EFC Flash..."EXT_NEW_LINE);
+#endif
 	if (efcFlashInit() != EXIT_SUCCESS)
 	{
 		printf("EFC Flash initialization error!");
@@ -293,6 +300,9 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 		efcFlashUpdateGpnvm();
 	}
 
+#if SYS_DEBUG_STARTUP
+	printf("read configuration from EFC Flash..."EXT_NEW_LINE);
+#endif
 	if(bspCfgRead(runCfg, EXT_CFG_MAIN) == EXIT_FAILURE)
 	{
 		EXT_INFOF(("Use factory configuration"EXT_NEW_LINE));
@@ -337,6 +347,9 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 
 	if(bMode == BOOT_MODE_RTOS)
 	{
+#if SYS_DEBUG_STARTUP
+		printf("Setup Hw RS232..."EXT_NEW_LINE);
+#endif
 		extHwRs232Init(runCfg);
 	}
 //	extBspEfcFlashReadInfo();

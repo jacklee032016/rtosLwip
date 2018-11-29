@@ -87,6 +87,22 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			return EXIT_FAILURE;
 		}
 	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_IP_ANC, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->dest.ancIp) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_IP_AUX, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->dest.auxIp) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_PORT_VEDIO, strlen(key)))
 	{
 		if(cmnUtilsParseInt16(value, &tmpCfg->dest.vport) == EXIT_FAILURE)

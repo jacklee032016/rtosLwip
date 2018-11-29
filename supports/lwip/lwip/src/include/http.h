@@ -504,6 +504,8 @@ typedef struct
 
 #define	EXT_WEB_CFG_FIELD_IP_VEDIO				"ipVideo"
 #define	EXT_WEB_CFG_FIELD_IP_AUDIO				"ipAudio"
+#define	EXT_WEB_CFG_FIELD_IP_ANC					"ipAnc"
+#define	EXT_WEB_CFG_FIELD_IP_AUX					"ipAux"
 
 #define	EXT_WEB_CFG_FIELD_PORT_VEDIO			"portVideo"
 #define	EXT_WEB_CFG_FIELD_PORT_AUDIO			"portAudio"

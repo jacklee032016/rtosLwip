@@ -57,6 +57,8 @@
 #include "extNmos.h"
 #include "http.h"
 
+#define	SYS_DEBUG_STARTUP		1
+
 //#include "lwip/apps/httpApp.h"
 
 #ifndef	TRACE

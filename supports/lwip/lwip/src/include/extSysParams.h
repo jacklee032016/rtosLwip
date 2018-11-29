@@ -620,6 +620,8 @@ typedef struct
 	EXT_MAC_ADDRESS		mac;
 	uint32_t					ip;
 	uint32_t					audioIp;
+	uint32_t					ancIp;
+	uint32_t					auxIp;
 
 	unsigned short			vport;
 	unsigned short			aport;
@@ -808,7 +810,7 @@ typedef struct
 /** Input parameters when initializing RS232 and similar modes. */
 typedef struct _MuxRS232
 {
-	unsigned int		baudRate;
+	int32_t			baudRate;
 	unsigned 	char		charLength;
 
 	unsigned char		parityType;

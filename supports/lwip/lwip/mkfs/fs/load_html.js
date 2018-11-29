@@ -1,9 +1,4 @@
-// JavaScript Document
 
-// function coded by http://www.TheWebHelp.com 
-
-// function to use on most requests, used on location edit page, user status edit and more
-// for external domains use the other/second function
 function load_http_doc(url_to_load, target_div, div_content_while_loading, do_on_load){
 	
 	// get the element width styling (to restore it later)
@@ -14,8 +9,6 @@ function load_http_doc(url_to_load, target_div, div_content_while_loading, do_on
 	document.getElementById(target_div).style.width = document.getElementById(target_div).offsetWidth+"px";
 	document.getElementById(target_div).style.height = document.getElementById(target_div).offsetHeight+"px";
 		
-	// change div content while loading, usually this value should be '<img src="/images/loading_20x20.gif" />'
-	// an empty value like '' is valid, it will clear the div content, so just test agains null which would leave div content unchanged while loading
 	if(div_content_while_loading != null && div_content_while_loading != 'default'){
 		document.getElementById(target_div).innerHTML = div_content_while_loading;
 	}
@@ -46,3 +39,40 @@ function load_http_doc(url_to_load, target_div, div_content_while_loading, do_on
 	xmlhttp.open("GET",url_to_load,true);
 	xmlhttp.send();
 }
+
+function showdiv(aval){
+	if (aval == "SDP"){
+		divSettingsSdp.style.display= 'inline-block';
+		divSettingsData.style.display='none';}
+	else{
+		divSettingsSdp.style.display='none';
+		divSettingsData.style.display= 'inline-block';}
+}
+function submit_firmware(form, url){
+	 if (form == 'formFirmware')	{
+		var fileInput = document.querySelector('input[type="file"]');
+		var data = new FormData();
+		data.append('file', fileInput.files[0]);
+	} 
+	else{
+		var data = new URLSearchParams();
+		for (const pair of new FormData(document.getElementById(form))){
+			data.append(pair[0], pair[1]);
+		}
+	}
+
+	document.getElementById('content').innerHTML = '<img src="loading.gif" />';
+	fetch(url,{	mode: 'no-cors', 	method: 'POST',	body: data,	})
+	.then(function(response){		 return response.text();})
+	.then(function(text){	 document.getElementById('content').innerHTML = text;})
+	.catch(function(err){	 document.getElementById('content').innerHTML = err;});
+}
+
+function reboot_device(){
+	var response = confirm("Do you want to reboot?"); 
+	if (response){ 
+		load_http_doc('reboot', 'content',''); 
+		setTimeout(function(){window.location.reload(1);}, 3000); 
+	}
+}
+
