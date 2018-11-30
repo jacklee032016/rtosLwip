@@ -399,6 +399,11 @@ typedef	enum
 
 #define	EXT_FPGA_FLAGS_PARAM_USABLE				0x01
 
+/* audio */
+#define	EXT_FPGA_REG_AUDIO_CHANNELS				15
+#define	EXT_FPGA_REG_AUDIO_RATE					16
+#define	EXT_FPGA_REG_AUDIO_PKT_SIZE				17
+
 
 #define	EXT_FPGA_REG_SDI_STATUS					19
 

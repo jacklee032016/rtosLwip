@@ -18,7 +18,7 @@ body {
 #header {
 	background: url(header_bg.png) repeat-x;
 	width: 100%;
-	height: 128px;
+	height: 78px;
 	position: relative;
 }
 
@@ -45,7 +45,7 @@ body {
 #nav {
 	background: #353E46;
 	position: relative;
-	height: 75px;
+	height: 56px;
 	width: 100%;
 }
 
@@ -188,7 +188,7 @@ body {
 
 #id_mainProductName {
 	position: absolute;
-	top: 90px;
+	top: 23px;
 	left: 29px;
 	font-size: 16px;
 	text-align: center;

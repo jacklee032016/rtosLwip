@@ -57,7 +57,6 @@
 #include "extNmos.h"
 #include "http.h"
 
-#define	SYS_DEBUG_STARTUP		1
 
 //#include "lwip/apps/httpApp.h"
 
@@ -88,6 +87,7 @@ void extLwipMdsnDestroy(struct netif *netif);
 
 char	 extLwipGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned int gAddress, unsigned char isAdd);
 
+char	 extIgmpGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned char isAdd);
 
 void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, ip4_addr_t *gw);
 

@@ -247,7 +247,9 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_VEDIO"\":%d,"EXT_NEW_LINE, runCfg->dest.vport );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_AUDIO"\":%d,"EXT_NEW_LINE, runCfg->dest.aport );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_DATA"\":%d,"EXT_NEW_LINE, runCfg->dest.dport );
+#if EXT_FPGA_AUX_ON	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_STREM"\":%d,"EXT_NEW_LINE, runCfg->dest.sport );
+#endif
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\":%d,"EXT_NEW_LINE, runCfg->runtime.vHeight);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.vWidth);

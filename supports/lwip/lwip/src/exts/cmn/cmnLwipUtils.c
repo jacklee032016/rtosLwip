@@ -432,20 +432,31 @@ char cmnCmdParams(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t buffer
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_MAC_LOCAL"\t: ");
 	MAC_ADDRESS_OUTPUT(outBuffer, bufferLen, index, &runCfg->local.mac );
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_IP_LOCAL"\t: %s"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->local.ip));
+	
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_PORT_LOCAL"\t: %d"EXT_NEW_LINE, runCfg->local.vport);
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_AUDIO_PORT_LOCAL"\t: %d"EXT_NEW_LINE, runCfg->local.aport);
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_ANC_DT_PORT_LOCAL"\t: %d"EXT_NEW_LINE, runCfg->local.dport);
+#if EXT_FPGA_AUX_ON	
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_ANC_ST_PORT_LOCAL"\t: %d"EXT_NEW_LINE, runCfg->local.sport);
-	
+#endif
+
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_MAC_DEST"\t: ");
 	MAC_ADDRESS_OUTPUT(outBuffer, bufferLen, index, &runCfg->dest.mac);
-	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_IP_DEST"\t: %s(%s)"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ip),  extCmnIp4addr_ntoa(&runCfg->ipMulticast) );
+	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_IP_DEST"\t: %s"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ip) );
+
+	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_AUDIO_IP_DEST"\t: %s"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->dest.audioIp));
+	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_ANC_IP_DEST"\t: %s"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->dest.ancIp) );
+#if EXT_FPGA_AUX_ON	
+	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_AUX_IP_DEST"\t: %s"EXT_NEW_LINE,  EXT_LWIP_IPADD_TO_STR(&runCfg->dest.auxIp) );
+#endif
+
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_VIDEO_PORT_DEST"\t: %d"EXT_NEW_LINE, runCfg->dest.vport);
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_AUDIO_PORT_DEST"\t: %d"EXT_NEW_LINE, runCfg->dest.aport);
 
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_ANC_DT_PORT_DEST"\t: %d"EXT_NEW_LINE, runCfg->dest.dport);
+#if EXT_FPGA_AUX_ON	
 	index += snprintf(outBuffer+index, bufferLen-index, EXT_JSON_KEY_ANC_ST_PORT_DEST"\t: %d"EXT_NEW_LINE, runCfg->dest.sport);
-
+#endif
 	if(index>=bufferLen)
 	{
 //		return EXT_TRUE;

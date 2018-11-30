@@ -95,6 +95,7 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			return EXIT_FAILURE;
 		}
 	}
+#if EXT_FPGA_AUX_ON	
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_IP_AUX, strlen(key)))
 	{
 		if(cmnUtilsParseIp(value, &tmpCfg->dest.auxIp) == EXIT_FAILURE)
@@ -103,6 +104,7 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			return EXIT_FAILURE;
 		}
 	}
+#endif	
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_PORT_VEDIO, strlen(key)))
 	{
 		if(cmnUtilsParseInt16(value, &tmpCfg->dest.vport) == EXIT_FAILURE)
@@ -127,6 +129,8 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			return EXIT_FAILURE;
 		}
 	}
+
+#if EXT_FPGA_AUX_ON	
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_PORT_STREM, strlen(key)))
 	{
 		if(cmnUtilsParseInt16(value, &tmpCfg->dest.sport) == EXIT_FAILURE)
@@ -135,7 +139,7 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			return EXIT_FAILURE;
 		}
 	}
-
+#endif
 
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_VIDEO_WIDTH, strlen(key)))
 	{

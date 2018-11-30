@@ -199,8 +199,7 @@ typedef    _CODE unsigned char    cBYTE;
 
 
 
-#define	EXT_RS232_DEBUG		0
-
+#define	EXT_RS232_DEBUG				0
 
 
 #define EXT_MAKEU32(a,b,c,d) (((int)((a) & 0xff) << 24) | \

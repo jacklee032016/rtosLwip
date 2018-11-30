@@ -86,6 +86,7 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 //	EXT_INFOF(("%s is running", pcTimerGetName(pxTimer)) );
 	runCfg = (EXT_RUNTIME_CFG *)pvTimerGetTimerID(pxTimer);
 
+#if EXT_DIP_SWITCH_ON
 	if(EXT_IS_MULTICAST(runCfg) && EXT_IS_DIP_ON(runCfg) )
 	{
 		unsigned	int	ip = CFG_MAKEU32(bspMultiAddressFromDipSwitch(), MCAST_DEFAULT_IPADDR2, MCAST_DEFAULT_IPADDR1, MCAST_DEFAULT_IPADDR0 );
@@ -94,6 +95,8 @@ static void _periodJobCallback(TimerHandle_t pxTimer)
 			extCmnNewDestIpEffective(runCfg, ip);
 		}
 	}
+#endif
+
 #else
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)pxTimer;
 #endif	

@@ -524,6 +524,7 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_AUDIO_CHANNEL		"audioChannels"
 #define	EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE		"audioSampRate"
 #define	EXT_WEB_CFG_FIELD_AUDIO_DEPTH			"audioDepth"
+#define	EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE		"audioPktSize"
 #define	EXT_WEB_CFG_FIELD_IS_CONNECT			"isConnect"	/* 811 send to TX(stop/start) or RX(connect/disconnect) */
 
 

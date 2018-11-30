@@ -157,12 +157,18 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 	/* dest address of RTP */
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_IP_VEDIO, &rxCfg->dest.ip);
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_IP_AUDIO, &rxCfg->dest.audioIp);
+	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_IP_ANC, &rxCfg->dest.ancIp);
+#if EXT_FPGA_AUX_ON	
+	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_IP_AUX, &rxCfg->dest.auxIp);
+#endif
 
 	/* ports of RTP */			
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_PORT_VEDIO, &rxCfg->dest.vport);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_PORT_AUDIO, &rxCfg->dest.aport);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_PORT_DATA, &rxCfg->dest.dport);
+#if EXT_FPGA_AUX_ON	
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_PORT_STREM, &rxCfg->dest.sport);
+#endif
 
 	/* params of video stream */
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_WIDTH, &rxCfg->runtime.vWidth);

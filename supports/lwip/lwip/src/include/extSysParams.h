@@ -48,6 +48,14 @@
 
 #define		LWIP_EXT_HTTP_CLIENT			1	/* HTTP Client */
 
+
+#define		EXT_DIP_SWITCH_ON				0
+
+#define		EXT_FPGA_AUX_ON				0
+
+#define		SYS_DEBUG_STARTUP				1
+
+
 /* button configuration */
 #define		_RESET_BTN_RESTORE_FACTORY 				1
 #define		_RESET_BTN_STAY_IN_BOOTLOADER			2
@@ -100,7 +108,6 @@
 #define	EXT_IP_CFG_DHCP_ENABLE			(1<<0)
 #define	EXT_IP_CFG_MC_ENABLE				(1<<1)	/* multicast */
 #define	EXT_IP_CFG_ARP_ENABLE			(1<<2)		
-
 
 /* configuration options for 767 board */
 /** MAC address definition.  The MAC address must be unique on the network. */
@@ -621,12 +628,16 @@ typedef struct
 	uint32_t					ip;
 	uint32_t					audioIp;
 	uint32_t					ancIp;
+#if EXT_FPGA_AUX_ON	
 	uint32_t					auxIp;
+#endif
 
 	unsigned short			vport;
 	unsigned short			aport;
 	unsigned short			dport;	/* anccilary data port */
+#if EXT_FPGA_AUX_ON	
 	unsigned short			sport;	/* anccilary strea port */
+#endif
 }EXT_VIDEO_CONFIG;
 
 /* firmware update */
@@ -726,6 +737,44 @@ typedef	enum
 	EXT_V_DEPTH_16	= 16
 }EXT_V_DEPTH;
 
+typedef	enum
+{
+	EXT_VIDEO_INTLC_INTERLACED	= 0,	
+	EXT_VIDEO_INTLC_PROGRESSIVE	= 3,	
+	EXT_VIDEO_INTLC_NONE				
+}EXT_VIDEO_INTLC;
+
+
+typedef	enum
+{
+	EXT_A_RATE_48K		= 0,
+	EXT_A_RATE_44K		= 1,
+	EXT_A_RATE_96K		= 8,
+	EXT_A_RATE_NONE
+}EXT_A_RATE;
+
+
+typedef	enum
+{
+	EXT_A_PKT_SIZE_1MS		= 0,
+	EXT_A_PKT_SIZE_125MKS		= 1,
+	EXT_A_PKT_SIZE_NONE
+}EXT_A_PKT_SIZE;
+
+
+#define	REG_INTLC_2_VALUE(vIsInterlace, regValue)	\
+{	(vIsInterlace) = ((regValue)==0? EXT_VIDEO_INTLC_INTERLACED: EXT_VIDEO_INTLC_PROGRESSIVE);}
+
+#define	REG_VALUE_2_INTLC(regValue, vIsInterlace)	\
+{	(regValue) = ((vIsInterlace)==EXT_VIDEO_INTLC_INTERLACED)?0:3;}
+
+
+#define	REG_A_RATE_2_VALUE(aRate, regValue)	\
+{	(aRate) = ((regValue)==EXT_A_RATE_44K)?44100:((regValue)==EXT_A_RATE_96K)? 96000: 48000; }
+
+#define	REG_VALUE_2_A_RATE(regValue, aRate)	\
+{	(regValue) = ((aRate)==44100)?EXT_A_RATE_44K:((aRate)==96000)? EXT_A_RATE_96K: EXT_A_RATE_48K; }
+
 
 
 typedef	enum
@@ -740,7 +789,11 @@ typedef	enum
 	CMN_STR_T_HTTP_EVENTS,
 
 	CMN_STR_T_HC_STATES,
-	CMN_STR_T_HC_EVENTS
+	CMN_STR_T_HC_EVENTS,
+
+	CMN_STR_T_A_PKTSIZE,
+	CMN_STR_T_A_RATE,
+
 }CMN_STR_TYPE;
 
 
@@ -772,6 +825,13 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 	extCmnStringFind(CMN_STR_T_HC_EVENTS, (type) )
 
 
+#define	CMN_FIND_A_PKTSIZE(type)		\
+	extCmnStringFind(CMN_STR_T_A_PKTSIZE, (type) )
+
+#define	CMN_FIND_A_RATE(type)		\
+	extCmnStringFind(CMN_STR_T_A_RATE, (type) )
+
+
 
 #define	CMN_FIND_STR_RS_PARITY(str)		\
 	extCmnTypeFind(CMN_STR_T_RS_PARITY, (str) )
@@ -794,6 +854,12 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 #define	CMN_FIND_STR_HC_EVENT(str)		\
 	extCmnTypeFind(CMN_STR_T_HC_EVENTS, (str) )
 
+
+#define	CMN_FIND_STR_A_PKTSIZE(str)		\
+	extCmnTypeFind(CMN_STR_T_A_PKTSIZE, (str) )
+
+#define	CMN_FIND_STR_A_RATE(str)		\
+	extCmnTypeFind(CMN_STR_T_A_RATE, (str) )
 
 
 #define	EXT_INVALIDATE_STRING_TYPE			0xFFFF
@@ -835,6 +901,7 @@ typedef	struct
 	unsigned short		aSampleRate;
 	unsigned char			aChannels;
 	unsigned char			aDepth;		/* 16, 24 bits, etc. */
+	unsigned char			aPktSize;	/* 1ms or 125ms. */
 
 
 	/* version */	
@@ -915,7 +982,9 @@ struct	_EXT_RUNTIME_CFG
 
 	unsigned char			isMCast;
 	unsigned char			isUpdate;	/*isUpdate: enter into bootloader and wait for further commands; otherwise, enter into OS directly */
+#if EXT_DIP_SWITCH_ON
 	unsigned char			isDipOn;
+#endif
 	unsigned char			netMode;
 
 	EXT_VIDEO_CONFIG	local;
@@ -1128,6 +1197,8 @@ extern	const char 	videoFpsList[];
 extern	const char 	videoColorDepthList[];
 
 extern	const char 	audioChannelsList[];
+extern	const	EXT_CONST_STR	_audioPktSizes[];
+extern	const	EXT_CONST_STR	_audioRates[];
 
 extern	EXT_RUNTIME_CFG tmpRuntime;
 

@@ -20,7 +20,9 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size)
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_PORT"\":%d,", parser->runCfg->dest.vport );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AUDIO_PORT"\":%d,", parser->runCfg->dest.aport );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AD_PORT"\":%d,", parser->runCfg->dest.dport );
+#if EXT_FPGA_AUX_ON	
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_ST_PORT"\":%d", parser->runCfg->dest.sport );
+#endif
 
 	index += snprintf(data+index, size-index, ",\""EXT_IPCMD_DATA_VIDEO_WIDTH"\":%d,", parser->runCfg->runtime.vWidth );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_HEIGHT"\":%d,", parser->runCfg->runtime.vHeight);
@@ -159,7 +161,9 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_DHCP"\":%d,", EXT_DHCP_IS_ENABLE(parser->runCfg)?1:0);
 
+#if EXT_DIP_SWITCH_ON
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IS_DIP"\":%d,", (parser->runCfg->isDipOn)?1:0);
+#endif
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_BACKUP_MC_IP"\":\"%s\",", extCmnIp4addr_ntoa(&parser->runCfg->ipMulticast));
 
 

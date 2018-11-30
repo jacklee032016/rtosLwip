@@ -66,10 +66,12 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	const EXT_CONST_STR *_str;
 	const char *chVal;
 	const short *shVal;
+	unsigned char _regValue;
 
 	char *dataBuf = (char *)ehc->data+ehc->headerLength;
 	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
-	
+
+	extFpgaReadParams(&runCfg->runtime);
 	/* device */
 //	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID"\" name=\""FORM_ID"\"  enctype=\"text/plain\" action=\"/setting\">" );
 
@@ -84,7 +86,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<select id=\"inputtype\" onchange=\"javascript_:showdiv(this.options[this.selectedIndex].value)\">"EXT_NEW_LINE);
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"SDP\">SDP</option>"EXT_NEW_LINE);
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"Data\" selected>Data</option>"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"Data\" selected>Menu</option>"EXT_NEW_LINE);
 		CMN_SN_PRINTF(dataBuf, size, index, "</select>"EXT_NEW_LINE "</DIV></DIV></DIV>"EXT_NEW_LINE);
 		CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsSdp\" style=\"display:none;\">"EXT_NEW_LINE);
 	}
@@ -140,31 +142,31 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, ""EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Name:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PRODUCT"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
 		runCfg->name);//
 
-//	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Video IP Address:</LABEL><DIV class=\"label\" ><INPUT type=\"text\" id=\""EXT_WEB_CFG_FIELD_IP_VEDIO"\" value=\"%s\"/></DIV></DIV>", 
-//		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Video IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_VEDIO"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Video Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_VEDIO"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
 		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_AUDIO"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_AUDIO"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
 		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)) );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >ANC IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_ANC"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >ANC Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_ANC"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
 		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ancIp)) );
 
-
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >AUX IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_AUX"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+#if EXT_FPGA_AUX_ON	
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >AUX Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_IP_AUX"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
 		EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.auxIp)) );
-
+#endif
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Video Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_VEDIO"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
 		runCfg->dest.vport );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_AUDIO"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
 		runCfg->dest.aport );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Aux Data Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_DATA"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >ANC Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_DATA"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
 		runCfg->dest.dport );
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Steam Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_STREM"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
+#if EXT_FPGA_AUX_ON	
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >AUX Port:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PORT_STREM"\" value=\"%d\"/></DIV>"EXT_NEW_LINE, 
 		runCfg->dest.sport );
+#endif
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Resolution:</LABEL>"EXT_NEW_LINE);
 
@@ -186,6 +188,14 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Interlaced:</LABEL>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\">" EXT_NEW_LINE);
+//	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"0\" %s>None</OPTION>"EXT_NEW_LINE, (0== runCfg->runtime.vIsInterlaced)?"selected":"");
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Interlaces</OPTION>"EXT_NEW_LINE, 
+		EXT_VIDEO_INTLC_INTERLACED, (EXT_VIDEO_INTLC_INTERLACED== runCfg->runtime.vIsInterlaced)?"selected":"");
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Progressive</OPTION>"EXT_NEW_LINE, 
+		EXT_VIDEO_INTLC_PROGRESSIVE, (EXT_VIDEO_INTLC_PROGRESSIVE== runCfg->runtime.vIsInterlaced)?"selected":"");
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Frame Rate:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_FRAME_RATE"\">" EXT_NEW_LINE);
 	chVal = videoFpsList;
@@ -229,6 +239,25 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	{
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *chVal, (*chVal== runCfg->runtime.aChannels)?"selected":"", *chVal);
 		chVal++;
+	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
+
+	REG_A_RATE_2_VALUE(_regValue, runCfg->runtime.aSampleRate);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio Rate:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE"\">"EXT_NEW_LINE );
+	_str = _audioRates;
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type== _regValue)?"selected":"", _str->name);
+		_str++;
+	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio PKT Size:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE"\">"EXT_NEW_LINE );
+	_str = _audioPktSizes;
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type== runCfg->runtime.aPktSize)?"selected":"", _str->name);
+		_str++;
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
@@ -304,10 +333,11 @@ static uint16_t _extHttpWebPageInfoHander(ExtHttpConn  *ehc, void *pageHandle)
 
 	CMN_SN_PRINTF(dataBuf, size, index, " <DIV class=\"field\"><LABEL >Gateway:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway)) );
 	CMN_SN_PRINTF(dataBuf, size, index, " <DIV class=\"field\"><LABEL >DHCP:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", STR_BOOL_VALUE(runCfg->netMode) );
+#if EXT_DIP_SWITCH_ON
 	CMN_SN_PRINTF(dataBuf, size, index, " <DIV class=\"field\"><LABEL >Dipswitch:</LABEL><DIV class=\"label\" >%s</DIV></DIV></DIV>", STR_BOOL_VALUE(runCfg->isDipOn) );
-
+#endif
 	/* RS232 */
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>RS232</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Baudrate:</LABEL><DIV class=\"label\">%d</DIV></DIV>",
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>RS232</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Baudrate:</LABEL><DIV class=\"label\">%"U32_F"</DIV></DIV>",
 		runCfg->rs232Cfg.baudRate);
 
 	CMN_SN_PRINTF(dataBuf, size, index,  "<DIV class=\"field\"><LABEL >Databits:</LABEL><DIV class=\"label\">%d</DIV></DIV>",
@@ -511,8 +541,14 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "<HTML><HEAD><TITLE>Muxlab %s-500767</TITLE>", EXT_IS_TX(&extRun)?"TX":"RX" );
 	CMN_SN_PRINTF(dataBuf, size, index, "<LINK href=\"/styles.css\" type=\"text/css\" rel=\"stylesheet\"><SCRIPT type=\"text/javascript\" src=\"/load_html.js\"></SCRIPT></HEAD>"EXT_NEW_LINE );
+#if 0
 	CMN_SN_PRINTF(dataBuf, size, index, "<BODY onload=\"JavaScript:load_http_doc('%s', 'content','')\"><DIV id=\"body\"><DIV id=\"header\"><a id=\"logo\" href=\"/\"><img alt=\"Muxlab Control Panel\" src=\"/logo.jpg\"></a><br />",
 		EXT_WEBPAGE_MEDIA);
+#else
+	CMN_SN_PRINTF(dataBuf, size, index, "<BODY onload=\"JavaScript:load_http_doc('%s', 'content','')\"><DIV id=\"body\"><DIV id=\"header\"><br />",
+		EXT_WEBPAGE_MEDIA);
+#endif
+
 	CMN_SN_PRINTF(dataBuf, size, index, "<div data-text=\"dt_productName\" id=\"id_mainProductName\">500767-%s-UTP 3G-SDI/ST2110 over IP Uncompressed Extender %s</div></DIV>" , 
 		EXT_IS_TX(&extRun)?"TX":"RX", EXT_IS_TX(&extRun)?"TX":"RX"   );
 	

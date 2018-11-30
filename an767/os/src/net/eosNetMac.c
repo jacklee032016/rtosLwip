@@ -669,7 +669,7 @@ void ethernetif_input(struct netif *netif)
 			/* Send packet to lwIP for processing. */
 			/* call tcpip_input() */
 			
-			EXT_DEBUGF(EXT_DBG_ON, ("MAC input %s packet", (htons(ethhdr->type)==ETHTYPE_IP)?"IP":"Other") );
+//			EXT_DEBUGF(EXT_DBG_ON, ("MAC input %s packet", (htons(ethhdr->type)==ETHTYPE_IP)?"IP":"Other") );
 			if (netif->input(p, netif) != ERR_OK)
 			{
 				EXT_ERRORF(("ethernetif_input: IP input error"EXT_NEW_LINE ) );

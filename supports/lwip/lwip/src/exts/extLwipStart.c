@@ -32,15 +32,20 @@ char	 extLwipGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned int gAddress, unsigned c
 {
 	const ip_addr_t  *ipaddr;
 	ip_addr_t			ipgroup;
-	err_t ret;
 	struct netif *_netif = (struct netif *)runCfg->netif;
+	err_t ret;
 
 //	IP4_ADDR( &ipgroup, 239,  200,   1,   111 );
 	EXT_LWIP_INT_TO_IP(&ipgroup, gAddress);
 
+	if(! ip4_addr_ismulticast(&ipgroup) )
+	{
+		EXT_ERRORF(("'%s' is not multi address",EXT_LWIP_IPADD_TO_STR(&ipgroup) ));
+		return EXIT_FAILURE;
+	}
+	
 	LWIP_ERROR(("IGMP is not enabled in interface when op on group '%s'", EXT_LWIP_IPADD_TO_STR(&ipgroup)), ( (_netif->flags & NETIF_FLAG_IGMP)!=0), return ERR_VAL;);
-
-	EXT_DEBUGF(EXT_DBG_ON, ("%s IGMP group '%s'"LWIP_NEW_LINE, (isAdd)?"Join":"Leave", EXT_LWIP_IPADD_TO_STR(&ipgroup)) );
+	EXT_DEBUGF(EXT_DBG_ON, ("%s IGMP group '%s'", (isAdd)?"Join":"Leave", EXT_LWIP_IPADD_TO_STR(&ipgroup)) );
 
 	ipaddr = netif_ip4_addr(_netif);
 	if(isAdd)
@@ -58,6 +63,30 @@ char	 extLwipGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned int gAddress, unsigned c
 
 	return EXIT_FAILURE;
 }
+
+
+char	 extIgmpGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned char isAdd)
+{
+	char ret;
+
+	struct netif *_netif = (struct netif *)runCfg->netif;
+	const ip4_addr_t *_netIfIpAddr = netif_ip4_addr(_netif);
+	if( (_netIfIpAddr->addr == IPADDR_ANY) )
+	{
+		EXT_DEBUGF(EXT_DBG_ON,  ("netif is not available, IGMP group can't work now"));
+		return EXIT_FAILURE;
+	}
+
+
+	ret = extLwipGroupMgr(runCfg, runCfg->dest.ip, isAdd);
+	ret |= extLwipGroupMgr(runCfg, runCfg->dest.audioIp, isAdd);
+	ret |= extLwipGroupMgr(runCfg, runCfg->dest.ancIp, isAdd);
+#if EXT_FPGA_AUX_ON	
+	ret |= extLwipGroupMgr(runCfg, runCfg->dest.auxIp, isAdd);
+#endif
+	return ret;
+}
+
 
 
 #if LWIP_MDNS_RESPONDER

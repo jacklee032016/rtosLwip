@@ -262,12 +262,13 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 		count++;
 	}
 	
+#if EXT_DIP_SWITCH_ON
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_IS_DIP, &intValue)== EXIT_SUCCESS)
 	{
 		tmpCfg->isDipOn = intValue;
 		count++;
 	}
-
+#endif
 	/* RS232 */
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_RS_BAUDRATE, &tmpCfg->rs232Cfg.baudRate ) == EXIT_SUCCESS)
 	{
@@ -358,8 +359,10 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_AD_PORT, &tmpCfg->dest.dport) == EXIT_SUCCESS)
 		count++;
 	
+#if EXT_FPGA_AUX_ON	
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_ST_PORT, &tmpCfg->dest.sport) == EXIT_SUCCESS)
 		count++;
+#endif
 
 	/* params for AV */
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_VIDEO_WIDTH, &tmpCfg->runtime.vWidth ) == EXIT_SUCCESS)

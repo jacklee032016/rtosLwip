@@ -49,12 +49,15 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	memset(rxCfg, 0, sizeof(EXT_RUNTIME_CFG));
 
 	FIELD_INVALIDATE(rxCfg->isMCast);
-	FIELD_INVALIDATE(rxCfg->isDipOn);
 	FIELD_INVALIDATE(rxCfg->netMode);
 	
+#if EXT_DIP_SWITCH_ON
 	FIELD_INVALIDATE(rxCfg->isDipOn);
-
+#endif
+	FIELD_INVALIDATE(rxCfg->rs232Cfg.baudRate);
+	FIELD_INVALIDATE(rxCfg->rs232Cfg.charLength);
 	FIELD_INVALIDATE(rxCfg->rs232Cfg.parityType);
+	FIELD_INVALIDATE(rxCfg->rs232Cfg.stopbits);
 
 	FIELD_INVALIDATE(rxCfg->runtime.vColorSpace);
 	FIELD_INVALIDATE(rxCfg->runtime.vIsInterlaced);
@@ -145,6 +148,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		}
 	}
 
+#if EXT_DIP_SWITCH_ON
 //	if(_checkBoolField(&runCfg->isDipOn, rxCfg->isDipOn, EXT_TRUE) == EXIT_SUCCESS)
 	_checkNumFieldValue(&runCfg->isDipOn, rxCfg->isDipOn, _ret);
 	if(_ret == EXT_TRUE)
@@ -163,6 +167,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 #endif		
 		ret = EXT_TRUE;
 	}
+#endif
 
 	return ret;
 }
@@ -230,11 +235,11 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	}
 
 //	if( _checkIntegerField(&runCfg->dest.ip, rxCfg->dest.ip) == EXIT_SUCCESS)
-	if(rxCfg->dest.ip != IPADDR_NONE && rxCfg->dest.ip != runCfg->ipMulticast )
+	if(rxCfg->dest.ip != IPADDR_NONE && rxCfg->dest.ip != runCfg->dest.ip )
 	{
-		runCfg->ipMulticast = rxCfg->dest.ip;
-//		needReboot = 1;
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+//		runCfg->ipMulticast = rxCfg->dest.ip;
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New video McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+#if EXT_DIP_SWITCH_ON
 		if(!EXT_IS_DIP_ON(runCfg) )
 		{/* FPGA maybe configured twice: furst here; second, in setupParams() */
 			extCmnNewDestIpEffective( runCfg, runCfg->ipMulticast);
@@ -243,17 +248,39 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 
 		{/* config type: system, so only save, not reconfigure FPGA */
 		}
-		
+#endif		
 		ret = EXT_TRUE;
 	}
-	
+
+	if(rxCfg->dest.audioIp != IPADDR_NONE && rxCfg->dest.audioIp != runCfg->dest.audioIp )
+	{
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New Audio McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		ret = EXT_TRUE;
+	}
+
+	if(rxCfg->dest.ancIp != IPADDR_NONE && rxCfg->dest.ancIp != runCfg->dest.ancIp )
+	{
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New ANC McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		ret = EXT_TRUE;
+	}
+
+#if EXT_FPGA_AUX_ON	
+	if(rxCfg->dest.auxIp != IPADDR_NONE && rxCfg->dest.auxIp != runCfg->dest.auxIp )
+	{
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New AUX McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		ret = EXT_TRUE;
+	}
+#endif
+
 	_checkNumFieldValue(&runCfg->dest.vport, rxCfg->dest.vport, ret);	
 
 	_checkNumFieldValue(&runCfg->dest.aport, rxCfg->dest.aport, ret);	
 
 	_checkNumFieldValue(&runCfg->dest.dport, rxCfg->dest.dport, ret);	
 
+#if EXT_FPGA_AUX_ON	
 	_checkNumFieldValue(&runCfg->dest.sport, rxCfg->dest.sport, ret);	
+#endif
 
 	return ret;
 }
@@ -318,7 +345,11 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(SETUP_CHECK_TYPE(_SETUP_TYPE_PROTOCOL) )
 	{
 #ifdef	ARM
+		extIgmpGroupMgr(rxCfg, EXT_FALSE);
+
+		memcpy(&runCfg->dest,  &rxCfg->dest, sizeof(EXT_VIDEO_CONFIG));
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
+
 		extFpgaConfig(runCfg);
 //#else
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("FPGA configuration Protocol"));

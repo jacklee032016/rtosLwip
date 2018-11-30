@@ -294,42 +294,82 @@ const	EXT_CONST_STR	_videoFramerates[] =
 };
 
 
+const	EXT_CONST_STR	_audioPktSizes[] =
+{
+	{
+		type	: EXT_A_PKT_SIZE_1MS,
+		name	: "1ms"
+	},
+	{
+		type	: EXT_A_PKT_SIZE_125MKS,
+		name	: "125mks"
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+
+const	EXT_CONST_STR	_audioRates[] =
+{
+	{
+		type	: EXT_A_RATE_48K,
+		name	: "48KHz"
+	},
+	{
+		type	: EXT_A_RATE_44K,
+		name	: "44.1KHz"
+	},
+	{
+		type	: EXT_A_RATE_96K,
+		name	: "96KHz"
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+
 
 const short	videoWidthList[]=
 {
-	480,
-	576,	
-	640,
+//	480,
+//	576,	
+//	640,
 	720,
-	800,
-	1024,
+//	800,
+	960,
+//	1024,
 	1280,
-	1360,
-	1440,
-	1600,
-	1680,
+//	1360,
+//	1440,
+//	1600,
+//	1680,
 	1920,
-	2048,
-	2560,
-	3840,
-	4096,
+//	2048,
+//	2560,
+//	3840,
+//	4096,
 	0
 };
 
 const short videoHeightList[]=
 {
 	480,
-	600,
+//	600,
+	576,
 	720,
-	768,
-	800,
-	1024,
-	1050,
+//	768,
+//	800,
+//	1024,
+//	1050,
 	1080,
-	1200,
-	1440,
-	1600,
-	2160,
+//	1200,
+//	1440,
+//	1600,
+//	2160,
 	0
 };
 
@@ -358,7 +398,8 @@ const char videoColorDepthList[] =
 const char audioChannelsList[] =
 {
 	4,	
-	8,	
+	8,
+	12,
 	16,	
 	0
 };
@@ -392,6 +433,15 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 		case CMN_STR_T_HC_EVENTS:
 			_str = _hcStringEvents;
 			break;
+
+		case CMN_STR_T_A_PKTSIZE:
+			_str = _audioPktSizes;
+			break;
+
+		case CMN_STR_T_A_RATE:
+			_str = _audioRates;
+			break;
+
 		default:
 			return "Unknown String Type";
 			break;
@@ -441,6 +491,14 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 		case CMN_STR_T_HC_EVENTS:
 			_str = _hcStringEvents;
 			break;
+
+		case CMN_STR_T_A_PKTSIZE:
+			_str = _audioPktSizes;
+			break;
+		case CMN_STR_T_A_RATE:
+			_str = _audioRates;
+			break;
+
 		default:
 			return -1;
 			break;

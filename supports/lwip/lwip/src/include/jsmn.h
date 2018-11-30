@@ -333,6 +333,11 @@ IoT_Error_t parseStringValue(char *buf, const char *jsonString, jsmntok_t *token
 #define	EXT_JSON_KEY_VIDEO_MAC_DEST		"videoMacDest"
 #define	EXT_JSON_KEY_VIDEO_IP_LOCAL			"videoIpLocal"
 #define	EXT_JSON_KEY_VIDEO_IP_DEST			"videoIpDest"
+
+#define	EXT_JSON_KEY_AUDIO_IP_DEST			"audioIpDest"
+#define	EXT_JSON_KEY_ANC_IP_DEST			"ancIpDest"
+#define	EXT_JSON_KEY_AUX_IP_DEST			"auxIpDest"
+
 #define	EXT_JSON_KEY_VIDEO_PORT_LOCAL		"videoPortLocal"
 #define	EXT_JSON_KEY_VIDEO_PORT_DEST		"videoPortDest"
 
