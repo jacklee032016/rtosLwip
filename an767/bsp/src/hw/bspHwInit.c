@@ -257,12 +257,12 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 	_extBspPinsConfig();
 	
 
-#if SYS_DEBUG_STARTUP
-	printf("Setup Hw Console..."EXT_NEW_LINE);
-#endif
 	/* UART must follow PINs configuration, so put it here */
 	bspHwConsoleConfig();
 
+#if SYS_DEBUG_STARTUP
+	printf("Setup Hw Console..."EXT_NEW_LINE);
+#endif
 	
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)
 	bspButtonConfig(bMode, EXT_TRUE);
