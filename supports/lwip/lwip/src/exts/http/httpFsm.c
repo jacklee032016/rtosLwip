@@ -86,7 +86,7 @@ static unsigned char _httpEventPoll(void *arg)
 	}
 	else
 	{
-		if (ehc->retries == MHTTPD_MAX_RETRIES)
+		if (ehc->retries >= MHTTPD_MAX_RETRIES)
 		{
 //			extHttpPostEvent(ehc, H_EVENT_CLOSE, NULL, NULL); /* close in CLOSE event */
 //			return EXT_STATE_CONTINUE;

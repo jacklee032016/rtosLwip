@@ -306,7 +306,7 @@ char	*sysTaskName(void)
 
 	return threadName;
 #else
-	return (char *)"";
+	return getTaskName();
 #endif
 }
 

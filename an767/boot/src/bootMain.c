@@ -193,6 +193,11 @@ uint32_t sys_get_ms(void)
 	return 0;
 }
 
+char *getTaskName(void)
+{
+	return (char *)"";
+}
+
 
 void	wakeResetInIsr(void )
 {

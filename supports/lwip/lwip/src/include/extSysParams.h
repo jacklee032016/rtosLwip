@@ -1166,5 +1166,8 @@ void extHttpClientMain(void *data);
 uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength);
 
 
+char *getTaskName(void);
+
+
 #endif
 

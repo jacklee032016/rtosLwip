@@ -5045,4 +5045,8 @@ when performing module tests). */
 
 #endif
 
+char *getTaskName(void)
+{
+	return pxCurrentTCB->pcTaskName;
+}
 
