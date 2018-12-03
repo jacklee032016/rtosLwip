@@ -41,8 +41,11 @@
 #else
 #define configCPU_CLOCK_HZ						 (300000000UL) 
 #endif
+#if 0
 #define configTICK_RATE_HZ						( 1000 )
-//#define configTICK_RATE_HZ						( 100 )
+#else
+#define configTICK_RATE_HZ						( 100 )
+#endif
 #define configMAX_PRIORITIES						( 10 )  		/* from 5 to 10. Oct.23, 2018, JL*/
 #define configMINIMAL_STACK_SIZE				( ( unsigned short ) 130 )
 #define configTOTAL_HEAP_SIZE					( ( size_t ) ( 40 * 1024 ) )

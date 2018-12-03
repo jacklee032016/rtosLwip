@@ -418,9 +418,11 @@ a lot of data that needs to be copied, this should be set high. */
 #define INET_DEBUG                      LWIP_DBG_OFF
 #define IP_REASS_DEBUG                  LWIP_DBG_OFF
 
-#define TIMERS_DEBUG                    LWIP_DBG_OFF
-#define TCP_DEBUG                       LWIP_DBG_OFF
-#define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
+#define	TIMERS_DEBUG					LWIP_DBG_OFF
+#define	TCP_DEBUG						LWIP_DBG_OFF
+#define	TCP_INPUT_DEBUG				LWIP_DBG_OFF
+
+
 #define TCP_FR_DEBUG                    LWIP_DBG_OFF
 #define TCP_RTO_DEBUG                   LWIP_DBG_OFF
 #define TCP_CWND_DEBUG                  LWIP_DBG_OFF

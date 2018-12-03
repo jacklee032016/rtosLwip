@@ -263,6 +263,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 
 	cfg->ipSvr811 = CFG_MAKEU32(CONF_SVR811_IPADDR3, CONF_SVR811_IPADDR2, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 	cfg->portSvr811 = CONF_SVR811_PORT;
+	cfg->fpgaAuto = EXT_TRUE;
 	
 //	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;

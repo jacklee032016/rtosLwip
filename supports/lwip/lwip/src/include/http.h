@@ -512,6 +512,12 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_PORT_DATA				"portData"
 #define	EXT_WEB_CFG_FIELD_PORT_STREM			"portStrem"
 
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO				"fpgaAuto"
+
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO		"Auto"
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL		"Manual"
+
+
 #define	EXT_WEB_CFG_FIELD_VIDEO_WIDTH			"videoWidth"
 #define	EXT_WEB_CFG_FIELD_VIDEO_HEIGHT			"videoHeight"
 

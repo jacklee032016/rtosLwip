@@ -90,8 +90,13 @@ static unsigned char _httpEventPoll(void *arg)
 		{
 //			extHttpPostEvent(ehc, H_EVENT_CLOSE, NULL, NULL); /* close in CLOSE event */
 //			return EXT_STATE_CONTINUE;
+
+#if 1
+			/* test disable count to close */
+			EXT_DEBUGF(EXT_DBG_ON, ("POLL retry : %d to close connection", ehc->retries ));
 			extHttpConnClose(he->mhc, he->pcb);
 			return H_STATE_CLOSE;
+#endif			
 		}
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POLL retry : %d", ehc->retries ));
 		
@@ -400,14 +405,14 @@ void	httpFsmHandle(HttpEvent *he)
 	{
 		if(he->type == handle->event )
 		{
-			EXT_INFOF(("%s handle event %s in state %s", ehc->name, CMN_FIND_HTTP_EVENT(he->type), CMN_FIND_HTTP_STATE(ehc->state)));
+//			EXT_INFOF(("%s handle event %s in state %s", ehc->name, CMN_FIND_HTTP_EVENT(he->type), CMN_FIND_HTTP_STATE(ehc->state)));
 
 			newState = (handle->handle)(he);
 			//fsm->currentEvent = EXT_EVENT_NONE;
 			
 			if(newState!= EXT_STATE_CONTINUE && newState != ehc->state )
 			{
-				EXT_INFOF(("%s from state %s enter into state %s", ehc->name, CMN_FIND_HTTP_STATE(ehc->state), CMN_FIND_HTTP_STATE(newState)));
+//				EXT_INFOF(("%s from state %s enter into state %s", ehc->name, CMN_FIND_HTTP_STATE(ehc->state), CMN_FIND_HTTP_STATE(newState)));
 
 				_state = _httpFsmFindState(_fsm, newState);
 				if(_state->enter_handle )
@@ -427,8 +432,6 @@ void	httpFsmHandle(HttpEvent *he)
 	
 #if EXT_HTTPD_DEBUG
 	EXT_INFOF(("%s no handle for event %s in state %s", ehc->name, CMN_FIND_HTTP_EVENT(he->type), CMN_FIND_HTTP_STATE(ehc->state)));
-#else
-	EXT_INFOF(("State Machine no handle for event %d in state %d", he->type, ehc->state));
 #endif
 
 	return;

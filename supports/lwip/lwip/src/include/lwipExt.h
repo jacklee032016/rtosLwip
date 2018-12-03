@@ -90,6 +90,7 @@ char	 extLwipGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned int gAddress, unsigned c
 char	 extIgmpGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned char isAdd);
 
 void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, ip4_addr_t *gw);
+void extLwipEthHdrDebugPrint(void *ethHdr, const char *prompt);
 
 void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt);
 void extLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin);

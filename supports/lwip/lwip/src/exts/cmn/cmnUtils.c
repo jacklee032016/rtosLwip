@@ -35,7 +35,6 @@ unsigned int cmnMuxCRC32b(void *message, int len)
 }
 
 
-#if EXT_HTTPD_DEBUG
 static const	EXT_CONST_STR	_httpStringStates[] =
 {
 	{
@@ -104,9 +103,6 @@ static const	EXT_CONST_STR	_httpStringEvents[] =
 		name	: NULL
 	}
 };
-
-#endif
-
 
 
 static const	EXT_CONST_STR	_hcStringStates[] =
@@ -419,14 +415,13 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 		case CMN_STR_T_V_FRAME_RATE:
 			_str = _videoFramerates;
 			break;
-#if EXT_HTTPD_DEBUG
+
 		case CMN_STR_T_HTTP_STATES:
 			_str = _httpStringStates;
 			break;
 		case CMN_STR_T_HTTP_EVENTS:
 			_str = _httpStringEvents;
 			break;
-#endif
 		case CMN_STR_T_HC_STATES:
 			_str = _hcStringStates;
 			break;
@@ -477,14 +472,12 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 		case CMN_STR_T_V_FRAME_RATE:
 			_str = _videoFramerates;
 			break;
-#if EXT_HTTPD_DEBUG
 		case CMN_STR_T_HTTP_STATES:
 			_str = _httpStringStates;
 			break;
 		case CMN_STR_T_HTTP_EVENTS:
 			_str = _httpStringEvents;
 			break;
-#endif
 		case CMN_STR_T_HC_STATES:
 			_str = _hcStringStates;
 			break;

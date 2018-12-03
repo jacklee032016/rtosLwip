@@ -62,10 +62,16 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 	return EXIT_SUCCESS;
 }
 
+void extHttpDebugData(EXT_RUNTIME_CFG *cfg)
+{
+	EXT_DEBUGF(EXT_DBG_ON, ("Video:Width:%d; height:%d; fps:%d; colorspce:%d; depth=%d, interlaced:%d", cfg->runtime.vWidth, cfg->runtime.vHeight, cfg->runtime.vFrameRate, cfg->runtime.vColorSpace, cfg->runtime.vDepth, cfg->runtime.vIsInterlaced));
+	EXT_DEBUGF(EXT_DBG_ON, ("Audio:Chans:%d; depth:%d; pktSize:%d; sampleRate:%d", cfg->runtime.aChannels, cfg->runtime.aDepth, cfg->runtime.aPktSize, cfg->runtime.aSampleRate));
+}
 
 /* parse data from form of setting web page */
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value)
 {
+		EXT_DEBUGF(EXT_DBG_ON, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
 
 	if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_PRODUCT, strlen(key)))
 	{
@@ -169,11 +175,13 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_COLOR_DEPTH, strlen(key)))
 	{
+		EXT_DEBUGF(EXT_DBG_ON, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
 		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.vDepth) == EXIT_FAILURE)
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
+		EXT_DEBUGF(EXT_DBG_ON, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
 	}
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_FRAME_RATE, strlen(key)))
 	{
@@ -182,6 +190,7 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
+		EXT_DEBUGF(EXT_DBG_ON, ("new vFrameRate=%d"EXT_NEW_LINE, tmpCfg->runtime.vFrameRate));
 	}
 #if 0
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED, strlen(key)))
@@ -197,6 +206,22 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_AUDIO_CHANNEL, strlen(key)))
 	{
 		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.aChannels) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE, strlen(key)))
+	{
+		if(cmnUtilsParseInt16(value, &tmpCfg->runtime.aSampleRate) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE, strlen(key)))
+	{
+		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.aPktSize) == EXIT_FAILURE)
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;

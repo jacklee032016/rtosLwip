@@ -366,7 +366,7 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 		}
 	}
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("data :'%.*s'", reqLen, data ));
+	EXT_DEBUGF(EXT_DBG_ON, ("data :'%.*s'", reqLen, data ));
 	clen = pbuf_clen(mhc->req);
 
 	/* received enough data for minimal request? */

@@ -171,6 +171,7 @@ void GMAC_Handler(void)
 	/* RX interrupts. */
 	if(ul_isr & GMAC_INT_RECV)
 	{
+//		printf("ISR RECV");
 		xSemaphoreGiveFromISR(gs_gmac_dev.rx_sem, &xGMACTaskWoken);
 	}
 	
@@ -356,7 +357,7 @@ static void _gmac_low_level_init(struct netif *netif)
 
 	/* Enable the copy of data into the buffers
 	   ignore broadcasts, and not copy FCS. */
-#if 0//MUXLAB_GMAC_ENABLE_MULTICAST	   
+#if MUXLAB_GMAC_ENABLE_MULTICAST	   
 	gmac_enable_copy_all(GMAC, true);	/* must be enabled to rx multicast packets. J.L. 08.20,2018 */
 
 	gmac_enable_multicast_hash(GMAC, true);
@@ -669,7 +670,10 @@ void ethernetif_input(struct netif *netif)
 			/* Send packet to lwIP for processing. */
 			/* call tcpip_input() */
 			
-//			EXT_DEBUGF(EXT_DBG_ON, ("MAC input %s packet", (htons(ethhdr->type)==ETHTYPE_IP)?"IP":"Other") );
+			{
+//				extLwipEthHdrDebugPrint(p->payload, "MAC input packet");
+			}
+
 			if (netif->input(p, netif) != ERR_OK)
 			{
 				EXT_ERRORF(("ethernetif_input: IP input error"EXT_NEW_LINE ) );
@@ -777,7 +781,7 @@ err_t ethernetif_init(struct netif *netif)
 	if (err == ERR_MEM)
 		return ERR_MEM;
 	
-	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY );
+	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY + 4 );
 //	id = sys_thread_new(EXT_TASK_MAC, gmac_task, &gs_gmac_dev, netifINTERFACE_TASK_STACK_SIZE*4, EXT_TASK_ETHERNET_PRIORITY);
 	EXT_ASSERT(("ethernetif_init: GMAC Task allocation ERROR!"), (id != 0));
 	if (id == 0)

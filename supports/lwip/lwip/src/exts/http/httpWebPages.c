@@ -168,6 +168,23 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 		runCfg->dest.sport );
 #endif
 
+	/* auto configuration*/
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<br /><div class=\"field\">"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<div class=\"field\"><label>Media Settings:</label>"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_FPGA_AUTO"\"  onchange=\"javascript_:showdiv(this.options[this.selectedIndex].value)\">"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\""EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO"\" %s>"EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO"</OPTION>"EXT_NEW_LINE, 
+		(runCfg->fpgaAuto)?"selected":"" );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\""EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL"\" %s>"EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL"</OPTION>"EXT_NEW_LINE, 
+		(runCfg->fpgaAuto)?"":"selected" );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+	
+	CMN_SN_PRINTF(dataBuf, size, index, "\t</div></div>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<div id=\"divVideoSettings\" style=\"display:none;\">"EXT_NEW_LINE);
+
+
+	/* nedia parameters */
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Resolution:</LABEL>"EXT_NEW_LINE);
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\">"EXT_NEW_LINE );
@@ -191,7 +208,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Interlaced:</LABEL>"EXT_NEW_LINE);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\">" EXT_NEW_LINE);
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"0\" %s>None</OPTION>"EXT_NEW_LINE, (0== runCfg->runtime.vIsInterlaced)?"selected":"");
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Interlaces</OPTION>"EXT_NEW_LINE, 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Interlaced</OPTION>"EXT_NEW_LINE, 
 		EXT_VIDEO_INTLC_INTERLACED, (EXT_VIDEO_INTLC_INTERLACED== runCfg->runtime.vIsInterlaced)?"selected":"");
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Progressive</OPTION>"EXT_NEW_LINE, 
 		EXT_VIDEO_INTLC_PROGRESSIVE, (EXT_VIDEO_INTLC_PROGRESSIVE== runCfg->runtime.vIsInterlaced)?"selected":"");
@@ -261,6 +278,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</DIV>"EXT_NEW_LINE);/* for auto configuration */
 
 //<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
 #if _JAVA_SCRIPT_OLD
@@ -287,7 +305,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index,  "</SCRIPT>");
 #endif
 
-#if EXT_HTTPD_DEBUG
+#if 1//EXT_HTTPD_DEBUG
 	printf("Data:'%s'\r\n", dataBuf);
 #endif
 	
@@ -514,6 +532,12 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 		
 		key = nextKey;
 	}
+
+
+extHttpDebugData(rxCfg);
+extHttpDebugData(ehc->runCfg);
+	EXT_DEBUGF(EXT_DBG_ON, ("RX vFrameRate=%d; vDepth=%d", rxCfg->runtime.vFrameRate, rxCfg->runtime.vDepth));
+	EXT_DEBUGF(EXT_DBG_ON, ("CFG vFrameRate=%d; vDepth=%d", ehc->runCfg->runtime.vFrameRate, ehc->runCfg->runtime.vDepth));
 
 	extSysCompareParams(ehc->runCfg, rxCfg);
 	extSysConfigCtrl(ehc->runCfg, rxCfg);

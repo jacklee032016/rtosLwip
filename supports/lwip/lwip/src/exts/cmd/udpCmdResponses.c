@@ -167,7 +167,7 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_BACKUP_MC_IP"\":\"%s\",", extCmnIp4addr_ntoa(&parser->runCfg->ipMulticast));
 
 
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_BAUDRATE"\":%d,", parser->runCfg->rs232Cfg.baudRate );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_BAUDRATE"\":%"U32_F",", parser->runCfg->rs232Cfg.baudRate );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_DATABITS"\":%d,", parser->runCfg->rs232Cfg.charLength );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_PARITY"\":\"%s\",",  CMN_FIND_RS_PARITY((unsigned short)parser->runCfg->rs232Cfg.parityType) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_STOPBITS"\":%d,", parser->runCfg->rs232Cfg.stopbits );

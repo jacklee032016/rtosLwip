@@ -133,7 +133,8 @@ static void tcpip_thread(void *arg)
 
 #if !LWIP_TCPIP_CORE_LOCKING_INPUT
 			case TCPIP_MSG_INPKT:
-				LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: RX PACKET %p"LWIP_NEW_LINE, (void *)msg));
+				LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: RX PACKET %p, msg %p"LWIP_NEW_LINE, msg->msg.inp.p, (void *)msg));
+//				LWIP_DEBUGF(LWIP_DBG_ON, ("tcpip_thread: RX PACKET %p, msg %p"LWIP_NEW_LINE, msg->msg.inp.p, (void *)msg));
 				msg->msg.inp.input_fn(msg->msg.inp.p, msg->msg.inp.netif);
 				memp_free(MEMP_TCPIP_MSG_INPKT, msg);
 				break;
@@ -193,6 +194,7 @@ err_t tcpip_inpkt(struct pbuf *p, struct netif *inp, netif_input_fn input_fn)
 
 	LWIP_ASSERT(("Invalid mbox"), sys_mbox_valid_val(mbox));
 
+//	LWIP_DEBUGF(LWIP_DBG_ON, ("tcpip_inpkt: PACKET %p/%p\n", (void *)p, (void *)inp));
 	msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_INPKT);
 	if (msg == NULL)
 	{
@@ -492,7 +494,7 @@ void tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 	}
 #endif /* LWIP_TCPIP_CORE_LOCKING */
 
-	sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO + 2 );
+	sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO + 2*2 );
 }
 
 /**

@@ -363,17 +363,22 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 		_extFpgaReadShort(FRX_ADDRESS.portAnc,  (unsigned char *)&port);
 		index += snprintf(data+index, size-index, EXT_NEW_LINE"\tANC : \tIP:%s;\tPort:%d;", inet_ntoa(intValue), port);
 
+#if EXT_FPGA_AUX_ON	
 		_extFpgaRead3Bytes(FRX_ADDRESS.mulIpAux, &intValue);
 		_extFpgaReadShort(FRX_ADDRESS.portAux,  (unsigned char *)&port);
 		index += snprintf(data+index, size-index, EXT_NEW_LINE"\tAUX : \tIP:%s;\tPort:%d;", inet_ntoa(intValue), port);
+#endif
 	}
 
 
-	index += snprintf(data+index, size-index, EXT_NEW_LINE"Video :"EXT_NEW_LINE"\tWxH:%hux%hu; ", mediaParams->vWidth, mediaParams->vHeight);
+	index += snprintf(data+index, size-index, EXT_NEW_LINE"Video :\tWxH:%hux%hu; ", mediaParams->vWidth, mediaParams->vHeight);
 	index += snprintf(data+index, size-index, "FPS:%d; ", mediaParams->vFrameRate);
 	index += snprintf(data+index, size-index, "Depth:%d; ", mediaParams->vDepth);
 	index += snprintf(data+index, size-index, "ColorSpace:%s; ", CMN_FIND_V_COLORSPACE(mediaParams->vColorSpace));
-	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, (mediaParams->vIsSegmented)?"Segmented":"Interlaced");
+	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, (mediaParams->vIsInterlaced == EXT_VIDEO_INTLC_INTERLACED)?"Interlaced":"Progressive");
+
+	index += snprintf(data+index, size-index, "Audio :\tChannels:%d; Sample Rate:%d; Pkt Size: %s"EXT_NEW_LINE, 
+		mediaParams->aChannels, mediaParams->aSampleRate, CMN_FIND_A_PKTSIZE(mediaParams->aPktSize) );
 	
 	return index;
 }
@@ -567,6 +572,19 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 			}
 		}
 #endif
+
+		if(runCfg->fpgaAuto)
+		{
+			value = EXT_FPGA_FLAGS_MCU_DISABLE;
+			_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, &value);
+		}
+		else
+		{
+			value = EXT_FPGA_FLAGS_MCU_ENABLE;
+			_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, &value);
+			
+			extFpgaConfigParams(runCfg);
+		}
 
 		 extIgmpGroupMgr(runCfg, EXT_TRUE);
 
@@ -779,34 +797,35 @@ char extFpgaReadParams(MuxRunTimeParam *mediaParams)
 	return EXIT_SUCCESS;
 }
 
-char extFpgaConfigParams(MuxRunTimeParam *mediaParams)
+
+char extFpgaConfigParams(EXT_RUNTIME_CFG *runCfg)
 {
 	unsigned char _chValue;
-	_extFpgaWriteShort(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
+
+	_extFpgaWriteShort(EXT_FPGA_REG_WIDTH, (unsigned char *)&runCfg->runtime.vWidth);
 	
-	_extFpgaWriteShort(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
+	_extFpgaWriteShort(EXT_FPGA_REG_HEIGHT, (unsigned char *)&runCfg->runtime.vHeight);
 	
-	_chValue = _translateFrameRate(mediaParams->vFrameRate, EXT_FALSE);
+	printf("vFrameRate=%d"EXT_NEW_LINE, runCfg->runtime.vFrameRate);
+	_chValue = _translateFrameRate(runCfg->runtime.vFrameRate, EXT_FALSE);
 	_extFpgaWriteByte(EXT_FPGA_REG_FRAMERATE, &_chValue);
 
-	_extFpgaWriteByte(EXT_FPGA_REG_SAMPLING, &mediaParams->vColorSpace);
+	_extFpgaWriteByte(EXT_FPGA_REG_SAMPLING, &runCfg->runtime.vColorSpace);
 
-	_chValue = _translateDepth(mediaParams->vDepth, EXT_FALSE);
+	printf("vDepth=%d"EXT_NEW_LINE, runCfg->runtime.vDepth);
+	_chValue = _translateDepth(runCfg->runtime.vDepth, EXT_FALSE);
 	_extFpgaWriteByte(EXT_FPGA_REG_DEPTH, &_chValue);
 
-	REG_VALUE_2_INTLC(_chValue, mediaParams->vIsInterlaced)
+	REG_VALUE_2_INTLC(_chValue, runCfg->runtime.vIsInterlaced)
 	_extFpgaWriteByte(EXT_FPGA_REG_INTLC_SEGM, &_chValue);
 
 
-	_extFpgaWriteByte(EXT_FPGA_REG_AUDIO_CHANNELS, &mediaParams->aChannels);
-	REG_VALUE_2_A_RATE(_chValue, mediaParams->aSampleRate);
+	_extFpgaWriteByte(EXT_FPGA_REG_AUDIO_CHANNELS, &runCfg->runtime.aChannels);
+	REG_VALUE_2_A_RATE(_chValue, runCfg->runtime.aSampleRate);
 	_extFpgaWriteByte(EXT_FPGA_REG_AUDIO_RATE, &_chValue);
 	
-	_extFpgaWriteByte(EXT_FPGA_REG_AUDIO_PKT_SIZE, &mediaParams->aPktSize);
+	_extFpgaWriteByte(EXT_FPGA_REG_AUDIO_PKT_SIZE, &runCfg->runtime.aPktSize);
 
-
-	_chValue = EXT_FPGA_FLAGS_MCU_ENABLE;
-	_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, &_chValue);
 
 	return EXIT_SUCCESS;
 }

@@ -197,6 +197,8 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 //	const ip4_addr_t *mcIpAddr;
 	char ret = EXT_FALSE;
 
+
+	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
 	/* video */
 	_checkNumFieldValue(&runCfg->runtime.vWidth, rxCfg->runtime.vWidth, ret);	
 
@@ -204,13 +206,16 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	_checkNumFieldValue(&runCfg->runtime.vFrameRate, rxCfg->runtime.vFrameRate, ret);	
 
+
+	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
 	_checkNumFieldValue(&runCfg->runtime.vDepth, rxCfg->runtime.vDepth, ret);	
+	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
 
 	_checkNumFieldValue(&runCfg->runtime.vColorSpace, rxCfg->runtime.vColorSpace, ret);	
 
 	_checkNumFieldValue(&runCfg->runtime.vIsInterlaced, rxCfg->runtime.vIsInterlaced, ret);	
 
-	_checkNumFieldValue(&runCfg->runtime.vIsSegmented, rxCfg->runtime.vIsSegmented, ret);	
+//	_checkNumFieldValue(&runCfg->runtime.vIsSegmented, rxCfg->runtime.vIsSegmented, ret);	
 
 	/* audio */
 	_checkNumFieldValue(&runCfg->runtime.aSampleRate, rxCfg->runtime.aSampleRate, ret);	
@@ -218,6 +223,8 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	_checkNumFieldValue(&runCfg->runtime.aChannels, rxCfg->runtime.aChannels, ret);	
 
 	_checkNumFieldValue(&runCfg->runtime.aDepth, rxCfg->runtime.aDepth, ret);	
+
+	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
 
 	return ret;
 }
@@ -287,6 +294,8 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 
 char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
+	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
+
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
 		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
@@ -302,6 +311,7 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		SETUP_SET_TYPE(_SETUP_TYPE_PROTOCOL);
 	}
 
+	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
 	if(_compareMediaCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
 		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
@@ -359,7 +369,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
 	{
 #ifdef	ARM
-		extFpgaConfigParams(&runCfg->runtime);
+		extFpgaConfigParams(runCfg);
 //#else
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("FPGA configuration Media") );
 #endif

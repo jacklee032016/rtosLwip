@@ -431,9 +431,9 @@ static err_t __recvData(ExtHttpConn *ehc, struct tcp_pcb *pcb, struct pbuf *p)
 		tcp_recved(pcb, p->tot_len);
 	}
 
+	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, (EXT_NEW_LINE "Received %"U16_F" bytes", p->tot_len));
 #ifdef	ARM
 #else
-	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE "Received %"U16_F" bytes", p->tot_len));
 //	memset(_debugBuf,0 , sizeof(_debugBuf));
 	
 //	pbuf_copy_partial(p, _debugBuf, p->tot_len, 0);
@@ -553,6 +553,12 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 	else if((err == ERR_OK) && (p == NULL))
 	{/* closed by peer */
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s Event RECV : CONN closed",(ehc)?ehc->name:"UNKNOWN") );
+		if(ehc == NULL)
+		{
+			tcp_close(pcb);
+		}
+		else
+		{
 #if 0		
 		err_t err = tcp_close(pcb);
 		if (err != ERR_OK)
@@ -565,7 +571,8 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 			return err;
 		}
 #else		
-		extHttpPostEvent( ehc, H_EVENT_CLOSE, p, pcb);
+			extHttpPostEvent( ehc, H_EVENT_CLOSE, p, pcb);
+		}
 #endif
 	}
 	else
@@ -627,7 +634,7 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	LWIP_UNUSED_ARG(err);
 	runCfg = (EXT_RUNTIME_CFG *)arg;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("_mhttpAccept %p from %s:%d, total Connection %"FOR_U32, 
+	EXT_DEBUGF(EXT_DBG_OFF,("_mhttpAccept %p from %s:%d, total Connection %"FOR_U32, 
 		(void*)pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port, runCfg->runtime.currentHttpConns ));
 
 	if ((err != ERR_OK) || (pcb == NULL))
@@ -650,7 +657,7 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 		return ERR_MEM;
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON,("Accept new connection %s(on PCB %p) from %s:%d", ehc->name, pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );
+	EXT_DEBUGF(EXT_DBG_OFF,("Accept new connection %s(on PCB %p) from %s:%d", ehc->name, pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );
 
 	runCfg->currentHttpConns++;
 	
@@ -706,12 +713,12 @@ void extHttpSvrMain(void *data)
 	tcp_accept(pcb, _extHttpAccept);
 
 #if LWIP_EXT_HTTPD_TASK
-	if (sys_mbox_new(&_httpdMailBox, EXT_HTTPD_MBOX_SIZE) != ERR_OK)
+	if (sys_mbox_new(&_httpdMailBox, EXT_HTTPD_MBOX_SIZE*4) != ERR_OK)
 	{
 		EXT_ASSERT(("failed to create "EXT_TASK_HTTP" mbox"), 0);
 	}
 
-	sys_thread_new(EXT_TASK_HTTP, _extHttpdTask, runCfg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY +2 );
+	sys_thread_new(EXT_TASK_HTTP, _extHttpdTask, runCfg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY + 3 );
 #endif
 	
 }

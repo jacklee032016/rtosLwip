@@ -73,7 +73,7 @@ const struct lwip_cyclic_timer lwip_cyclic_timers[] =
 #if LWIP_TCP
 	/* The TCP timer is a special case: it does not have to run always and
 	 is triggered to start from TCP using tcp_timer_needed() */
-	{TCP_TMR_INTERVAL, HANDLER(tcp_tmr)},
+	{TCP_TMR_INTERVAL*2, HANDLER(tcp_tmr)},
 #endif /* LWIP_TCP */
 #if LWIP_IPV4
 #if IP_REASSEMBLY

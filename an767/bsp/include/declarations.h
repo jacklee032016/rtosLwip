@@ -186,7 +186,7 @@ int extRs232Read(unsigned char *data, unsigned short size);
 
 char	 bspCmdReboot(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t bufferLen );
 
-char extFpgaConfigParams(MuxRunTimeParam *mediaParams);
+char extFpgaConfigParams(EXT_RUNTIME_CFG *runCfg);
 
 char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg);
 void	extFpgaEnable(char	isEnable);

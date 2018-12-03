@@ -278,7 +278,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 			tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_38400 && tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_57600 &&
 			tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_115200 && tmpCfg->rs232Cfg.baudRate != 0 )
 		{
-			snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.baudRate, EXT_IPCMD_DATA_RS_BAUDRATE);
+			snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR invalidate value '%"U32_F"' for '%s' object", tmpCfg->rs232Cfg.baudRate, EXT_IPCMD_DATA_RS_BAUDRATE);
 			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 			return EXIT_FAILURE;
 		}

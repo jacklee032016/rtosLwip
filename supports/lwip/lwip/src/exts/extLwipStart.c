@@ -44,7 +44,7 @@ char	 extLwipGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned int gAddress, unsigned c
 		return EXIT_FAILURE;
 	}
 	
-	LWIP_ERROR(("IGMP is not enabled in interface when op on group '%s'", EXT_LWIP_IPADD_TO_STR(&ipgroup)), ( (_netif->flags & NETIF_FLAG_IGMP)!=0), return ERR_VAL;);
+//	LWIP_ERROR(("IGMP is not enabled in interface when op on group '%s'", EXT_LWIP_IPADD_TO_STR(&ipgroup)), ( (_netif->flags & NETIF_FLAG_IGMP)!=0), return ERR_VAL;);
 	EXT_DEBUGF(EXT_DBG_ON, ("%s IGMP group '%s'", (isAdd)?"Join":"Leave", EXT_LWIP_IPADD_TO_STR(&ipgroup)) );
 
 	ipaddr = netif_ip4_addr(_netif);

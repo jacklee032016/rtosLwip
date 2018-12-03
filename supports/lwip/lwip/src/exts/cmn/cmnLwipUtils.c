@@ -3,6 +3,21 @@
 #include "lwip/inet.h"
 #include "jsmn.h"
 
+void extLwipEthHdrDebugPrint(void *ethHdr, const char *prompt)
+{
+	struct eth_hdr *ethhdr = (struct eth_hdr *)ethHdr;
+	unsigned short type = htons(ethhdr->type);
+
+	printf("%s ethernet header: '%s(%04x)' type ", prompt, (type==ETHTYPE_IP)?"IP":(type==ETHTYPE_ARP)?"ARP":"Other", type);
+	printf(": dest:%02x:%02x:%02x:%02x:%02x:%02x, src:%02x:%02x:%0x2:%02x:%02x:%02x, type:%04x"LWIP_NEW_LINE,
+		(unsigned)ethhdr->dest.addr[0], (unsigned)ethhdr->dest.addr[1], (unsigned)ethhdr->dest.addr[2],
+		(unsigned)ethhdr->dest.addr[3], (unsigned)ethhdr->dest.addr[4], (unsigned)ethhdr->dest.addr[5],
+		(unsigned)ethhdr->src.addr[0],  (unsigned)ethhdr->src.addr[1],  (unsigned)ethhdr->src.addr[2],
+		(unsigned)ethhdr->src.addr[3],  (unsigned)ethhdr->src.addr[4],  (unsigned)ethhdr->src.addr[5],
+		lwip_htons(ethhdr->type) );
+}
+
+
 void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, 	ip4_addr_t *gw)
 {
 	if(!EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_DHCP) )
@@ -21,13 +36,40 @@ void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, 	ip4_addr_t *gw)
 void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt)
 {
 	struct ip_hdr *iphdr = (struct ip_hdr *)p->payload;
+	const char *type;
 
+#if 1
 	if(!EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_IP_IN|EXT_DEBUG_FLAG_IP_OUT))
 	{
 		return;
 	}
+#endif
+
+	switch (IPH_PROTO(iphdr))
+	{
+		case IP_PROTO_UDP:
+		case IP_PROTO_UDPLITE:
+			type = "UDP";
+			break;
+
+		case IP_PROTO_TCP:
+			type = "TCP";
+			break;
+
+		case IP_PROTO_ICMP:
+			type = "ICMP";
+			break;
+
+		case IP_PROTO_IGMP:
+			type = "IGMP";
+			break;
+
+		default:
+			type = "Unknown";
+			break;
+	}	
 	
-	printf( "%s IP header:" LWIP_NEW_LINE, prompt );
+	printf( "%s IP '%s' header:" LWIP_NEW_LINE, prompt, type );
 	printf( "+-------------------------------+" LWIP_NEW_LINE);
 	printf( "|%2"S16_F" |%2"S16_F" |  0x%02"X16_F" |     %5"U16_F"     | (v, hl, tos, len)" LWIP_NEW_LINE, (u16_t)IPH_V(iphdr), (u16_t)IPH_HL(iphdr),  (u16_t)IPH_TOS(iphdr),lwip_ntohs(IPH_LEN(iphdr)));
 	printf( "+-------------------------------+" LWIP_NEW_LINE);
@@ -42,6 +84,7 @@ void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt)
 	printf( "|  %3"U16_F"  |  %3"U16_F"  |  %3"U16_F"  |  %3"U16_F"  | (dest)" LWIP_NEW_LINE, 
 		ip4_addr1_16(&iphdr->dest), ip4_addr2_16(&iphdr->dest), ip4_addr3_16(&iphdr->dest), ip4_addr4_16(&iphdr->dest));
 	printf( "+-------------------------------+" LWIP_NEW_LINE);
+
 }
 
 

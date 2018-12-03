@@ -739,6 +739,7 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 		EXT_ERRORF(("Timer has been started") );
 		return;
 	}
+#if configUSE_TIMERS
 	
 #if EXT_TIMER_DEBUG
 	timer->timeId = xTimerCreate(timer->name , pdMS_TO_TICKS(millisec), (timer->type==os_timer_type_reload)?pdTRUE:pdFALSE/* auto reload */,  timer->arg/* timer ID */, timer->callback);
@@ -762,6 +763,7 @@ void sys_timer_start(sys_timer_t *timer, uint32_t millisec)
 	{
 		xReturn = xTimerStart(timer->timeId, 0);
 	}
+#endif
 	
 	if (xReturn !=pdPASS)
 	{
@@ -780,6 +782,7 @@ void sys_timer_stop(sys_timer_t *timer)
 		return;
 	}
 
+#if configUSE_TIMERS
 #if 0
 	if (xTimerStop(timer->timeId, 0) != pdPASS)
 #else
@@ -788,6 +791,7 @@ void sys_timer_stop(sys_timer_t *timer)
 	{
 		EXT_ERRORF(("sys_timer is not moved"));
 	}
+#endif
 
 	timer->timeId = NULL;
 }

@@ -63,7 +63,8 @@ __ram_end__ = ORIGIN(ram) + LENGTH(ram) - 4;
 
 /* The heapsize used by the application. NOTE: you need to adjust according to your application. */
 /*from 0x200 to 0xB800, 46K */
-HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0xB800;
+/*HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0xB800;*/
+HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0x5000;
 
 /* Section Definitions */
 SECTIONS

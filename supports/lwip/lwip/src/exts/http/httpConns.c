@@ -127,7 +127,7 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 			HTTP_SET_FREE(ehc);
 #endif
 			ehc->state = H_STATE_FREE;
-			EXT_INFOF( ("TCP connection %s %p set FREE"EXT_NEW_LINE, ehc->name,  (void*)pcb));
+//			EXT_INFOF( ("TCP connection %s %p set FREE"EXT_NEW_LINE, ehc->name,  (void*)pcb));
 		}
 		ehc->runCfg->currentHttpConns --;
 		
@@ -480,7 +480,7 @@ HTTP_UNLOCK();
 	
 //	ehc->runCfg->runtime.connHttpCount--;
 	ehc->runCfg->runtime.currentHttpConns--;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s is freed, total %"FOR_U32" CONNs now ", ehc->name, ehc->runCfg->runtime.currentHttpConns) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s is freed, total %"FOR_U32" CONNs now"EXT_NEW_LINE, ehc->name, ehc->runCfg->runtime.currentHttpConns) );
 
 	HTTP_CONN_FREE(ehc);
 

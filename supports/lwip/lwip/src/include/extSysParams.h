@@ -376,8 +376,8 @@
 #define	EXT_NMOS_DEBUG						EXT_DBG_OFF
 
 #ifdef	ARM
-#define	EXT_HTTPD_DEBUG						EXT_DBG_ON
-#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_ON
+#define	EXT_HTTPD_DEBUG						EXT_DBG_OFF
+#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_OFF
 #define	EXT_HTTPC_DEBUG						EXT_DBG_OFF
 #else
 #define	EXT_HTTPD_DEBUG						EXT_DBG_ON
@@ -1021,6 +1021,8 @@ struct	_EXT_RUNTIME_CFG
 	/* add for 811. Aug.31, 2018 */
 	uint32_t				ipSvr811;			/* IP of server 811 */	
 	unsigned short		portSvr811;			/* port of server 811 */
+
+	unsigned char			fpgaAuto;			/* RX auto configured itself */
 	
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
 

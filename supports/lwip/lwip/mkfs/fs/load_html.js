@@ -44,6 +44,12 @@ function showdiv(aval){
 	if (aval == "SDP"){
 		divSettingsSdp.style.display= 'inline-block';
 		divSettingsData.style.display='none';}
+	else if(aval == "Auto"){
+		divVideoSettings.style.display = 'none';
+	}
+	else if(aval == "Manual"){
+		divVideoSettings.style.display = 'inline-block';
+	}
 	else{
 		divSettingsSdp.style.display='none';
 		divSettingsData.style.display= 'inline-block';}
@@ -56,6 +62,10 @@ function submit_firmware(form, url){
 	} 
 	else{
 		var data = new URLSearchParams();
+
+		var videosettings = document.getElementById("videosettings");
+		if (videosettings) data.append(videosettings.id, videosettings.value);
+ 
 		for (const pair of new FormData(document.getElementById(form))){
 			data.append(pair[0], pair[1]);
 		}

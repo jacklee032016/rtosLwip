@@ -83,7 +83,7 @@
  * - reset when pcb->sent is called
  */
 #if !defined MHTTPD_MAX_RETRIES
-#define	MHTTPD_MAX_RETRIES                   4
+#define	MHTTPD_MAX_RETRIES                   6
 #endif
 
 /** The poll delay is X*500ms */
@@ -138,7 +138,7 @@
     copied from pbuf into this a global buffer when pbuf- or packet-queues
     are received - otherwise the input pbuf is used directly) */
 #if !defined	MHTTPD_MAX_REQ_LENGTH
-#define	MHTTPD_MAX_REQ_LENGTH		(2048+1024+2048)//LWIP_MIN(1023, (MHTTPD_REQ_QUEUELEN * PBUF_POOL_BUFSIZE))
+#define	MHTTPD_MAX_REQ_LENGTH		(2048+1024*2+2048)//LWIP_MIN(1023, (MHTTPD_REQ_QUEUELEN * PBUF_POOL_BUFSIZE))
 //#define	MHTTPD_MAX_REQ_LENGTH		(2048)//LWIP_MIN(1023, (MHTTPD_REQ_QUEUELEN * PBUF_POOL_BUFSIZE))
 #endif
 
