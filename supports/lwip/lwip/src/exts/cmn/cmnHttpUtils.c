@@ -134,7 +134,7 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 {
 	EXT_JSON_PARSER  *parser = &extParser;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Parsing JSON Data %d bytes: '%.*s'", size,  size, jsonData)  );
+	EXT_DEBUGF(EXT_DBG_ON, ("Parsing JSON Data %d bytes: '%.*s'", size,  size, jsonData)  );
 
 	extSysClearConfig(rxCfg);
 
@@ -154,6 +154,16 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 	
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_GATEWAY, &rxCfg->ipGateway);
 
+	/* SDP */
+	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_IP, &rxCfg->sdpUriVideo.ip);
+	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT, &rxCfg->sdpUriVideo.port );
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_URI, rxCfg->sdpUriVideo.uri, sizeof(rxCfg->sdpUriAudio.uri) );
+
+	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_IP, &rxCfg->sdpUriAudio.ip);
+	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT, &rxCfg->sdpUriAudio.port );
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_URI, rxCfg->sdpUriAudio.uri, sizeof(rxCfg->sdpUriAudio.uri) );
+
+
 	/* dest address of RTP */
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_IP_VEDIO, &rxCfg->dest.ip);
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_IP_AUDIO, &rxCfg->dest.audioIp);
@@ -170,35 +180,40 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_PORT_STREM, &rxCfg->dest.sport);
 #endif
 
+
+	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_FPGA_AUTO, &rxCfg->fpgaAuto);
+
 	/* params of video stream */
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_WIDTH, &rxCfg->runtime.vWidth);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_HEIGHT, &rxCfg->runtime.vHeight);
-	
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_FRAME_RATE, &rxCfg->runtime.vFrameRate);
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_COLOR_DEPTH, &rxCfg->runtime.vDepth);
-
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_VIDEO_INTERLACE, &rxCfg->runtime.vIsInterlaced);
-	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED, &rxCfg->runtime.vIsSegmented);
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_COLOR_SPACE, rxCfg->model, sizeof(rxCfg->model));
+	if(!IS_STRING_NULL(rxCfg->model))
+	{
+		rxCfg->runtime.vColorSpace = CMN_FIND_STR_V_COLORSPACE(rxCfg->model);
+		memset(rxCfg->model, 0, sizeof(rxCfg->model));
+	}
 
-	extJsonParseString(parser, EXT_WEB_CFG_FIELD_COLOR_SPACE, parser->msg, EXT_JSON_MESSAGE_SIZE);
-	rxCfg->runtime.vColorSpace = CMN_FIND_STR_V_COLORSPACE(parser->msg);
 
 	/*prams of audio stream */			
-	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE, &rxCfg->runtime.aSampleRate);
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE, rxCfg->model, sizeof(rxCfg->model));
+	if(!IS_STRING_NULL(rxCfg->model))
+	{
+		rxCfg->runtime.aSampleRate = CMN_FIND_STR_A_RATE(rxCfg->model );
+		memset(rxCfg->model, 0, sizeof(rxCfg->model));
+	}
+
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE, rxCfg->model, sizeof(rxCfg->model));
+	if(!IS_STRING_NULL(rxCfg->model))
+	{
+		rxCfg->runtime.aPktSize = CMN_FIND_STR_A_PKTSIZE(rxCfg->model );
+		memset(rxCfg->model, 0, sizeof(rxCfg->model));
+	}
+
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_DEPTH, &rxCfg->runtime.aDepth);
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_CHANNEL, &rxCfg->runtime.aChannels);
-
-
-	EXT_DEBUGF(EXT_DBG_ON, ("Parsed params:name:%s; IP:%s", rxCfg->name, EXT_LWIP_IPADD_TO_STR(&rxCfg->local.ip)) );
-
-	EXT_DEBUGF(EXT_DBG_ON, ("Parsed SDP Audio params:IP:%s; Port:%d; Depth:%d; Sample Freq:%d; Channels:%d",
-			EXT_LWIP_IPADD_TO_STR(&rxCfg->dest.audioIp), rxCfg->dest.aport, rxCfg->runtime.aDepth, rxCfg->runtime.aSampleRate, rxCfg->runtime.aChannels ));
-
-	EXT_DEBUGF(EXT_DBG_ON, ("Parsed SDP Video params:IP:%s; Port:%d; ColorSpace:%s; width:%d; height:%d; framerate:%s; depth:%d; isInterlace:%s; isSegmented:%s",
-		EXT_LWIP_IPADD_TO_STR(&rxCfg->dest.ip), rxCfg->dest.vport, CMN_FIND_V_COLORSPACE(rxCfg->runtime.vColorSpace),  
-		rxCfg->runtime.vWidth, rxCfg->runtime.vHeight, CMN_FIND_V_FRAME_RATE(rxCfg->runtime.vFrameRate), rxCfg->runtime.vDepth,
-		(rxCfg->runtime.vIsInterlaced)?"YES":"NO", (rxCfg->runtime.vIsSegmented)?"YES":"NO"));
-
 
 	return EXIT_SUCCESS;
 	

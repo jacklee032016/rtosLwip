@@ -20,6 +20,7 @@ typedef	enum
 	_SETUP_TYPE_NAME,			/* save */
 	_SETUP_TYPE_RS232,			/* save and setup */
 	_SETUP_TYPE_PROTOCOL,
+	_SETUP_TYPE_SDP,
 	_SETUP_TYPE_MEDIA,
 	_SETUP_TYPE_CONNECT,
 }_SETUP_TYPE;
@@ -49,8 +50,10 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	memset(rxCfg, 0, sizeof(EXT_RUNTIME_CFG));
 
 	FIELD_INVALIDATE(rxCfg->isMCast);
-	FIELD_INVALIDATE(rxCfg->netMode);
-	
+//	FIELD_INVALIDATE(rxCfg->netMode);
+	rxCfg->netMode = 0xFF;
+	rxCfg->fpgaAuto = 0xFF;
+
 #if EXT_DIP_SWITCH_ON
 	FIELD_INVALIDATE(rxCfg->isDipOn);
 #endif
@@ -59,13 +62,41 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	FIELD_INVALIDATE(rxCfg->rs232Cfg.parityType);
 	FIELD_INVALIDATE(rxCfg->rs232Cfg.stopbits);
 
+	FIELD_INVALIDATE(rxCfg->runtime.vWidth);
+	FIELD_INVALIDATE(rxCfg->runtime.vHeight);
+	FIELD_INVALIDATE(rxCfg->runtime.vFrameRate);
 	FIELD_INVALIDATE(rxCfg->runtime.vColorSpace);
+	FIELD_INVALIDATE(rxCfg->runtime.vDepth);
 	FIELD_INVALIDATE(rxCfg->runtime.vIsInterlaced);
-	FIELD_INVALIDATE(rxCfg->runtime.vIsSegmented);
+//	FIELD_INVALIDATE(rxCfg->runtime.vIsSegmented);
+
+	FIELD_INVALIDATE(rxCfg->runtime.aChannels);
+	FIELD_INVALIDATE(rxCfg->runtime.aSampleRate);
+	FIELD_INVALIDATE(rxCfg->runtime.aDepth);
+	FIELD_INVALIDATE(rxCfg->runtime.aPktSize);
 
 	FIELD_INVALIDATE(rxCfg->runtime.isConnect);
 
+	rxCfg->sdpUriVideo.ip = IPADDR_NONE;
+	FIELD_INVALIDATE(rxCfg->sdpUriVideo.port);
+
+	rxCfg->sdpUriAudio.ip = IPADDR_NONE;
+	FIELD_INVALIDATE(rxCfg->sdpUriAudio.port);
+	
 	rxCfg->local.ip = IPADDR_NONE;
+
+	rxCfg->dest.ip = IPADDR_NONE;
+	rxCfg->dest.audioIp = IPADDR_NONE;
+	rxCfg->dest.ancIp = IPADDR_NONE;
+#if EXT_FPGA_AUX_ON	
+	rxCfg->dest.auxIp = IPADDR_NONE;
+	FIELD_INVALIDATE(rxCfg->dest.sport);
+#endif
+
+	FIELD_INVALIDATE(rxCfg->dest.vport);
+	FIELD_INVALIDATE(rxCfg->dest.aport);
+	FIELD_INVALIDATE(rxCfg->dest.dport);
+
 
 	_setupType = 0;
 	
@@ -77,12 +108,22 @@ After update, reboot is needed, so save is also needed */
 static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
 	char ret = EXT_FALSE, _ret = EXT_FALSE;
-	if(FIELD_IS_CHANGED(rxCfg->netMode) )
+	if(rxCfg->netMode != 0XFF )
 	{
 		if( (runCfg->netMode) !=  (rxCfg->netMode) )
 		{
 			EXT_CFG_SET_DHCP(runCfg, (rxCfg->netMode) );
-			EXT_DEBUGF(EXT_IPCMD_DEBUG, ("DHCP: %s", (rxCfg->netMode)? "YES":"NO") );
+			EXT_DEBUGF(EXT_DBG_ON, ("DHCP: %s", (rxCfg->netMode)? "YES":"NO") );
+			ret = EXT_TRUE;
+		}
+	}
+
+	if(rxCfg->fpgaAuto != 0XFF )
+	{
+		if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
+		{
+			runCfg->fpgaAuto = rxCfg->fpgaAuto;
+			EXT_DEBUGF(EXT_DBG_ON, ("FpgaAuto: %s", (rxCfg->fpgaAuto)? "YES":"NO") );
 			ret = EXT_TRUE;
 		}
 	}
@@ -230,6 +271,41 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 }
 
 
+
+/* SDP IP and ports */
+static char _compareSdpConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
+{
+	char ret = EXT_FALSE;
+
+	if(rxCfg->sdpUriVideo.ip != IPADDR_NONE && rxCfg->sdpUriVideo.ip != runCfg->sdpUriVideo.ip )
+	{
+		 runCfg->sdpUriVideo.ip = rxCfg->sdpUriVideo.ip;
+		ret = EXT_TRUE;
+	}
+	_checkNumFieldValue(&runCfg->sdpUriVideo.port, rxCfg->sdpUriVideo.port, ret);
+	if(( !IS_STRING_NULL(rxCfg->sdpUriVideo.uri) ) &&(!IS_STRING_EQUAL(rxCfg->sdpUriVideo.uri, runCfg->sdpUriVideo.uri) ))
+	{
+		snprintf(runCfg->sdpUriVideo.uri, sizeof(runCfg->sdpUriVideo.uri), "%s", rxCfg->sdpUriVideo.uri);
+		ret = EXT_TRUE;
+	}
+
+
+	if(rxCfg->sdpUriAudio.ip != IPADDR_NONE && rxCfg->sdpUriAudio.ip != runCfg->sdpUriAudio.ip )
+	{
+		 runCfg->sdpUriAudio.ip = rxCfg->sdpUriAudio.ip;
+		ret = EXT_TRUE;
+	}
+	_checkNumFieldValue(&runCfg->sdpUriAudio.port, rxCfg->sdpUriAudio.port, ret);	
+	if(( !IS_STRING_NULL(rxCfg->sdpUriAudio.uri) ) && (!IS_STRING_EQUAL(rxCfg->sdpUriAudio.uri, runCfg->sdpUriAudio.uri) ))
+	{
+		snprintf(runCfg->sdpUriAudio.uri, sizeof(runCfg->sdpUriAudio.uri), "%s", rxCfg->sdpUriAudio.uri);
+		ret = EXT_TRUE;
+	}
+
+	return ret;
+}
+
+
 /* dest IP and ports */
 static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
@@ -256,18 +332,21 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 		{/* config type: system, so only save, not reconfigure FPGA */
 		}
 #endif		
+		runCfg->dest.ip = rxCfg->dest.ip;
 		ret = EXT_TRUE;
 	}
 
 	if(rxCfg->dest.audioIp != IPADDR_NONE && rxCfg->dest.audioIp != runCfg->dest.audioIp )
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New Audio McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		runCfg->dest.audioIp = rxCfg->dest.audioIp;
 		ret = EXT_TRUE;
 	}
 
 	if(rxCfg->dest.ancIp != IPADDR_NONE && rxCfg->dest.ancIp != runCfg->dest.ancIp )
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New ANC McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		runCfg->dest.ancIp = rxCfg->dest.ancIp;
 		ret = EXT_TRUE;
 	}
 
@@ -275,6 +354,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	if(rxCfg->dest.auxIp != IPADDR_NONE && rxCfg->dest.auxIp != runCfg->dest.auxIp )
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New AUX McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		runCfg->dest.auxIp = rxCfg->dest.auxIp;
 		ret = EXT_TRUE;
 	}
 #endif
@@ -294,7 +374,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 
 char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
-	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
+	DEBUG_CFG_PARAMS();
 
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
@@ -311,12 +391,18 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		SETUP_SET_TYPE(_SETUP_TYPE_PROTOCOL);
 	}
 
+	if(_compareSdpConfig(runCfg, rxCfg) == EXT_TRUE)
+	{
+		SETUP_SET_TYPE(_SETUP_TYPE_SDP);
+	}
+
 	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
 	if(_compareMediaCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
 		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
 	}
-	
+
+	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"After configured, Runtime Configuration") );extSysCfgDebugData(&extRun);
 	return EXIT_SUCCESS;
 }
 
@@ -327,7 +413,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	/* save configuration, and reboot to make it active */
 	//if(needReboot || hasNewMedia  || needSave)
-	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) )	
+	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) || SETUP_CHECK_TYPE(_SETUP_TYPE_SDP))	
 	{
 #ifdef	ARM
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
@@ -431,5 +517,23 @@ char extSysConfigSdpClient(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	}
 	
 	return ret;
+}
+
+void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg)
+{
+	printf("\tname:%s; IP:%s"EXT_NEW_LINE, cfg->name, EXT_LWIP_IPADD_TO_STR(&cfg->local.ip));
+	printf("\tVideo IP:%s; Port:%d;"EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&cfg->dest.ip), cfg->dest.vport);
+	printf("\tAudio IP:%s; Port:%d;"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->dest.audioIp), cfg->dest.aport);
+	printf("\tANC IP:%s; Port:%d;"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->dest.ancIp), cfg->dest.dport);
+
+	printf("\tfpgaAuto:%d; "EXT_NEW_LINE, cfg->fpgaAuto);
+	
+	printf("\tVideo:Width:%d; height:%d; fps:%d; colorspce:%d; depth=%d, interlaced:%d"EXT_NEW_LINE, 
+		cfg->runtime.vWidth, cfg->runtime.vHeight, cfg->runtime.vFrameRate, cfg->runtime.vColorSpace, cfg->runtime.vDepth, cfg->runtime.vIsInterlaced);
+	printf("\tAudio:Chans:%d; pktSize:%d; sampleRate:%d"EXT_NEW_LINE, cfg->runtime.aChannels, cfg->runtime.aPktSize, cfg->runtime.aSampleRate);
+//	printf("Audio:Chans:%d; depth:%d; pktSize:%d; sampleRate:%d", cfg->runtime.aChannels, cfg->runtime.aDepth, cfg->runtime.aPktSize, cfg->runtime.aSampleRate));
+
+	printf("\tVideo SDP IP:%s; Port:%d; URI:%s"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->sdpUriVideo.ip), cfg->sdpUriVideo.port, cfg->sdpUriVideo.uri);
+	printf("\tAudio SDP IP:%s; Port:%d; URI:%s"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->sdpUriAudio.ip), cfg->sdpUriAudio.port, cfg->sdpUriAudio.uri);
 }
 

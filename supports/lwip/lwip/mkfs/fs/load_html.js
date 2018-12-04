@@ -62,9 +62,8 @@ function submit_firmware(form, url){
 	} 
 	else{
 		var data = new URLSearchParams();
-
-		var videosettings = document.getElementById("videosettings");
-		if (videosettings) data.append(videosettings.id, videosettings.value);
+		var fpgaAuto = document.getElementById("fpgaAuto");
+		if (fpgaAuto) data.append(fpgaAuto.id, fpgaAuto.value);
  
 		for (const pair of new FormData(document.getElementById(form))){
 			data.append(pair[0], pair[1]);

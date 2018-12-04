@@ -337,6 +337,9 @@ typedef struct _ExtHttpConn
 	unsigned short			headerLength;
 	unsigned short			leftData;		/* left data in the first pbuf which contains URL|headers */
 
+	unsigned short			responseHeaderLength;
+
+
 	/* HTTP upload file */
 	char						boundary[MHTTPD_URI_BUF_LEN+1];		/* for HTTP upload, also as content of error message */
 	char						filename[MHTTPD_URI_BUF_LEN+1];		/* also as title of error message */
@@ -692,6 +695,14 @@ extern	const char *httpCommonHeader;
 
 char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value);
+void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg);
+
+
+#define	DEBUG_CFG_PARAMS() \
+{	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"RX Configuration:") );extSysCfgDebugData(&tmpRuntime);\
+	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"Runtime Configuration") );extSysCfgDebugData(&extRun);}
+
+
 
 int cmnHttpPrintResponseHeader(ExtHttpConn *mhc, const char contentType);
 int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size);

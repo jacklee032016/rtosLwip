@@ -84,8 +84,8 @@ static err_t _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len
 			}
 
 			mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
-			EXT_DEBUGF(EXT_DBG_OFF, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
-			EXT_DEBUGF(EXT_DBG_OFF, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
+			EXT_DEBUGF(EXT_DBG_ON, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
+			EXT_DEBUGF(EXT_DBG_ON, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
 		}
 		
 		return ERR_OK;
@@ -147,7 +147,7 @@ static int _httpParseMethod(ExtHttpConn *ehc, unsigned char *data, u16_t data_le
 		{
 			/* received GET request */
 			ehc->method = method->type;
-			EXT_DEBUGF(EXT_DBG_OFF, ("Received %s request", method->name));
+			EXT_DEBUGF(EXT_DBG_ON, ("Received %s request", method->name));
 			return strlen(method->name);
 		}
 

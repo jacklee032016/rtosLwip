@@ -327,6 +327,51 @@ const	EXT_CONST_STR	_audioRates[] =
 	}
 };
 
+const EXT_CONST_STR _strTypes[] =
+{
+	{
+		type	: CMN_STR_T_RS_PARITY,
+		name	: "RS232Parity"
+	},
+	{
+		type	: CMN_STR_T_V_COLORSPACE,
+		name	: "ColorSpace"
+	},
+	{
+		type	: CMN_STR_T_V_FRAME_RATE,
+		name	: "VideoFps"
+	},
+
+	{
+		type	: CMN_STR_T_HTTP_STATES,
+		name	: "sState"
+	},
+	{
+		type	: CMN_STR_T_HTTP_EVENTS,
+		name	: "sEvent"
+	},
+	{
+		type	: CMN_STR_T_HC_STATES,
+		name	: "ClientState"
+	},
+	{
+		type	: CMN_STR_T_HC_EVENTS,
+		name	: "ClientEvent"
+	},
+	{
+		type	: CMN_STR_T_A_PKTSIZE,
+		name	: "AudioPktSize"
+	},
+	{
+		type	: CMN_STR_T_A_RATE,
+		name	: "AudoRate"
+	},
+
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
 
 
 const short	videoWidthList[]=
@@ -400,6 +445,25 @@ const char audioChannelsList[] =
 	0
 };
 
+
+const char *__extCmnFindTypeStr(unsigned short type)
+{
+	const EXT_CONST_STR *_str = _strTypes;
+
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
+	{
+		if(_str->type == type)
+		{
+			return _str->name;
+		}
+
+		_str++;
+	}
+
+	return "UnknownType";
+}
+
+
 const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 {
 	const EXT_CONST_STR *_str;
@@ -452,7 +516,7 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 		_str++;
 	}
 
-	EXT_ERRORF(("unknown type %d in constant type :%d", type, strType) );
+	EXT_ERRORF(("unknown type %d in constant type :%s", type, __extCmnFindTypeStr(strType) ) );
 	return "Unknown String";
 }
 
@@ -507,7 +571,7 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 		_str++;
 	}
 	
-	EXT_ERRORF(("unknown type %s in constant type :%d", str, strType) );
+	EXT_ERRORF(("unknown type %s in constant type :%s", str, __extCmnFindTypeStr(strType) ) );
 	return -1;
 }
 
@@ -636,7 +700,7 @@ uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength)
 		return ERR_VAL;
 	}
 
-	printf("Content length:%d\r\n", contentLen);
+	EXT_DEBUGF(EXT_DBG_OFF, ("Content length:%d\r\n", contentLen));
 	return contentLen;
 }
 

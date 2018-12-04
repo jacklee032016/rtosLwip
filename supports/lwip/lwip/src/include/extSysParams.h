@@ -380,9 +380,9 @@
 #define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_OFF
 #define	EXT_HTTPC_DEBUG						EXT_DBG_OFF
 #else
-#define	EXT_HTTPD_DEBUG						EXT_DBG_ON
-#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_ON
-#define	EXT_HTTPC_DEBUG						EXT_DBG_ON
+#define	EXT_HTTPD_DEBUG						EXT_DBG_OFF
+#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_OFF
+#define	EXT_HTTPC_DEBUG						EXT_DBG_OFF
 #endif
 
 
@@ -887,7 +887,7 @@ typedef struct _MuxRS232
 
 /* runtime parameters which can't be saved in flash */
 typedef	struct
-{
+{/* all data types are based FPGA registers */
 	unsigned short		vWidth;
 	unsigned short		vHeight;
 
@@ -898,7 +898,7 @@ typedef	struct
 	unsigned char			vIsInterlaced;	/* not used now */
 	unsigned char			vIsSegmented;
 
-	unsigned short		aSampleRate;
+	unsigned char			aSampleRate;
 	unsigned char			aChannels;
 	unsigned char			aDepth;		/* 16, 24 bits, etc. */
 	unsigned char			aPktSize;	/* 1ms or 125ms. */
@@ -1024,6 +1024,8 @@ struct	_EXT_RUNTIME_CFG
 
 	unsigned char			fpgaAuto;			/* RX auto configured itself */
 	
+	MuxRunTimeParam		runtime;
+
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
 
 
@@ -1038,8 +1040,6 @@ struct	_EXT_RUNTIME_CFG
 	unsigned char			*bufRead;	/* read buffer for Xmodem or SPI flash read when update RTOS in EFC flash */
 	unsigned char			*bufWrite;	/* write buffer for SPI flash write or EFC flash write */
 	unsigned short		bufLength;
-
-	MuxRunTimeParam		runtime;
 
 	void					*data;
 

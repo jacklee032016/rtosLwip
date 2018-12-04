@@ -192,13 +192,19 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	int index = 0;
 	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
 	struct netif *_netif = (struct netif *)runCfg->netif;
-	char *dataBuf = (char *)ehc->data+ehc->headerLength;
-	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
+	
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
 	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
+#ifdef	ARM
+	extFpgaReadParams(&runCfg->runtime);
+#endif
+
 
 	if (HTTP_IS_POST(ehc) )
 	{
+		EXT_DEBUGF(EXT_DBG_ON, ("Data %d bytes: '%.*s'", ehc->leftData,   ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE)  );
 		if(cmnHttpParseRestJson(rxCfg, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE, ehc->leftData) == EXIT_FAILURE)
 		{
 			cmnHttpRestError(ehc, WEB_RES_ERROR, "Parameter wrong");
@@ -220,29 +226,36 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_ADDRESS"\":\"%s\","EXT_NEW_LINE, inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_GATEWAY"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway)) );
+	
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_DHCP"\":\"%s\",", ((_netif->ip_addr.u_addr.ip4.addr) ==runCfg->local.ip)?"YES":"NO");
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_DHCP"\":\"%s\","EXT_NEW_LINE, ((_netif->ip_addr.addr) ==runCfg->local.ip)?"YES":"NO");
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_DHCP"\":%d,"EXT_NEW_LINE, (!((_netif->ip_addr.addr) ==runCfg->local.ip)) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_MAC"\":\"%02x:%02x:%02x:%02x:%02x:%02x\","EXT_NEW_LINE, 
 		runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5]);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_IP"\":\"%s\","EXT_NEW_LINE, 
-		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT"\":\"%d\","EXT_NEW_LINE, 
-		EXT_SDP_SVR_PORT);
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_URI"\":\"%s\","EXT_NEW_LINE, 
-		EXT_WEBPAGE_SDP_VIDEO );
+	if(EXT_IS_TX(runCfg))
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT"\":%d,"EXT_NEW_LINE, EXT_SDP_SVR_PORT);
 
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\":%d,"EXT_NEW_LINE,  EXT_SDP_SVR_PORT);
+	}
+	else
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriVideo.ip)) );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT"\":%d,"EXT_NEW_LINE, runCfg->sdpUriVideo.port );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\":\"%s\","EXT_NEW_LINE, 
-		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\":\"%d\","EXT_NEW_LINE, 
-		EXT_SDP_SVR_PORT);
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_URI"\":\"%s\","EXT_NEW_LINE, 
-		EXT_WEBPAGE_SDP_AUDIO );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriAudio.ip)) );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\":%d,"EXT_NEW_LINE,  runCfg->sdpUriAudio.port );
+	}
+		
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_URI"\":\"%s\","EXT_NEW_LINE, runCfg->sdpUriVideo.uri);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_URI"\":\"%s\","EXT_NEW_LINE, runCfg->sdpUriVideo.uri);
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IP_VEDIO"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IP_AUDIO"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IP_ANC"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ancIp)) );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_VEDIO"\":%d,"EXT_NEW_LINE, runCfg->dest.vport );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_AUDIO"\":%d,"EXT_NEW_LINE, runCfg->dest.aport );
@@ -250,6 +263,8 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 #if EXT_FPGA_AUX_ON	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_STREM"\":%d,"EXT_NEW_LINE, runCfg->dest.sport );
 #endif
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FPGA_AUTO"\":%d,"EXT_NEW_LINE, runCfg->fpgaAuto );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\":%d,"EXT_NEW_LINE, runCfg->runtime.vHeight);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.vWidth);
@@ -263,18 +278,21 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	index += snprintf(dataBuf+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_SEGMENTED"\":%d,", (parser->runCfg->runtime.vIsSegmented)?1:0);
 #endif	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\":%d,"EXT_NEW_LINE, runCfg->runtime.vIsInterlaced);
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED"\":%d,"EXT_NEW_LINE, runCfg->runtime.vIsSegmented);
+//	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED"\":%d,"EXT_NEW_LINE, runCfg->runtime.vIsSegmented);
 
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE"\":%d,"EXT_NEW_LINE, runCfg->runtime.aSampleRate );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE"\":\"%s\","EXT_NEW_LINE, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_CHANNEL"\":%d,"EXT_NEW_LINE, runCfg->runtime.aChannels );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_DEPTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.aDepth );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE"\":\"%s\","EXT_NEW_LINE,CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_CONNECT"\":%d"EXT_NEW_LINE, runCfg->runtime.isConnect);
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "}"EXT_NEW_LINE);
 
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
+	
 	return index;
 }
 
@@ -348,7 +366,7 @@ static err_t _sdpParseIp(char *data, uint16_t size, uint32_t *ip)
 
 static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
 {
-	uint16_t  index = 0;
+	uint16_t  index = 0, _shVal;
 	char *p, *pnext;
 	
 	p = lwip_strnstr(data+index, SDP_MEDIA_RTP_MAP, size - index);
@@ -398,11 +416,31 @@ static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, cha
 	}
 	*pnext = '\0';
 
-	if(cmnUtilsParseInt16(p, &rxCfg->runtime.aSampleRate) == EXIT_FAILURE)
+	if(cmnUtilsParseInt16(p, &_shVal) == EXIT_FAILURE)
 	{
 		EXT_ERRORF(("No Sample Freq for SDP audio stream") );
 		rxCfg->runtime.aSampleRate = -1;
 		return p-data;
+	}
+	else
+	{
+		if(_shVal == 48000)
+		{
+			rxCfg->runtime.aSampleRate = EXT_A_RATE_48K;
+		}
+		else if(_shVal == 44100)
+		{
+			rxCfg->runtime.aSampleRate = EXT_A_RATE_44K;
+		}
+		else if(_shVal == 96000)
+		{
+			rxCfg->runtime.aSampleRate = EXT_A_RATE_96K;
+		}
+		else 
+		{
+			EXT_ERRORF(("Not support Sample Freq for SDP audio stream '%d'", _shVal) );
+			rxCfg->runtime.aSampleRate = EXT_A_RATE_48K;
+		}
 	}
 	
 	p = pnext+1;

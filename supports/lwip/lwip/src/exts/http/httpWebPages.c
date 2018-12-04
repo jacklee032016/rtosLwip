@@ -29,8 +29,8 @@ uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
 static uint16_t _extHttpWebPageReboot(ExtHttpConn  *ehc, void *data)
 {
 	int index = 0;
-	char *dataBuf = (char *)ehc->data+ehc->headerLength;
-	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
 #if 1
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Reboot</H2></DIV>"); 
@@ -68,10 +68,12 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	const short *shVal;
 	unsigned char _regValue;
 
-	char *dataBuf = (char *)ehc->data+ehc->headerLength;
-	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
+#ifdef	ARM
 	extFpgaReadParams(&runCfg->runtime);
+#endif
 	/* device */
 //	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID"\" name=\""FORM_ID"\"  enctype=\"text/plain\" action=\"/setting\">" );
 
@@ -184,10 +186,10 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<div id=\"divVideoSettings\" style=\"display:none;\">"EXT_NEW_LINE);
 
 
-	/* nedia parameters */
+	/* media parameters */
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Resolution:</LABEL>"EXT_NEW_LINE);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\">"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\">"EXT_NEW_LINE );
 	shVal = videoWidthList;
 	while(*shVal != 0)
 	{
@@ -196,7 +198,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>x"EXT_NEW_LINE);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\">" EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\">" EXT_NEW_LINE);
 	shVal = videoHeightList;
 	while(*shVal != 0)
 	{
@@ -206,7 +208,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Interlaced:</LABEL>"EXT_NEW_LINE);
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\">" EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\">" EXT_NEW_LINE);
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"0\" %s>None</OPTION>"EXT_NEW_LINE, (0== runCfg->runtime.vIsInterlaced)?"selected":"");
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Interlaced</OPTION>"EXT_NEW_LINE, 
 		EXT_VIDEO_INTLC_INTERLACED, (EXT_VIDEO_INTLC_INTERLACED== runCfg->runtime.vIsInterlaced)?"selected":"");
@@ -323,8 +325,8 @@ static uint16_t _extHttpWebPageInfoHander(ExtHttpConn  *ehc, void *pageHandle)
 {
 	int index = 0;
 	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
-	char *dataBuf = (char *)ehc->data+ehc->headerLength;
-	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 	
 	/* device */
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Device</H2></DIV><DIV class=\"fields-info\"><DIV class=\"field\"><LABEL >Product Name:</LABEL><DIV class=\"label\">%s</DIV></DIV>",
@@ -382,7 +384,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	MuxHttpHandle *page = (MuxHttpHandle *)pageHandle;
 
 	short left = ehc->leftData;
-	char *data = ehc->headers + ehc->headerLength+__HTTP_CRLF_SIZE;
+	char *data = ehc->headers + ehc->responseHeaderLength+__HTTP_CRLF_SIZE;
 	char *key, *value, *nextKey;
 	err_t ret, ret2 ;
 	int i = 0;
@@ -533,16 +535,13 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 		key = nextKey;
 	}
 
-
-extHttpDebugData(rxCfg);
-extHttpDebugData(ehc->runCfg);
 	EXT_DEBUGF(EXT_DBG_ON, ("RX vFrameRate=%d; vDepth=%d", rxCfg->runtime.vFrameRate, rxCfg->runtime.vDepth));
 	EXT_DEBUGF(EXT_DBG_ON, ("CFG vFrameRate=%d; vDepth=%d", ehc->runCfg->runtime.vFrameRate, ehc->runCfg->runtime.vDepth));
 
 	extSysCompareParams(ehc->runCfg, rxCfg);
 	extSysConfigCtrl(ehc->runCfg, rxCfg);
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
+//	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
 	ehc->headerLength = headerLength;
@@ -559,8 +558,8 @@ error:
 uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 {
 	int index = 0;
-	char *dataBuf = (char *)ehc->data+ehc->headerLength;
-	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "<HTML><HEAD><TITLE>Muxlab %s-500767</TITLE>", EXT_IS_TX(&extRun)?"TX":"RX" );
@@ -852,10 +851,10 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 			int contentLength = 0;
 			char  strLength[16];
 
-			if(page->method !=  HTTP_METHOD_POST)
+//			if(page->method !=  HTTP_METHOD_POST)
 			{/* POST will keep data */
 				headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
-				ehc->headerLength = headerLength;
+				ehc->responseHeaderLength = headerLength;
 			}
 			contentLength = page->handler(ehc, (void *)page);
 

@@ -235,17 +235,16 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 
 	runCfg->runtime.aChannels = 2;
 	runCfg->runtime.aDepth = 16;
-	runCfg->runtime.aSampleRate = 48000;
+	runCfg->runtime.aSampleRate = EXT_A_RATE_48K;
+	runCfg->runtime.aPktSize = EXT_A_PKT_SIZE_125MKS;
 	
 	runCfg->runtime.vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
 	runCfg->runtime.vDepth= EXT_V_DEPTH_16;
 	runCfg->runtime.vFrameRate = EXT_V_FRAMERATE_T_59;
+	runCfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
 
 	runCfg->runtime.vWidth= 1920;
 	runCfg->runtime.vHeight = 1080;
-
-	runCfg->runtime.vIsInterlaced = 1;
-	runCfg->runtime.vIsSegmented = 1;
 
 	/* init in simhost */
 //	runCfg->isTx = 1; /* TX */

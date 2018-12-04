@@ -62,16 +62,11 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 	return EXIT_SUCCESS;
 }
 
-void extHttpDebugData(EXT_RUNTIME_CFG *cfg)
-{
-	EXT_DEBUGF(EXT_DBG_ON, ("Video:Width:%d; height:%d; fps:%d; colorspce:%d; depth=%d, interlaced:%d", cfg->runtime.vWidth, cfg->runtime.vHeight, cfg->runtime.vFrameRate, cfg->runtime.vColorSpace, cfg->runtime.vDepth, cfg->runtime.vIsInterlaced));
-	EXT_DEBUGF(EXT_DBG_ON, ("Audio:Chans:%d; depth:%d; pktSize:%d; sampleRate:%d", cfg->runtime.aChannels, cfg->runtime.aDepth, cfg->runtime.aPktSize, cfg->runtime.aSampleRate));
-}
 
 /* parse data from form of setting web page */
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value)
 {
-		EXT_DEBUGF(EXT_DBG_ON, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
+	EXT_DEBUGF(EXT_DBG_ON, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
 
 	if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_PRODUCT, strlen(key)))
 	{
@@ -136,6 +131,20 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 		}
 	}
 
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_FPGA_AUTO, strlen(key)))
+	{
+		if(IS_STRING_EQUAL(value, EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO) )
+		{
+			tmpCfg->fpgaAuto = EXT_TRUE;
+		}
+		else
+		{
+			tmpCfg->fpgaAuto = EXT_FALSE;
+		}
+		
+	}
+	
+
 #if EXT_FPGA_AUX_ON	
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_PORT_STREM, strlen(key)))
 	{
@@ -171,11 +180,11 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
+		EXT_DEBUGF(EXT_DBG_ON, ("new vColorSpace=%d", tmpCfg->runtime.vColorSpace));
 	}
 
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_COLOR_DEPTH, strlen(key)))
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
 		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.vDepth) == EXIT_FAILURE)
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
@@ -192,16 +201,20 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 		}
 		EXT_DEBUGF(EXT_DBG_ON, ("new vFrameRate=%d"EXT_NEW_LINE, tmpCfg->runtime.vFrameRate));
 	}
-#if 0
-	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED, strlen(key)))
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_VIDEO_INTERLACE, strlen(key)))
 	{
 		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.vIsSegmented) == EXIT_FAILURE)
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
+		if(tmpCfg->runtime.vIsInterlaced != EXT_VIDEO_INTLC_PROGRESSIVE && tmpCfg->runtime.vIsInterlaced != EXT_VIDEO_INTLC_INTERLACED)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			EXT_ERRORF(("'%s' is not validate interlaced for '%s'", value, key));
+			tmpCfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_INTERLACED;
+		}
 	}
-#endif
 
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_AUDIO_CHANNEL, strlen(key)))
 	{
@@ -210,14 +223,16 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
+		EXT_DEBUGF(EXT_DBG_ON, ("new aChannels=%d"EXT_NEW_LINE, tmpCfg->runtime.aChannels));
 	}
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE, strlen(key)))
 	{
-		if(cmnUtilsParseInt16(value, &tmpCfg->runtime.aSampleRate) == EXIT_FAILURE)
+		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.aSampleRate) == EXIT_FAILURE)
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
+		EXT_DEBUGF(EXT_DBG_ON, ("new aSampleRate=%d"EXT_NEW_LINE, tmpCfg->runtime.aSampleRate));
 	}
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE, strlen(key)))
 	{
@@ -226,6 +241,7 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
+		EXT_DEBUGF(EXT_DBG_ON, ("new aPktSize=%d"EXT_NEW_LINE, tmpCfg->runtime.aPktSize));
 	}
 	else
 	{

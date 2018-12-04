@@ -263,7 +263,19 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 
 	cfg->ipSvr811 = CFG_MAKEU32(CONF_SVR811_IPADDR3, CONF_SVR811_IPADDR2, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 	cfg->portSvr811 = CONF_SVR811_PORT;
+	
 	cfg->fpgaAuto = EXT_TRUE;
+	
+	cfg->runtime.aChannels = 12;
+	cfg->runtime.aSampleRate= EXT_A_RATE_48K;
+	cfg->runtime.aPktSize = EXT_A_PKT_SIZE_125MKS;
+	
+	cfg->runtime.vWidth = 1920;
+	cfg->runtime.vHeight = 1080;
+	cfg->runtime.vFrameRate = EXT_V_FRAMERATE_T_30;
+	cfg->runtime.vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
+	cfg->runtime.vDepth = EXT_V_DEPTH_10;
+	cfg->runtime.vIsInterlaced = EXT_A_PKT_SIZE_125MKS;
 	
 //	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;

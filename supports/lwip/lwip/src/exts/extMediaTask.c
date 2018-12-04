@@ -192,7 +192,8 @@ void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
 	{
 		mediaParams->aChannels = 2;
 		mediaParams->aDepth = 16;
-		mediaParams->aSampleRate = 48000;
+		mediaParams->aSampleRate = EXT_A_RATE_48K;
+		mediaParams->aPktSize = EXT_A_PKT_SIZE_125MKS;
 		
 		mediaParams->vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
 		mediaParams->vDepth= EXT_V_DEPTH_16;
@@ -201,14 +202,14 @@ void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
 		mediaParams->vWidth= 1920;
 		mediaParams->vHeight = 1080;
 
-		mediaParams->vIsInterlaced = 0;
-		mediaParams->vIsSegmented = 1;
+		mediaParams->vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
 	}
 	else
 	{
 		mediaParams->aChannels = 1;
 		mediaParams->aDepth = 24;
-		mediaParams->aSampleRate = 32000;
+		mediaParams->aSampleRate = EXT_A_RATE_48K;
+		mediaParams->aPktSize = EXT_A_PKT_SIZE_125MKS;
 		
 		mediaParams->vColorSpace = EXT_V_COLORSPACE_RGB;
 		mediaParams->vDepth= EXT_V_DEPTH_12;
@@ -217,8 +218,7 @@ void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
 		mediaParams->vWidth= 1920*2;
 		mediaParams->vHeight = 1080*2;
 
-		mediaParams->vIsInterlaced = 0;
-		mediaParams->vIsSegmented = 1;
+		mediaParams->vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
 	}
 
 	return;

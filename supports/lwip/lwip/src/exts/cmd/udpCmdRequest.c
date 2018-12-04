@@ -218,6 +218,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	unsigned int intValue;
 	short type;
 	int count = 0;
+	unsigned short _shVal;
 
 #if 0
 	if(extJsonParseString(parser, EXT_JSON_KEY_USER, runCfg->user, EXT_USER_SIZE) != EXIT_SUCCESS)
@@ -270,7 +271,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	}
 #endif
 	/* RS232 */
-	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_RS_BAUDRATE, &tmpCfg->rs232Cfg.baudRate ) == EXIT_SUCCESS)
+	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_RS_BAUDRATE, (unsigned int *) &tmpCfg->rs232Cfg.baudRate ) == EXIT_SUCCESS)
 	{
 		count++;
 		
@@ -407,12 +408,25 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 		}
 	}
 
-	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_AUDIO_SAMPE_RATE, &tmpCfg->runtime.aSampleRate ) == EXIT_SUCCESS)
+	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_AUDIO_SAMPE_RATE, &_shVal ) == EXIT_SUCCESS)
 	{
 		count++;
-		if(tmpCfg->runtime.aSampleRate != 44100 && tmpCfg->runtime.aSampleRate != 48000 &&
-			tmpCfg->runtime.aSampleRate != 0 )
+		
+		if(_shVal == 44100 )
 		{
+			tmpCfg->runtime.aSampleRate = EXT_A_RATE_44K;
+		}
+		else if(_shVal == 48000 )
+		{
+			tmpCfg->runtime.aSampleRate = EXT_A_RATE_48K;
+		}
+		else if(_shVal == 96000 )
+		{
+			tmpCfg->runtime.aSampleRate = EXT_A_RATE_96K;
+		}
+		else
+		{
+			tmpCfg->runtime.aSampleRate = EXT_A_RATE_48K;
 			snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aSampleRate, EXT_IPCMD_DATA_AUDIO_SAMPE_RATE);
 			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 			return EXIT_FAILURE;
