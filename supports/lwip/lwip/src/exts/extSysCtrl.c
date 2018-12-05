@@ -26,6 +26,16 @@ typedef	enum
 }_SETUP_TYPE;
 
 
+#define	FIELD_INVALIDATE_U8( field) 					((field) = 0xFF)
+#define	FIELD_INVALIDATE_U16(field) 					((field) = 0xFFFF)
+#define	FIELD_INVALIDATE_U32(field)					((field) = 0xFFFFFFFF)
+
+#define	FIELD_IS_CHANGED_U8(field)					((field) != 0xFF)
+#define	FIELD_IS_CHANGED_U16(field)				((field) != 0xFFFF)
+#define	FIELD_IS_CHANGED_U32(field)				((field) != 0xFFFFFFFF)
+
+
+
 EXT_RUNTIME_CFG tmpRuntime;
 
 static unsigned short	_setupType;
@@ -40,66 +50,72 @@ static unsigned short	_setupType;
 
 
 
-#define	_checkNumFieldValue(dest, src, ret)	\
-	ret = EXT_FALSE; if(FIELD_IS_CHANGED((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
+#define	_checkNumU8FieldValue(dest, src, ret)	\
+	ret = EXT_FALSE; if(FIELD_IS_CHANGED_U8((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
 
+#define	_checkNumU16FieldValue(dest, src, ret)	\
+	ret = EXT_FALSE; if(FIELD_IS_CHANGED_U16((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
+
+#define	_checkNumU32FieldValue(dest, src, ret)	\
+	ret = EXT_FALSE; if(FIELD_IS_CHANGED_U32((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
 
 
 void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 {
 	memset(rxCfg, 0, sizeof(EXT_RUNTIME_CFG));
 
-	FIELD_INVALIDATE(rxCfg->isMCast);
-//	FIELD_INVALIDATE(rxCfg->netMode);
-	rxCfg->netMode = 0xFF;
-	rxCfg->fpgaAuto = 0xFF;
+	FIELD_INVALIDATE_U8(rxCfg->isMCast);
+	FIELD_INVALIDATE_U8(rxCfg->netMode);
+	FIELD_INVALIDATE_U8(rxCfg->fpgaAuto);
+
 
 #if EXT_DIP_SWITCH_ON
-	FIELD_INVALIDATE(rxCfg->isDipOn);
+	FIELD_INVALIDATE_U8(rxCfg->isDipOn);
 #endif
-	FIELD_INVALIDATE(rxCfg->rs232Cfg.baudRate);
-	FIELD_INVALIDATE(rxCfg->rs232Cfg.charLength);
-	FIELD_INVALIDATE(rxCfg->rs232Cfg.parityType);
-	FIELD_INVALIDATE(rxCfg->rs232Cfg.stopbits);
+	FIELD_INVALIDATE_U32(rxCfg->rs232Cfg.baudRate);
+	FIELD_INVALIDATE_U8(rxCfg->rs232Cfg.charLength);
+	FIELD_INVALIDATE_U8(rxCfg->rs232Cfg.parityType);
+	FIELD_INVALIDATE_U8(rxCfg->rs232Cfg.stopbits);
 
-	FIELD_INVALIDATE(rxCfg->runtime.vWidth);
-	FIELD_INVALIDATE(rxCfg->runtime.vHeight);
-	FIELD_INVALIDATE(rxCfg->runtime.vFrameRate);
-	FIELD_INVALIDATE(rxCfg->runtime.vColorSpace);
-	FIELD_INVALIDATE(rxCfg->runtime.vDepth);
-	FIELD_INVALIDATE(rxCfg->runtime.vIsInterlaced);
-//	FIELD_INVALIDATE(rxCfg->runtime.vIsSegmented);
+	FIELD_INVALIDATE_U16(rxCfg->runtime.vWidth);
+	FIELD_INVALIDATE_U16(rxCfg->runtime.vHeight);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vFrameRate);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vColorSpace);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vDepth);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vIsInterlaced);
+//	FIELD_INVALIDATE_U8(rxCfg->runtime.vIsSegmented);
 
-	FIELD_INVALIDATE(rxCfg->runtime.aChannels);
-	FIELD_INVALIDATE(rxCfg->runtime.aSampleRate);
-	FIELD_INVALIDATE(rxCfg->runtime.aDepth);
-	FIELD_INVALIDATE(rxCfg->runtime.aPktSize);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aChannels);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aSampleRate);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aDepth);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aPktSize);
 
-	FIELD_INVALIDATE(rxCfg->runtime.isConnect);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.isConnect);
 
 	rxCfg->sdpUriVideo.ip = IPADDR_NONE;
-	FIELD_INVALIDATE(rxCfg->sdpUriVideo.port);
+	FIELD_INVALIDATE_U16(rxCfg->sdpUriVideo.port);
 
 	rxCfg->sdpUriAudio.ip = IPADDR_NONE;
-	FIELD_INVALIDATE(rxCfg->sdpUriAudio.port);
+	FIELD_INVALIDATE_U16(rxCfg->sdpUriAudio.port);
 	
 	rxCfg->local.ip = IPADDR_NONE;
 
+	rxCfg->ipGateway = IPADDR_NONE;
+	rxCfg->ipMask = IPADDR_NONE;
 	rxCfg->dest.ip = IPADDR_NONE;
+	
 	rxCfg->dest.audioIp = IPADDR_NONE;
 	rxCfg->dest.ancIp = IPADDR_NONE;
 #if EXT_FPGA_AUX_ON	
 	rxCfg->dest.auxIp = IPADDR_NONE;
-	FIELD_INVALIDATE(rxCfg->dest.sport);
+	FIELD_INVALIDATE_U16(rxCfg->dest.sport);
 #endif
 
-	FIELD_INVALIDATE(rxCfg->dest.vport);
-	FIELD_INVALIDATE(rxCfg->dest.aport);
-	FIELD_INVALIDATE(rxCfg->dest.dport);
-
+	FIELD_INVALIDATE_U16(rxCfg->dest.vport);
+	FIELD_INVALIDATE_U16(rxCfg->dest.aport);
+	FIELD_INVALIDATE_U16(rxCfg->dest.dport);
 
 	_setupType = 0;
-	
 }
 
 
@@ -107,7 +123,7 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 After update, reboot is needed, so save is also needed */
 static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
-	char ret = EXT_FALSE, _ret = EXT_FALSE;
+	char ret = EXT_FALSE;
 	if(rxCfg->netMode != 0XFF )
 	{
 		if( (runCfg->netMode) !=  (rxCfg->netMode) )
@@ -118,16 +134,6 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		}
 	}
 
-	if(rxCfg->fpgaAuto != 0XFF )
-	{
-		if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
-		{
-			runCfg->fpgaAuto = rxCfg->fpgaAuto;
-			EXT_DEBUGF(EXT_DBG_ON, ("FpgaAuto: %s", (rxCfg->fpgaAuto)? "YES":"NO") );
-			ret = EXT_TRUE;
-		}
-	}
-	
 	if( rxCfg->local.ip != IPADDR_NONE )
 	{
 		runCfg->local.ip = rxCfg->local.ip;
@@ -143,7 +149,6 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(rxCfg->ipGateway != IPADDR_NONE)	
 	{
 		runCfg->ipGateway = rxCfg->ipGateway;
-		SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
 	}
 
 #if 0	
@@ -184,14 +189,13 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		if(!IS_STRING_EQUAL(runCfg->name, rxCfg->name) )
 		{
 			snprintf(runCfg->name, sizeof(runCfg->name), "%s", rxCfg->name);			
-//			needSave = 1;
 			ret = EXT_TRUE;
 		}
 	}
 
 #if EXT_DIP_SWITCH_ON
 //	if(_checkBoolField(&runCfg->isDipOn, rxCfg->isDipOn, EXT_TRUE) == EXIT_SUCCESS)
-	_checkNumFieldValue(&runCfg->isDipOn, rxCfg->isDipOn, _ret);
+	_checkNumU8FieldValue(&runCfg->isDipOn, rxCfg->isDipOn, _ret);
 	if(_ret == EXT_TRUE)
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("DipOn:%s"LWIP_NEW_LINE, STR_BOOL_VALUE(runCfg->isDipOn)) );
@@ -219,13 +223,13 @@ static char _compareRs232Config(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
 	char ret = EXT_FALSE;//, _ret = EXT_FALSE;
 	
-	_checkNumFieldValue(&runCfg->rs232Cfg.baudRate, rxCfg->rs232Cfg.baudRate, ret);	
+	_checkNumU32FieldValue(&runCfg->rs232Cfg.baudRate, rxCfg->rs232Cfg.baudRate, ret);	
 
-	_checkNumFieldValue(&runCfg->rs232Cfg.charLength, rxCfg->rs232Cfg.charLength, ret);	
+	_checkNumU8FieldValue(&runCfg->rs232Cfg.charLength, rxCfg->rs232Cfg.charLength, ret);	
 
-	_checkNumFieldValue(&runCfg->rs232Cfg.stopbits, rxCfg->rs232Cfg.stopbits, ret);	
+	_checkNumU8FieldValue(&runCfg->rs232Cfg.stopbits, rxCfg->rs232Cfg.stopbits, ret);	
 
-	_checkNumFieldValue(&runCfg->rs232Cfg.parityType, rxCfg->rs232Cfg.parityType, ret);	
+	_checkNumU8FieldValue(&runCfg->rs232Cfg.parityType, rxCfg->rs232Cfg.parityType, ret);	
 	
 	return ret;
 }
@@ -238,34 +242,38 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 //	const ip4_addr_t *mcIpAddr;
 	char ret = EXT_FALSE;
 
+	if(FIELD_IS_CHANGED_U8(rxCfg->fpgaAuto) )
+	{
+		if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
+		{
+			runCfg->fpgaAuto = rxCfg->fpgaAuto;
+			EXT_DEBUGF(EXT_DBG_ON, ("FpgaAuto: %s", (rxCfg->fpgaAuto)? "YES":"NO") );
+			ret = EXT_TRUE;
+		}
+	}
 
-	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
 	/* video */
-	_checkNumFieldValue(&runCfg->runtime.vWidth, rxCfg->runtime.vWidth, ret);	
+	_checkNumU16FieldValue(&runCfg->runtime.vWidth, rxCfg->runtime.vWidth, ret);	
 
-	_checkNumFieldValue(&runCfg->runtime.vHeight, rxCfg->runtime.vHeight, ret);	
+	_checkNumU16FieldValue(&runCfg->runtime.vHeight, rxCfg->runtime.vHeight, ret);	
 
-	_checkNumFieldValue(&runCfg->runtime.vFrameRate, rxCfg->runtime.vFrameRate, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.vFrameRate, rxCfg->runtime.vFrameRate, ret);	
 
 
-	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
-	_checkNumFieldValue(&runCfg->runtime.vDepth, rxCfg->runtime.vDepth, ret);	
-	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
+	_checkNumU8FieldValue(&runCfg->runtime.vDepth, rxCfg->runtime.vDepth, ret);	
 
-	_checkNumFieldValue(&runCfg->runtime.vColorSpace, rxCfg->runtime.vColorSpace, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.vColorSpace, rxCfg->runtime.vColorSpace, ret);	
 
-	_checkNumFieldValue(&runCfg->runtime.vIsInterlaced, rxCfg->runtime.vIsInterlaced, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.vIsInterlaced, rxCfg->runtime.vIsInterlaced, ret);	
 
-//	_checkNumFieldValue(&runCfg->runtime.vIsSegmented, rxCfg->runtime.vIsSegmented, ret);	
+//	_checkNumU8FieldValue(&runCfg->runtime.vIsSegmented, rxCfg->runtime.vIsSegmented, ret);	
 
 	/* audio */
-	_checkNumFieldValue(&runCfg->runtime.aSampleRate, rxCfg->runtime.aSampleRate, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.aSampleRate, rxCfg->runtime.aSampleRate, ret);	
 
-	_checkNumFieldValue(&runCfg->runtime.aChannels, rxCfg->runtime.aChannels, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.aChannels, rxCfg->runtime.aChannels, ret);	
 
-	_checkNumFieldValue(&runCfg->runtime.aDepth, rxCfg->runtime.aDepth, ret);	
-
-	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
+	_checkNumU8FieldValue(&runCfg->runtime.aDepth, rxCfg->runtime.aDepth, ret);	
 
 	return ret;
 }
@@ -282,7 +290,7 @@ static char _compareSdpConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		 runCfg->sdpUriVideo.ip = rxCfg->sdpUriVideo.ip;
 		ret = EXT_TRUE;
 	}
-	_checkNumFieldValue(&runCfg->sdpUriVideo.port, rxCfg->sdpUriVideo.port, ret);
+	_checkNumU16FieldValue(&runCfg->sdpUriVideo.port, rxCfg->sdpUriVideo.port, ret);
 	if(( !IS_STRING_NULL(rxCfg->sdpUriVideo.uri) ) &&(!IS_STRING_EQUAL(rxCfg->sdpUriVideo.uri, runCfg->sdpUriVideo.uri) ))
 	{
 		snprintf(runCfg->sdpUriVideo.uri, sizeof(runCfg->sdpUriVideo.uri), "%s", rxCfg->sdpUriVideo.uri);
@@ -295,7 +303,7 @@ static char _compareSdpConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		 runCfg->sdpUriAudio.ip = rxCfg->sdpUriAudio.ip;
 		ret = EXT_TRUE;
 	}
-	_checkNumFieldValue(&runCfg->sdpUriAudio.port, rxCfg->sdpUriAudio.port, ret);	
+	_checkNumU16FieldValue(&runCfg->sdpUriAudio.port, rxCfg->sdpUriAudio.port, ret);	
 	if(( !IS_STRING_NULL(rxCfg->sdpUriAudio.uri) ) && (!IS_STRING_EQUAL(rxCfg->sdpUriAudio.uri, runCfg->sdpUriAudio.uri) ))
 	{
 		snprintf(runCfg->sdpUriAudio.uri, sizeof(runCfg->sdpUriAudio.uri), "%s", rxCfg->sdpUriAudio.uri);
@@ -311,7 +319,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 {
 	char ret = EXT_FALSE;
 
-	_checkNumFieldValue(&runCfg->isMCast, rxCfg->isMCast, ret);	
+	_checkNumU8FieldValue(&runCfg->isMCast, rxCfg->isMCast, ret);	
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("isMcast:%s"LWIP_NEW_LINE, STR_BOOL_VALUE(runCfg->isMCast)) );
 		ret = EXT_TRUE;
@@ -332,6 +340,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 		{/* config type: system, so only save, not reconfigure FPGA */
 		}
 #endif		
+		extLwipGroupMgr(runCfg, runCfg->dest.ip, EXT_FALSE);
 		runCfg->dest.ip = rxCfg->dest.ip;
 		ret = EXT_TRUE;
 	}
@@ -339,6 +348,8 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	if(rxCfg->dest.audioIp != IPADDR_NONE && rxCfg->dest.audioIp != runCfg->dest.audioIp )
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New Audio McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		extLwipGroupMgr(runCfg, runCfg->dest.audioIp, EXT_FALSE);
+		
 		runCfg->dest.audioIp = rxCfg->dest.audioIp;
 		ret = EXT_TRUE;
 	}
@@ -346,6 +357,8 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	if(rxCfg->dest.ancIp != IPADDR_NONE && rxCfg->dest.ancIp != runCfg->dest.ancIp )
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New ANC McastAddress:%s"LWIP_NEW_LINE, extCmnIp4addr_ntoa(&rxCfg->dest.ip)) );
+		extLwipGroupMgr(runCfg, runCfg->dest.ancIp, EXT_FALSE);
+
 		runCfg->dest.ancIp = rxCfg->dest.ancIp;
 		ret = EXT_TRUE;
 	}
@@ -359,14 +372,14 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	}
 #endif
 
-	_checkNumFieldValue(&runCfg->dest.vport, rxCfg->dest.vport, ret);	
+	_checkNumU16FieldValue(&runCfg->dest.vport, rxCfg->dest.vport, ret);	
 
-	_checkNumFieldValue(&runCfg->dest.aport, rxCfg->dest.aport, ret);	
+	_checkNumU16FieldValue(&runCfg->dest.aport, rxCfg->dest.aport, ret);	
 
-	_checkNumFieldValue(&runCfg->dest.dport, rxCfg->dest.dport, ret);	
+	_checkNumU16FieldValue(&runCfg->dest.dport, rxCfg->dest.dport, ret);	
 
 #if EXT_FPGA_AUX_ON	
-	_checkNumFieldValue(&runCfg->dest.sport, rxCfg->dest.sport, ret);	
+	_checkNumU16FieldValue(&runCfg->dest.sport, rxCfg->dest.sport, ret);	
 #endif
 
 	return ret;
@@ -378,28 +391,33 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
-		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
-	}
-
-	if(_compareRs232Config(runCfg, rxCfg) == EXT_TRUE)
-	{
+		EXT_DEBUGF(EXT_DBG_ON, ("System params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
 	}
 
 	if(_compareProtocolConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
+		EXT_DEBUGF(EXT_DBG_ON, ("Protocol params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_PROTOCOL);
 	}
+	
+	if(_compareMediaCfg(runCfg, rxCfg) == EXT_TRUE)
+	{
+		EXT_DEBUGF(EXT_DBG_ON, ("Media params changing") );
+		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
+	}
+
 
 	if(_compareSdpConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
+		EXT_DEBUGF(EXT_DBG_ON, ("SDP params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_SDP);
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON, ("CFG vDepth=%d; RX vDepth=%d", runCfg->runtime.vDepth, rxCfg->runtime.vDepth));
-	if(_compareMediaCfg(runCfg, rxCfg) == EXT_TRUE)
+	if(_compareRs232Config(runCfg, rxCfg) == EXT_TRUE)
 	{
-		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
+		EXT_DEBUGF(EXT_DBG_ON, ("RS232 params changing") );
+		SETUP_SET_TYPE(_SETUP_TYPE_RS232);
 	}
 
 	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"After configured, Runtime Configuration") );extSysCfgDebugData(&extRun);
@@ -409,17 +427,27 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
-	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("config options:0x%x (0x%x)"LWIP_NEW_LINE, _setupType, SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) ) );
+//	EXT_DEBUGF(EXT_DBG_ON, ("config options:0x%x (0x%x)"LWIP_NEW_LINE, _setupType, SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) ) );
 
 	/* save configuration, and reboot to make it active */
 	//if(needReboot || hasNewMedia  || needSave)
-	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) || SETUP_CHECK_TYPE(_SETUP_TYPE_SDP))	
+	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) )	
 	{
 #ifdef	ARM
+		EXT_DEBUGF(EXT_DBG_ON, ("New system configuration, saving configuration and reboot") );
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
 //#else
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New system configuration, saving configuration and reboot") );
+#endif
+	}
+
+	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SDP) )	
+	{
+#ifdef	ARM
+		EXT_DEBUGF(EXT_DBG_ON, ("New SDP parameters") );
+		bspCfgSave(runCfg, EXT_CFG_MAIN);
+//		bspCmdReboot(NULL, NULL, 0);
+//#else
 #endif
 	}
 
@@ -427,13 +455,13 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) || SETUP_CHECK_TYPE(_SETUP_TYPE_NAME))
 	{
 #ifdef	ARM
+		EXT_DEBUGF(EXT_DBG_ON, ("RS232 save and setup") );
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		if(SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) )
 		{
 			extHwRs232Config(runCfg);
 		}
 //#else
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RS232 save and setup") );
 #endif
 	}
 	
@@ -441,26 +469,29 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(SETUP_CHECK_TYPE(_SETUP_TYPE_PROTOCOL) )
 	{
 #ifdef	ARM
-		extIgmpGroupMgr(rxCfg, EXT_FALSE);
+		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Protocol"));
+//		extIgmpGroupMgr(rxCfg, EXT_FALSE);
+//		memcpy(&runCfg->dest,  &rxCfg->dest, sizeof(EXT_VIDEO_CONFIG));
 
-		memcpy(&runCfg->dest,  &rxCfg->dest, sizeof(EXT_VIDEO_CONFIG));
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 
 		extFpgaConfig(runCfg);
 //#else
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("FPGA configuration Protocol"));
 #endif
 	}
 	
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
 	{
 #ifdef	ARM
+		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Media") );
+
+		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		extFpgaConfigParams(runCfg);
 //#else
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("FPGA configuration Media") );
 #endif
 	}
 
+#if 0
 	/* connect command */
 	if(FIELD_IS_CHANGED(rxCfg->runtime.isConnect))
 	{
@@ -470,6 +501,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 			extCmdConnect( runCfg, rxCfg->runtime.isConnect-1 );
 		}
 	}
+#endif
 
 	return EXIT_SUCCESS;
 }
@@ -484,7 +516,7 @@ static char _compareOneSdp(HttpClientReq *dest, HttpClientReq *src)
 		ret = EXT_TRUE;
 	}
 	
-	if(FIELD_IS_CHANGED(src->port) )
+	if(FIELD_IS_CHANGED_U16(src->port) )
 	{
 		dest->port = src->port;
 		ret = EXT_TRUE;

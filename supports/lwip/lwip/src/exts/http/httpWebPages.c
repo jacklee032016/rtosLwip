@@ -12,7 +12,7 @@
 
 
 
-uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
+static uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
 {
 	int index = 0;
 	int contentLength = 0;
@@ -64,15 +64,17 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
 	struct netif *_netif = (struct netif *)runCfg->netif;
 	const EXT_CONST_STR *_str;
+	const EXT_CONST_INT *_int;
+
 	const char *chVal;
 	const short *shVal;
-	unsigned char _regValue;
+//	unsigned char _regValue;
 
 	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
 	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
 #ifdef	ARM
-	extFpgaReadParams(&runCfg->runtime);
+//	extFpgaReadParams(&runCfg->runtime);
 #endif
 	/* device */
 //	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID"\" name=\""FORM_ID"\"  enctype=\"text/plain\" action=\"/setting\">" );
@@ -183,7 +185,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t</div></div>"EXT_NEW_LINE);
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<div id=\"divVideoSettings\" style=\"display:none;\">"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<div id=\"divVideoSettings\" style=\"display:%s;\">"EXT_NEW_LINE, (runCfg->fpgaAuto)?"none":"inline-block");
 
 
 	/* media parameters */
@@ -217,21 +219,21 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Frame Rate:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_FRAME_RATE"\">" EXT_NEW_LINE);
-	chVal = videoFpsList;
-	while(*chVal != 0)
+	_int =  intVideoFpsList;
+	while(_int->type != 0xFF )
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *chVal, (*chVal== runCfg->runtime.vFrameRate)?"selected":"", *chVal);
-		chVal++;
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, _int->type, (_int->type == runCfg->runtime.vFrameRate)?"selected":"", _int->name);
+		_int++;
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
 	/* color depth */
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Color Depth:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_COLOR_DEPTH"\">"EXT_NEW_LINE);
-	chVal = videoColorDepthList;
-	while(*chVal != 0)
+	_int =  intVideoColorDepthList;
+	while(_int->type!= 0xFF)
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *chVal, (*chVal== runCfg->runtime.vDepth)?"selected":"", *chVal);
-		chVal++;
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, _int->type, (_int->type== runCfg->runtime.vDepth)?"selected":"", _int->name);
+		_int++;
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
@@ -261,12 +263,11 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
-	REG_A_RATE_2_VALUE(_regValue, runCfg->runtime.aSampleRate);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Audio Rate:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE"\">"EXT_NEW_LINE );
 	_str = _audioRates;
 	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type== _regValue)?"selected":"", _str->name);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, ((unsigned char)_str->type== runCfg->runtime.aSampleRate)?"selected":"", _str->name);
 		_str++;
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
@@ -486,6 +487,8 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 	uint16_t headerLength;
 
 	extSysClearConfig(rxCfg);
+
+//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"Before configured, Runtime Configuration") );extSysCfgDebugData(&tmpRuntime);
 	
 	data[left] = 0;
 	key = data;
@@ -501,6 +504,7 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 		key[value-key] = 0;
 		value++;
 		
+//	EXT_DEBUGF(EXT_DBG_ON, ("RX vFrameRate=%d; vDepth=%d", rxCfg->runtime.vFrameRate, rxCfg->runtime.vDepth));
 		nextKey = lwip_strnstr(value, _CHAR_SEPERATE,  left - (value-key)) ;
 		if(nextKey)
 		{
@@ -510,7 +514,7 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 		{
 			value[left-(value-key)] = 0;
 		}
-		printf("No#%d: '%s' = '%s'" EXT_NEW_LINE, ++i, key, value );
+		EXT_DEBUGF(EXT_DBG_ON, ("No#%d: '%s' = '%s'", ++i, key, value ));
 
 
 #if 0		
@@ -525,6 +529,7 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 			snprintf(ehc->filename, sizeof(ehc->filename), "ERROR");
 			goto error;
 		}
+//	EXT_DEBUGF(EXT_DBG_ON, ("RX vFrameRate=%d; vDepth=%d", rxCfg->runtime.vFrameRate, rxCfg->runtime.vDepth));
 			
 		if(nextKey)
 		{
@@ -535,8 +540,7 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 		key = nextKey;
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON, ("RX vFrameRate=%d; vDepth=%d", rxCfg->runtime.vFrameRate, rxCfg->runtime.vDepth));
-	EXT_DEBUGF(EXT_DBG_ON, ("CFG vFrameRate=%d; vDepth=%d", ehc->runCfg->runtime.vFrameRate, ehc->runCfg->runtime.vDepth));
+//	EXT_DEBUGF(EXT_DBG_ON, ("CFG vFrameRate=%d; vDepth=%d", ehc->runCfg->runtime.vFrameRate, ehc->runCfg->runtime.vDepth));
 
 	extSysCompareParams(ehc->runCfg, rxCfg);
 	extSysConfigCtrl(ehc->runCfg, rxCfg);
@@ -572,7 +576,7 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 		EXT_WEBPAGE_MEDIA);
 #endif
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<div data-text=\"dt_productName\" id=\"id_mainProductName\">500767-%s-UTP 3G-SDI/ST2110 over IP Uncompressed Extender %s</div></DIV>" , 
+	CMN_SN_PRINTF(dataBuf, size, index, "<div data-text=\"dt_productName\" id=\"id_mainProductName\">500767-%s 3G-SDI/ST2110 over IP Uncompressed Extender %s</div></DIV>" , 
 		EXT_IS_TX(&extRun)?"TX":"RX", EXT_IS_TX(&extRun)?"TX":"RX"   );
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"nav\"><a id=\"nav_media\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Media</a>", 

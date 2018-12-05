@@ -477,11 +477,16 @@
 
 
 #define	EXT_DHCP_IS_ENABLE(runCfg)		\
-				((runCfg)->netMode&(EXT_IP_CFG_DHCP_ENABLE))
+				( (runCfg)->netMode != EXT_FALSE )
 
 #define	EXT_CFG_SET_DHCP(runCfg, value)	\
+				{(runCfg)->netMode = value;}
+
+/*
 				{ if(value==0) {CFG_CLEAR_FLAGS((runCfg)->netMode,(EXT_IP_CFG_DHCP_ENABLE));} \
 				else{CFG_SET_FLAGS((runCfg)->netMode, (EXT_IP_CFG_DHCP_ENABLE));} }
+*/
+
 
 /* add at the header of list */
 #define ADD_ELEMENT(header, element)	\
@@ -704,14 +709,14 @@ typedef	enum
 
 typedef	enum
 {
-	EXT_V_FRAMERATE_T_23 = 23,	/* 24/1.001 */
-	EXT_V_FRAMERATE_T_24,
-	EXT_V_FRAMERATE_T_25,
-	EXT_V_FRAMERATE_T_29 = 29,	/* 30/1.001 */
-	EXT_V_FRAMERATE_T_30,
-	EXT_V_FRAMERATE_T_50 = 50,
-	EXT_V_FRAMERATE_T_59 = 59,	/* 60/1.001 */
-	EXT_V_FRAMERATE_T_60
+	EXT_V_FRAMERATE_T_23 = 2,	/* 24/1.001 */
+	EXT_V_FRAMERATE_T_24 = 3,
+	EXT_V_FRAMERATE_T_25 = 5,
+	EXT_V_FRAMERATE_T_29 = 6,	/* 30/1.001 */
+	EXT_V_FRAMERATE_T_30 = 7,
+	EXT_V_FRAMERATE_T_50 = 9,
+	EXT_V_FRAMERATE_T_59 = 0xA,	/* 60/1.001 */
+	EXT_V_FRAMERATE_T_60 = 0xB
 }EXT_V_FRAMERATE;
 
 
@@ -731,10 +736,10 @@ typedef	enum
 
 typedef	enum
 {
-	EXT_V_DEPTH_8		= 8,	
-	EXT_V_DEPTH_10	= 10,	
-	EXT_V_DEPTH_12	= 12,	
-	EXT_V_DEPTH_16	= 16
+	EXT_V_DEPTH_8		= 0,	
+	EXT_V_DEPTH_10	= 1,	
+	EXT_V_DEPTH_12	= 2,	
+	EXT_V_DEPTH_16	= 3
 }EXT_V_DEPTH;
 
 typedef	enum
@@ -762,21 +767,6 @@ typedef	enum
 }EXT_A_PKT_SIZE;
 
 
-#define	REG_INTLC_2_VALUE(vIsInterlace, regValue)	\
-{	(vIsInterlace) = ((regValue)==0? EXT_VIDEO_INTLC_INTERLACED: EXT_VIDEO_INTLC_PROGRESSIVE);}
-
-#define	REG_VALUE_2_INTLC(regValue, vIsInterlace)	\
-{	(regValue) = ((vIsInterlace)==EXT_VIDEO_INTLC_INTERLACED)?0:3;}
-
-
-#define	REG_A_RATE_2_VALUE(aRate, regValue)	\
-{	(aRate) = ((regValue)==EXT_A_RATE_44K)?44100:((regValue)==EXT_A_RATE_96K)? 96000: 48000; }
-
-#define	REG_VALUE_2_A_RATE(regValue, aRate)	\
-{	(regValue) = ((aRate)==44100)?EXT_A_RATE_44K:((aRate)==96000)? EXT_A_RATE_96K: EXT_A_RATE_48K; }
-
-
-
 typedef	enum
 {
 	CMN_STR_T_RS_PARITY = 0,
@@ -784,6 +774,7 @@ typedef	enum
 
 	CMN_STR_T_V_FRAME_RATE,
 
+	CMN_STR_T_V_DEPTH,
 	
 	CMN_STR_T_HTTP_STATES,
 	CMN_STR_T_HTTP_EVENTS,
@@ -795,6 +786,15 @@ typedef	enum
 	CMN_STR_T_A_RATE,
 
 }CMN_STR_TYPE;
+
+
+typedef	enum
+{
+	CMN_INT_T_V_DEPTH = 0,
+	CMN_INT_T_V_FPS,
+
+}CMN_INT_TYPE;
+
 
 
 const char *extCmnStringFind(CMN_STR_TYPE strType, unsigned short type);
@@ -810,6 +810,7 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 #define	CMN_FIND_V_FRAME_RATE(type)		\
 	extCmnStringFind(CMN_STR_T_V_FRAME_RATE, (type) )
+
 
 
 #define	CMN_FIND_HTTP_STATE(type)		\
@@ -842,6 +843,7 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 #define	CMN_FIND_STR_V_FRAME_RATE(str)		\
 	extCmnTypeFind(CMN_STR_T_V_FRAME_RATE, (str) )
 
+
 #define	CMN_FIND_STR_HTTP_STATE(str)		\
 	extCmnTypeFind(CMN_STR_T_HTTP_STATES, (str) )
 
@@ -864,6 +866,9 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 #define	EXT_INVALIDATE_STRING_TYPE			0xFFFF
 
+
+
+
 typedef struct
 {
 	const unsigned short		type;
@@ -871,12 +876,36 @@ typedef struct
 }EXT_CONST_STR;
 
 
+typedef struct
+{
+	const unsigned char		type;
+	const unsigned char		name;
+}EXT_CONST_INT;
+
+
+const uint8_t extCmnIntFindName(CMN_INT_TYPE  intType, uint8_t type);
+const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name);
+
+#define	CMN_INT_FIND_NAME_V_DEPTH(type)		\
+	extCmnIntFindName(CMN_INT_T_V_DEPTH, (type) )
+
+#define	CMN_INT_FIND_NAME_V_FPS(type)		\
+	extCmnIntFindName(CMN_INT_T_V_FPS, (type) )
+
+
+
+#define	CMN_INT_FIND_TYPE_V_DEPTH(name)		\
+	extCmnIntFindType(CMN_INT_T_V_DEPTH, (name) )
+
+#define	CMN_INT_FIND_TYPE_V_FPS(name)		\
+	extCmnIntFindType(CMN_INT_T_V_FPS, (name) )
+
 
 
 /** Input parameters when initializing RS232 and similar modes. */
 typedef struct _MuxRS232
 {
-	int32_t			baudRate;
+	uint32_t			baudRate;
 	unsigned 	char		charLength;
 
 	unsigned char		parityType;
@@ -1195,8 +1224,9 @@ extern	const	EXT_CONST_STR	_videoColorSpaces[];
 extern	const short	videoWidthList[];
 extern	const short 	videoHeightList[];
 
-extern	const char 	videoFpsList[];
-extern	const char 	videoColorDepthList[];
+extern	const	EXT_CONST_INT	intVideoColorDepthList[];
+extern	const	EXT_CONST_INT	intVideoFpsList[];
+
 
 extern	const char 	audioChannelsList[];
 extern	const	EXT_CONST_STR	_audioPktSizes[];
@@ -1209,12 +1239,6 @@ char cmnUtilsParseIp(char *strIpAddress, uint32_t  *ip);
 char cmnUtilsParseInt32(char *strValue, uint32_t  *value);
 char cmnUtilsParseInt16(char *strValue, uint16_t  *value);
 char cmnUtilsParseInt8(char *strValue, uint8_t  *value);
-
-
-#define	FIELD_INVALIDATE( field) 						((field) = -1)
-
-#define	FIELD_IS_CHANGED(field)						((field) != -1)
-
 
 
 void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg);

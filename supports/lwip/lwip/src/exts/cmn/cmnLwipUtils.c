@@ -342,14 +342,14 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 	index = (unsigned int)cmnParseGetHexIntValue(argv[1]);
 	if(index != 0)
 	{
-		EXT_CFG_SET_DHCP(runCfg, 1);
+		EXT_CFG_SET_DHCP(runCfg, EXT_TRUE);
 		index = 0;
 		index += snprintf(outBuffer+index, bufferLen-index, "\tDHCP enable after reboot"EXT_NEW_LINE );
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		return EXT_FALSE;
 	}
 	
-	EXT_CFG_SET_DHCP(runCfg, 0);
+	EXT_CFG_SET_DHCP(runCfg, EXT_FALSE);
 	index += snprintf(outBuffer+index, bufferLen-index, "\tDHCP disable"EXT_NEW_LINE);
 	
 	if( argc >= 3)

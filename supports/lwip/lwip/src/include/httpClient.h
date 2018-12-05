@@ -158,6 +158,8 @@ extern	sys_timer_t		_hcTimer;		/* timer new TCP connection */
 
 err_t extHttpClientClosePcb(HttpClient *hc, struct tcp_pcb *_pcb);
 
+err_t extHttpSdpParse(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size);
+
 
 #endif
 

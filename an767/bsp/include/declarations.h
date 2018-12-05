@@ -193,6 +193,7 @@ void	extFpgaEnable(char	isEnable);
 void	extFpgaBlinkPowerLED(char	isEnable);
 
 char *extFgpaReadVersion(void);
+char extFpgaReadParams(MuxRunTimeParam *mediaParams);
 
 
 #endif

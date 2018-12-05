@@ -60,16 +60,18 @@ static unsigned char _httpEventRecvInDataState(void *arg)
 	return H_STATE_RESP;
 }
 
+#if 0
 static unsigned char _httpEventPollOfCloseState(void *arg)
 {
 //	u8_t ret;
 	HttpEvent *he = (HttpEvent *)arg;
 	
-	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
+//	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
 	extHttpConnClose(he->mhc, he->pcb);
 
 	return H_STATE_ERROR;
 }
+#endif
 
 static unsigned char _httpEventPoll(void *arg)
 {
@@ -201,6 +203,7 @@ static void _httpEnterStateClose(void *arg)
 }
 
 /* only free resource, not abort or close connection, eg. PCB has been deallocated by TCP  */
+#if 0
 static void _httpEnterStateError(void *arg)
 {
 #if 0
@@ -209,6 +212,7 @@ static void _httpEnterStateError(void *arg)
 	extHttpConnClose(he->mhc, he->pcb);
 #endif	
 }
+#endif	
 
 
 const transition_t	_staticPageStateReq[] =

@@ -290,6 +290,7 @@ const	EXT_CONST_STR	_videoFramerates[] =
 };
 
 
+
 const	EXT_CONST_STR	_audioPktSizes[] =
 {
 	{
@@ -374,6 +375,8 @@ const EXT_CONST_STR _strTypes[] =
 };
 
 
+
+
 const short	videoWidthList[]=
 {
 //	480,
@@ -414,27 +417,6 @@ const short videoHeightList[]=
 	0
 };
 
-const char videoFpsList[]  =
-{
-	EXT_V_FRAMERATE_T_23,
-	EXT_V_FRAMERATE_T_24,
-	EXT_V_FRAMERATE_T_25,
-	EXT_V_FRAMERATE_T_29,
-	EXT_V_FRAMERATE_T_30,
-	EXT_V_FRAMERATE_T_50,
-	EXT_V_FRAMERATE_T_59,
-	EXT_V_FRAMERATE_T_60,
-	0
-};
-
-const char videoColorDepthList[] =
-{
-	EXT_V_DEPTH_8,	
-	EXT_V_DEPTH_10,	
-	EXT_V_DEPTH_12,	
-	EXT_V_DEPTH_16,
-	0
-};
 
 const char audioChannelsList[] =
 {
@@ -446,7 +428,7 @@ const char audioChannelsList[] =
 };
 
 
-const char *__extCmnFindTypeStr(unsigned short type)
+static const char *__extCmnFindTypeStr(unsigned short type)
 {
 	const EXT_CONST_STR *_str = _strTypes;
 
@@ -536,6 +518,7 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 		case CMN_STR_T_V_FRAME_RATE:
 			_str = _videoFramerates;
 			break;
+
 		case CMN_STR_T_HTTP_STATES:
 			_str = _httpStringStates;
 			break;
@@ -602,48 +585,57 @@ char cmnUtilsParseIp(char *strIpAddress, uint32_t  *ip)
 
 char cmnUtilsParseInt32(char *strValue, uint32_t  *value)
 {
+	uint32_t _val;
 //	if (1 != sscanf(strValue, "%"PRIu32, value))
-	if (1 != sscanf(strValue, "%"U32_F, value))
+	if (1 != sscanf(strValue, "%"U32_F, &_val))
 	{
 		printf("Token '%s' was not an 32-bit int.", strValue );
+		*value = 0xFFFFFFFF;
 		return EXIT_FAILURE;
 	}
 	else
 	{
+		*value = _val;
 		return EXIT_SUCCESS;
 	}
 }
 
 char cmnUtilsParseInt16(char *strValue, uint16_t  *value)
 {
+	uint16_t _val;
 #ifdef	ARM
-	if (1 != sscanf(strValue, "%"PRIu16, value))
+	if (1 != sscanf(strValue, "%"PRIu16, &_val))
 #else
-	if (1 != sscanf(strValue, "%hu", value))
+	if (1 != sscanf(strValue, "%hu", &_val))
 #endif		
 	{
 		printf("Token '%s' was not an short int.", strValue);
+		*value = 0xFFFF;
 		return EXIT_FAILURE;
 	}
 	else
 	{
+		*value = _val;
 		return EXIT_SUCCESS;
 	}
 }
 
 char cmnUtilsParseInt8(char *strValue, uint8_t  *value)
 {
+	uint8_t _val;
 #ifdef	ARM
-	if (1 != sscanf(strValue, "%"PRIu8, value))
+	if (1 != sscanf(strValue, "%"PRIu8, &_val))
 #else
-	if (1 != sscanf(strValue, "%hhu", value))
+	if (1 != sscanf(strValue, "%hhu", &_val))
 #endif		
 	{
 		printf("Token '%s' was not an 8-bit int.", strValue );
+		*value = 0xFF;
 		return EXIT_FAILURE;
 	}
 	else
 	{
+		*value = _val;
 		return EXIT_SUCCESS;
 	}
 }
@@ -702,6 +694,137 @@ uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength)
 
 	EXT_DEBUGF(EXT_DBG_OFF, ("Content length:%d\r\n", contentLen));
 	return contentLen;
+}
+
+
+const	EXT_CONST_INT	intVideoColorDepthList[] =
+{
+	{
+		type	: EXT_V_DEPTH_8,
+		name	: 8
+	},
+	{
+		type	: EXT_V_DEPTH_10,
+		name	: 10
+	},
+	{
+		type	: EXT_V_DEPTH_12,
+		name	: 12
+	},
+	{
+		type	: EXT_V_DEPTH_16,
+		name	: 16
+	},
+	{
+		type	: 0xFF,
+		name	: 0xFF
+	}
+};
+
+const	EXT_CONST_INT	intVideoFpsList[] =
+{
+	{
+		type	: EXT_V_FRAMERATE_T_23,
+		name	: 23
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_24,
+		name	: 24
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_25,
+		name	: 25
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_29,
+		name	: 29
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_30,
+		name	: 30
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_50,
+		name	: 50
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_59,
+		name	: 59
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_60,
+		name	: 60
+	},
+	{
+		type	: 0xFF,
+		name	: 0xFF
+	}
+};
+
+
+const uint8_t extCmnIntFindName(CMN_INT_TYPE  intType, uint8_t type)
+{
+	const EXT_CONST_INT *_str;
+
+	switch(intType)
+	{
+		case CMN_INT_T_V_DEPTH:
+			_str = intVideoColorDepthList;
+			break;
+		case CMN_INT_T_V_FPS:
+			_str = intVideoFpsList;
+			break;
+
+		default:
+			return 0xFF;
+			break;
+	}
+
+	while(_str->type!= 0xFF)
+	{
+		if(_str->type == type)
+		{
+			return _str->name;
+		}
+
+		_str++;
+	}
+
+	EXT_ERRORF(("unknown type %d in constant type :%d", type, intType) );
+	return 0xFF;
+}
+
+
+const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name)
+{
+	const EXT_CONST_INT *_str;
+
+	switch(intType)
+	{
+		case CMN_INT_T_V_DEPTH:
+			_str = intVideoColorDepthList;
+			break;
+		case CMN_INT_T_V_FPS:
+			_str = intVideoFpsList;
+			break;
+
+		default:
+			return -1;
+			break;
+	}
+
+	while(_str->type!= 0xFF)
+	{
+		if(_str->name == name) 
+		{
+			return _str->type;
+		}
+
+		_str++;
+	}
+	
+	EXT_ERRORF(("unknown type %d in constant type :%d", name, intType) );
+	return 0xFF;
 }
 
 

@@ -198,6 +198,7 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 }
 
 
+#if 0
 /* TCP_PCB can only handled in context of TCP task */
 err_t extHttpClosePcb(ExtHttpConn *ehc)
 {
@@ -237,6 +238,7 @@ err_t extHttpClosePcb(ExtHttpConn *ehc)
 
 	return err;
 }
+#endif
 
 #endif
 

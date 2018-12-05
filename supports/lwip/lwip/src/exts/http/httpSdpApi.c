@@ -68,7 +68,7 @@
 #define	SDP_P_AUDIO_PACK_TIME_125MS				"0.12"
 
 
-uint16_t extSdpSessionDescription(ExtHttpConn  *ehc, char *dataBuf, uint16_t size, char isVideo)
+static uint16_t _extSdpSessionDescription(ExtHttpConn  *ehc, char *dataBuf, uint16_t size, char isVideo)
 {
 	int index = 0;
 	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
@@ -97,7 +97,7 @@ uint16_t extHttpSdpVideo(ExtHttpConn  *ehc, void *pageHandle)
 	char *dataBuf = (char *)ehc->data+ehc->headerLength;
 	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
 
-	index = extSdpSessionDescription(ehc, dataBuf, size, EXT_TRUE);
+	index = _extSdpSessionDescription(ehc, dataBuf, size, EXT_TRUE);
 
 	/**** media stream description ******/
 	/* media description*/
@@ -152,7 +152,7 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *ehc, void *pageHandle)
 	char *dataBuf = (char *)ehc->data+ehc->headerLength;
 	uint16_t size = sizeof(ehc->data) - ehc->headerLength;
 
-	index = extSdpSessionDescription(ehc, dataBuf, size, EXT_FALSE);
+	index = _extSdpSessionDescription(ehc, dataBuf, size, EXT_FALSE);
 
 	/* media stream */
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_AUDIO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE, 
@@ -198,7 +198,7 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 
 	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
 #ifdef	ARM
-	extFpgaReadParams(&runCfg->runtime);
+//	extFpgaReadParams(&runCfg->runtime);
 #endif
 
 
@@ -269,9 +269,9 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\":%d,"EXT_NEW_LINE, runCfg->runtime.vHeight);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.vWidth);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FRAME_RATE"\":%d,"EXT_NEW_LINE, runCfg->runtime.vFrameRate);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FRAME_RATE"\":%d,"EXT_NEW_LINE, CMN_INT_FIND_NAME_V_FPS(runCfg->runtime.vFrameRate) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_COLOR_SPACE"\":\"%s\","EXT_NEW_LINE, CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace) );
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_COLOR_DEPTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.vDepth);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_COLOR_DEPTH"\":%d,"EXT_NEW_LINE, CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth) );
 
 #if 0
 	index += snprintf(dataBuf+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_INTERLACED"\":%d,", (parser->runCfg->runtime.vIsInterlaced)?1:0);
@@ -280,14 +280,15 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\":%d,"EXT_NEW_LINE, runCfg->runtime.vIsInterlaced);
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED"\":%d,"EXT_NEW_LINE, runCfg->runtime.vIsSegmented);
 
+		EXT_DEBUGF(EXT_DBG_ON, ("aSampleRate: %d", runCfg->runtime.aSampleRate));
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE"\":\"%s\","EXT_NEW_LINE, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_CHANNEL"\":%d,"EXT_NEW_LINE, runCfg->runtime.aChannels );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_DEPTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.aDepth );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE"\":\"%s\","EXT_NEW_LINE,CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE"\":\"%s\""EXT_NEW_LINE,CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
 	
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_CONNECT"\":%d"EXT_NEW_LINE, runCfg->runtime.isConnect);
+//	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_CONNECT"\":%d"EXT_NEW_LINE, runCfg->runtime.isConnect);
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "}"EXT_NEW_LINE);
 
@@ -419,7 +420,7 @@ static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, cha
 	if(cmnUtilsParseInt16(p, &_shVal) == EXIT_FAILURE)
 	{
 		EXT_ERRORF(("No Sample Freq for SDP audio stream") );
-		rxCfg->runtime.aSampleRate = -1;
+		rxCfg->runtime.aSampleRate = EXT_A_RATE_48K;
 		return p-data;
 	}
 	else
@@ -462,7 +463,7 @@ static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, cha
 /* data from HTTP form for SDP client */
 static char __sdpVideoParams(EXT_RUNTIME_CFG *rxCfg, char *key, char *value)
 {
-	uint8_t colorspace;
+//	uint8_t colorspace;
 	/* string change into integer */
 	if( lwip_strnstr(key, SDP_2110_VKEY_SAMPLING, strlen(key)))
 	{

@@ -26,8 +26,8 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size)
 
 	index += snprintf(data+index, size-index, ",\""EXT_IPCMD_DATA_VIDEO_WIDTH"\":%d,", parser->runCfg->runtime.vWidth );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_HEIGHT"\":%d,", parser->runCfg->runtime.vHeight);
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":%d,", parser->runCfg->runtime.vFrameRate);
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_DEPTH"\":%d,", parser->runCfg->runtime.vDepth);
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":%d,", CMN_INT_FIND_NAME_V_FPS(parser->runCfg->runtime.vFrameRate) );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_DEPTH"\":%d,", CMN_INT_FIND_NAME_V_DEPTH(parser->runCfg->runtime.vDepth) );
 #if 0
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_INTERLACED"\":%d,", (parser->runCfg->runtime.vIsInterlaced)?1:0);
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_SEGMENTED"\":%d,", (parser->runCfg->runtime.vIsSegmented)?1:0);
@@ -36,7 +36,7 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size)
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_COLORSPACE"\":\"%s\",", CMN_FIND_V_COLORSPACE(parser->runCfg->runtime.vColorSpace) );
 
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AUDIO_SAMPE_RATE"\":%d,", parser->runCfg->runtime.aSampleRate );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AUDIO_SAMPE_RATE"\":\"%s\",", CMN_FIND_A_RATE(parser->runCfg->runtime.aSampleRate) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AUDIO_DEPTH"\":%d,", parser->runCfg->runtime.aDepth );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AUDIO_CHANNELS"\":%d,", parser->runCfg->runtime.aChannels );
 	

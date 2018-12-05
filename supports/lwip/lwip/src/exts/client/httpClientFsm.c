@@ -6,8 +6,6 @@
 
 #include "extFsm.h"
 
-err_t extHttpSdpParse(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size);
-
 /*
 * Event handlers 
 */
@@ -243,7 +241,7 @@ static unsigned char _hcEventSent(void *arg)
 /* in RECV callback, when pbuf is NULL: means closed by peer */
 static unsigned char _hcEventClose(void *arg)
 {
-	HttpClient *hc = (HttpClient *)arg;
+//	HttpClient *hc = (HttpClient *)arg;
 	
  	sys_timer_stop(&_hcTimer);
 	/* all resource of TCP is freed in TCP task, eg. callback of close */

@@ -56,6 +56,7 @@ static jsmntok_t *_extJsonGetPrimitiveValueObject(EXT_JSON_PARSER *parser, const
 int extJsonParseUnsignedChar(EXT_JSON_PARSER *parser, const char *key, unsigned char *value)
 {
 	jsmntok_t *valueObj;
+	unsigned char _chVal = 0xFF;
 	
 	valueObj = _extJsonGetPrimitiveValueObject(parser, key);
 	if(valueObj == NULL)
@@ -64,22 +65,25 @@ int extJsonParseUnsignedChar(EXT_JSON_PARSER *parser, const char *key, unsigned 
 	}
 
 #ifdef	ARM
-	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%"PRIu8, value))
+	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%"PRIu8, &_chVal))
 #else
-	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%hhu", value))
+	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%hhu", &_chVal))
 #endif		
 	{
 		printf("Token was not an char.");
+		*value = 0xFF;
 //		return JSON_PARSE_ERROR;
 		return EXIT_FAILURE;
 	}
 
-	return 0;
+	*value = _chVal;
+	return EXIT_SUCCESS;
 }
 
 int extJsonParseUnsignedShort(EXT_JSON_PARSER *parser, const char *key, unsigned short *value)
 {
 	jsmntok_t *valueObj;
+	unsigned short _shVal = 0xFFFF;
 	
 	valueObj = _extJsonGetPrimitiveValueObject(parser, key);
 	if(valueObj == NULL)
@@ -88,16 +92,18 @@ int extJsonParseUnsignedShort(EXT_JSON_PARSER *parser, const char *key, unsigned
 	}
 
 #ifdef	ARM
-	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%"PRIu16, value))
+	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%"PRIu16, &_shVal))
 #else
-	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%hu", value))
+	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%hu", &_shVal))
 #endif		
 	{
 		printf("Token was not an short int.");
+		*value = 0xFFFF;
 		return EXIT_FAILURE;
 //		return JSON_PARSE_ERROR;
 	}
 
+	*value = _shVal;
 	return EXIT_SUCCESS;
 }
 
@@ -105,6 +111,7 @@ int extJsonParseUnsignedShort(EXT_JSON_PARSER *parser, const char *key, unsigned
 int extJsonParseUnsignedInteger(EXT_JSON_PARSER *parser, const char *key, unsigned int *value)
 {
 	jsmntok_t *valueObj;
+	unsigned int _inVal = 0xFFFFFFFF;
 	
 	valueObj = _extJsonGetPrimitiveValueObject(parser, key);
 	if(valueObj == NULL)
@@ -113,12 +120,14 @@ int extJsonParseUnsignedInteger(EXT_JSON_PARSER *parser, const char *key, unsign
 	}
 
 //	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%"PRIu32, value))
-	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%u", value))
+	if (1 != sscanf(parser->currentJSonString+ valueObj->start, "%u", &_inVal) )
 	{
 		printf("Token was not an integer.");
+		*value = _inVal;
 		return EXIT_FAILURE;
 //		return JSON_PARSE_ERROR;
 	}
+	*value = _inVal;
 
 	return EXIT_SUCCESS;
 }
@@ -219,6 +228,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	short type;
 	int count = 0;
 	unsigned short _shVal;
+	uint8_t _chVal;
 
 #if 0
 	if(extJsonParseString(parser, EXT_JSON_KEY_USER, runCfg->user, EXT_USER_SIZE) != EXIT_SUCCESS)
@@ -371,11 +381,17 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_VIDEO_HEIGHT, &tmpCfg->runtime.vHeight) == EXIT_SUCCESS)
 		count++;
 	
-	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_VIDEO_FRAMERATE, &tmpCfg->runtime.vFrameRate) == EXIT_SUCCESS)
+	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_VIDEO_FRAMERATE, &_chVal) == EXIT_SUCCESS)
+	{
+		tmpCfg->runtime.vFrameRate = CMN_INT_FIND_TYPE_V_FPS(_chVal);
 		count++;
+	}
 	
-	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_VIDEO_DEPTH, &tmpCfg->runtime.vDepth) == EXIT_SUCCESS)
+	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_VIDEO_DEPTH, &_chVal) == EXIT_SUCCESS)
+	{
+		tmpCfg->runtime.vDepth = CMN_INT_FIND_TYPE_V_DEPTH(_chVal);
 		count++;
+	}
 
 	if(extJsonParseUnsignedInteger(parser, EXT_IPCMD_DATA_VIDEO_INTERLACED, &intValue)== EXIT_SUCCESS)
 	{

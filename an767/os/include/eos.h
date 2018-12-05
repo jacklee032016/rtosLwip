@@ -107,8 +107,6 @@ char extBspRtl8305Config(void);
 void extFpgaInit(void);
 char  extBspFpgaReload(void);
 
-char extFpgaReadParams(MuxRunTimeParam *mediaParams);
-
 
 //void	extFpgaEnable(char	isEnable);
 

@@ -16,7 +16,7 @@ sys_sem_t			_httpClientSema;	/* wait and wake between client and its scheduler *
 HttpClient 			_httpClient;
 
 
-char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
+static char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
 {
 	HcEvent *hce;
 

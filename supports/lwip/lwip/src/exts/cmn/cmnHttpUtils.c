@@ -132,6 +132,8 @@ int cmnHttpPrintResponseHeader(ExtHttpConn *ehc, const char contentType)
 /* called by JSON client and POST service */
 int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 {
+	uint8_t _chVal;
+	
 	EXT_JSON_PARSER  *parser = &extParser;
 
 	EXT_DEBUGF(EXT_DBG_ON, ("Parsing JSON Data %d bytes: '%.*s'", size,  size, jsonData)  );
@@ -145,13 +147,14 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 
 		return EXIT_FAILURE;
 	}
-	
+
+	/* system parsms */
 	extJsonParseString(parser, EXT_WEB_CFG_FIELD_PRODUCT, rxCfg->name, sizeof(rxCfg->name) );
 
 	extJsonParseMacAddress(parser, EXT_WEB_CFG_FIELD_MAC, &rxCfg->local.mac);
 
+	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_IS_DHCP, &rxCfg->netMode);
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_ADDRESS, &rxCfg->local.ip);
-	
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_GATEWAY, &rxCfg->ipGateway);
 
 	/* SDP */
@@ -186,8 +189,16 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 	/* params of video stream */
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_WIDTH, &rxCfg->runtime.vWidth);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_HEIGHT, &rxCfg->runtime.vHeight);
-	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_FRAME_RATE, &rxCfg->runtime.vFrameRate);
-	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_COLOR_DEPTH, &rxCfg->runtime.vDepth);
+	if(extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_FRAME_RATE, &_chVal) == EXIT_SUCCESS)
+	{
+		rxCfg->runtime.vFrameRate = CMN_INT_FIND_TYPE_V_FPS(_chVal);
+	}
+	
+	if(extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_COLOR_DEPTH, &_chVal) == EXIT_SUCCESS)
+	{
+		rxCfg->runtime.vDepth = CMN_INT_FIND_TYPE_V_DEPTH(_chVal);
+	}
+
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_VIDEO_INTERLACE, &rxCfg->runtime.vIsInterlaced);
 	extJsonParseString(parser, EXT_WEB_CFG_FIELD_COLOR_SPACE, rxCfg->model, sizeof(rxCfg->model));
 	if(!IS_STRING_NULL(rxCfg->model))

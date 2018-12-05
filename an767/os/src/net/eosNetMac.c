@@ -321,12 +321,7 @@ static void _gmac_low_level_init(struct netif *netif)
 
 	/* Device capabilities. */
 	netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
-#if 0	
-	if(EXT_DHCP_IS_ENABLE())
-	{
-//		netif->flags |= NETIF_FLAG_DHCP
-	}
-#endif
+
 
 	/* Wait for PHY to be ready (CAT811: Max400ms). */
 	ul_delay = sysclk_get_cpu_hz() / 1000 / 3 * 400;

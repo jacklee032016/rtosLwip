@@ -268,6 +268,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	
 	cfg->runtime.aChannels = 12;
 	cfg->runtime.aSampleRate= EXT_A_RATE_48K;
+	cfg->runtime.aDepth = 24;
 	cfg->runtime.aPktSize = EXT_A_PKT_SIZE_125MKS;
 	
 	cfg->runtime.vWidth = 1920;
@@ -275,7 +276,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->runtime.vFrameRate = EXT_V_FRAMERATE_T_30;
 	cfg->runtime.vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
 	cfg->runtime.vDepth = EXT_V_DEPTH_10;
-	cfg->runtime.vIsInterlaced = EXT_A_PKT_SIZE_125MKS;
+	cfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
 	
 //	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;
@@ -297,9 +298,9 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->rs232Cfg.stopbits = EXT_RS232_STOP_BITS_1;
 
 #ifdef  ARM
-	cfg->netMode = (EXT_IP_CFG_DHCP_ENABLE)|0;
+	cfg->netMode = EXT_TRUE;
 #else
-	cfg->netMode = 0;
+	cfg->netMode = EXT_FALSE;
 #endif
 
 	cfg->httpPort = EXT_HTTP_SVR_PORT;

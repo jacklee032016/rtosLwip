@@ -340,6 +340,7 @@ static void _removeConnection(ExtHttpConn *mhc)
 	HTTP_UNLOCK();	
 }
 
+#if	MHTTPD_SSI
 static void _killOldestConnection(u8_t ssi_required)
 {
 	ExtHttpConn *mhc = _mhttpConns;
@@ -374,6 +375,8 @@ static void _killOldestConnection(u8_t ssi_required)
 		_extHttpConnCloseOrAbort(hs_free_next->next, hs_free_next->next->pcb, 1); /* this also unlinks the mhttp_state from the list */
 	}
 }
+#endif
+
 #else /* MHTTPD_KILL_OLD_ON_CONNECTIONS_EXCEEDED */
 
 #define _addConnection(mhc)
@@ -425,7 +428,7 @@ ExtHttpConn *extHttpConnAlloc(EXT_RUNTIME_CFG *runCfg)
  */
 void extHttpConnFree(ExtHttpConn *ehc)
 {
-	err_t err;
+//	err_t err;
 	
 	if (ehc == NULL)
 	{

@@ -216,7 +216,7 @@ static err_t	__httpHeaderContentLength(ExtHttpConn *ehc )
 }
 #endif
 
-err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
+static err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 {
 	int  contentLength = 0;
 //	err_t err = ERR_OK;
@@ -290,7 +290,7 @@ err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 static err_t _httpParseRequest(ExtHttpConn *mhc, unsigned char *data, u16_t data_len, struct pbuf *inp)
 {
 	int ret;
-	err_t err = ERR_OK;
+//	err_t err = ERR_OK;
 
 	ret = _httpParseMethod(mhc, data, data_len);
 	if( ret == 0)
