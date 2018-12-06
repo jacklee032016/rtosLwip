@@ -51,13 +51,13 @@ static unsigned short	_setupType;
 
 
 #define	_checkNumU8FieldValue(dest, src, ret)	\
-	ret = EXT_FALSE; if(FIELD_IS_CHANGED_U8((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
+	if(FIELD_IS_CHANGED_U8((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
 
 #define	_checkNumU16FieldValue(dest, src, ret)	\
-	ret = EXT_FALSE; if(FIELD_IS_CHANGED_U16((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
+	if(FIELD_IS_CHANGED_U16((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
 
 #define	_checkNumU32FieldValue(dest, src, ret)	\
-	ret = EXT_FALSE; if(FIELD_IS_CHANGED_U32((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
+	if(FIELD_IS_CHANGED_U32((src)) && ((src) != *(dest)) ){ *(dest) = (src); (ret) = EXT_TRUE; }
 
 
 void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
@@ -319,11 +319,13 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 {
 	char ret = EXT_FALSE;
 
+#if 0
 	_checkNumU8FieldValue(&runCfg->isMCast, rxCfg->isMCast, ret);	
 	{
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("isMcast:%s"LWIP_NEW_LINE, STR_BOOL_VALUE(runCfg->isMCast)) );
 		ret = EXT_TRUE;
 	}
+#endif
 
 //	if( _checkIntegerField(&runCfg->dest.ip, rxCfg->dest.ip) == EXIT_SUCCESS)
 	if(rxCfg->dest.ip != IPADDR_NONE && rxCfg->dest.ip != runCfg->dest.ip )
@@ -434,20 +436,20 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) )	
 	{
 #ifdef	ARM
-		EXT_DEBUGF(EXT_DBG_ON, ("New system configuration, saving configuration and reboot") );
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
-//#else
+#else
+		EXT_DEBUGF(EXT_DBG_ON, ("New system configuration, saving configuration and reboot") );
 #endif
 	}
 
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SDP) )	
 	{
 #ifdef	ARM
-		EXT_DEBUGF(EXT_DBG_ON, ("New SDP parameters") );
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
-//#else
+#else
+		EXT_DEBUGF(EXT_DBG_ON, ("New SDP parameters") );
 #endif
 	}
 
@@ -455,13 +457,13 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) || SETUP_CHECK_TYPE(_SETUP_TYPE_NAME))
 	{
 #ifdef	ARM
-		EXT_DEBUGF(EXT_DBG_ON, ("RS232 save and setup") );
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		if(SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) )
 		{
 			extHwRs232Config(runCfg);
 		}
-//#else
+#else
+		EXT_DEBUGF(EXT_DBG_ON, ("RS232 save and setup") );
 #endif
 	}
 	
@@ -469,25 +471,25 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(SETUP_CHECK_TYPE(_SETUP_TYPE_PROTOCOL) )
 	{
 #ifdef	ARM
-		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Protocol"));
 //		extIgmpGroupMgr(rxCfg, EXT_FALSE);
 //		memcpy(&runCfg->dest,  &rxCfg->dest, sizeof(EXT_VIDEO_CONFIG));
 
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 
 		extFpgaConfig(runCfg);
-//#else
+#else
+		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Protocol"));
 #endif
 	}
 	
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
 	{
 #ifdef	ARM
-		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Media") );
 
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		extFpgaConfigParams(runCfg);
-//#else
+#else
+		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Media") );
 #endif
 	}
 
