@@ -147,7 +147,7 @@ static int _httpParseMethod(ExtHttpConn *ehc, unsigned char *data, u16_t data_le
 		{
 			/* received GET request */
 			ehc->method = method->type;
-			EXT_DEBUGF(EXT_DBG_ON, ("Received %s request", method->name));
+			EXT_DEBUGF(EXT_DBG_OFF, ("Received %s request", method->name));
 			return strlen(method->name);
 		}
 
@@ -366,7 +366,7 @@ err_t extHttpRequestParse( ExtHttpConn *mhc, struct pbuf *inp)
 		}
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON, ("data :'%.*s'", reqLen, data ));
+	EXT_DEBUGF(EXT_DBG_OFF, ("data :'%.*s'", reqLen, data ));
 	clen = pbuf_clen(mhc->req);
 
 	/* received enough data for minimal request? */

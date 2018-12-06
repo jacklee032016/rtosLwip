@@ -215,7 +215,9 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
-		if(tmpCfg->runtime.vIsInterlaced != EXT_VIDEO_INTLC_PROGRESSIVE && tmpCfg->runtime.vIsInterlaced != EXT_VIDEO_INTLC_INTERLACED)
+		if(tmpCfg->runtime.vIsInterlaced != EXT_VIDEO_INTLC_A_PROGRESSIVE && 
+			tmpCfg->runtime.vIsInterlaced != EXT_VIDEO_INTLC_B_PROGRESSIVE &&
+			tmpCfg->runtime.vIsInterlaced != EXT_VIDEO_INTLC_INTERLACED )
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			EXT_ERRORF(("'%s(%d)' is not validate interlaced for '%s'", value, tmpCfg->runtime.vIsInterlaced, key));

@@ -74,7 +74,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
 #ifdef	ARM
-//	extFpgaReadParams(&runCfg->runtime);
+	extFpgaReadParams(runCfg);
 #endif
 	/* device */
 //	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID"\" name=\""FORM_ID"\"  enctype=\"text/plain\" action=\"/setting\">" );
@@ -90,7 +90,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<select id=\"inputtype\" onchange=\"javascript_:showdiv(this.options[this.selectedIndex].value)\">"EXT_NEW_LINE);
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"SDP\">SDP</option>"EXT_NEW_LINE);
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"Data\" selected>Menu</option>"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"Data\" selected>Manual</option>"EXT_NEW_LINE);
 		CMN_SN_PRINTF(dataBuf, size, index, "</select>"EXT_NEW_LINE "</DIV></DIV></DIV>"EXT_NEW_LINE);
 		CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsSdp\" style=\"display:none;\">"EXT_NEW_LINE);
 	}
@@ -113,7 +113,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 			inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriVideo.ip)), runCfg->sdpUriVideo.port, runCfg->sdpUriVideo.uri );
 	}
 	
-	CMN_SN_PRINTF(dataBuf, size, index, "</DIV>"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >SDP Audio:</LABEL>");
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >SDP Audio:</LABEL>");
 	if(EXT_IS_TX(runCfg) )
 	{
 		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_AUDIO);
@@ -133,7 +133,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 #endif
 				"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
 
-		CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM> </div>"EXT_NEW_LINE );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM> </div></div>"EXT_NEW_LINE );
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE ); /* DIV of fields */
 
@@ -211,12 +211,21 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Interlaced:</LABEL>"EXT_NEW_LINE);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\">" EXT_NEW_LINE);
-//	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"0\" %s>None</OPTION>"EXT_NEW_LINE, (0== runCfg->runtime.vIsInterlaced)?"selected":"");
+	_str = _videoFormats;
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type== runCfg->runtime.vIsInterlaced)?"selected":"", _str->name);
+		_str++;
+	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
+
+#if 0
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Interlaced</OPTION>"EXT_NEW_LINE, 
 		EXT_VIDEO_INTLC_INTERLACED, (EXT_VIDEO_INTLC_INTERLACED== runCfg->runtime.vIsInterlaced)?"selected":"");
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>Progressive</OPTION>"EXT_NEW_LINE, 
 		EXT_VIDEO_INTLC_PROGRESSIVE, (EXT_VIDEO_INTLC_PROGRESSIVE== runCfg->runtime.vIsInterlaced)?"selected":"");
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
+#endif
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Frame Rate:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_FRAME_RATE"\">" EXT_NEW_LINE);
 	_int =  intVideoFpsList;
@@ -308,7 +317,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index,  "</SCRIPT>");
 #endif
 
-#if 1//EXT_HTTPD_DEBUG
+#if EXT_HTTPD_DEBUG
 	printf("Data:'%s'\r\n", dataBuf);
 #endif
 	
@@ -750,7 +759,7 @@ function (fd)
 	CMN_SN_PRINTF(dataBuf, size, index, "</BODY></HTML>");
 
 #if EXT_HTTPD_DEBUG
-	printf("Data:'%s'\r\n", dataBuf);
+//	printf("Data:'%s'\r\n", dataBuf);
 #endif
 
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;

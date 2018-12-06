@@ -188,12 +188,13 @@ char	 bspCmdReboot(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t buffe
 
 char extFpgaConfigParams(EXT_RUNTIME_CFG *runCfg);
 
+char extFpgaReadParams(EXT_RUNTIME_CFG *runCfg);
+
 char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg);
 void	extFpgaEnable(char	isEnable);
 void	extFpgaBlinkPowerLED(char	isEnable);
 
 char *extFgpaReadVersion(void);
-char extFpgaReadParams(MuxRunTimeParam *mediaParams);
 
 
 #endif

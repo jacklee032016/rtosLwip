@@ -603,6 +603,21 @@ typedef	struct
 		((addr & _PP_HTONL(0xf0000000UL)) == _PP_HTONL(0xe0000000UL))
 
 
+#define	INVALIDATE_VALUE_U8						0xFF
+#define	INVALIDATE_VALUE_U16						0xFFFF
+#define	INVALIDATE_VALUE_U32						0xFFFFFFFF
+
+
+#define	FIELD_INVALIDATE_U8( field) 					((field) = INVALIDATE_VALUE_U8)
+#define	FIELD_INVALIDATE_U16(field) 					((field) = INVALIDATE_VALUE_U16)
+#define	FIELD_INVALIDATE_U32(field)					((field) = INVALIDATE_VALUE_U32)
+
+#define	FIELD_IS_CHANGED_U8(field)					((field) != INVALIDATE_VALUE_U8)
+#define	FIELD_IS_CHANGED_U16(field)				((field) != INVALIDATE_VALUE_U16)
+#define	FIELD_IS_CHANGED_U32(field)				((field) != INVALIDATE_VALUE_U32)
+
+
+
 
 #define	EXT_UUID_STR_LENGTH		36
 /* UUID string  8-4-4-4-12 */
@@ -744,8 +759,9 @@ typedef	enum
 
 typedef	enum
 {
-	EXT_VIDEO_INTLC_INTERLACED	= 0,	
-	EXT_VIDEO_INTLC_PROGRESSIVE	= 3,	
+	EXT_VIDEO_INTLC_INTERLACED		= 0,		/* interlaced image + segmented transport */
+	EXT_VIDEO_INTLC_B_PROGRESSIVE	= 1,		/* progressive image + segmented transport */
+	EXT_VIDEO_INTLC_A_PROGRESSIVE	= 3,		/* progressive image + progressive transport */
 	EXT_VIDEO_INTLC_NONE				
 }EXT_VIDEO_INTLC;
 
@@ -775,6 +791,7 @@ typedef	enum
 	CMN_STR_T_V_FRAME_RATE,
 
 	CMN_STR_T_V_DEPTH,
+	CMN_STR_T_V_IMAGE_FORMAT,
 	
 	CMN_STR_T_HTTP_STATES,
 	CMN_STR_T_HTTP_EVENTS,
@@ -811,6 +828,9 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 #define	CMN_FIND_V_FRAME_RATE(type)		\
 	extCmnStringFind(CMN_STR_T_V_FRAME_RATE, (type) )
 
+#define	CMN_FIND_V_FORMAT(type)		\
+	extCmnStringFind(CMN_STR_T_V_IMAGE_FORMAT, (type) )
+
 
 
 #define	CMN_FIND_HTTP_STATE(type)		\
@@ -842,6 +862,9 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 #define	CMN_FIND_STR_V_FRAME_RATE(str)		\
 	extCmnTypeFind(CMN_STR_T_V_FRAME_RATE, (str) )
+
+#define	CMN_FIND_STR_V_FORMAT(str)		\
+	extCmnTypeFind(CMN_STR_T_V_IMAGE_FORMAT, (str) )
 
 
 #define	CMN_FIND_STR_HTTP_STATE(str)		\
@@ -1223,6 +1246,9 @@ char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 extern	const	EXT_CONST_STR	_videoColorSpaces[];
 extern	const short	videoWidthList[];
 extern	const short 	videoHeightList[];
+
+extern	const	EXT_CONST_STR	_videoFormats[];
+
 
 extern	const	EXT_CONST_INT	intVideoColorDepthList[];
 extern	const	EXT_CONST_INT	intVideoFpsList[];

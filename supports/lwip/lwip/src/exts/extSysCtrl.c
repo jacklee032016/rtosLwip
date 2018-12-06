@@ -26,15 +26,6 @@ typedef	enum
 }_SETUP_TYPE;
 
 
-#define	FIELD_INVALIDATE_U8( field) 					((field) = 0xFF)
-#define	FIELD_INVALIDATE_U16(field) 					((field) = 0xFFFF)
-#define	FIELD_INVALIDATE_U32(field)					((field) = 0xFFFFFFFF)
-
-#define	FIELD_IS_CHANGED_U8(field)					((field) != 0xFF)
-#define	FIELD_IS_CHANGED_U16(field)				((field) != 0xFFFF)
-#define	FIELD_IS_CHANGED_U32(field)				((field) != 0xFFFFFFFF)
-
-
 
 EXT_RUNTIME_CFG tmpRuntime;
 
@@ -389,7 +380,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 
 char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
-	DEBUG_CFG_PARAMS();
+//	DEBUG_CFG_PARAMS();
 
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
@@ -422,7 +413,7 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		SETUP_SET_TYPE(_SETUP_TYPE_RS232);
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"After configured, Runtime Configuration") );extSysCfgDebugData(&extRun);
+//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"After configured, Runtime Configuration") );extSysCfgDebugData(&extRun);
 	return EXIT_SUCCESS;
 }
 
@@ -438,7 +429,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 #ifdef	ARM
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
-#else
+//#else
 		EXT_DEBUGF(EXT_DBG_ON, ("New system configuration, saving configuration and reboot") );
 #endif
 	}
@@ -448,7 +439,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 #ifdef	ARM
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
-#else
+//#else
 		EXT_DEBUGF(EXT_DBG_ON, ("New SDP parameters") );
 #endif
 	}
@@ -462,7 +453,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		{
 			extHwRs232Config(runCfg);
 		}
-#else
+//#else
 		EXT_DEBUGF(EXT_DBG_ON, ("RS232 save and setup") );
 #endif
 	}
@@ -477,7 +468,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 
 		extFpgaConfig(runCfg);
-#else
+//#else
 		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Protocol"));
 #endif
 	}
@@ -488,7 +479,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		extFpgaConfigParams(runCfg);
-#else
+//#else
 		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Media") );
 #endif
 	}

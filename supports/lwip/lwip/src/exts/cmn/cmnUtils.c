@@ -195,6 +195,28 @@ static const	EXT_CONST_STR	_ipcmdStringRsParities[] =
 	}
 };
 
+
+const	EXT_CONST_STR	_videoFormats[] =
+{
+	{
+		type	: EXT_VIDEO_INTLC_INTERLACED,
+		name	: "Interlaced"
+	},
+	{
+		type	: EXT_VIDEO_INTLC_A_PROGRESSIVE,
+		name	: "Progressive(Level A)"
+	},
+	{
+		type	: EXT_VIDEO_INTLC_B_PROGRESSIVE,
+		name	: "Progressive(Level B)"
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+
 const	EXT_CONST_STR	_videoColorSpaces[] =
 {
 	{
@@ -462,6 +484,10 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 			_str = _videoFramerates;
 			break;
 
+		case CMN_STR_T_V_IMAGE_FORMAT:
+			_str = _videoFormats;
+			break;
+			
 		case CMN_STR_T_HTTP_STATES:
 			_str = _httpStringStates;
 			break;
@@ -517,6 +543,10 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 			break;
 		case CMN_STR_T_V_FRAME_RATE:
 			_str = _videoFramerates;
+			break;
+			
+		case CMN_STR_T_V_IMAGE_FORMAT:
+			_str = _videoFormats;
 			break;
 
 		case CMN_STR_T_HTTP_STATES:

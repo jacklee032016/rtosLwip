@@ -155,6 +155,21 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 		cfg->local.sport = EXT_MEDIA_PORT_TX_STREA;
 #endif
 
+		cfg->sdpUriAudio.type = HC_REQ_SDP;
+		cfg->sdpUriAudio.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
+		cfg->sdpUriAudio.port = EXT_SDP_SVR_PORT;
+		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), "%s", EXT_WEBPAGE_SDP_AUDIO);
+
+		cfg->sdpUriVideo.type = HC_REQ_SDP;
+		cfg->sdpUriVideo.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
+		cfg->sdpUriVideo.port = EXT_SDP_SVR_PORT;
+		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), "%s", EXT_WEBPAGE_SDP_VIDEO);
+
+		cfg->restUrl.type = HC_REQ_JSON;
+		cfg->restUrl.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
+		cfg->restUrl.port = EXT_SDP_SVR_PORT;
+		snprintf(cfg->restUrl.uri, sizeof(cfg->restUrl.uri), "%s", EXT_WEBPAGE_API_SERVICE);
+
 		if(cfg->isMCast == EXT_FALSE)
 		{
 			cfg->dest.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_RX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
@@ -276,7 +291,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->runtime.vFrameRate = EXT_V_FRAMERATE_T_30;
 	cfg->runtime.vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
 	cfg->runtime.vDepth = EXT_V_DEPTH_10;
-	cfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
+	cfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_INTERLACED;
 	
 //	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;

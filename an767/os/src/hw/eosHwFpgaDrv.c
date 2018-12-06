@@ -260,6 +260,39 @@ static void _changeByteOrderOfMac(EXT_MAC_ADDRESS *mac, unsigned char *address)
 }
 
 
+static char _frpgaReadParamRegisters(EXT_RUNTIME_CFG *runCfg)
+{
+	unsigned char _chValue;
+	int i;
+	
+	_extFpgaReadShort(EXT_FPGA_REG_WIDTH, (unsigned char *)&runCfg->runtime.vWidth);
+	
+	_extFpgaReadShort(EXT_FPGA_REG_HEIGHT, (unsigned char *)&runCfg->runtime.vHeight);
+	
+	_extFpgaReadByte(EXT_FPGA_REG_FRAMERATE, &runCfg->runtime.vFrameRate);
+
+	_extFpgaReadByte(EXT_FPGA_REG_SAMPLING, &runCfg->runtime.vColorSpace);
+
+	_extFpgaReadByte(EXT_FPGA_REG_DEPTH, &runCfg->runtime.vDepth);
+
+	_extFpgaReadByte(EXT_FPGA_REG_INTLC_SEGM, &runCfg->runtime.vIsInterlaced);
+
+	/* audio */	
+	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_CHANNELS, &_chValue);
+	runCfg->runtime.aChannels = 0;
+	for(i=0; i< 4; i++)
+	{
+		if( (_chValue &(1<<i)) )
+		{
+			runCfg->runtime.aChannels += 4;
+		}
+	}
+	
+	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_RATE, &runCfg->runtime.aSampleRate);
+	
+	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_PKT_SIZE, &runCfg->runtime.aPktSize);
+}
+
 unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 {
 	int index = 0;
@@ -272,8 +305,7 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
 	extSysClearConfig(rxCfg);
 	
-	MuxRunTimeParam *mediaParams = &rxCfg->runtime;
-	extFpgaReadParams(mediaParams);
+	_frpgaReadParamRegisters(rxCfg);
 
 	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, extFgpaReadVersion() );
 	
@@ -334,6 +366,7 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 		index += snprintf(data+index, size-index, " %02x:%02x:%02x:%02x:%02x:%02x;", address[0], address[1], address[2], address[3], address[4], address[5]);
 		index += snprintf(data+index, size-index, "\tPort:%d;", port);
 
+#if EXT_FPGA_AUX_ON	
 		_extFpgaReadInteger(FTX_ADDRESS.dstAuxIp, (unsigned char *)&intValue);
 		_extFpgaRegisterRead(FTX_ADDRESS.dstAuxMac, (unsigned char *)&destMac, EXT_MAC_ADDRESS_LENGTH);
 		_changeByteOrderOfMac(&destMac, address);
@@ -342,7 +375,9 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 		index += snprintf(data+index, size-index, "\tMAC:" );
 		index += snprintf(data+index, size-index, " %02x:%02x:%02x:%02x:%02x:%02x;", address[0], address[1], address[2], address[3], address[4], address[5]);
 		index += snprintf(data+index, size-index, "\tPort:%d;", port);
-		
+#endif		
+		_extFpgaReadByte(EXT_FPGA_REG_SDI_STATUS, &_chVal);
+		index += snprintf(data+index, size-index, "LockReg :%02x;"EXT_NEW_LINE, _chVal );
 	}
 	else
 	{
@@ -374,17 +409,17 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 	}
 
 
-	index += snprintf(data+index, size-index, EXT_NEW_LINE"Video :\tWxH:%hux%hu; ", mediaParams->vWidth, mediaParams->vHeight);
-	index += snprintf(data+index, size-index, "FPS:%d; ", CMN_INT_FIND_NAME_V_FPS(mediaParams->vFrameRate));
-	index += snprintf(data+index, size-index, "Depth:%d; ", CMN_INT_FIND_NAME_V_DEPTH(mediaParams->vDepth) );
-	index += snprintf(data+index, size-index, "ColorSpace:%s; ", CMN_FIND_V_COLORSPACE(mediaParams->vColorSpace));
-	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, (mediaParams->vIsInterlaced == EXT_VIDEO_INTLC_INTERLACED)?"Interlaced":"Progressive");
+	index += snprintf(data+index, size-index, EXT_NEW_LINE"Video :\tWxH:%hux%hu; ", rxCfg->runtime.vWidth, rxCfg->runtime.vHeight);
+	index += snprintf(data+index, size-index, "FPS:%d; ", CMN_INT_FIND_NAME_V_FPS(rxCfg->runtime.vFrameRate));
+	index += snprintf(data+index, size-index, "Depth:%d; ", CMN_INT_FIND_NAME_V_DEPTH(rxCfg->runtime.vDepth) );
+	index += snprintf(data+index, size-index, "ColorSpace:%s; ", CMN_FIND_V_COLORSPACE(rxCfg->runtime.vColorSpace));
+	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, (rxCfg->runtime.vIsInterlaced == EXT_VIDEO_INTLC_INTERLACED)?"Interlaced":"Progressive");
 
 	index += snprintf(data+index, size-index, "Audio :\tChannels:%d; Sample Rate:%d; Pkt Size: %s"EXT_NEW_LINE, 
-		mediaParams->aChannels, mediaParams->aSampleRate, CMN_FIND_A_PKTSIZE(mediaParams->aPktSize) );
+		rxCfg->runtime.aChannels, rxCfg->runtime.aSampleRate, CMN_FIND_A_PKTSIZE(rxCfg->runtime.aPktSize) );
 
 	_extFpgaReadByte(EXT_FPGA_REG_ENABLE, &_chVal);
-	_extFpgaReadByte(EXT_FPGA_REG_ENABLE, address);
+	_extFpgaReadByte(EXT_FPGA_REG_PARAM_STATUS, address);
 	index += snprintf(data+index, size-index, "EnableReg :%02x;\tUpdateRgr:%02x"EXT_NEW_LINE, _chVal, address[0] );
 	
 	return index;
@@ -765,29 +800,35 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 	return;
 }
 
-
-char extFpgaReadParams(MuxRunTimeParam *mediaParams)
+char extFpgaReadParams( EXT_RUNTIME_CFG *runCfg)
 {
 	unsigned char _chValue;
-	_extFpgaReadShort(EXT_FPGA_REG_WIDTH, (unsigned char *)&mediaParams->vWidth);
+
+	if(! EXT_IS_TX(runCfg))
+	{
+		return EXIT_FAILURE;
+	}
+
+	_extFpgaReadShort(EXT_FPGA_REG_SDI_STATUS, (unsigned char *)&_chValue);
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Lock %02x from register 0x%x", _chValue, EXT_FPGA_REG_SDI_STATUS));
+	if(!_chValue)
+	{
+		FIELD_INVALIDATE_U16(runCfg->runtime.vWidth);
+		FIELD_INVALIDATE_U16(runCfg->runtime.vHeight);
+
+		FIELD_INVALIDATE_U8(runCfg->runtime.vFrameRate);
+		FIELD_INVALIDATE_U8(runCfg->runtime.vColorSpace);
+		FIELD_INVALIDATE_U8(runCfg->runtime.vDepth);
+		FIELD_INVALIDATE_U8(runCfg->runtime.vIsInterlaced);
+		
+		FIELD_INVALIDATE_U8(runCfg->runtime.aChannels);
+		FIELD_INVALIDATE_U8(runCfg->runtime.aSampleRate);
+		FIELD_INVALIDATE_U8(runCfg->runtime.aPktSize);
+		
+		return EXIT_SUCCESS;
+	}
 	
-	_extFpgaReadShort(EXT_FPGA_REG_HEIGHT, (unsigned char *)&mediaParams->vHeight);
-	
-	_extFpgaReadByte(EXT_FPGA_REG_FRAMERATE, &mediaParams->vFrameRate);
-
-	_extFpgaReadByte(EXT_FPGA_REG_SAMPLING, &mediaParams->vColorSpace);
-
-	_extFpgaReadByte(EXT_FPGA_REG_DEPTH, &mediaParams->vDepth);
-
-	_extFpgaReadByte(EXT_FPGA_REG_INTLC_SEGM, &mediaParams->vIsInterlaced);
-
-	/* audio */	
-	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_CHANNELS, &mediaParams->aChannels);
-	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_RATE, &mediaParams->aSampleRate);
-	
-	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_PKT_SIZE, &mediaParams->aPktSize);
-
-	return EXIT_SUCCESS;
+	return _frpgaReadParamRegisters(runCfg);
 }
 
 

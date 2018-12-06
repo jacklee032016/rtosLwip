@@ -198,13 +198,13 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 
 	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
 #ifdef	ARM
-//	extFpgaReadParams(&runCfg->runtime);
+	extFpgaReadParams(runCfg);
 #endif
 
 
 	if (HTTP_IS_POST(ehc) )
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("Data %d bytes: '%.*s'", ehc->leftData,   ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE)  );
+		EXT_DEBUGF(EXT_DBG_OFF, ("Data %d bytes: '%.*s'", ehc->leftData,   ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE)  );
 		if(cmnHttpParseRestJson(rxCfg, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE, ehc->leftData) == EXIT_FAILURE)
 		{
 			cmnHttpRestError(ehc, WEB_RES_ERROR, "Parameter wrong");
@@ -280,7 +280,7 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_INTERLACE"\":%d,"EXT_NEW_LINE, runCfg->runtime.vIsInterlaced);
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_SEGMENTED"\":%d,"EXT_NEW_LINE, runCfg->runtime.vIsSegmented);
 
-		EXT_DEBUGF(EXT_DBG_ON, ("aSampleRate: %d", runCfg->runtime.aSampleRate));
+//	EXT_DEBUGF(EXT_DBG_OFF, ("aSampleRate: %d", runCfg->runtime.aSampleRate));
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_SAMP_RATE"\":\"%s\","EXT_NEW_LINE, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_CHANNEL"\":%d,"EXT_NEW_LINE, runCfg->runtime.aChannels );

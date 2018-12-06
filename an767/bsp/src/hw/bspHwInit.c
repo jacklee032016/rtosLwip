@@ -308,6 +308,7 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 		EXT_INFOF(("Use factory configuration"EXT_NEW_LINE));
 		extCfgFromFactory(runCfg);
 	}
+	runCfg->isTx = isTx;
 
 	extCfgInitAfterReadFromFlash(runCfg);
 
@@ -338,6 +339,7 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 		bspConsoleReset(versionString);
 #else
 		printf(versionString);
+		printf(" %s", (isTx)?"TX":"RX");
 #endif
 	}
 	else
