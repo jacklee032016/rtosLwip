@@ -83,6 +83,16 @@ static void _consoleTestTask(void *param)
 	}
 }
 
+static void _ledTestTask(void *param)
+{
+	param = param;
+	while(1)
+	{
+//		vMuxConsoleOutput("LED");
+		ioport_toggle_pin_level(LED0_GPIO);
+		vTaskDelay( EXT_OS_MILL_SECOND(250));
+	}
+}
 #endif
 
 #define	WITH_MUX_WAIT		1

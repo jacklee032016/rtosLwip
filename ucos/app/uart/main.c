@@ -47,6 +47,11 @@ static  OS_FLAG_GRP AppDMACompleteFlagGrp;
 /*
 * Initializes stdio functions (printf, puts, scanf, etc...) to be used with the CONSOLE_UART.
 */
+#define ioport_set_pin_peripheral_mode(pin, mode) \
+	do {\
+		ioport_set_pin_mode(pin, mode);\
+		ioport_disable_pin(pin);\
+	} while (0)
 
 static void App_ConsoleInit(void)
 {
@@ -58,7 +63,28 @@ static void App_ConsoleInit(void)
 		.stopbits = CONSOLE_STOP_BITS,
 	};
 
+
+	/* Configure console UART. */
+#if EXTLAB_BOARD
+	/* configure UART pins */
+	ioport_set_port_mode(IOPORT_PIOA, PIO_PA9A_URXD0 | PIO_PA10A_UTXD0, IOPORT_MODE_MUX_A);
+	ioport_disable_port(IOPORT_PIOA, PIO_PA9A_URXD0 | PIO_PA10A_UTXD0);
+	
+	sysclk_enable_peripheral_clock(ID_UART0); 	/* 7 */
+	
+	stdio_serial_init(UART0, &uart_serial_options); /* eg. 0x400E0800U */
 	stdio_serial_init(UART0, &uart_serial_options);
+
+#else
+	/* Configure USART pins */
+	ioport_set_pin_peripheral_mode(USART1_RXD_GPIO, USART1_RXD_FLAGS);
+	MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4;
+	ioport_set_pin_peripheral_mode(USART1_TXD_GPIO, USART1_TXD_FLAGS);
+	
+	sysclk_enable_peripheral_clock(ID_USART1);		/* 14 */
+	stdio_serial_init(USART1, &uart_serial_options); /* eg. 0x40028000U */
+#endif
+	
 }
 
 #if 0
@@ -130,6 +156,7 @@ int main (void)
         return 1;
     }
     
+    puts(UART_DEMO_BANNER);
                                                                 /* Clear the interrupt status for the selected channel  */
     volatile uint32_t dummy_read = XDMAC->XDMAC_CHID[DMA_ChannelID].XDMAC_CIS;
     (void)dummy_read;

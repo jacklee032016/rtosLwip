@@ -6,8 +6,8 @@
 ARCH=arm
 
 
-CPU_E70Q20=YES
-#CPU_E70Q20=
+#CPU_E70Q20=YES
+CPU_E70Q20=
 
 
 # released or debug version, different on debug and log info£¬2007.03.15
@@ -41,7 +41,7 @@ ifeq ($(CPU_E70Q20),YES)
 	LINK_SCRIPT =linkers/q20flash.ld
 else
 	BOARD_NAME=E7oXpld
-	CFLAGS += -D__SAMV71Q21__ -DEXTLAB_BOARD=0 -DEXT_LAB -DBOARD=SAMV71_XPLAINED_ULTRA
+#	CFLAGS += -D__SAMV71Q21__ -DEXTLAB_BOARD=0 -DEXT_LAB -DBOARD=SAMV71_XPLAINED_ULTRA
 	CFLAGS += -D__SAME70Q21__ -DEXTLAB_BOARD=0 -DEXT_LAB 
 	LINK_SCRIPT =linkers/q21flash.ld
 endif
