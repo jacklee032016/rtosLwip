@@ -6,8 +6,8 @@
 ARCH=arm
 
 
-CPU_E70Q20=YES
-#CPU_E70Q20=
+#CPU_E70Q20=YES
+CPU_E70Q20=
 
 
 # released or debug version, different on debug and log info£¬2007.03.15
