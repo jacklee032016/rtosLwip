@@ -464,8 +464,8 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_AUDIO_CHANNELS, &tmpCfg->runtime.aChannels ) == EXIT_SUCCESS)
 	{
 		count++;
-		if(tmpCfg->runtime.aChannels != 1 && tmpCfg->runtime.aChannels != 2 &&
-			tmpCfg->runtime.aChannels != 0 )
+		if(tmpCfg->runtime.aChannels != 4 && tmpCfg->runtime.aChannels != 8 &&
+			tmpCfg->runtime.aChannels != 12 && tmpCfg->runtime.aChannels != 16 )
 		{
 			snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->runtime.aChannels, EXT_IPCMD_DATA_AUDIO_CHANNELS);
 			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;

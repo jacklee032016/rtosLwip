@@ -190,10 +190,10 @@ void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
 {
 	if(! isConn )
 	{
-		mediaParams->aChannels = 2;
+		mediaParams->aChannels = 8;
 		mediaParams->aDepth = 16;
 		mediaParams->aSampleRate = EXT_A_RATE_48K;
-		mediaParams->aPktSize = EXT_A_PKT_SIZE_125MKS;
+		mediaParams->aPktSize = EXT_A_PKT_SIZE_125US;
 		
 		mediaParams->vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
 		mediaParams->vDepth= EXT_V_DEPTH_16;
@@ -202,14 +202,14 @@ void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
 		mediaParams->vWidth= 1920;
 		mediaParams->vHeight = 1080;
 
-		mediaParams->vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
+		mediaParams->vIsInterlaced = EXT_VIDEO_INTLC_A_PROGRESSIVE;
 	}
 	else
 	{
-		mediaParams->aChannels = 1;
+		mediaParams->aChannels = 4;
 		mediaParams->aDepth = 24;
 		mediaParams->aSampleRate = EXT_A_RATE_48K;
-		mediaParams->aPktSize = EXT_A_PKT_SIZE_125MKS;
+		mediaParams->aPktSize = EXT_A_PKT_SIZE_125US;
 		
 		mediaParams->vColorSpace = EXT_V_COLORSPACE_RGB;
 		mediaParams->vDepth= EXT_V_DEPTH_12;
@@ -218,7 +218,7 @@ void	_extMediaParams(MuxRunTimeParam *mediaParams, unsigned char isConn)
 		mediaParams->vWidth= 1920*2;
 		mediaParams->vHeight = 1080*2;
 
-		mediaParams->vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
+		mediaParams->vIsInterlaced = EXT_VIDEO_INTLC_INTERLACED;
 	}
 
 	return;

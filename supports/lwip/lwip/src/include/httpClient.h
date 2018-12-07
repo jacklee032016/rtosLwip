@@ -14,9 +14,6 @@
 #define		HTTPC_MAX_RETRIES								4
 #define		HTTPC_POLL_INTERVAL							4	/* in 500 ms*/
 
-
-#define		HTTP_CLIENT_NAME								"HTTP CLIENT: "
-
 #define		HTTP_CLIENT_DEBUG								EXT_DBG_ON
 
 typedef	enum

@@ -20,13 +20,13 @@ static unsigned char _hcEventNewReq(void *arg)
 	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
 
 	destIp.addr = req->ip;
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"sent #%d TCP request to %s:%d", hc->reqs++, ip4addr_ntoa(&destIp), req->port)) ;
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("sent #%d TCP request to %s:%d", hc->reqs++, ip4addr_ntoa(&destIp), req->port)) ;
 
 	struct tcp_pcb *pcb;
 	static u16_t localport= EXT_HTTP_CLIENT_PORT;
 
 	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	EXT_ASSERT(( HTTP_CLIENT_NAME"failed"), pcb != NULL);
+	EXT_ASSERT(( "failed"), pcb != NULL);
 	
 	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
 
@@ -35,7 +35,7 @@ static unsigned char _hcEventNewReq(void *arg)
 		localport++;
 	}
 	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME "#%d request bind on port %d", hc->reqs, localport));
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ( "#%d request bind on port %d", hc->reqs, localport));
 	localport++;
 	
 	tcp_arg(pcb, hc);
@@ -45,7 +45,7 @@ static unsigned char _hcEventNewReq(void *arg)
 	err = tcp_connect(hc->pcb, &destIp, req->port,  httpClientConnected);
 	if(err != ERR_OK)
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME"send TCP req failed: '%s': %d", lwip_strerr(err), hc->pcb->state));
+		EXT_ERRORF(("send TCP req failed: '%s': %d", lwip_strerr(err), hc->pcb->state));
 		extHttpClientClearCurrentRequest(hc);
 		return EXT_STATE_CONTINUE;
 	}
@@ -65,7 +65,7 @@ static unsigned char _hcEventNewReqInOtherStates(void *arg)
 	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
 
 //	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"New REQ when current req is working")) ;
-	EXT_INFOF( (HTTP_CLIENT_NAME"New REQ when current req is working")) ;
+	EXT_INFOF( ("New REQ when current req is working")) ;
 
 	extHttpClientNewRequest(req);
 	return EXT_STATE_CONTINUE;
@@ -147,18 +147,18 @@ static unsigned char _hcEventRecv(void *arg)
 	u16_t copied;
 
 
-	EXT_ASSERT((HTTP_CLIENT_NAME"Event or pbuf is not found "), hc->evt!= NULL && hc->evt->data != NULL );
+	EXT_ASSERT(("Event or pbuf is not found "), hc->evt!= NULL && hc->evt->data != NULL );
 	p = (struct pbuf *)hc->evt->data;
 	
 //	if(p->next != NULL)
 	{
 		reqLen = LWIP_MIN(p->tot_len, sizeof(hc->buf));
 		copied = pbuf_copy_partial(p, hc->buf, reqLen, 0);
-		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": recv %d bytes, copied %d byte", reqLen, copied));
+		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": recv %d bytes, copied %d byte", reqLen, copied));
 		hc->length = reqLen;
 //		data = hc->buf;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, (HTTP_CLIENT_NAME"recv:'%.*s'" , copied, hc->buf) );
+	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , copied, hc->buf) );
 	CONSOLE_DEBUG_MEM((unsigned char *)hc->buf, copied, 0, "RECV HTTP RES Data");
 
 	}
@@ -176,14 +176,14 @@ static unsigned char _hcEventRecv(void *arg)
 
 	uint32_t ret;
 	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"recv %d bytes data:"EXT_NEW_LINE"'%.*s'", hc->length, hc->length, hc->buf));
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("recv %d bytes data:"EXT_NEW_LINE"'%.*s'", hc->length, hc->length, hc->buf));
 
 	hc->reqType = _findResponseType(hc->buf, (uint32_t)hc->length);
 
 	ret = cmnHttpParseHeaderContentLength(hc->buf, (uint32_t)hc->length);
 	if(ret <= ERR_OK )
 	{
-		EXT_ERRORF( (HTTP_CLIENT_NAME"Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf) );
+		EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf) );
 	}
 	else
 	{
@@ -202,7 +202,7 @@ static unsigned char _hcEventRecv(void *arg)
 			}
 			else
 			{
-				EXT_ERRORF((HTTP_CLIENT_NAME"Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
+				EXT_ERRORF(("Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
 			}
 		}
 	}
@@ -217,7 +217,7 @@ static unsigned char _hcEventRecv(void *arg)
 
 	if(hc->reqType == HC_REQ_UNKNOWN)
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME"Response is not supported type of JSON or SDP"));
+		EXT_ERRORF(("Response is not supported type of JSON or SDP"));
 		return HC_STATE_ERROR;
 	}
 	
@@ -273,7 +273,7 @@ static void _hcEnterStateData(void *arg)
 	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
 	err_t ret = ERR_OK;
 
-//	extSysClearConfig(rxCfg);
+	extSysClearConfig(rxCfg);
 	
  	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_2_WAIT);
 
@@ -283,31 +283,33 @@ static void _hcEnterStateData(void *arg)
 	}
 	else if(hc->req->type == HC_REQ_JSON )
 	{
-		if(cmnHttpParseRestJson(rxCfg, hc->data, hc->dataLength) == EXIT_FAILURE)
-		{
-			EXT_ERRORF((HTTP_CLIENT_NAME"Response is not supported type of JSON or SDP"));
-		}
-		else
-		{
-			extSysCompareParams(hc->runCfg, rxCfg);
-			extSysConfigCtrl(hc->runCfg, rxCfg);
-		}
+		ret = cmnHttpParseRestJson(rxCfg, hc->data, hc->dataLength);
 	}
 	else
 	{
 	
 	}
+	
+	if(ret != ERR_OK)
+	{
+		EXT_ERRORF(("Response is not supported type of JSON or SDP"));
+	}
+	else
+	{
+		extSysCompareParams(hc->runCfg, rxCfg);
+		extSysConfigCtrl(hc->runCfg, rxCfg);
+	}
 
 #if 0	
 	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"recv %d bytes "EXT_NEW_LINE"'%.*s', data length %d:"EXT_NEW_LINE"'%.*s'", 
 		hc->length, hc->length, hc->buf, hc->dataLength, hc->dataLength, hc->data) );
-#endif
-
 	if(ret  != ERR_OK)
 	{
 	
 	}
 	
+#endif
+
 	hc->statusCode = WEB_RES_REQUEST_OK;
 	
 }
@@ -318,7 +320,7 @@ static void _hcEnterStateError(void *arg)
 #if 0
 	HttpEvent *he = (HttpEvent *)arg;
 #endif	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME": enter ERROR state"));
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": enter ERROR state"));
 
  	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_2_WAIT);
 }
@@ -519,7 +521,7 @@ static const statemachine_t *_hcFsmFindState(const statemachine_t *fsm, unsigned
 		_states++;
 	}
 
-	EXT_ASSERT((HTTP_CLIENT_NAME"State %d is not found", state), 0);
+	EXT_ASSERT(("State %d is not found", state), 0);
 	return NULL;
 }
 
@@ -532,11 +534,11 @@ void	httpClientFsmHandle(HcEvent *hce)
 	
 	HttpClient *hc = &_httpClient;
 
-	EXT_ASSERT((HTTP_CLIENT_NAME"HcEvent is null"), hce != NULL);
+	EXT_ASSERT(("HcEvent is null"), hce != NULL);
 
 	if(hce->event == EXT_EVENT_NONE || _fsm == NULL)
 	{
-		EXT_ERRORF((HTTP_CLIENT_NAME"Invalidate params in state Machine"));
+		EXT_ERRORF(("Invalidate params in state Machine"));
 		return;
 	}
 
@@ -549,7 +551,7 @@ void	httpClientFsmHandle(HcEvent *hce)
 	{
 		if(hce->event == handle->event )
 		{
-			EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d handle event %s in state %s",hc->reqs, CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state)));
+			EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d handle event %s in state %s",hc->reqs, CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state)));
 			hc->evt = hce;
 
 			newState = (handle->handle)(hc);
@@ -558,7 +560,7 @@ void	httpClientFsmHandle(HcEvent *hce)
 			if(newState!= EXT_STATE_CONTINUE && newState != hc->state )
 			{
 #if EXT_HTTPC_DEBUG
-				EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"#%d request from state %s enter into state %s", hc->reqs, CMN_FIND_HC_STATE(hc->state), CMN_FIND_HC_STATE(newState)));
+				EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d request from state %s enter into state %s", hc->reqs, CMN_FIND_HC_STATE(hc->state), CMN_FIND_HC_STATE(newState)));
 #endif
 
 				_state = _hcFsmFindState(_fsm, newState);
@@ -578,7 +580,7 @@ void	httpClientFsmHandle(HcEvent *hce)
 	}
 	
 #if EXT_HTTPC_DEBUG
-	EXT_INFOF((HTTP_CLIENT_NAME"State Machine no handle for event %s in state %s", CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state)));
+	EXT_INFOF(("State Machine no handle for event %s in state %s", CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state)));
 #endif
 
 	return;

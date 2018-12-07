@@ -320,8 +320,8 @@ const	EXT_CONST_STR	_audioPktSizes[] =
 		name	: "1ms"
 	},
 	{
-		type	: EXT_A_PKT_SIZE_125MKS,
-		name	: "125mks"
+		type	: EXT_A_PKT_SIZE_125US,
+		name	: "125us"
 	},
 	{
 		type	: EXT_INVALIDATE_STRING_TYPE,
@@ -334,15 +334,15 @@ const	EXT_CONST_STR	_audioRates[] =
 {
 	{
 		type	: EXT_A_RATE_48K,
-		name	: "48KHz"
+		name	: "48000"
 	},
 	{
 		type	: EXT_A_RATE_44K,
-		name	: "44.1KHz"
+		name	: "44100"
 	},
 	{
 		type	: EXT_A_RATE_96K,
-		name	: "96KHz"
+		name	: "96000"
 	},
 	{
 		type	: EXT_INVALIDATE_STRING_TYPE,

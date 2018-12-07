@@ -284,7 +284,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->runtime.aChannels = 12;
 	cfg->runtime.aSampleRate= EXT_A_RATE_48K;
 	cfg->runtime.aDepth = 24;
-	cfg->runtime.aPktSize = EXT_A_PKT_SIZE_125MKS;
+	cfg->runtime.aPktSize = EXT_A_PKT_SIZE_125US;
 	
 	cfg->runtime.vWidth = 1920;
 	cfg->runtime.vHeight = 1080;

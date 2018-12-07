@@ -433,14 +433,14 @@ static err_t __recvData(ExtHttpConn *ehc, struct tcp_pcb *pcb, struct pbuf *p)
 		tcp_recved(pcb, p->tot_len);
 	}
 
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, (EXT_NEW_LINE "Received %"U16_F" bytes", p->tot_len));
+//	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, (EXT_NEW_LINE "Received %"U16_F" bytes", p->tot_len));
 #ifdef	ARM
 #else
 //	memset(_debugBuf,0 , sizeof(_debugBuf));
 	
 //	pbuf_copy_partial(p, _debugBuf, p->tot_len, 0);
-//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , p->tot_len,_debugBuf) );
-//	CONSOLE_DEBUG_MEM(mhc->data, p->tot_len, 0, "RECV HTTP Data");
+	EXT_DEBUGF(EXT_DBG_ON, ("recv:'%.*s'" , p->tot_len, (char *)p->payload) );
+//	CONSOLE_DEBUG_MEM(p->payload, p->tot_len, 0, "RECV HTTP Data");
 #endif
 
 #if LWIP_EXT_HTTPD_TASK

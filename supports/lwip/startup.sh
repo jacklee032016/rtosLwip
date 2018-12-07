@@ -31,9 +31,9 @@ export PRECONFIGURED_TAPIF_RX=tap1
 echo $PRECONFIGURED_TAPIF_RX
 
 # echo "Stop fireware and enable forware"
-# systemctl disable firewalld
-# systemctl stop firewalld
-# systemctl status firewalld
+systemctl disable firewalld
+systemctl stop firewalld
+systemctl status firewalld
 
 cat 1 > /proc/sys/net/ip4/ip_forward
 

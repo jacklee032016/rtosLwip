@@ -130,7 +130,7 @@ int cmnHttpPrintResponseHeader(ExtHttpConn *ehc, const char contentType)
 
 
 /* called by JSON client and POST service */
-int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
+err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 {
 	uint8_t _chVal;
 	
@@ -144,8 +144,7 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 
 	if(parser->status != JSON_STATUS_OK)
 	{
-
-		return EXIT_FAILURE;
+		return ERR_ARG;
 	}
 
 	/* system parsms */
@@ -226,7 +225,7 @@ int cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_DEPTH, &rxCfg->runtime.aDepth);
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_CHANNEL, &rxCfg->runtime.aChannels);
 
-	return EXIT_SUCCESS;
+	return ERR_OK;
 	
 }
 

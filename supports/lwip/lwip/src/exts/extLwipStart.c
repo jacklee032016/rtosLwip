@@ -233,15 +233,15 @@ char	extSysParamsInit(EXT_RUNTIME_CFG *runCfg)
 	extCfgFromFactory(runCfg);
 	runCfg->bootMode = BOOT_MODE_RTOS;
 
-	runCfg->runtime.aChannels = 2;
-	runCfg->runtime.aDepth = 16;
+	runCfg->runtime.aChannels = 4;
+	runCfg->runtime.aDepth = 24;
 	runCfg->runtime.aSampleRate = EXT_A_RATE_48K;
-	runCfg->runtime.aPktSize = EXT_A_PKT_SIZE_125MKS;
+	runCfg->runtime.aPktSize = EXT_A_PKT_SIZE_125US;
 	
 	runCfg->runtime.vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
 	runCfg->runtime.vDepth= EXT_V_DEPTH_16;
 	runCfg->runtime.vFrameRate = EXT_V_FRAMERATE_T_59;
-	runCfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_PROGRESSIVE;
+	runCfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_INTERLACED;
 
 	runCfg->runtime.vWidth= 1920;
 	runCfg->runtime.vHeight = 1080;

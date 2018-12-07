@@ -394,7 +394,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	MuxHttpHandle *page = (MuxHttpHandle *)pageHandle;
 
 	short left = ehc->leftData;
-	char *data = ehc->headers + ehc->responseHeaderLength+__HTTP_CRLF_SIZE;
+	char *data = ehc->headers + ehc->headerLength+__HTTP_CRLF_SIZE;
 	char *key, *value, *nextKey;
 	err_t ret, ret2 ;
 	int i = 0;
@@ -458,12 +458,12 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
-	ehc->headerLength = headerLength;
+	ehc->responseHeaderLength = headerLength;
 	headerLength = 0;
 
 	if(ret == ERR_OK && ret2 == ERR_ALREADY )
 	{
-		CMN_SN_PRINTF((char *)ehc->data+ehc->headerLength, sizeof(ehc->data)-ehc->headerLength, headerLength, 
+		CMN_SN_PRINTF((char *)ehc->data+ehc->responseHeaderLength, sizeof(ehc->data)-ehc->responseHeaderLength, headerLength, 
 			"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
 			"OK, Waiting", "Requesting, parsing SDP, and configuring hardware now...");
 		
@@ -856,8 +856,8 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 	
 	while(page->uri )
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, ("API:'%s' :: REQ:'%s'", page->uri, ehc->uri));
-		if( IS_STRING_EQUAL(page->uri, ehc->uri))
+		EXT_DEBUGF(EXT_DBG_ON, ("API:'%s' :: REQ:'%s'", page->uri, ehc->uri));
+		if( IS_STRING_EQUAL(page->uri, ehc->uri) || IS_STRING_EQUAL(page->uri+1, ehc->uri)) /* for '/vdeo.sdp' or 'video.sdp' */
 		{
 
 			int headerLength = 0;

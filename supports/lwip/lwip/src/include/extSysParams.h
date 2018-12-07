@@ -760,7 +760,7 @@ typedef	enum
 typedef	enum
 {
 	EXT_VIDEO_INTLC_INTERLACED		= 0,		/* interlaced image + segmented transport */
-	EXT_VIDEO_INTLC_B_PROGRESSIVE	= 1,		/* progressive image + segmented transport */
+	EXT_VIDEO_INTLC_B_PROGRESSIVE	= 1,		/* progressive image + segmented transport , PsF(Progressive segmented Frame), 1080P Level B*/
 	EXT_VIDEO_INTLC_A_PROGRESSIVE	= 3,		/* progressive image + progressive transport */
 	EXT_VIDEO_INTLC_NONE				
 }EXT_VIDEO_INTLC;
@@ -778,7 +778,7 @@ typedef	enum
 typedef	enum
 {
 	EXT_A_PKT_SIZE_1MS		= 0,
-	EXT_A_PKT_SIZE_125MKS		= 1,
+	EXT_A_PKT_SIZE_125US		= 1,
 	EXT_A_PKT_SIZE_NONE
 }EXT_A_PKT_SIZE;
 
@@ -951,8 +951,8 @@ typedef	struct
 	unsigned char			vIsSegmented;
 
 	unsigned char			aSampleRate;
-	unsigned char			aChannels;
-	unsigned char			aDepth;		/* 16, 24 bits, etc. */
+	unsigned char			aChannels;	/* 4/8/12/16 */
+	unsigned char			aDepth;		/* 16, 24 bits, etc.  not configurable, 12.07, 2018 */
 	unsigned char			aPktSize;	/* 1ms or 125ms. */
 
 

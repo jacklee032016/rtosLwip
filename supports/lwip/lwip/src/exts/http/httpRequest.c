@@ -73,17 +73,27 @@ static err_t _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len
 			mhc->headers += 2; /* move CRLF */
 			unsigned short left = data_len - ((unsigned char *)mhc->headers - data);
 			
-			char* crlfcrlf = _FIND_HEADER_END(mhc->headers, left);
-			if(crlfcrlf != NULL )
-			{
-				mhc->headerLength = crlfcrlf - mhc->headers;
+			if( left<= 2)
+			{/* when header is not presented in HTTP request */
+				mhc->headerLength = 0;
+				mhc->leftData = 0;
 			}
 			else
 			{
-				mhc->headerLength = left -__HTTP_CRLF_SIZE;
-			}
+			
+				char* crlfcrlf = _FIND_HEADER_END(mhc->headers, left);
+				if(crlfcrlf != NULL )
+				{
+					mhc->headerLength = crlfcrlf - mhc->headers;
+				}
+				else
+				{
+					mhc->headerLength = left -__HTTP_CRLF_SIZE;
+				}
 
-			mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
+				mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
+			}
+			
 			EXT_DEBUGF(EXT_DBG_ON, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
 			EXT_DEBUGF(EXT_DBG_ON, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
 		}
@@ -220,12 +230,16 @@ static err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 {
 	int  contentLength = 0;
 //	err_t err = ERR_OK;
-	
+
+#if 0
+	/* no header is presented when HTTP client or some curl request */
 	if(ehc->headers == NULL || ehc->headerLength == 0)
 	{
  		EXT_INFOF(("%s header length is 0", ehc->name) );
+		cmnHttpRestError(ehc, WEB_RES_ERROR, "header length is 0");
  		return ERR_ARG;
 	}
+#endif
 
 	/* following check headers */
 	/* WebSocket */
