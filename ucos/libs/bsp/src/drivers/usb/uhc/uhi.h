@@ -48,7 +48,8 @@
 #define _UHI_H_
 
 #include "conf_usb_host.h"
-#include "usb_protocol.h"
+#include "usb/usb_protocol.h"
+
 #include "uhc.h"
 
 #ifdef __cplusplus

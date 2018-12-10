@@ -1,45 +1,5 @@
 /**
- * \file
  *
- * Copyright (c) 2015 Atmel Corporation. All rights reserved.
- *
- * \asf_license_start
- *
- * \page License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * 3. The name of Atmel may not be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * 4. This software may only be redistributed and used in connection with an
- *    Atmel microcontroller product.
- *
- * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
- * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * \asf_license_stop
- *
- */
-/*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
 #include "same70.h"
@@ -302,35 +262,35 @@ const DeviceVectors exception_table = {
  */
 void Reset_Handler(void)
 {
-    uint32_t *pSrc, *pDest;
-        
-    /* Initialize system hardware */
-    HardwareInit();
+	uint32_t *pSrc, *pDest;
 
-    /* Initialize the relocate segment */
-    pSrc = &_etext;
-    pDest = &_srelocate;
+	/* Initialize system hardware */
+	HardwareInit();
 
-    if (pSrc != pDest) {
-            for (; pDest < &_erelocate;) {
-                    *pDest++ = *pSrc++;
-            }
-    }
+	/* Initialize the relocate segment */
+	pSrc = &_etext;
+	pDest = &_srelocate;
 
-    /* Clear the zero segment */
-    for (pDest = &_szero; pDest < &_ezero;) {
-            *pDest++ = 0;
-    }
+	if (pSrc != pDest) {
+		for (; pDest < &_erelocate;) {
+			*pDest++ = *pSrc++;
+		}
+	}
 
-    /* Set the vector table base address */
-    pSrc = (uint32_t *) & _sfixed;
-    SCB->VTOR = ((uint32_t) pSrc & SCB_VTOR_TBLOFF_Msk);
-     
-    /* Initialize the C library */
-    __libc_init_array();
+	/* Clear the zero segment */
+	for (pDest = &_szero; pDest < &_ezero;) {
+		*pDest++ = 0;
+	}
 
-    /* Branch to Software initialization, which will call main() */
-    SoftwareInit();
+	/* Set the vector table base address */
+	pSrc = (uint32_t *) & _sfixed;
+	SCB->VTOR = ((uint32_t) pSrc & SCB_VTOR_TBLOFF_Msk);
+
+	/* Initialize the C library */
+	__libc_init_array();
+
+	/* Branch to Software initialization, which will call main() */
+	SoftwareInit();
 }
 
 /**
@@ -341,3 +301,4 @@ void Dummy_Handler(void)
 	while (1) {
 	}
 }
+

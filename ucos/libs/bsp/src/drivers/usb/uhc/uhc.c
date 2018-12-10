@@ -45,7 +45,8 @@
  */
 
 #include "conf_usb_host.h"
-#include "usb_protocol.h"
+#include "usb/usb_protocol.h"
+
 #include "uhd.h"
 #include "uhi.h"
 #include "uhc.h"

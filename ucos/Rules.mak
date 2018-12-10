@@ -36,12 +36,10 @@ endif
 
 ifeq ($(CPU_E70Q20),YES)
 	BOARD_NAME=AN767
-#	CFLAGS += -D__SAMV71Q20__ -DEXTLAB_BOARD=1 -DEXT_LAB -DBOARD=SAMV71_XPLAINED_ULTRA
 	CFLAGS += -D__SAME70Q20__ -DEXTLAB_BOARD=1 -DEXT_LAB 
 	LINK_SCRIPT =linkers/q20flash.ld
 else
 	BOARD_NAME=E7oXpld
-#	CFLAGS += -D__SAMV71Q21__ -DEXTLAB_BOARD=0 -DEXT_LAB -DBOARD=SAMV71_XPLAINED_ULTRA
 	CFLAGS += -D__SAME70Q21__ -DEXTLAB_BOARD=0 -DEXT_LAB 
 	LINK_SCRIPT =linkers/q21flash.ld
 endif
@@ -156,6 +154,7 @@ BSP_HEADER= \
 	-I$(BSP_HEAD_HOME)/drivers \
 	-I$(BSP_HEAD_HOME)/same70 \
 	-I$(BSP_HEAD_HOME)/preprocessor \
+	-I$(BSP_HEAD_HOME)/usb \
 
 UCOS_HEADER =\
 	-I$(UCOS_HOME)/include/ \
@@ -186,7 +185,7 @@ MUX_HEADER= \
 	-I$(MAIN_HEAD_HOME)/include \
 
 
-CFLAGS += -DROOT_DIR='"$(ROOT_DIR)"' -I$(ROOT_DIR) 
+CFLAGS += -DROOT_DIR='"$(ROOT_DIR)"' -I$(ROOT_DIR) -I$(ROOT_DIR)/include 
 
 
 ###################################################################

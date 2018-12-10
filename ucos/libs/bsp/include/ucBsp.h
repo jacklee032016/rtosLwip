@@ -81,10 +81,58 @@
 #define CONF_BOARD_PWM_LED1
 
 /** PWM clock values */
-#define PWM_FREQUENCY  1000
-#define PERIOD_VALUE   100
+#define PWM_FREQUENCY		1000
+#define PERIOD_VALUE		100
 
 //#define CONF_BOARD_KEEP_WATCHDOG_AT_INIT
+
+
+#define CONFIG_SLEEPMGR_ENABLE
+
+
+#include <sleepmgr.h>
+
+
+#define	EXT_USB_DEVICE_ON			1
+
+
+
+
+
+#define	LED_On(pin) \
+	ioport_set_pin_level(pin, IOPORT_PIN_LEVEL_LOW)
+
+#define	LED_Off(pin) 	\
+	ioport_set_pin_level(pin, IOPORT_PIN_LEVEL_HIGH)
+
+
+
+//! \brief Initializes the user interface
+void ui_init(void);
+
+//! \brief Enters the user interface in power down mode
+void ui_powerdown(void);
+
+//! \brief Exits the user interface of power down mode
+void ui_wakeup(void);
+
+//! \name Callback to show the MSC read and write access
+//! @{
+void ui_start_read(void);
+void ui_stop_read(void);
+void ui_start_write(void);
+void ui_stop_write(void);
+//! @}
+
+/*! \brief This process is called each 1ms
+ * It is called only if the USB interface is enabled.
+ *
+ * \param framenumber  Current frame number
+ */
+void ui_process(uint16_t framenumber);
+
+
+#include "usbConf.h"
 
 #endif
 

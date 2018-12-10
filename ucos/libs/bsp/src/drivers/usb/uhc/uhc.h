@@ -49,7 +49,7 @@
 #ifndef _UHC_H_
 #define _UHC_H_
 
-#include "usb_protocol.h"
+#include "usb/usb_protocol.h"
 #include "uhd.h"
 
 #ifdef __cplusplus

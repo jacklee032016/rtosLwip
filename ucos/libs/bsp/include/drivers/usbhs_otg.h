@@ -54,8 +54,8 @@ extern "C" {
 #endif
 
 /* Get USB VBus/ID pin configuration in board configuration */
-#include "conf_board.h"
-#include "board.h"
+//#include "ucBsp.h"
+//#include "board.h"
 #include "ioport.h"
 #include "pio.h"
 #include "pio_handler.h"

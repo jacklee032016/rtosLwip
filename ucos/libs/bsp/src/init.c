@@ -96,6 +96,11 @@ void board_init(void)
     WDT->WDT_MR = WDT_MR_WDDIS;
 #endif
 
+	/* to support USB */
+	sleepmgr_init();
+	sysclk_init();
+	
+
 	/* Initialize IOPORTs */
 	ioport_init();
 
@@ -119,5 +124,18 @@ void board_init(void)
 	ioport_set_pin_peripheral_mode(SPI0_NPCS0_GPIO, SPI0_NPCS0_FLAGS);
 	ioport_set_pin_peripheral_mode(SPI0_SPCK_GPIO, SPI0_SPCK_FLAGS);
 
+
  //   LED_Init();
+
+#if EXT_USB_DEVICE_ON
+	ui_init();
+	ui_powerdown();
+
+//	memories_initialization();
+
+	// Start USB stack to authorize VBus monitoring
+	udc_start();
+#endif
+
 }
+	

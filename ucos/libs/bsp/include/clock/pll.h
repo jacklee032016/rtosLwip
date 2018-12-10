@@ -256,6 +256,27 @@ static inline void pll_enable_config_defaults(unsigned int ul_pll_id)
 	while (!pll_is_locked(ul_pll_id));
 }
 
+/**
+ * \brief Wait for PLL \a pll_id to become locked
+ *
+ * \todo Use a timeout to avoid waiting forever and hanging the system
+ *
+ * \param pll_id The ID of the PLL to wait for.
+ *
+ * \retval STATUS_OK The PLL is now locked.
+ * \retval ERR_TIMEOUT Timed out waiting for PLL to become locked.
+ */
+static inline int pll_wait_for_lock(unsigned int pll_id)
+{
+	Assert(pll_id < NR_PLLS);
+
+	while (!pll_is_locked(pll_id)) {
+		/* Do nothing */
+	}
+
+	return 0;
+}
+
 //! @}
 
 /// @cond 0

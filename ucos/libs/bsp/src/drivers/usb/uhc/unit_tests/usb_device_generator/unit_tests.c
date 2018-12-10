@@ -56,7 +56,7 @@
 #include "usbb_otg.h"
 #include "usbb_device.h"
 #endif
-#include "usb_protocol.h"
+#include "usb/usb_protocol.h"
 #include "usb_protocol_hid.h"
 #include "delay.h"
 

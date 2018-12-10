@@ -50,13 +50,6 @@
 #endif
 #include "same70.h"
 
-/* @cond 0 */
-/**INDENT-OFF**/
-#ifdef __cplusplus
-extern "C" {
-#endif
-/**INDENT-ON**/
-/* @endcond */
 
 /* %ATMEL_SYSTEM% */
 /* Clock Settings (600MHz PLL VDDIO 3.3V and VDDCORE 1.2V) */
@@ -68,12 +61,12 @@ extern "C" {
 
 
 
-#define  MAIN_TASK_STK_SIZE    1024u
-#define  MAIN_TASK_PRIO        10u
-#define  MAIN_TASK_Q_SIZE      100u
+#define  MAIN_TASK_STK_SIZE		1024u
+#define  MAIN_TASK_PRIO				10u
+#define  MAIN_TASK_Q_SIZE			100u
 
 
-        OS_TCB  MainTaskTCB;
+OS_TCB	MainTaskTCB;
 static  CPU_STK MainTaskStk[MAIN_TASK_STK_SIZE];
 
 uint32_t SystemCoreClock = CHIP_FREQ_MAINCK_RC_4MHZ;
@@ -82,8 +75,6 @@ uint32_t SystemCoreClock = CHIP_FREQ_MAINCK_RC_4MHZ;
 
 void HardwareInit(void);
 void SoftwareInit(void);
-
-static void MainTask(void *p_arg);
 
 extern int main(int argc, char *argv[]);
 
@@ -146,33 +137,6 @@ extern int main(int argc, char *argv[]);
   }
 }
 
-void SoftwareInit( void )
-{
-    OS_ERR  err;
-    
-    SystemCoreClock = CHIP_FREQ_CPU_MAX;
-    
-    OSInit(&err);
-    
-    OSTaskCreate(&MainTaskTCB,
-                 "Main Task",
-                  MainTask,
-                  0,
-                  MAIN_TASK_PRIO,
-                  MainTaskStk,
-                  MAIN_TASK_STK_SIZE / 10,
-                  MAIN_TASK_STK_SIZE,
-                  MAIN_TASK_Q_SIZE,
-                  0,
-                  0,
-                  OS_OPT_NONE,
-                 &err);
-    
-    OSStart(&err);
-    
-    while (1);
-}
-
 static void MainTask(void *p_arg)
 {
 #if 0 /// \todo fixme or removeme
@@ -189,20 +153,20 @@ static void MainTask(void *p_arg)
     puts("Hello, world\n");
 #endif
 
-    board_init();
-    
-    CPU_Init();
-    Mem_Init();
-    
-    /* Configure and enable the OS tick interrupt */
-    OS_CPU_SysTickInit(SystemCoreClock);
-    
-    /* Call main, the application's entry point. */
-    main(0,0);
-    
-    /** \todo Handle return value from main. */
-    
-    while(1);
+	board_init();
+
+	CPU_Init();
+	Mem_Init();
+
+	/* Configure and enable the OS tick interrupt */
+	OS_CPU_SysTickInit(SystemCoreClock);
+
+	/* Call main, the application's entry point. */
+	main(0,0);
+
+	/** \todo Handle return value from main. */
+
+	while(1);
 }
 
 void SystemCoreClockUpdate( void )
@@ -339,10 +303,21 @@ void system_init_flash( uint32_t ul_clk )
     }
   }
 }
-/* @cond 0 */
-/**INDENT-OFF**/
-#ifdef __cplusplus
+
+
+void SoftwareInit( void )
+{
+	OS_ERR  err;
+	SystemCoreClock = CHIP_FREQ_CPU_MAX;
+
+	OSInit(&err);
+
+	OSTaskCreate(&MainTaskTCB, 	"Main Task", MainTask, 0,
+		MAIN_TASK_PRIO, MainTaskStk,  MAIN_TASK_STK_SIZE / 10,  MAIN_TASK_STK_SIZE, MAIN_TASK_Q_SIZE,
+		0,  0,  OS_OPT_NONE, &err);
+
+	OSStart(&err);
+
+	while (1);
 }
-#endif
-/**INDENT-ON**/
-/* @endcond */
+

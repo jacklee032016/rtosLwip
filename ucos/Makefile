@@ -22,7 +22,7 @@ include $(RULE_DIR)/Rules.mak
 
 SUBDIRS += libs/os3
 SUBDIRS += libs/bsp/src
-SUBDIRS += app/uart
+SUBDIRS += app/usb
 
 SUBDIRS += $(OS_DIRS)
 

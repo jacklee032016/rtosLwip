@@ -47,7 +47,7 @@
 #ifndef _UHD_H_
 #define _UHD_H_
 
-#include "usb_protocol.h"
+#include "usb/usb_protocol.h"
 
 #ifdef __cplusplus
 extern "C" {
