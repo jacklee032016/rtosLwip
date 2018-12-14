@@ -12,14 +12,20 @@ include $(RULE_DIR)/Rules.mak
 CODE_SUBDIRS = \
 	drivers/ \
 	utils/	\
-	drivers/usb/udc \
-	drivers/usb/uhc \
+	usb/udc \
+	usb/uhc \
+	usb/cdc \
+	usb/msc \
+	usb/vendor \
+	
 	
 
 # 
 CFLAGS += \
-	$(BSP_HEADER) \
+	$(RTOS_FLAGS) \
+	$(RTOS_HEADER) \
 	$(CPACK_FLAGS) \
+	$(BSP_HEADER) \
 	-Iinclude \
 	-I. \
 	$(UCOS_HEADER) \
@@ -29,9 +35,36 @@ CFLAGS += \
 # define source files:
 ###################################################################
 
+
+USB_DEVICE_SRC += \
+	usb/usbhs_device.c \
+	usb/udc/udc.c \
+
+DEVICE_CDC_SRC += \
+	usb/cdc/usbCdcDesc.c \
+	usb/cdc/usbCdc.c \
+	usb/cdc/usbCdcMain.c \
+	usb/cdc/usbCdcUart.c \
+
+
+DEVICE_MSC_SRC += \
+	usb/msc/usbMscDesc.c \
+	usb/msc/usbMsc.c \
+	usb/msc/usbMscMain.c \
+
+DEVICE_VENDOR_SRC += \
+	usb/vendor/usbVendorDesc.c \
+	usb/vendor/usbVendor.c \
+	usb/vendor/usbVendorMain.c \
+
+
 USB_SRC += \
-	drivers/usb/usbhs_device.c \
-	drivers/usb/udc/udc.c \
+	$(USB_DEVICE_SRC) \
+	$(DEVICE_VENDOR_SRC) \
+	
+#	$(DEVICE_CDC_SRC) \
+#	$(DEVICE_VENDOR_SRC) \
+	
 
 BSP_SRC += \
 	drivers/pwm.c \
@@ -49,8 +82,9 @@ BSP_SRC += \
 	utils/read.c \
 	utils/write.c \
 	init.c \
+	syscalls.c \
 	system_init.c \
-	startup_samv71.c \
+	startup.c \
 	ui.c \
 	
 	

@@ -367,7 +367,7 @@ a lot of data that needs to be copied, this should be set high. */
 /* enabled debug options  */
 #define	ETHARP_DEBUG					LWIP_DBG_OFF
 
-#define	NETIF_DEBUG					LWIP_DBG_OFF
+#define	NETIF_DEBUG					LWIP_DBG_ON
 #define	IP_DEBUG						LWIP_DBG_OFF
 #define	DHCP_DEBUG					LWIP_DBG_OFF
 

@@ -200,9 +200,9 @@ void stats_display(char *outBuffer, size_t bufferLen)
 	}
 
 #ifdef	ARM
-	index += snprintf( outBuffer+index, (bufferLen-index), LWIP_NEW_LINE"MAC:"LWIP_NEW_LINE"\tIRQ: %"FOR_U32";"LWIP_NEW_LINE"\tTX: packets:%"FOR_U32"; Failed:%"FOR_U32 LWIP_NEW_LINE"\tRX: packets:%"
+	index += snprintf( outBuffer+index, (bufferLen-index), LWIP_NEW_LINE"MAC:"LWIP_NEW_LINE"\tIRQ: %"FOR_U32";Recv IRQ: %"FOR_U32";"LWIP_NEW_LINE"\tTX: packets:%"FOR_U32"; Failed:%"FOR_U32 LWIP_NEW_LINE"\tRX: packets:%"
 		FOR_U32"; Error:frame: %"FOR_U32"; Mem:%"FOR_U32"; Overrun:%"FOR_U32"; Ownership:%"FOR_U32""LWIP_NEW_LINE,
-		macStats.isrCount, macStats.txPackets, macStats.txFailed, macStats.rxPackets, macStats.rxErrFrame, macStats.rxErrOOM, macStats.rxErrOverrun, macStats.rxErrOwnership);
+		macStats.isrCount, macStats.isrRecvCount, macStats.txPackets, macStats.txFailed, macStats.rxPackets, macStats.rxErrFrame, macStats.rxErrOOM, macStats.rxErrOverrun, macStats.rxErrOwnership);
 #endif
 
 #if 1

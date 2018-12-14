@@ -50,6 +50,8 @@
 #endif
 #include "same70.h"
 
+#include "extSys.h"
+#include "ucBsp.h"
 
 /* %ATMEL_SYSTEM% */
 /* Clock Settings (600MHz PLL VDDIO 3.3V and VDDCORE 1.2V) */
@@ -162,7 +164,7 @@ static void MainTask(void *p_arg)
 	OS_CPU_SysTickInit(SystemCoreClock);
 
 	/* Call main, the application's entry point. */
-	main(0,0);
+	main(0, 0);
 
 	/** \todo Handle return value from main. */
 
@@ -310,14 +312,34 @@ void SoftwareInit( void )
 	OS_ERR  err;
 	SystemCoreClock = CHIP_FREQ_CPU_MAX;
 
-	OSInit(&err);
+	OSInit(&err);/* os and its default tasks, such as idle, tick, timer, stat, queue  */
+	if(err != OS_ERR_NONE)
+	{
+		EXT_ERRORF(("OS initialization failed"));
+	}
 
-	OSTaskCreate(&MainTaskTCB, 	"Main Task", MainTask, 0,
-		MAIN_TASK_PRIO, MainTaskStk,  MAIN_TASK_STK_SIZE / 10,  MAIN_TASK_STK_SIZE, MAIN_TASK_Q_SIZE,
-		0,  0,  OS_OPT_NONE, &err);
+	OSTaskCreate((OS_TCB *)&MainTaskTCB, 
+		(CPU_CHAR *)"Main Task", 
+		(OS_TASK_PTR )MainTask, 
+		(void *)0,	/* arg to task's routine */
+		(OS_PRIO )MAIN_TASK_PRIO, /* lower number is high priority */
+		(CPU_STK *)MainTaskStk, /* base address of stack */
+		(CPU_STK_SIZE )MAIN_TASK_STK_SIZE /10,  /* watermark of stack */
+		(CPU_STK_SIZE )MAIN_TASK_STK_SIZE, 
+		(OS_MSG_QTY )MAIN_TASK_Q_SIZE,
+		(OS_TICK)0,  
+		(void *)0,  
+		(OS_OPT )(OS_OPT_TASK_STK_CHK|OS_OPT_TASK_STK_CLR)/* OS_OPT_NONE*/ , 
+		(OS_ERR *)&err);
 
+	/* tasks and other kernel objects must be created before OSStart() */
+
+	/* normally OS_IntQTask() is the highest */
 	OSStart(&err);
-
+	if(err != OS_ERR_NONE)
+	{
+	}
+	EXT_ERRORF(("Scheduler returned"));
 	while (1);
 }
 

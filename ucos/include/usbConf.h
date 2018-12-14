@@ -41,24 +41,7 @@
 #define  USB_PID_ATMEL_XMEGA_USB_ZIGBIT_SUBGHZ     0x214B
 //! @}
 
-//! \name The range 2300h to 23FFh is reserved to PIDs for demo from ASF1.7=>
-//! @{
-#define  USB_PID_ATMEL_UC3_ENUM                    0x2300
-#define  USB_PID_ATMEL_UC3_MS                      0x2301
-#define  USB_PID_ATMEL_UC3_MS_SDRAM_LOADER         0x2302
-#define  USB_PID_ATMEL_UC3_EVK1100_CTRLPANEL       0x2303
-#define  USB_PID_ATMEL_UC3_HID                     0x2304
-#define  USB_PID_ATMEL_UC3_EVK1101_CTRLPANEL_HID   0x2305
-#define  USB_PID_ATMEL_UC3_EVK1101_CTRLPANEL_HID_MS 0x2306
-#define  USB_PID_ATMEL_UC3_CDC                     0x2307
-#define  USB_PID_ATMEL_UC3_AUDIO_MICRO             0x2308
-#define  USB_PID_ATMEL_UC3_CDC_DEBUG               0x2310 // Virtual Com (debug interface) on EVK11xx
-#define  USB_PID_ATMEL_UC3_AUDIO_SPEAKER_MICRO     0x2311
-#define  USB_PID_ATMEL_UC3_CDC_MSC                 0x2312
-//! @}
 
-//! \name The range 2400h to 24FFh is reserved to PIDs for ASF applications
-//! @{
 #define  USB_PID_ATMEL_ASF_HIDMOUSE                0x2400
 #define  USB_PID_ATMEL_ASF_HIDKEYBOARD             0x2401
 #define  USB_PID_ATMEL_ASF_HIDGENERIC              0x2402
@@ -129,6 +112,8 @@
  * USB Device Configuration
  * @{
  */
+
+#if EXT_USB_DEVICE_ON == EXT_USB_D_MSC
 
 //! Device definition (mandatory)
 #define  USB_DEVICE_VENDOR_ID			USB_VID_ATMEL
@@ -228,7 +213,7 @@
  */
 //@{
 //! 2 endpoints used by MSC interface
-#undef USB_DEVICE_MAX_EP    // undefine this definition in header file
+#undef USB_DEVICE_MAX_EP   			 // undefine this definition in header file
 #define  USB_DEVICE_MAX_EP             2
 //@}
 
@@ -289,6 +274,60 @@ void memories_initialization(void);
 //@}
 
 
+#elif EXT_USB_DEVICE_ON == EXT_USB_D_VENDOR
+
+//! Device definition (mandatory)
+#define  USB_DEVICE_VENDOR_ID             USB_VID_ATMEL
+#define  USB_DEVICE_PRODUCT_ID            USB_PID_ATMEL_ASF_VENDOR_CLASS
+#define  USB_DEVICE_MAJOR_VERSION         1
+#define  USB_DEVICE_MINOR_VERSION         0
+#define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
+#define  USB_DEVICE_ATTR                \
+	(USB_CONFIG_ATTR_SELF_POWERED)
+// (USB_CONFIG_ATTR_BUS_POWERED)
+// (USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_SELF_POWERED)
+// (USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_BUS_POWERED)
+
+//! USB Device string definitions (Optional)
+#define  USB_DEVICE_MANUFACTURE_NAME      "ATMEL ASF"
+#define  USB_DEVICE_PRODUCT_NAME          "Vendor Class Example"
+// #define  USB_DEVICE_SERIAL_NAME           "123123123123"
+
+/**
+ * Device speeds support
+ * Low speed not supported by this vendor class
+ * @{
+ */
+//! To authorize the High speed
+#if (UC3A3||UC3A4)
+#  define  USB_DEVICE_HS_SUPPORT
+#elif (SAM3XA||SAM3U)
+#  define  USB_DEVICE_HS_SUPPORT
+#endif
+//@}
+
+
+/**
+ * USB Device Callbacks definitions (Optional)
+ * @{
+ */
+#define  UDC_VBUS_EVENT(b_vbus_high)
+#define  UDC_SOF_EVENT()                  main_sof_action()
+#define  UDC_SUSPEND_EVENT()              main_suspend_action()
+#define  UDC_RESUME_EVENT()               main_resume_action()
+//! Mandatory when USB_DEVICE_ATTR authorizes remote wakeup feature
+// #define  UDC_REMOTEWAKEUP_ENABLE()        user_callback_remotewakeup_enable()
+// extern void user_callback_remotewakeup_enable(void);
+// #define  UDC_REMOTEWAKEUP_DISABLE()       user_callback_remotewakeup_disable()
+// extern void user_callback_remotewakeup_disable(void);
+//! When a extra string descriptor must be supported
+//! other than manufacturer, product and serial string
+// #define  UDC_GET_EXTRA_STRING()
+//@}
+
+//@}
+
+
 /**
  * USB Interface Configuration
  * @{
@@ -324,12 +363,56 @@ void memories_initialization(void);
 //@}
 
 
-#define  USB_DEVICE_VENDOR_ID             USB_VID_ATMEL
-#if BOARD == UC3B_BOARD_CONTROLLER
-# define  USB_DEVICE_PRODUCT_ID            USB_PID_ATMEL_UC3_CDC_DEBUG
-#else
-# define  USB_DEVICE_PRODUCT_ID            USB_PID_ATMEL_ASF_CDC
+/**
+ * USB Device Driver Configuration
+ * @{
+ */
+//! Limit the isochronous endpoint in singe bank mode for USBB driver
+//! to avoid exceeding USB DPRAM.
+#define UDD_ISOCHRONOUS_NB_BANK(ep) 1
+//@}
+
+//! The includes of classes and other headers must be done
+//! at the end of this file to avoid compile error
+#include "udi_vendor_conf.h"
+
+
+bool main_vendor_enable(void);
+void main_vendor_disable(void);
+bool main_setup_out_received(void);
+bool main_setup_in_received(void);
+
+
+/**
+ * USB Device Callbacks definitions (Optional)
+ * @{
+ */
+#define  UDC_VBUS_EVENT(b_vbus_high)
+#define  UDC_SOF_EVENT()                  main_sof_action()
+#define  UDC_SUSPEND_EVENT()              main_suspend_action()
+#define  UDC_RESUME_EVENT()               main_resume_action()
+//! Mandatory when USB_DEVICE_ATTR authorizes remote wakeup feature
+// #define  UDC_REMOTEWAKEUP_ENABLE()        user_callback_remotewakeup_enable()
+// extern void user_callback_remotewakeup_enable(void);
+// #define  UDC_REMOTEWAKEUP_DISABLE()       user_callback_remotewakeup_disable()
+// extern void user_callback_remotewakeup_disable(void);
+#ifdef USB_DEVICE_LPM_SUPPORT
+#define  UDC_SUSPEND_LPM_EVENT()          main_suspend_lpm_action()
+#define  UDC_REMOTEWAKEUP_LPM_ENABLE()    main_remotewakeup_lpm_enable()
+#define  UDC_REMOTEWAKEUP_LPM_DISABLE()   main_remotewakeup_lpm_disable()
 #endif
+//! When a extra string descriptor must be supported
+//! other than manufacturer, product and serial string
+// #define  UDC_GET_EXTRA_STRING()
+//@}
+
+//@}
+
+
+#elif EXT_USB_DEVICE_ON == EXT_USB_D_CDC
+
+#define  USB_DEVICE_VENDOR_ID             USB_VID_ATMEL
+#define  USB_DEVICE_PRODUCT_ID            USB_PID_ATMEL_ASF_CDC
 #define  USB_DEVICE_MAJOR_VERSION         1
 #define  USB_DEVICE_MINOR_VERSION         0
 #define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
@@ -341,7 +424,7 @@ void memories_initialization(void);
 
 //! USB Device string definitions (Optional)
 #define  USB_DEVICE_MANUFACTURE_NAME      "ATMEL ASF"
-#define  USB_DEVICE_PRODUCT_NAME          "CDC Virtual Com"
+#define  USB_DEVICE_PRODUCT_NAME          	"CDC Virtual Com"
 // #define  USB_DEVICE_SERIAL_NAME           "12...EF"
 
 
@@ -415,6 +498,15 @@ void memories_initialization(void);
 #define  UDI_CDC_DEFAULT_STOPBITS         CDC_STOP_BITS_1
 #define  UDI_CDC_DEFAULT_PARITY           CDC_PAR_NONE
 #define  UDI_CDC_DEFAULT_DATABITS         8
+//@}
+//@}
+
+
+/**
+ * USB Device Driver Configuration
+ * @{
+*/
+#include "udi_cdc_conf.h"
 
 
 #define USART_ENABLE()
@@ -456,6 +548,8 @@ void uart_open(uint8_t port);
 /*! \brief Closes communication line
  */
 void uart_close(uint8_t port);
+
+#endif	/* device class */
 
 #endif
 

@@ -93,9 +93,15 @@
 #include <sleepmgr.h>
 
 
-#define	EXT_USB_DEVICE_ON			1
 
 
+#define	EXT_USB_D_NONE				0
+#define	EXT_USB_D_MSC					1		/* Mass Storage Class */
+#define	EXT_USB_D_CDC					2		/* Communication Device Class */
+#define	EXT_USB_D_VENDOR				3		/* Vendor class */
+
+
+#define	EXT_USB_DEVICE_ON				EXT_USB_D_VENDOR
 
 
 

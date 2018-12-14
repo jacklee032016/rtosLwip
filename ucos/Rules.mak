@@ -9,6 +9,15 @@ ARCH=arm
 #CPU_E70Q20=YES
 CPU_E70Q20=
 
+#APP=USB
+APP=
+
+ifeq ($(APP),USB)
+	APP_HOME=$(RULE_DIR)/apps/usb
+else
+	APP_HOME=$(RULE_DIR)/apps/test
+endif
+
 
 # released or debug version, different on debug and log info£¬2007.03.15
 # must be 'release' or 'debug'
@@ -37,11 +46,11 @@ endif
 ifeq ($(CPU_E70Q20),YES)
 	BOARD_NAME=AN767
 	CFLAGS += -D__SAME70Q20__ -DEXTLAB_BOARD=1 -DEXT_LAB 
-	LINK_SCRIPT =linkers/q20flash.ld
+	LINK_SCRIPT =$(RULE_DIR)/apps/linkers/q20flash.ld
 else
 	BOARD_NAME=E7oXpld
 	CFLAGS += -D__SAME70Q21__ -DEXTLAB_BOARD=0 -DEXT_LAB 
-	LINK_SCRIPT =linkers/q21flash.ld
+	LINK_SCRIPT =$(RULE_DIR)/apps/linkers/q21flash.ld
 endif
 
 BIN_DIR=$(ROOT_DIR)/BIN/images.$(BOARD_NAME)
@@ -151,10 +160,10 @@ BSP_HEADER= \
 	-I$(BSP_HEAD_HOME) \
 	-I$(BSP_HEAD_HOME)/clock \
 	-I$(BSP_HEAD_HOME)/cmsis \
-	-I$(BSP_HEAD_HOME)/drivers \
 	-I$(BSP_HEAD_HOME)/same70 \
 	-I$(BSP_HEAD_HOME)/preprocessor \
-	-I$(BSP_HEAD_HOME)/usb \
+	-I$(BSP_HEAD_HOME)/drivers \
+	-I$(BSP_HEAD_HOME)/drivers/usb \
 
 UCOS_HEADER =\
 	-I$(UCOS_HOME)/include/ \
@@ -171,6 +180,7 @@ ASF_HEADER += \
 RTOS_HEADER= \
 	-I$(RTOS_HOME)/include \
   -I$(RTOS_HOME)/portable/GCC/ARM_CM7/r0p1 \
+  -I$(APP_HOME) 
 
 LWIP_HEADER= \
 	-I$(LWIP_HOME)/lwip/src/include \

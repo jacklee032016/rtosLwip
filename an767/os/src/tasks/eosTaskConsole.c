@@ -12,9 +12,20 @@
 #include "task.h"
 #include "semphr.h"
 
+#define	CONSOLE_ISR_EN	0
 
 /* common/utils/stdio */
 #include "compact.h"
+
+#if CONSOLE_ISR_EN
+#if EXTLAB_BOARD
+#include "uart.h"
+#else
+#include "usart.h"
+#endif
+
+#endif
+
 #include "lwipExt.h"
 
 #include "eos.h"
@@ -50,6 +61,82 @@ attempted.
  */
 static char cOutputBuffer[ EXT_COMMAND_BUFFER_SIZE ];
 
+#if CONSOLE_ISR_EN
+
+static sys_sem_t	_consoleRxSem;
+static uint8_t		_inputChar;
+
+static void _consoleInitRecvIrq(void)
+{
+#if EXTLAB_BOARD
+	NVIC_ClearPendingIRQ(UART0_IRQn);
+	NVIC_SetPriority(UART0_IRQn ,1);
+
+	uart_enable_interrupt(UART0, (UART_IER_RXRDY | UART_IER_OVRE | UART_IER_FRAME	| UART_IER_PARE) );
+	
+	/* Enable interrupt  */
+	NVIC_EnableIRQ(UART0_IRQn);
+#else
+	NVIC_ClearPendingIRQ(USART1_IRQn);
+	NVIC_SetPriority(USART1_IRQn ,1);
+
+	usart_enable_interrupt(USART1, (US_IER_RXRDY | US_IER_OVRE |US_IER_FRAME|US_IER_PARE) );
+	
+	/* Enable interrupt  */
+	NVIC_EnableIRQ(USART1_IRQn);
+#endif
+}
+
+
+#if EXTLAB_BOARD
+void UART0_Handler(void)
+{
+	portBASE_TYPE 	consoleTaskWaking = pdFALSE;
+	volatile uint32_t status;
+	
+	status = uart_get_status(UART0);
+	if (status & (UART_SR_OVRE | UART_SR_FRAME | UART_SR_PARE))
+	{
+		UART0->UART_CR = UART_CR_RSTSTA;
+//		printf("Error \n\r");
+	}
+	
+	if(( status & UART_SR_RXRDY) )
+	{
+		_inputChar = (uint8_t)UART0->UART_RHR;
+//		printf("%c, Post flags:%x"EXT_NEW_LINE, (char )_inputChar, flags );
+		xSemaphoreGiveFromISR(_consoleRxSem/* not pointer*/, &consoleTaskWaking);
+	}
+	
+	portEND_SWITCHING_ISR(consoleTaskWaking);
+
+}
+
+#else
+void USART1_Handler(void)
+{
+	portBASE_TYPE 	consoleTaskWaking = pdFALSE;
+	volatile uint32_t status;
+	
+	status = usart_get_status(USART1);
+	if (status & (US_CSR_OVRE | US_CSR_FRAME | US_CSR_PARE))
+	{
+		USART1->US_CR = US_CR_RSTSTA;
+		printf("Error \n\r");
+	}
+	
+	if(( status & US_CSR_RXRDY) )
+	{
+		_inputChar = (uint8_t)USART1->US_RHR;
+//		printf("%c", (char )_inputChar);
+		xSemaphoreGiveFromISR(_consoleRxSem/* not pointer*/, &consoleTaskWaking);
+	}
+	
+	portEND_SWITCHING_ISR(consoleTaskWaking);
+
+}
+#endif
+#endif
 
 char *extBspCLIGetOutputBuffer( void )
 {
@@ -65,7 +152,13 @@ void vMuxUartPutString( const char *pcString, unsigned short usStringLength )
 signed portBASE_TYPE xSerialGetChar( signed char *pcRxedChar, TickType_t xBlockTime )
 {
 //	ptr_get(stdio_base, (char*)pcRxedChar);
+
+#if CONSOLE_ISR_EN
+	sys_arch_sem_wait(&_consoleRxSem, 0);
+	*pcRxedChar = _inputChar;
+#else
 	*pcRxedChar = bspConsoleGetChar();
+#endif
 	return pdTRUE;
 }
 
@@ -208,9 +301,20 @@ void vMuxConsoleOutput( const char *pcMessage )
 
 void vMuxUartCmdConsoleStart( uint16_t usStackSize, unsigned long uxPriority )
 {
+	err_t err;
+
 	_xTxMutex = xSemaphoreCreateMutex();
 	configASSERT( _xTxMutex );
 
+#if CONSOLE_ISR_EN
+	/* Incoming packet notification semaphore. */
+	err = sys_sem_new(&_consoleRxSem, 0);
+	EXT_ASSERT(("Console: RX semaphore allocation ERROR!"), (err == ERR_OK));
+	if (err != ERR_OK)
+		return;
+
+	_consoleInitRecvIrq();
+#endif
 #if 0
 	/* Create that task that handles the console itself. */
 	xTaskCreate( _prvUartCmdConsoleTask, EXT_TASK_CONSOLE, usStackSize, NULL, uxPriority, NULL );

@@ -80,7 +80,7 @@
 
 #include <string.h>
 
-#define	EXT_DHCP_INIT_TIMEOUT			2000
+#define	EXT_DHCP_INIT_TIMEOUT			4000
 
 /** DHCP_CREATE_RAND_XID: if this is set to 1, the xid is created using
  * LWIP_RAND() (this overrides DHCP_GLOBAL_XID)

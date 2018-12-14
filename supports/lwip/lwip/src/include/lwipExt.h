@@ -219,6 +219,9 @@ void mqttClientConnect(unsigned int svrIp);
 struct MAC_STATS
 {
 	uint32_t	isrCount;
+
+	uint32_t	isrRecvCount;
+
 	
 	uint32_t	txPackets;
 	uint32_t	txFailed;
