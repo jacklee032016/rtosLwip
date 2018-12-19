@@ -48,7 +48,7 @@
 #endif
 #define configMAX_PRIORITIES						( 10 )  		/* from 5 to 10. Oct.23, 2018, JL*/
 #define configMINIMAL_STACK_SIZE				( ( unsigned short ) 130 )
-#define configTOTAL_HEAP_SIZE					( ( size_t ) ( 40 * 1024 ) )
+#define configTOTAL_HEAP_SIZE					( ( size_t ) ( 50 * 1024 ) )
 #define configMAX_TASK_NAME_LEN					( 10 )
 #define configUSE_TRACE_FACILITY				1
 #define configUSE_16_BIT_TICKS					0

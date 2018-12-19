@@ -20,7 +20,8 @@ static unsigned char _hcEventNewReq(void *arg)
 	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
 
 	destIp.addr = req->ip;
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("sent #%d TCP request to %s:%d", hc->reqs++, ip4addr_ntoa(&destIp), req->port)) ;
+	hc->reqs++;
+	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("sent #%d new TCP request to %s:%d", hc->reqs, ip4addr_ntoa(&destIp), req->port)) ;
 
 	struct tcp_pcb *pcb;
 	static u16_t localport= EXT_HTTP_CLIENT_PORT;
@@ -50,7 +51,8 @@ static unsigned char _hcEventNewReq(void *arg)
 		return EXT_STATE_CONTINUE;
 	}
 
-// 	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN);
+TRACE();
+ 	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN);
 //	hc->reqs++;
 
 	return HC_STATE_INIT;
@@ -145,11 +147,13 @@ static unsigned char _hcEventRecv(void *arg)
 //	char *data;
 	u16_t reqLen;
 	u16_t copied;
+	uint32_t ret;
 
 
 	EXT_ASSERT(("Event or pbuf is not found "), hc->evt!= NULL && hc->evt->data != NULL );
 	p = (struct pbuf *)hc->evt->data;
-	
+
+	/* step 1: copy data from pbuf */	
 //	if(p->next != NULL)
 	{
 		reqLen = LWIP_MIN(p->tot_len, sizeof(hc->buf));
@@ -158,10 +162,17 @@ static unsigned char _hcEventRecv(void *arg)
 		hc->length = reqLen;
 //		data = hc->buf;
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , copied, hc->buf) );
-	CONSOLE_DEBUG_MEM((unsigned char *)hc->buf, copied, 0, "RECV HTTP RES Data");
-
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , copied, hc->buf) );
+		CONSOLE_DEBUG_MEM((unsigned char *)hc->buf, copied, 0, "RECV HTTP RES Data");
 	}
+
+	while(p != NULL)
+	{
+		tmp = p->next;
+		pbuf_free(p);
+		p = tmp;
+	}
+
 #if 0
 	else
 	{
@@ -174,45 +185,58 @@ static unsigned char _hcEventRecv(void *arg)
 	}
 #endif
 
-	uint32_t ret;
 	
 	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("recv %d bytes data:"EXT_NEW_LINE"'%.*s'", hc->length, hc->length, hc->buf));
 
-	hc->reqType = _findResponseType(hc->buf, (uint32_t)hc->length);
+	/* step 2: parse response type(SDP/REST), and content length */
+	if(hc->contentLength == 0)
+	{/* this is first packet replied from server*/
+		hc->reqType = _findResponseType(hc->buf, (uint32_t)hc->length);
 
-	ret = cmnHttpParseHeaderContentLength(hc->buf, (uint32_t)hc->length);
-	if(ret <= ERR_OK )
-	{
-		EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf) );
-	}
-	else
-	{
-		char *data;
-		uint32_t _dataLen = 0;
-		
-
-		data = lwip_strnstr(hc->buf, MHTTP_CRLF MHTTP_CRLF, hc->length);
-		if( data != NULL )
+		ret = cmnHttpParseHeaderContentLength(hc->buf, (uint32_t)hc->length);
+		if(ret <= ERR_OK )
 		{
-			_dataLen = hc->length - (data - hc->buf) - __HTTP_CRLF_SIZE;
-			if(_dataLen == ret )
+			EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf) );
+		}
+		else
+		{
+			char *data;
+			uint32_t _dataLen = 0;
+			
+			hc->contentLength = ret;
+			
+			data = lwip_strnstr(hc->buf, MHTTP_CRLF MHTTP_CRLF, hc->length);
+			if( data != NULL )
 			{
-				hc->dataLength = ret;
-				hc->data = hc->buf + (hc->length - hc->dataLength);
-			}
-			else
-			{
-				EXT_ERRORF(("Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
+				_dataLen = hc->length - (data - hc->buf) - __HTTP_CRLF_SIZE;
+				if(_dataLen == ret )
+				{
+					hc->contentLength = ret;
+					hc->data = hc->buf + (hc->length - hc->contentLength);
+				}
+				else if(_dataLen == 0)
+				{/* maybe data is in the next packet, so wait DATA or CLOSE event in state of CONN . Dec.18, 2018 JL. */
+					return EXT_STATE_CONTINUE;
+				}
+				else
+				{
+					EXT_ERRORF(("Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
+					return HC_STATE_ERROR;
+				}
 			}
 		}
 	}
-
-
-	while(p != NULL)
+	else
 	{
-		tmp = p->next;
-		pbuf_free(p);
-		p = tmp;
+		if(hc->contentLength == hc->length)
+		{
+			hc->data = hc->buf;
+		}
+		else
+		{
+			EXT_ERRORF(("Recv second packet, length %d is not same as Content Length %d", hc->length, hc->contentLength) );
+			return HC_STATE_ERROR;
+		}
 	}
 
 	if(hc->reqType == HC_REQ_UNKNOWN)
@@ -220,12 +244,46 @@ static unsigned char _hcEventRecv(void *arg)
 		EXT_ERRORF(("Response is not supported type of JSON or SDP"));
 		return HC_STATE_ERROR;
 	}
-	
-	if(hc->dataLength <= 0)
+
+
+	if(hc->contentLength > 0)
+	{/* contentLength has been parsed, media description may be in the same packet or the next packet */
+		EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
+		err_t _ret = ERR_OK;
+
+		extSysClearConfig(rxCfg);
+		if(hc->req->type == HC_REQ_SDP)
+		{
+			_ret = extHttpSdpParse(hc, rxCfg, hc->data, hc->contentLength);
+		}
+		else if(hc->req->type == HC_REQ_JSON )
+		{
+			_ret = cmnHttpParseRestJson(rxCfg, hc->data, hc->contentLength);
+		}
+		else
+		{
+		
+		}
+		
+		if(_ret != ERR_OK)
+		{
+			EXT_ERRORF(("Response is not supported type of JSON or SDP"));
+		}
+		else
+		{
+			extSysCompareParams(hc->runCfg, rxCfg);
+			extSysConfigCtrl(hc->runCfg, rxCfg);
+		}
+
+	}
+
+
+#if 0	
+	if(hc->contentLength <= 0)
 	{
 		return HC_STATE_ERROR;
 	}
-	
+#endif	
 	
 	return HC_STATE_DATA;
 }
@@ -270,48 +328,10 @@ static void _hcEnterStateWait(void *arg)
 static void _hcEnterStateData(void *arg)
 {
 	HttpClient *hc = (HttpClient *)arg;
-	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
-	err_t ret = ERR_OK;
-
-	extSysClearConfig(rxCfg);
 	
  	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_2_WAIT);
-
-	if(hc->req->type == HC_REQ_SDP)
-	{
-		ret = extHttpSdpParse(hc, rxCfg, hc->data, hc->dataLength);
-	}
-	else if(hc->req->type == HC_REQ_JSON )
-	{
-		ret = cmnHttpParseRestJson(rxCfg, hc->data, hc->dataLength);
-	}
-	else
-	{
 	
-	}
-	
-	if(ret != ERR_OK)
-	{
-		EXT_ERRORF(("Response is not supported type of JSON or SDP"));
-	}
-	else
-	{
-		extSysCompareParams(hc->runCfg, rxCfg);
-		extSysConfigCtrl(hc->runCfg, rxCfg);
-	}
-
-#if 0	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"recv %d bytes "EXT_NEW_LINE"'%.*s', data length %d:"EXT_NEW_LINE"'%.*s'", 
-		hc->length, hc->length, hc->buf, hc->dataLength, hc->dataLength, hc->data) );
-	if(ret  != ERR_OK)
-	{
-	
-	}
-	
-#endif
-
 	hc->statusCode = WEB_RES_REQUEST_OK;
-	
 }
 
 /* TCP err callback or err_t is not ERR_OK in TCP recv callback  */

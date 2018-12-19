@@ -183,6 +183,7 @@ char extHttpPostEvent(ExtHttpConn *ehc, H_EVENT_T eventType, struct pbuf *p, str
 	
 #if EXT_HTTPD_DEBUG
 	EXT_INFOF(("%s: Event.Count %d: '%s' in state %s", ehc->name, ehc->eventCount, CMN_FIND_HTTP_EVENT(eventType), CMN_FIND_HTTP_STATE(ehc->state) ));
+
 #else
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%p: Event.Count %d: '%d' in state %d", ehc, ehc->eventCount, eventType, ehc->state ));
 #endif
@@ -350,7 +351,10 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 		{
 			extHttpPostEvent(mhc, H_EVENT_CLOSE, NULL, pcb);
 		}
-
+		else
+		{
+			extHttpPostEvent(mhc, H_EVENT_POLL, NULL, pcb);
+		}
 
 #if 0
 		/* If this connection has a file open, try to send some more data. If
@@ -366,7 +370,6 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 			}
 		}
 #endif		
-		extHttpPostEvent(mhc, H_EVENT_POLL, NULL, pcb);
 	}
 
 #else
@@ -715,12 +718,13 @@ void extHttpSvrMain(void *data)
 	tcp_accept(pcb, _extHttpAccept);
 
 #if LWIP_EXT_HTTPD_TASK
-	if (sys_mbox_new(&_httpdMailBox, EXT_HTTPD_MBOX_SIZE*4) != ERR_OK)
+//	if (sys_mbox_new(&_httpdMailBox, EXT_HTTPD_MBOX_SIZE*4) != ERR_OK)
+	if (sys_mbox_new(&_httpdMailBox, MEMP_NUM_HTTP_EVENT) != ERR_OK)
 	{
 		EXT_ASSERT(("failed to create "EXT_TASK_HTTP" mbox"), 0);
 	}
 
-	sys_thread_new(EXT_TASK_HTTP, _extHttpdTask, runCfg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY + 3 );
+	sys_thread_new(EXT_TASK_HTTP, _extHttpdTask, runCfg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY + 4 );
 #endif
 	
 }

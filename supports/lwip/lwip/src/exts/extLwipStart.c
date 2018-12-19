@@ -324,6 +324,8 @@ void extLwipNetStatusCallback(struct netif *netif)
 
 
 #ifdef	ARM
+		gmacBMCastEnable(true);
+
 		gmacEnableWakeOnLan(netif->ip_addr.addr);
 #endif		
 		_extStackUp(netif);

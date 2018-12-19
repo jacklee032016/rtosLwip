@@ -838,71 +838,74 @@ static err_t tcp_process(struct tcp_pcb *pcb)
 	switch (pcb->state)
 	{
 		case SYN_SENT:
-			LWIP_DEBUGF(TCP_INPUT_DEBUG, ("SYN-SENT: ackno %"U32_F" pcb->snd_nxt %"U32_F" unacked %"U32_F""LWIP_NEW_LINE, ackno,
-			pcb->snd_nxt, lwip_ntohl(pcb->unacked->tcphdr->seqno)));
+			LWIP_DEBUGF(TCP_INPUT_DEBUG, ("SYN-SENT: ackno %"U32_F" pcb->snd_nxt %"U32_F" unacked %"U32_F""LWIP_NEW_LINE, ackno, pcb->snd_nxt, lwip_ntohl(pcb->unacked->tcphdr->seqno)));
 			/* received SYN ACK with expected sequence number? */
-			if ((flags & TCP_ACK) && (flags & TCP_SYN)
-			&& (ackno == pcb->lastack + 1)) {
-			pcb->rcv_nxt = seqno + 1;
-			pcb->rcv_ann_right_edge = pcb->rcv_nxt;
-			pcb->lastack = ackno;
-			pcb->snd_wnd = tcphdr->wnd;
-			pcb->snd_wnd_max = pcb->snd_wnd;
-			pcb->snd_wl1 = seqno - 1; /* initialise to seqno - 1 to force window update */
-			pcb->state = ESTABLISHED;
+			if ((flags & TCP_ACK) && (flags & TCP_SYN) && (ackno == pcb->lastack + 1))
+			{
+				pcb->rcv_nxt = seqno + 1;
+				pcb->rcv_ann_right_edge = pcb->rcv_nxt;
+				pcb->lastack = ackno;
+				pcb->snd_wnd = tcphdr->wnd;
+				pcb->snd_wnd_max = pcb->snd_wnd;
+				pcb->snd_wl1 = seqno - 1; /* initialise to seqno - 1 to force window update */
+				pcb->state = ESTABLISHED;
 
 #if TCP_CALCULATE_EFF_SEND_MSS
-			pcb->mss = tcp_eff_send_mss(pcb->mss, &pcb->local_ip, &pcb->remote_ip);
+				pcb->mss = tcp_eff_send_mss(pcb->mss, &pcb->local_ip, &pcb->remote_ip);
 #endif /* TCP_CALCULATE_EFF_SEND_MSS */
 
-			pcb->cwnd = LWIP_TCP_CALC_INITIAL_CWND(pcb->mss);
-			LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_process (SENT): cwnd %"TCPWNDSIZE_F
-			   " ssthresh %"TCPWNDSIZE_F"\n",
-			   pcb->cwnd, pcb->ssthresh));
-			LWIP_ASSERT(("pcb->snd_queuelen > 0"), (pcb->snd_queuelen > 0));
-			--pcb->snd_queuelen;
-			LWIP_DEBUGF(TCP_QLEN_DEBUG, ("tcp_process: SYN-SENT --queuelen %"TCPWNDSIZE_F""LWIP_NEW_LINE, (tcpwnd_size_t)pcb->snd_queuelen));
-			rseg = pcb->unacked;
-			if (rseg == NULL) {
-			/* might happen if tcp_output fails in tcp_rexmit_rto()
-			in which case the segment is on the unsent list */
-			rseg = pcb->unsent;
-			LWIP_ASSERT(("no segment to free"), rseg != NULL);
-			pcb->unsent = rseg->next;
-			} else {
-			pcb->unacked = rseg->next;
-			}
-			tcp_seg_free(rseg);
+				pcb->cwnd = LWIP_TCP_CALC_INITIAL_CWND(pcb->mss);
+				LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_process (SENT): cwnd %"TCPWNDSIZE_F " ssthresh %"TCPWNDSIZE_F"\n", pcb->cwnd, pcb->ssthresh));
+				LWIP_ASSERT(("pcb->snd_queuelen > 0"), (pcb->snd_queuelen > 0));
+				--pcb->snd_queuelen;
+				LWIP_DEBUGF(TCP_QLEN_DEBUG, ("tcp_process: SYN-SENT --queuelen %"TCPWNDSIZE_F""LWIP_NEW_LINE, (tcpwnd_size_t)pcb->snd_queuelen));
+				rseg = pcb->unacked;
+				if (rseg == NULL)
+				{
+					/* might happen if tcp_output fails in tcp_rexmit_rto()
+					in which case the segment is on the unsent list */
+					rseg = pcb->unsent;
+					LWIP_ASSERT(("no segment to free"), rseg != NULL);
+					pcb->unsent = rseg->next;
+				}
+				else
+				{
+					pcb->unacked = rseg->next;
+				}
+				tcp_seg_free(rseg);
 
-			/* If there's nothing left to acknowledge, stop the retransmit
-			timer, otherwise reset it to start again */
-			if (pcb->unacked == NULL) {
-			pcb->rtime = -1;
-			} else {
-			pcb->rtime = 0;
-			pcb->nrtx = 0;
-			}
+				/* If there's nothing left to acknowledge, stop the retransmit
+				timer, otherwise reset it to start again */
+				if (pcb->unacked == NULL) {
+					pcb->rtime = -1;
+				}
+				else
+				{
+					pcb->rtime = 0;
+					pcb->nrtx = 0;
+				}
 
-			/* Call the user specified function to call when successfully
-			* connected. */
-			TCP_EVENT_CONNECTED(pcb, ERR_OK, err);
-			if (err == ERR_ABRT) {
-			return ERR_ABRT;
-			}
-			tcp_ack_now(pcb);
+				/* Call the user specified function to call when successfully
+				* connected. */
+				TCP_EVENT_CONNECTED(pcb, ERR_OK, err);
+				if (err == ERR_ABRT) {
+					return ERR_ABRT;
+				}
+				tcp_ack_now(pcb);
 			}
 			/* received ACK? possibly a half-open connection */
-			else if (flags & TCP_ACK) {
-			/* send a RST to bring the other side in a non-synchronized state. */
-			tcp_rst(ackno, seqno + tcplen, ip_current_dest_addr(),
-			ip_current_src_addr(), tcphdr->dest, tcphdr->src);
-			/* Resend SYN immediately (don't wait for rto timeout) to establish
-			connection faster, but do not send more SYNs than we otherwise would
-			have, or we might get caught in a loop on loopback interfaces. */
-			if (pcb->nrtx < TCP_SYNMAXRTX) {
-			pcb->rtime = 0;
-			tcp_rexmit_rto(pcb);
-			}
+			else if (flags & TCP_ACK)
+			{
+				/* send a RST to bring the other side in a non-synchronized state. */
+				tcp_rst(ackno, seqno + tcplen, ip_current_dest_addr(), ip_current_src_addr(), tcphdr->dest, tcphdr->src);
+				/* Resend SYN immediately (don't wait for rto timeout) to establish
+				connection faster, but do not send more SYNs than we otherwise would
+				have, or we might get caught in a loop on loopback interfaces. */
+				if (pcb->nrtx < TCP_SYNMAXRTX)
+				{
+					pcb->rtime = 0;
+					tcp_rexmit_rto(pcb);
+				}
 			}
 			break;
 			

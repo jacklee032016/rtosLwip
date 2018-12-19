@@ -93,7 +93,7 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 	{
 		tcp_recved(pcb, p->tot_len);
 
- 		EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d Event RECV : data %d bytes :%.*s", hc->reqs, p->tot_len, p->tot_len, (char *)p->payload) );
+ 		EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d Event RECV : data %d bytes :'%.*s'", hc->reqs, p->tot_len, p->tot_len, (char *)p->payload) );
 		_httpClientPostEvent(HC_EVENT_RECV, p);
 	}
 	else if((err == ERR_OK) && (p == NULL))
@@ -120,11 +120,18 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
  
 
  
-/* err always ERR_OK */
+/* err always ERR_OK. No timeout is implemented now */
 err_t httpClientConnected(void *arg, struct tcp_pcb *pcb, err_t err)
 {
 	HttpClient *hc = (HttpClient *)arg;
 	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d request connected", hc->reqs));
+
+	if(err != ERR_OK)
+	{
+		EXT_ERRORF(("Error for client connection: %s", lwip_strerr(err)));
+	}
+	/* stop timer if connection is OK */
+ 	sys_timer_stop(&_hcTimer);
 
 	_httpClientPostEvent(HC_EVENT_CONNECTED, arg);
 
@@ -143,7 +150,7 @@ unsigned char httpClientEventConnected(void *arg)
 
 	EXT_ASSERT((": Client PCB is null"), hc->pcb != NULL);
 
-	CMN_SN_PRINTF(hc->buf, size, index, "GET %s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, hc->req->uri);
+	CMN_SN_PRINTF(hc->buf, size, index, "GET /%s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, hc->req->uri);
 
 //	usprintf(headers, "POST /%s HTTP/1.0\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: %d\r\n\r\n%s\r\n\r\n", state->Page, strlen(state->PostVars), state->PostVars);
 
@@ -159,6 +166,7 @@ unsigned char httpClientEventConnected(void *arg)
 
 	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d send HTTP reqeust "EXT_NEW_LINE"'%.*s'", hc->reqs, index, hc->buf ));
 
+	hc->contentLength = 0;
 	return HC_STATE_CONN;
 }
 
@@ -227,7 +235,8 @@ void extHttpClientMain(void *data)
 		return;// ERR_MEM;
 	}
 
-	if (sys_mbox_new(&_httpClientMailBox, EXT_HTTP_CLIENT_MBOX_SIZE) != ERR_OK)
+//	if (sys_mbox_new(&_httpClientMailBox, EXT_HTTP_CLIENT_MBOX_SIZE) != ERR_OK)
+	if (sys_mbox_new(&_httpClientMailBox, MEMP_NUM_HC_EVENT) != ERR_OK)
 	{
 		EXT_ASSERT(("failed to create "EXT_TASK_HTTP_CLIENT" mbox"), 0);
 	}

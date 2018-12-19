@@ -8,7 +8,7 @@
 #define		EXT_HTTP_CLIENT_MBOX_SIZE					2
 #define		EXT_HTTP_CLIENT_PORT							50000
 
-#define		EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN			5000	/* for new TCP connection */
+#define		EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN			2000	/* for new TCP connection */
 #define		EXT_HTTP_CLIENT_TIMEOUT_2_WAIT				2000	/* from state of DATA/ERROR to state of WAIT*/
 
 #define		HTTPC_MAX_RETRIES								4
@@ -58,7 +58,7 @@ typedef	struct _HttpClient
 	int					length;	/* length of response */
 
 	char					*data;	/* data part in HTTP response*/
-	uint16_t				dataLength;
+	int					contentLength;
 	
 //	uint32_t				destIp;
 //	uint16_t				destPort;

@@ -51,7 +51,16 @@ char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType )
 
 char	 bspCmdFactory(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsigned int bufferLen )
 {
+	EXT_MAC_ADDRESS macAddress;
+	
+	unsigned char isMacConfiged = extRun.isMacConfiged;
+	memcpy(&macAddress, &extRun.local.mac, sizeof(EXT_MAC_ADDRESS));
+
 	extCfgFromFactory(&extRun);
+
+	memcpy(&extRun.local.mac, &macAddress, sizeof(EXT_MAC_ADDRESS));
+	extRun.isMacConfiged = isMacConfiged;
+
 	bspCfgSave(&extRun, EXT_CFG_MAIN);
 
 	/* this function never return to its caller, so must output directly */
