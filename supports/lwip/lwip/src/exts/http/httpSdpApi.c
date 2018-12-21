@@ -377,7 +377,7 @@ static err_t _sdpParseIp(char *data, uint16_t size, uint32_t *ip)
 static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
 {
 	uint16_t  index = 0, _shVal;
-	char *p, *pnext, _chVal;
+	char *p, *pnext;//, _chVal;
 	
 	p = lwip_strnstr(data+index, SDP_MEDIA_RTP_MAP, size - index);
 	if(p== NULL)
@@ -489,8 +489,11 @@ static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, cha
 		EXT_ERRORF(("Not support audio packet size '%s'", pnext));
 	}
 
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("Parsed SDP Audio params:IP:%s; Port:%d; Depth:%d; Sample Freq:%d; Channels:%d; PktSize:%d",
-			EXT_LWIP_IPADD_TO_STR(&rxCfg->dest.audioIp), rxCfg->dest.aport, rxCfg->runtime.aDepth, rxCfg->runtime.aSampleRate, rxCfg->runtime.aChannels, rxCfg->runtime.aPktSize ));
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("\tParsed SDP Audio params:IP:%s; Port:%d; Depth:%d; Sample Freq:%d; Channels:%d; PktSize:%d"EXT_NEW_LINE,
+			EXT_LWIP_IPADD_TO_STR(&rxCfg->dest.audioIp), rxCfg->dest.aport, rxCfg->runtime.aDepth, rxCfg->runtime.aSampleRate, rxCfg->runtime.aChannels, rxCfg->runtime.aPktSize );
+	}
 	
 	return ERR_OK;
 }
@@ -550,7 +553,7 @@ static char __sdpVideoParams(EXT_RUNTIME_CFG *rxCfg, char *key, char *value)
 	}
 	else
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("Key '%s' and value '%s' is not support now", key,  value));
+//		EXT_DEBUGF(EXT_DBG_ON, ("Key '%s' and value '%s' is not support now", key,  value));
 	}
 
 	return EXIT_SUCCESS;
@@ -587,7 +590,10 @@ static uint16_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint16_t 
 		{
 			value[left-(value-key)] = 0;
 		}
-		printf("No#%d: '%s' = '%s'" EXT_NEW_LINE, ++i, key, value );
+		if(EXT_DEBUG_HC_IS_ENABLE())
+		{
+			printf("\t\tNo#%d: '%s' = '%s'" EXT_NEW_LINE, ++i, key, value );
+		}
 
 		if(__sdpVideoParams(rxCfg, key, value) == EXIT_FAILURE)
 		{
@@ -597,6 +603,7 @@ static uint16_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint16_t 
 			
 		if(nextKey)
 		{
+			nextKey++;
 			nextKey++;
 			left = left - (nextKey-key);
 		}
@@ -663,9 +670,12 @@ static err_t _sdpParseVideoStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *
 	}
 
 
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("Parsed SDP Video params:IP:%s; Port:%d; ColorSpace:%s; width:%d; height:%d; framerate:%s; depth:%d; isInterlace:%d;",
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("\tParsed SDP Video params:IP:%s; Port:%d; ColorSpace:%s; width:%d; height:%d; framerate:%s; depth:%d; isInterlace:%d;"EXT_NEW_LINE,
 			EXT_LWIP_IPADD_TO_STR(&rxCfg->dest.ip), rxCfg->dest.vport, CMN_FIND_V_COLORSPACE(rxCfg->runtime.vColorSpace),  
-			rxCfg->runtime.vWidth, rxCfg->runtime.vHeight, CMN_FIND_V_FRAME_RATE(rxCfg->runtime.vFrameRate), rxCfg->runtime.vDepth, rxCfg->runtime.vIsInterlaced) );
+			rxCfg->runtime.vWidth, rxCfg->runtime.vHeight, CMN_FIND_V_FRAME_RATE(rxCfg->runtime.vFrameRate), rxCfg->runtime.vDepth, rxCfg->runtime.vIsInterlaced);
+	}
 	
 	return ERR_OK;
 }

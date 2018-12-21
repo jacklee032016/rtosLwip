@@ -281,6 +281,8 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 			return NULL;
 	}
 
+
+LOCK_IP_BUF();
 	switch (type)
 	{
 		case PBUF_POOL:
@@ -290,6 +292,8 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 			if (p == NULL)
 			{
 				PBUF_POOL_IS_EMPTY();
+UNLOCK_IP_BUF();
+
 				return NULL;
 			}
 			p->type = type;
@@ -324,6 +328,7 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 				{
 					PBUF_POOL_IS_EMPTY();
 					/* free chain so far allocated */
+UNLOCK_IP_BUF();
 					pbuf_free(p);
 					/* bail out unsuccessfully */
 					return NULL;
@@ -365,6 +370,7 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 				/* bug #50040: Check for integer overflow when calculating alloc_len */
 				if (alloc_len < LWIP_MEM_ALIGN_SIZE(length))
 				{
+UNLOCK_IP_BUF();
 					return NULL;
 				}
 
@@ -374,6 +380,7 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 
 			if (p == NULL)
 			{
+UNLOCK_IP_BUF();
 				return NULL;
 			}
 			/* Set up internal structure of the pbuf. */
@@ -394,6 +401,7 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 			if (p == NULL)
 			{
 				LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("pbuf_alloc: Could not allocate MEMP_PBUF for PBUF_%s."LWIP_NEW_LINE, (type == PBUF_ROM) ? "ROM" : "REF"));
+UNLOCK_IP_BUF();
 				return NULL;
 			}
 			/* caller must set this field properly, afterwards */
@@ -405,6 +413,7 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 		
 		default:
 			LWIP_ASSERT(("pbuf_alloc: erroneous type"), 0);
+UNLOCK_IP_BUF();
 			return NULL;
 	}
 
@@ -412,6 +421,8 @@ struct pbuf *pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 	p->ref = 1;
 	/* set flags */
 	p->flags = 0;
+UNLOCK_IP_BUF();
+
 	LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_alloc(length=%"U16_F") == %p"LWIP_NEW_LINE, length, (void *)p));
 	return p;
 }
@@ -755,6 +766,8 @@ u8_t pbuf_free(struct pbuf *p)
 	count = 0;
 	/* de-allocate all consecutive pbufs from the head of the chain that
 	* obtain a zero reference count after decrementing*/
+LOCK_IP_BUF();
+
 	while (p != NULL)
 	{
 		u16_t ref;
@@ -822,6 +835,7 @@ u8_t pbuf_free(struct pbuf *p)
 		}
 	}
 	
+UNLOCK_IP_BUF();
 	PERF_STOP("pbuf_free");
 	/* return number of de-allocated pbufs */
 	return count;

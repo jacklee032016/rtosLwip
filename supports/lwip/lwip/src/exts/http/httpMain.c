@@ -442,9 +442,14 @@ static err_t __recvData(ExtHttpConn *ehc, struct tcp_pcb *pcb, struct pbuf *p)
 //	memset(_debugBuf,0 , sizeof(_debugBuf));
 	
 //	pbuf_copy_partial(p, _debugBuf, p->tot_len, 0);
-	EXT_DEBUGF(EXT_DBG_ON, ("recv:'%.*s'" , p->tot_len, (char *)p->payload) );
+	EXT_DEBUGF(EXT_DBG_ON, ("recv:"EXT_NEW_LINE"'%.*s'" EXT_NEW_LINE , p->tot_len, (char *)p->payload) );
 //	CONSOLE_DEBUG_MEM(p->payload, p->tot_len, 0, "RECV HTTP Data");
 #endif
+
+	if(EXT_DEBUG_HTTP_IS_ENABLE())
+	{
+		printf("RECV:"EXT_NEW_LINE"'%.*s'"EXT_NEW_LINE EXT_NEW_LINE, p->tot_len, (char *)p->payload);
+	}
 
 #if LWIP_EXT_HTTPD_TASK
 	if(extHttpPostEvent(ehc, H_EVENT_RECV, p, pcb) == EXIT_FAILURE)
@@ -662,7 +667,11 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 		return ERR_MEM;
 	}
 
-	EXT_DEBUGF(EXT_DBG_OFF,("Accept new connection %s(on PCB %p) from %s:%d", ehc->name, pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );
+//	EXT_DEBUGF(EXT_DBG_OFF,("Accept new connection %s(on PCB %p) from %s:%d", ehc->name, pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );
+	if(EXT_DEBUG_HTTP_IS_ENABLE())
+	{
+		printf("Accept new connection from %s:%d"EXT_NEW_LINE, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port );
+	}
 
 	runCfg->currentHttpConns++;
 	

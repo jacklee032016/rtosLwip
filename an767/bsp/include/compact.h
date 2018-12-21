@@ -230,6 +230,9 @@ typedef    _CODE unsigned char    cBYTE;
 #define	EXT_CMD_UPDATE				"update"	/* need update: enter into bootloader */
 #define	EXT_CMD_CONFIG_FPGA			"cfs"			/* whether configure FPAG or not when MCU reboot */
 
+#define	EXT_CMD_DEBUG_HC				"dhc"
+#define	EXT_CMD_DEBUG_HS				"dhs"
+
 #define	EXT_CMD_DEBUG				"debug"
 
 #define	EXT_CMD_DEBUG_ENABLE		"enable"

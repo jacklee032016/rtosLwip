@@ -157,7 +157,6 @@ static void _rs232Task(void *param)
 }
 
 
-
 int main( void )
 {
 #if (RESET_BTN_MODE == _RESET_BTN_RESTORE_FACTORY)

@@ -218,14 +218,14 @@ const	EXT_CONST_STR	_videoFormats[] =
 
 
 const	EXT_CONST_STR	_videoColorSpaces[] =
-{
+{/* from page 17 of specs SAMPTE ST 2110-20:2017 */
 	{
 		type	: EXT_V_COLORSPACE_YCBCR_422,
-		name	: "YCbCr-422"
+		name	: "YCbCr-4:2:2"
 	},
 	{
 		type	: EXT_V_COLORSPACE_YCBCR_444,
-		name	: "YCbCr-444"
+		name	: "YCbCr-4:4:4"
 	},
 	
 	{
@@ -235,7 +235,7 @@ const	EXT_CONST_STR	_videoColorSpaces[] =
 
 	{
 		type	: EXT_V_COLORSPACE_YCBCR_420,
-		name	: "YCbCr-420"
+		name	: "YCbCr-4:2:0"
 	},
 	{
 		type	: EXT_V_COLORSPACE_XYZ,
@@ -247,16 +247,16 @@ const	EXT_CONST_STR	_videoColorSpaces[] =
 	},
 	{
 		type	: EXT_V_COLORSPACE_CL_YCBCR_422,
-		name	: "CLYCbCr-422"
+		name	: "CLYCbCr-4:2:2"
 	},
 	{
 		type	: EXT_V_COLORSPACE_CL_YCBCR_444,
-		name	: "CLYCbCr-444"
+		name	: "CLYCbCr-4:4:4"
 	},
 
 	{
 		type	: EXT_V_COLORSPACE_CL_YCBCR_420,
-		name	: "CLYCbCr-420"
+		name	: "CLYCbCr-4:2:0"
 	},
 	{
 		type	: EXT_INVALIDATE_STRING_TYPE,

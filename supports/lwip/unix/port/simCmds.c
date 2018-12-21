@@ -93,6 +93,18 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 	},
 
 	{
+		name	: EXT_CMD_DEBUG_HS,
+		helpString: EXT_NEW_LINE EXT_CMD_DEBUG_HS " "EXT_NEW_LINE" Toggle debug status of HTTP server"EXT_NEW_LINE,
+		callback: cmdCmdDebugHttp,
+	},
+
+	{
+		name	: EXT_CMD_DEBUG_HC,
+		helpString: EXT_NEW_LINE EXT_CMD_DEBUG_HC ""EXT_NEW_LINE" Toggle debug status of HTTP client"EXT_NEW_LINE,
+		callback: cmdCmdDebugHttpClient,
+	},
+
+	{
 		name	: EXT_CMD_TX,
 		helpString: EXT_NEW_LINE EXT_CMD_TX " 1|0 "EXT_NEW_LINE" Set as TX or RX mode"EXT_NEW_LINE,
 		callback: cmnCmdTx,

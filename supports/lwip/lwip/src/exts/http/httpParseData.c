@@ -57,7 +57,7 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 
 	else
 	{
-		EXT_INFOF(("Key '%s' and value '%s' is not support now", key,  value));
+//		EXT_INFOF(("Key '%s' and value '%s' is not support now", key,  value));
 	}
 
 

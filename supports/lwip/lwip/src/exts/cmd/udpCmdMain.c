@@ -15,7 +15,11 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 
 	ipCmd->length = ntohs(ipCmd->length);
 	
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+#endif
 	{
 		printf("receive %d (IP CMD->length:%d) bytes ", size, ipCmd->length );
 		printf("'%.*s' \n\r", ipCmd->length-IPCMD_HEADER_LENGTH, ipCmd->data );
@@ -65,7 +69,11 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 		}
 
 #if 0
+#if 1
+		if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 		if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+#endif
 		{
 			printf("output RES2 %p, %d bytes: '%.*s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outIndex -IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH);
 		}
@@ -73,7 +81,11 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 
 	}
 
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD) && parser->outIndex )
+#endif
 	{
 		printf("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
 			parser->status, parser->outIndex,  parser->outIndex -IPCMD_HEADER_LENGTH*2, parser->outBuffer+IPCMD_HEADER_LENGTH, parser->msg );
@@ -155,13 +167,6 @@ static void _udpSysCtrlThread(void *arg)
 
 //				printf("RX %s (%s) packet ", (IP_BADCLASS(buf->toaddr.addr))?"BOARDCAST":"UNICAST", EXT_LWIP_IPADD_TO_STR(&(buf->toaddr.addr)));
 //				printf("from %s : '%s'\n", EXT_LWIP_IPADD_TO_STR(&(buf->addr.addr)), buffer);
-#if 0
-				if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
-				{
-					printf("RX %s (%s) packet ", (IP_BADCLASS(buf->toaddr.addr))?"BOARDCAST":"UNICAST", inet_ntoa(*(ip_addr_t *)&(buf->toaddr)));
-					printf("from %s : '%s'\n", inet_ntoa(*(ip_addr_t *)&(buf->addr)), buffer);
-				}
-#endif
 
 #if 1				
 				extCmdPaserHandler(buffer, buf->p->tot_len);//, &buf->toaddr, buf->port);

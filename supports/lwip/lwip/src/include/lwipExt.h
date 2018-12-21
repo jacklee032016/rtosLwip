@@ -92,6 +92,7 @@ char	 extIgmpGroupMgr(EXT_RUNTIME_CFG *runCfg, unsigned char isAdd);
 void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, ip4_addr_t *gw);
 void extLwipEthHdrDebugPrint(void *ethHdr, const char *prompt);
 
+void extLwipArpDebugPrint(struct pbuf *p, const char *prompt);
 void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt);
 void extLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin);
 
@@ -284,6 +285,12 @@ void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg);
 
 
 err_t extHttpClientNewRequest(HttpClientReq *req);
+
+
+extern sys_mutex_t _ipBufLock;
+
+#define	LOCK_IP_BUF()			sys_mutex_lock(&_ipBufLock)
+#define	UNLOCK_IP_BUF()		sys_mutex_unlock(&_ipBufLock)
 
 
 #endif

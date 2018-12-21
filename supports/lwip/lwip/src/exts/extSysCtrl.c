@@ -413,7 +413,11 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		SETUP_SET_TYPE(_SETUP_TYPE_RS232);
 	}
 
-//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"After configured, Runtime Configuration") );extSysCfgDebugData(&extRun);
+	if(EXT_DEBUG_HTTP_IS_ENABLE() || EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf(EXT_NEW_LINE"After configured, Runtime Configuration:"EXT_NEW_LINE);
+		extSysCfgDebugData(&extRun);
+	}
 	return EXIT_SUCCESS;
 }
 

@@ -21,7 +21,7 @@ static unsigned char _hcEventNewReq(void *arg)
 
 	destIp.addr = req->ip;
 	hc->reqs++;
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("sent #%d new TCP request to %s:%d", hc->reqs, ip4addr_ntoa(&destIp), req->port)) ;
+	
 
 	struct tcp_pcb *pcb;
 	static u16_t localport= EXT_HTTP_CLIENT_PORT;
@@ -36,7 +36,10 @@ static unsigned char _hcEventNewReq(void *arg)
 		localport++;
 	}
 	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ( "#%d request bind on port %d", hc->reqs, localport));
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("\tsent #%d new TCP request to %s:%d from local port %d"EXT_NEW_LINE, hc->reqs, ip4addr_ntoa(&destIp), req->port, localport);
+	}
 	localport++;
 	
 	tcp_arg(pcb, hc);
@@ -51,7 +54,6 @@ static unsigned char _hcEventNewReq(void *arg)
 		return EXT_STATE_CONTINUE;
 	}
 
-TRACE();
  	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN);
 //	hc->reqs++;
 
@@ -158,12 +160,16 @@ static unsigned char _hcEventRecv(void *arg)
 	{
 		reqLen = LWIP_MIN(p->tot_len, sizeof(hc->buf));
 		copied = pbuf_copy_partial(p, hc->buf, reqLen, 0);
-		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": recv %d bytes, copied %d byte", reqLen, copied));
+//		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": recv %d bytes, copied %d byte", reqLen, copied));
 		hc->length = reqLen;
 //		data = hc->buf;
 
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , copied, hc->buf) );
-		CONSOLE_DEBUG_MEM((unsigned char *)hc->buf, copied, 0, "RECV HTTP RES Data");
+//		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , copied, hc->buf) );
+		if(EXT_DEBUG_HC_IS_ENABLE())
+		{
+			printf("\trecv %d bytes data:"EXT_NEW_LINE"'%.*s'"EXT_NEW_LINE, copied, copied, hc->buf);
+//			CONSOLE_DEBUG_MEM((unsigned char *)hc->buf, copied, 0, "RECV HTTP RES Data");
+		}
 	}
 
 	while(p != NULL)
@@ -186,7 +192,6 @@ static unsigned char _hcEventRecv(void *arg)
 #endif
 
 	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("recv %d bytes data:"EXT_NEW_LINE"'%.*s'", hc->length, hc->length, hc->buf));
 
 	/* step 2: parse response type(SDP/REST), and content length */
 	if(hc->contentLength == 0)
@@ -571,7 +576,12 @@ void	httpClientFsmHandle(HcEvent *hce)
 	{
 		if(hce->event == handle->event )
 		{
-			EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d handle event %s in state %s",hc->reqs, CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state)));
+#if HTTP_CLIENT_DEBUG		
+			if(EXT_DEBUG_HC_IS_ENABLE())
+			{
+				printf("\t#%d handle event '%s' in state '%s'"EXT_NEW_LINE,hc->reqs, CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state));
+			}
+#endif			
 			hc->evt = hce;
 
 			newState = (handle->handle)(hc);
@@ -579,8 +589,11 @@ void	httpClientFsmHandle(HcEvent *hce)
 			
 			if(newState!= EXT_STATE_CONTINUE && newState != hc->state )
 			{
-#if EXT_HTTPC_DEBUG
-				EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d request from state %s enter into state %s", hc->reqs, CMN_FIND_HC_STATE(hc->state), CMN_FIND_HC_STATE(newState)));
+#if HTTP_CLIENT_DEBUG		
+				if(EXT_DEBUG_HC_IS_ENABLE())
+				{
+					printf("\t#%d request from state '%s' enter into state '%s'"EXT_NEW_LINE, hc->reqs, CMN_FIND_HC_STATE(hc->state), CMN_FIND_HC_STATE(newState));
+				}
 #endif
 
 				_state = _hcFsmFindState(_fsm, newState);

@@ -438,7 +438,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	char *data = ehc->headers + ehc->headerLength+__HTTP_CRLF_SIZE;
 	char *key, *value, *nextKey;
 	err_t ret, ret2 ;
-	int i = 0;
+//	int i = 0;
 	uint16_t headerLength;
 
 	extSysClearConfig(rxCfg);
@@ -466,15 +466,14 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 		{
 			value[left-(value-key)] = 0;
 		}
-		printf("No#%d: '%s' = '%s'" EXT_NEW_LINE, ++i, key, value );
-
 
 #if 0		
-		if( lwip_strnstr(key+1, EXT_WEB_CFG_FIELD_SDP_VEDIO, (value-key-1)))
+		if(EXT_DEBUG_HC_IS_ENABLE())
 		{
-			snprintf(retVal, size, "%.*s", JSON_TOKEN_LENGTH(valueObj), parser->currentJSonString + valueObj->start);
+			printf("\tNo#%d: '%s' = '%s'" EXT_NEW_LINE, ++i, key, value );
 		}
 #endif
+
 		if(extHttpParseSdpClientData(ehc, rxCfg, key, value) == EXIT_FAILURE)
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "key '%s' : value '%s' wrong", key, value);
@@ -498,7 +497,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	ehc->runCfg->sdpUriAudio.next = NULL;
 	ret2 = extHttpClientNewRequest(&ehc->runCfg->sdpUriAudio);
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
 	ehc->responseHeaderLength = headerLength;
@@ -566,7 +565,11 @@ static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
 		{
 			value[left-(value-key)] = 0;
 		}
-		EXT_DEBUGF(EXT_DBG_ON, ("No#%d: '%s' = '%s'", ++i, key, value ));
+		
+		if(EXT_DEBUG_HTTP_IS_ENABLE())
+		{
+			printf("\tNo#%d: '%s' = '%s'"EXT_NEW_LINE, ++i, key, value);
+		}
 
 
 #if 0		
@@ -899,7 +902,7 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 	
 	while(page->uri )
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("API:'%s' :: REQ:'%s'", page->uri, ehc->uri));
+		EXT_DEBUGF(EXT_DBG_OFF, ("API:'%s' :: REQ:'%s'", page->uri, ehc->uri));
 		if( IS_STRING_EQUAL(page->uri, ehc->uri) || IS_STRING_EQUAL(page->uri+1, ehc->uri)) /* for '/vdeo.sdp' or 'video.sdp' */
 		{
 
@@ -944,11 +947,6 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 			}
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("return value of web page '%s' handler:%d", page->uri, ret) );
 #endif
-
-			if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
-			{
-//				printf("output RES12 %p, %d bytes: '%s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outBuffer);
-			}
 
 			return EXIT_SUCCESS;
 		}

@@ -538,12 +538,6 @@ char extJsonRequestParseCommand(char *jsonRequest, unsigned short size, EXT_JSON
 		goto parseFailed;
 	}
 
-#if 0//def	X86
-	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD) )
-	{
-		extJsonPrint(parser, parser->tokens, JSON_TOKEN_COUNT(parser), 2, LWIP_NEW_LINE"Passed");
-	}
-#endif
 
 	if(extJsonParseMacAddress(parser, EXT_IPCMD_KEY_TARGET, &parser->target) == EXIT_FAILURE)
 	{

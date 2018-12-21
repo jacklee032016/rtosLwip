@@ -45,8 +45,8 @@
 #if 1		
 #define GMAC_INT_GROUP (GMAC_ISR_RCOMP | GMAC_ISR_ROVR | GMAC_ISR_HRESP | GMAC_ISR_TCOMP | GMAC_ISR_TUR | GMAC_ISR_TFC)
 
-//#define GMAC_INT_RECV (GMAC_ISR_RCOMP | GMAC_ISR_ROVR | GMAC_ISR_HRESP )
-#define GMAC_INT_RECV (GMAC_ISR_RCOMP | GMAC_ISR_ROVR  )
+#define GMAC_INT_RECV (GMAC_ISR_RCOMP | GMAC_ISR_ROVR | GMAC_ISR_HRESP )
+//#define GMAC_INT_RECV (GMAC_ISR_RCOMP | GMAC_ISR_ROVR  )
 #else
 #define GMAC_INT_GROUP (GMAC_ISR_RCOMP | GMAC_ISR_ROVR | GMAC_ISR_HRESP )
 #endif
@@ -54,8 +54,8 @@
 #define GMAC_TX_ERRORS (GMAC_TSR_TFC | GMAC_TSR_HRESP)
 
 /** The GMAC RX errors to handle */
-//#define GMAC_RX_ERRORS		(GMAC_RSR_RXOVR | GMAC_RSR_HNO)
-#define GMAC_RX_ERRORS		(GMAC_RSR_RXOVR)
+#define GMAC_RX_ERRORS		(GMAC_RSR_RXOVR | GMAC_RSR_HNO)
+//#define GMAC_RX_ERRORS		(GMAC_RSR_RXOVR)
 
 
 /** TX descriptor lists */
@@ -155,14 +155,14 @@ void GMAC_Handler(void)
 {
 #if EXT_WITH_OS
 	portBASE_TYPE xGMACTaskWoken = pdFALSE;
-	volatile uint32_t ul_isr;
+	volatile uint32_t isrStatus;
 
 	/* Get interrupt status. */
-	ul_isr = gmac_get_interrupt_status(GMAC);
+	isrStatus = gmac_get_interrupt_status(GMAC);
 
 #if MUXLAB_GMAC_TEST
 	/* only for chip debug in ISR */
-	printf("ISR status:0x%x"EXT_NEW_LINE, ul_isr);
+	printf("ISR status:0x%x;"EXT_NEW_LINE, isrStatus);
 	extEtherDebug();
 
 	_extGMacStatus(GMAC);
@@ -172,13 +172,18 @@ void GMAC_Handler(void)
 	_macCtrl.macStats->isrCount++;
 #endif
 	/* RX interrupts. */
-	if((ul_isr & GMAC_INT_RECV) != 0 )
+	if((isrStatus & GMAC_INT_RECV) != 0 )
 	{
-//		printf("ISR RECV ");
-		_macCtrl.macStats->isrRecvCount++;
-		xSemaphoreGiveFromISR(_macCtrl.rxSem, &xGMACTaskWoken);
+		uint32_t rxStatus = gmac_get_rx_status(GMAC);
 		
-		NVIC_DisableIRQ(GMAC_IRQn);
+	//	printf("ISR RECV:0x%lx; RX:0x%lx"EXT_NEW_LINE, isrStatus, rxStatus);
+		if(rxStatus != 0)
+		{/* RX status maybe be 0 even when IRQ status say it received. Dec.20, 2018 */
+			_macCtrl.macStats->isrRecvCount++;
+			xSemaphoreGiveFromISR(_macCtrl.rxSem, &xGMACTaskWoken);
+		
+			NVIC_DisableIRQ(GMAC_IRQn);
+		}
 	}
 	
 #if 0
@@ -536,7 +541,7 @@ static void __reInitRx(struct MAC_CTRL *macDev)
 
 static  err_t _checkRxStatus(struct MAC_CTRL *macDev)
 {
-	uint32_t index = 0;
+//	uint32_t index = 0;
 	uint32_t status = gmac_get_rx_status(macDev->mac);
 
 #if MUXLAB_GMAC_TEST
@@ -593,6 +598,9 @@ static  err_t _checkRxStatus(struct MAC_CTRL *macDev)
 	if((status & (GMAC_RSR_HNO)) != 0)
 	{
 		EXT_INFOF(("MAC HNO: HResp Not OK"));
+		/* test. dec.20, 2018  */
+//		__reInitRx(macDev);
+
 		gmac_clear_rx_status(macDev->mac, GMAC_RSR_HNO);
 		return ERR_ABRT;
 	}
@@ -600,6 +608,9 @@ static  err_t _checkRxStatus(struct MAC_CTRL *macDev)
 	if((status & (GMAC_RSR_BNA)) != 0)
 	{
 		EXT_INFOF(("MAC BNA: Buffer Not Available"));
+		/* test. dec.20, 2018  */
+		__reInitRx(macDev);
+
 		gmac_clear_rx_status(macDev->mac, GMAC_RSR_BNA);
 		return ERR_ABRT;
 	}

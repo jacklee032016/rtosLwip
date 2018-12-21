@@ -61,7 +61,11 @@ char extIpCmdRequestHeaderPrint(EXT_JSON_PARSER  *parser, const char *cmd)
 
 	parser->outIndex = index;
 	
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+#endif
 	{
 		printf("output IP CMD response header %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, data);
 	}
@@ -88,7 +92,11 @@ char extIpCmdResponseHeaderPrint(EXT_JSON_PARSER  *parser )
 
 	parser->outIndex = index;
 	
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+#endif
 	{
 		printf("output IP CMD response header %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, data);
 	}
@@ -178,7 +186,11 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 
 	parser->outIndex += index;
 
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+#endif
 	{
 		printf("output RES %d bytes: '%.*s'"LWIP_NEW_LINE, parser->outIndex, parser->outIndex - IPCMD_HEADER_LENGTH, parser->outBuffer + IPCMD_HEADER_LENGTH);
 	}
@@ -355,7 +367,11 @@ char extJsonHandle(EXT_JSON_PARSER  *parser )
 				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 			}	
 //TRACE();
+#if 1
+			if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 			if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD) && parser->outIndex )
+#endif
 			{
 				printf("output IP CMD RES for cmd %s %p, %d bytes: '%.*s'"LWIP_NEW_LINE, 
 					parser->cmd, (void *)parser, parser->outIndex, parser->outIndex-2*IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH );

@@ -94,8 +94,8 @@ static err_t _httpParseUrl(ExtHttpConn *mhc, unsigned char *data, u16_t data_len
 				mhc->leftData = left - mhc->headerLength - __HTTP_CRLF_SIZE;
 			}
 			
-			EXT_DEBUGF(EXT_DBG_ON, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
-			EXT_DEBUGF(EXT_DBG_ON, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
+			EXT_DEBUGF(EXT_DBG_OFF, ("Headers %d bytes: '%.*s'", mhc->headerLength, mhc->headerLength, mhc->headers) );
+			EXT_DEBUGF(EXT_DBG_OFF, ("Data %d bytes: '%.*s'", mhc->leftData,   mhc->leftData, mhc->headers+mhc->headerLength+__HTTP_CRLF_SIZE)  );
 		}
 		
 		return ERR_OK;
@@ -262,8 +262,14 @@ static err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 	else
 	{
 		ehc->contentLength = contentLength;
+//		EXT_DEBUGF(EXT_DBG_ON, ("Content length:%d\r\n", ehc->contentLength));
 	}
 #endif
+
+	if(EXT_DEBUG_HTTP_IS_ENABLE())
+	{
+		printf("\tURI:'%s'; HeaderLength:%d; ContentLength:%ld"EXT_NEW_LINE EXT_NEW_LINE, ehc->uri, ehc->headerLength, ehc->contentLength);
+	}
 
 	if (HTTP_IS_POST(ehc) )
 	{
@@ -298,6 +304,7 @@ static err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 	ehc->reqType = EXT_HTTP_REQ_T_REST;
 	cmnHttpRestError(ehc, WEB_RES_NOT_FOUND, "URI not exist in server");
 
+//		EXT_DEBUGF(EXT_DBG_ON, ("Content length:%d\r\n", ehc->contentLength));
 	return ERR_OK;
 }
 

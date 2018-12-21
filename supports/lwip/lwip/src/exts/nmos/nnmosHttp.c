@@ -259,7 +259,11 @@ static char _extRestApiHandle(ExtHttpConn *mhc, const ApiAccessPoint *apiAcRoot,
 				if(ret == EXIT_FAILURE)
 				{
 				}	
-				if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+#if 1
+			if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
+			if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
+#endif
 				{
 	//					printf("output RES12 %p, %d bytes: '%s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outBuffer);
 				}

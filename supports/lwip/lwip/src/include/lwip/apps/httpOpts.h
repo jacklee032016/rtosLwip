@@ -83,7 +83,7 @@
  * - reset when pcb->sent is called
  */
 #if !defined MHTTPD_MAX_RETRIES
-#define	MHTTPD_MAX_RETRIES                   6
+#define	MHTTPD_MAX_RETRIES                   3
 #endif
 
 /** The poll delay is X*500ms */

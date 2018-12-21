@@ -89,7 +89,7 @@
 #define	EXT_RW_BUFFER_SIZE				1024
 
 
-#define	EXT_COMMAND_BUFFER_SIZE			1024	/* for output buffer */
+#define	EXT_COMMAND_BUFFER_SIZE			(1024+1024)	/* for output buffer */
 
 #define	EXT_SC_KEY_MAX_LENGTH			32
 #define	EXT_SC_ID_MAX_LENGTH				8
@@ -1083,6 +1083,9 @@ struct	_EXT_RUNTIME_CFG
 
 	/* following fields are only for runtime and not save in NVRAM */
 	unsigned	int			debugOptions;
+
+	unsigned	int			debugHttpClient;
+	unsigned	int			debugHttp;
 	
 	unsigned int			currentTimestamp;	/* ms */
 	char					currentHttpConns;	/* number of current HTTP connection */
@@ -1179,11 +1182,50 @@ extern	EXT_RUNTIME_CFG			extRun;
 				((extRun.debugOptions&(flag)) )
 
 
+#define	EXT_DEBUG_PKTS_ENABLR()		\
+				((extRun.debugOptions != 0) )
+
+
 #define	EXT_DEBUG_SET_DISABLE(_optFlag)	\
 				CFG_CLEAR_FLAGS(extRun.debugOptions, (_optFlag) )
 
 #define	EXT_DEBUG_SET_ENABLE(_optFlag)	\
 				CFG_SET_FLAGS(extRun.debugOptions, (_optFlag) )
+
+
+#define	EXT_DEBUG_PKTS_IS_ENABLE()		\
+				((extRun.debugOptions != 0) )
+
+#define	EXT_DEBUG_PKTS_SET_DISABLE()	\
+				(extRun.debugOptions = 0 )
+
+#define	EXT_DEBUG_PKTS_SET_ENABLE()	\
+				(extRun.debugOptions = 1 )
+
+
+/* debug for HTTP server */
+#define	EXT_DEBUG_HTTP_IS_ENABLE()		\
+				((extRun.debugHttp != 0) )
+
+#define	EXT_DEBUG_HTTP_SET_DISABLE()	\
+				(extRun.debugHttp = 0 )
+
+#define	EXT_DEBUG_HTTP_SET_ENABLE()	\
+				(extRun.debugHttp = 1 )
+
+
+/* debug for HTTP client */
+#define	EXT_DEBUG_HC_IS_ENABLE()		\
+				((extRun.debugHttpClient != 0) )
+
+#define	EXT_DEBUG_HC_SET_DISABLE()	\
+				(extRun.debugHttpClient = 0 )
+
+#define	EXT_DEBUG_HC_SET_ENABLE()	\
+				(extRun.debugHttpClient= 1 )
+
+
+
 
 
 #define	EXT_IS_TX(runCfg)	\

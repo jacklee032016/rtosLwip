@@ -229,6 +229,9 @@ char	extCmdChangeName(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t b
 
 char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
+char cmdCmdDebugHttp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+char cmdCmdDebugHttpClient(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+
 char *extCmnIp4addr_ntoa(uint32_t *ipp);
 void extCmnNewDestIpEffective(EXT_RUNTIME_CFG *runCfg, unsigned int newIp);
 

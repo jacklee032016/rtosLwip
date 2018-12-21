@@ -20,7 +20,11 @@ void extLwipEthHdrDebugPrint(void *ethHdr, const char *prompt)
 
 void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, 	ip4_addr_t *gw)
 {
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(!EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_DHCP) )
+#endif
 	{
 		return;
 	}
@@ -32,6 +36,31 @@ void extLwipDhcpDebug(	ip4_addr_t *ip, ip4_addr_t *mask, 	ip4_addr_t *gw)
 		);
 }
 
+void extLwipArpDebugPrint(struct pbuf *p, const char *prompt)
+{
+	struct etharp_hdr *hdr;
+
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
+	if(!EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_IP_IN|EXT_DEBUG_FLAG_IP_OUT))
+#endif
+	{
+		return;
+	}
+
+	hdr = (struct etharp_hdr *)p->payload;
+
+	printf( "%s ARP '%s(%x)'"LWIP_NEW_LINE, prompt, (lwip_htons(hdr->opcode) ==ARP_REQUEST)?"REQUEST":(lwip_htons(hdr->opcode) ==ARP_REPLY)?"REPLY":"Unknown", lwip_htons(hdr->opcode));
+	printf( "+-------------------------------+" LWIP_NEW_LINE);
+	printf( "|  %3"U16_F"  |  %3"U16_F"  |  %3"U16_F"  |  %3"U16_F"  | (src)" LWIP_NEW_LINE, 
+		ip4_addr1_16((ip4_addr_p_t *)&hdr->sipaddr),ip4_addr2_16((ip4_addr_p_t *)&hdr->sipaddr), ip4_addr3_16((ip4_addr_p_t *)&hdr->sipaddr), ip4_addr4_16((ip4_addr_p_t *)&hdr->sipaddr));
+	printf( "+-------------------------------+" LWIP_NEW_LINE);
+	printf( "|  %3"U16_F"  |  %3"U16_F"  |  %3"U16_F"  |  %3"U16_F"  | (dst)" LWIP_NEW_LINE, 
+		ip4_addr1_16((ip4_addr_p_t *)&hdr->dipaddr),ip4_addr2_16((ip4_addr_p_t *)&hdr->dipaddr), ip4_addr3_16((ip4_addr_p_t *)&hdr->dipaddr), ip4_addr4_16((ip4_addr_p_t *)&hdr->dipaddr));
+	printf( "+-------------------------------+" LWIP_NEW_LINE);
+
+}
 
 void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt)
 {
@@ -39,11 +68,13 @@ void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt)
 	const char *type;
 
 #if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(!EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_IP_IN|EXT_DEBUG_FLAG_IP_OUT))
+#endif
 	{
 		return;
 	}
-#endif
 
 	switch (IPH_PROTO(iphdr))
 	{
@@ -90,7 +121,11 @@ void extLwipIp4DebugPrint(struct pbuf *p, const char *prompt)
 
 void extLwipIgmpDebugPrint(const ip4_addr_t *groupaddr, const char isJoin)
 {
+#if 1
+	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
+#else
 	if(!EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_IGMP) )
+#endif
 	{
 		return;
 	}
@@ -509,9 +544,53 @@ char cmnCmdParams(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t buffer
 	return EXT_FALSE;
 }
 
+char cmdCmdDebugHttp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
+{
+	int index = 0;
+	EXT_ASSERT(("Buffer is null"), outBuffer );
+
+	/* Start with an empty string. */
+	outBuffer[ 0 ] = 0x00;
+	if(EXT_DEBUG_HTTP_IS_ENABLE() )
+	{
+		EXT_DEBUG_HTTP_SET_DISABLE();
+	}
+	else
+	{
+		EXT_DEBUG_HTTP_SET_ENABLE();
+	}
+
+	index += snprintf( outBuffer+index, (bufferLen-index), "HTTP Server debug is %s"EXT_NEW_LINE, (EXT_DEBUG_HTTP_IS_ENABLE())?"Enabled":"Disabled");
+
+	return EXT_FALSE;
+}
+
+char cmdCmdDebugHttpClient(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
+{
+	int index = 0;
+	EXT_ASSERT(("Buffer is null"), outBuffer );
+
+	/* Start with an empty string. */
+	outBuffer[ 0 ] = 0x00;
+	if(EXT_DEBUG_HC_IS_ENABLE() )
+	{
+		EXT_DEBUG_HC_SET_DISABLE();
+	}
+	else
+	{
+		EXT_DEBUG_HC_SET_ENABLE();
+	}
+
+	index += snprintf( outBuffer+index, (bufferLen-index), "HTTP Client debug is %s"EXT_NEW_LINE, (EXT_DEBUG_HC_IS_ENABLE())?"Enabled":"Disabled");
+
+	return EXT_FALSE;
+}
+
+
 
 char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
 {
+#if 0
 	unsigned int debugOption;
 	int index = 0;
 	EXT_ASSERT(("Buffer is null"), outBuffer );
@@ -541,7 +620,24 @@ char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t b
 	{
 		sprintf( outBuffer, "'%s' is not validate debug command"EXT_NEW_LINE,  argv[1]);
 	}
-	
+#else
+	int index = 0;
+	EXT_ASSERT(("Buffer is null"), outBuffer );
+
+	/* Start with an empty string. */
+	outBuffer[ 0 ] = 0x00;
+	if(EXT_DEBUG_PKTS_IS_ENABLE() )
+	{
+		EXT_DEBUG_PKTS_SET_DISABLE();
+	}
+	else
+	{
+		EXT_DEBUG_PKTS_SET_ENABLE();
+	}
+
+	index += snprintf( outBuffer+index, (bufferLen-index), "Traffic debug is %s"EXT_NEW_LINE, (EXT_DEBUG_PKTS_IS_ENABLE())?"Enabled":"Disabled");
+
+#endif
 
 	return EXT_FALSE;
 }

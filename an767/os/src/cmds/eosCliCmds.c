@@ -405,8 +405,21 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 
 	{
 		name	: EXT_CMD_DEBUG,
-		helpString: EXT_NEW_LINE EXT_CMD_DEBUG " "EXT_CMD_DEBUG_ENABLE"|"EXT_CMD_DEBUG_DISABLE" "EXT_NEW_LINE" Enable or Disable debug output"EXT_NEW_LINE,
+//		helpString: EXT_NEW_LINE EXT_CMD_DEBUG " "EXT_CMD_DEBUG_ENABLE"|"EXT_CMD_DEBUG_DISABLE" "EXT_NEW_LINE" Enable or Disable debug output"EXT_NEW_LINE,
+		helpString: EXT_NEW_LINE EXT_CMD_DEBUG " "EXT_NEW_LINE" Toggle debug status of packets"EXT_NEW_LINE,
 		callback: cmdCmdDebuggable,
+	},
+
+	{
+		name	: EXT_CMD_DEBUG_HS,
+		helpString: EXT_NEW_LINE EXT_CMD_DEBUG_HS " "EXT_NEW_LINE" Toggle debug status of HTTP server"EXT_NEW_LINE,
+		callback: cmdCmdDebugHttp,
+	},
+
+	{
+		name	: EXT_CMD_DEBUG_HC,
+		helpString: EXT_NEW_LINE EXT_CMD_DEBUG_HC ""EXT_NEW_LINE" Toggle debug status of HTTP client"EXT_NEW_LINE,
+		callback: cmdCmdDebugHttpClient,
 	},
 
 	{

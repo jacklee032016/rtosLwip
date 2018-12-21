@@ -35,8 +35,13 @@ static char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
 	hce->data = _data;
 	
 	HC_UNLOCK();
-	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("post event %s", CMN_FIND_HC_EVENT(hce->event)) );
+
+#if HTTP_CLIENT_DEBUG		
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("\tpost event '%s'"EXT_NEW_LINE, CMN_FIND_HC_EVENT(hce->event));
+	}
+#endif
 
 	if (sys_mbox_trypost(&_httpClientMailBox, hce) != ERR_OK)
 	{
@@ -93,12 +98,15 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 	{
 		tcp_recved(pcb, p->tot_len);
 
- 		EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d Event RECV : data %d bytes :'%.*s'", hc->reqs, p->tot_len, p->tot_len, (char *)p->payload) );
+// 		EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d Event RECV : data %d bytes :'%.*s'", hc->reqs, p->tot_len, p->tot_len, (char *)p->payload) );
 		_httpClientPostEvent(HC_EVENT_RECV, p);
 	}
 	else if((err == ERR_OK) && (p == NULL))
 	{
-		EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d Event RECV : CONN closed", hc->reqs) );
+		if(EXT_DEBUG_HC_IS_ENABLE())
+		{
+			printf("\t#%d CONN closed by server", hc->reqs);
+		}
 
 		extHttpClientClosePcb(hc, pcb);
 		_httpClientPostEvent(HC_EVENT_CLOSE, NULL);
@@ -123,8 +131,8 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 /* err always ERR_OK. No timeout is implemented now */
 err_t httpClientConnected(void *arg, struct tcp_pcb *pcb, err_t err)
 {
-	HttpClient *hc = (HttpClient *)arg;
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d request connected", hc->reqs));
+//	HttpClient *hc = (HttpClient *)arg;
+//	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d request connected", hc->reqs));
 
 	if(err != ERR_OK)
 	{
@@ -164,7 +172,12 @@ unsigned char httpClientEventConnected(void *arg)
 	tcp_write(hc->pcb, hc->buf, index, TCP_WRITE_FLAG_COPY);
 	tcp_output(hc->pcb);
 
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d send HTTP reqeust "EXT_NEW_LINE"'%.*s'", hc->reqs, index, hc->buf ));
+//	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d send HTTP reqeust "EXT_NEW_LINE"'%.*s'", hc->reqs, index, hc->buf ));
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("#%d send HTTP reqeust "EXT_NEW_LINE"'%.*s'"EXT_NEW_LINE, hc->reqs, index, hc->buf);
+	}
+
 
 	hc->contentLength = 0;
 	return HC_STATE_CONN;
@@ -284,7 +297,7 @@ err_t extHttpClientNewRequest(HttpClientReq *req)
 #if 1
 	if(! HTTP_CLIENT_IS_NOT_REQ(hc))
 	{
-		EXT_INFOF(("#%d is busy on requesting %s:%d/%s, new req on %s will wait", hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri, req->uri ));
+		EXT_DEBUGF(EXT_DBG_OFF, ("#%d is busy on requesting %s:%d/%s, new req on %s will wait", hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri, req->uri ));
 		APPEND_ELEMENT(hc->req, req, HttpClientReq);
 		return ERR_ALREADY;
 	}
@@ -293,7 +306,10 @@ err_t extHttpClientNewRequest(HttpClientReq *req)
 	APPEND_ELEMENT(hc->req, req, HttpClientReq);
 
 	_httpClientPostEvent(HC_EVENT_NEW, req);
-	EXT_INFOF(("#%d requesting %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri));
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("\t#%d requesting %s:%d/%s"EXT_NEW_LINE, hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri);
+	}
 
 
 	return ERR_OK;
@@ -314,7 +330,7 @@ err_t extHttpClientClosePcb(HttpClient *hc, struct tcp_pcb *_pcb)
 	err_t err = tcp_close(pcb);
 	if (err != ERR_OK)
 	{
-		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": Error closing : %d(%s): %p"EXT_NEW_LINE, err, lwip_strerr(err), (void*)pcb));
+//		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": Error closing : %d(%s): %p"EXT_NEW_LINE, err, lwip_strerr(err), (void*)pcb));
 		EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
 		/* error closing, try again later in poll */
 		tcp_poll(pcb, _connPoll,  HTTPC_POLL_INTERVAL);

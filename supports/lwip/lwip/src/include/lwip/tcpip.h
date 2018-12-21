@@ -49,6 +49,7 @@
 extern "C" {
 #endif
 
+
 #if LWIP_TCPIP_CORE_LOCKING
 /** The global semaphore to lock the stack. */
 extern sys_mutex_t lock_tcpip_core;
