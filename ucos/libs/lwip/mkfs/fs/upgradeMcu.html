@@ -1,0 +1,19 @@
+<DIV id="forms">
+<!--
+	<FORM method="post" id="formFirmware" enctype="multipart/form-data">
+-->
+	<FORM method="post" id="formFirmware" enctype="multipart/form-data" action="mcuUpdate" target="dummyframe">
+		<DIV class="title">
+			<H2>Upgrade MCU Firmware</H2>
+		</DIV>
+		<DIV class="fields">
+			<DIV class="field">
+				<LABEL for="fileToUpload">Select MCU File:</LABEL>
+				<INPUT type="file" name="mcuFmUpload" id="mcuFmUpload">
+			</DIV>
+			<DIV class="buttons">
+				<input type="button" value="Submit" class="btnSubmit" onClick="submit_firmware('formFirmware', 'mcuUpdate')" id="btnSubmit" />
+			</DIV>
+		</DIV>
+	</FORM>
+</DIV>
