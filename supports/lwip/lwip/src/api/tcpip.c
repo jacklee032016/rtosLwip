@@ -53,8 +53,9 @@
 #include "lwipExt.h"
 
 
+#if WITH_EXT_PBUF_LOCK
 sys_mutex_t _ipBufLock;
-
+#endif
 
 #define TCPIP_MSG_VAR_REF(name)     API_VAR_REF(name)
 #define TCPIP_MSG_VAR_DECLARE(name) API_VAR_DECLARE(struct tcpip_msg, name)
@@ -491,11 +492,13 @@ void tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 		LWIP_ASSERT(("failed to create tcpip_thread mbox"), 0);
 	}
 
+#if WITH_EXT_PBUF_LOCK
 	if (sys_mutex_new(&_ipBufLock) != ERR_OK)
 	{
 		LWIP_ASSERT(("failed to create IP Buffer Lock"), 0);
 	}
-	
+#endif
+
 #if LWIP_TCPIP_CORE_LOCKING
 	if (sys_mutex_new(&lock_tcpip_core) != ERR_OK)
 	{

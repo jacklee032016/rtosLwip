@@ -354,8 +354,8 @@ do_memp_malloc_pool_fn(const struct memp_desc *desc, const char* file, const int
 	}
 	else
 	{
-		LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, (ANSI_COLOR_RED"memp_malloc: out of memory in pool %s"ERROR_TEXT_END LWIP_NEW_LINE, desc->desc));
-		LWIP_ASSERT(("Out of memory: %s", desc->desc), 0 );
+//		LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, (ANSI_COLOR_RED"memp_malloc: out of memory in pool %s"ERROR_TEXT_END LWIP_NEW_LINE, desc->desc));
+//		LWIP_ASSERT(("Out of memory: %s", desc->desc), 0 );
 #if MEMP_STATS
 		desc->stats->err++;
 #endif

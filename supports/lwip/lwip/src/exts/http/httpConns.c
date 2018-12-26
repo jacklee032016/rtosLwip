@@ -72,7 +72,7 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 
 	EXT_ASSERT(("CONN is null now"), ehc!=NULL);
 	
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Closing connection %s on %p\n", (ehc)?ehc->name:"NULL CONN", (void*)pcb));
+	EXT_DEBUGF(EXT_DBG_ON, ("Closing connection %s on %p\n", (ehc)?ehc->name:"NULL CONN", (void*)pcb));
 
 //	EXT_RUNTIME_CFG *runCfg = NULL;
 	if(ehc->pcb == NULL)
@@ -90,7 +90,7 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 		{
 
 			/* make sure the post code knows that the connection is closed */
-//			extHttpPostDataFinished(mhc);
+			extHttpPostDataFinished(ehc);
 		}
 
 		if( HTTPREQ_IS_WEBSOCKET(ehc) )
@@ -107,10 +107,11 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 		return ERR_OK;
 	}
 
+TRACE();		
 	err = tcp_close(pcb);
 	if (err != ERR_OK)
 	{
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
+//		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
 		EXT_ERRORF( ("Error %d closing %p"EXT_NEW_LINE, err, (void*)pcb));
 		/* error closing, try again later in poll */
 		tcp_poll(pcb, extHttpPoll,  MHTTPD_POLL_INTERVAL);
@@ -130,17 +131,20 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 //			EXT_INFOF( ("TCP connection %s %p set FREE"EXT_NEW_LINE, ehc->name,  (void*)pcb));
 		}
 		ehc->runCfg->currentHttpConns --;
-		
+
+TRACE();		
 		tcp_arg(pcb, NULL);
 		
 		tcp_recv(pcb, NULL);
 		tcp_err(pcb, NULL);
 		tcp_poll(pcb, NULL, 0);
 		tcp_sent(pcb, NULL);
+TRACE();		
 	}
 #if 0	
 #endif
 
+TRACE();		
 	return err;
 }
 

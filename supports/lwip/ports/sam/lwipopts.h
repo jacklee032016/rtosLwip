@@ -42,6 +42,7 @@
  * critical regions during buffer allocation, deallocation and memory
  * allocation and deallocation.
  */
+/* must be enabled because rtos is used. Dec.26, 2018, JL*/ 
 #define SYS_LIGHTWEIGHT_PROT			0
 
 

@@ -69,13 +69,13 @@ to implement this by using a mutex or disabling tasking. This function should
 support recursive calls from the same task or interrupt. In other words,
 sys_arch_protect() could be called while already protected. In that case the
 return value indicates that it is already protected. */
-extern sys_prot_t sys_arch_protect(void);
+//extern sys_prot_t sys_arch_protect(void);
 
 /* This optional function does a "fast" set of critical region protection to the
 value specified by pval. See the documentation for sys_arch_protect() for more
 information. This function is only required if your port is supporting an
 operating system. */
-extern void sys_arch_unprotect(sys_prot_t pval);
+//extern void sys_arch_unprotect(sys_prot_t pval);
 
 
 #endif /* __ARCH_SYS_ARCH_H__ */

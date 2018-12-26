@@ -79,8 +79,6 @@ static void _firmwareUpdateEnd(EXT_RUNTIME_CFG	*runCfg)
 	fclose(runCfg->firmUpdateInfo.fp);
 #endif
 
-	TRACE();
-
 	EXT_DEBUGF(TFTP_DEBUG|EXT_HTTPD_DATA_DEBUG, ("Received %d bytes %s firmware and save to Flash"EXT_NEW_LINE, runCfg->firmUpdateInfo.size, (runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS)?"RTOS":"FPGA"));
 }
 
@@ -115,7 +113,6 @@ static void  _extUploadClose(struct _ExtHttpConn *mhc)
 	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 	
 //	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("File finished:'%s' %d bytes", mhc->filename, runCfg->firmUpdateInfo.size ));
-	EXT_DEBUGF(EXT_DBG_ON, ("File finished:'%s' %d bytes", mhc->filename, runCfg->firmUpdateInfo.size ));
 	printf(EXT_NEW_LINE);fflush(stdout);
 	_firmwareUpdateEnd(runCfg);
 

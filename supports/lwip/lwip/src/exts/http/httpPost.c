@@ -356,8 +356,8 @@ TRACE();
 /* begin to execute on the recevied data of POST request or when conn is closed */
 void extHttpPostDataFinished(ExtHttpConn *ehc)
 {
-//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST request on '%s' ended: '%.*s' bounary:'%s'", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) );
-//	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", mhc->uri, mhc->dataSendIndex, mhc->data, mhc->boundary) ;
+//	EXT_DEBUGF(EXT_DBG_OFF, ("POST request on '%s' ended: '%.*s' bounary:'%s'", ehc->uri, (int)ehc->dataSendIndex, ehc->data, ehc->boundary) );
+//	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", ehc->uri, ehc->dataSendIndex, ehc->data, ehc->boundary) ;
 
 #if LWIP_EXT_NMOS
 	if(HTTPREQ_IS_REST(ehc) )
@@ -374,7 +374,7 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 	}
 #endif
 
-	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD last packet") );
+//	EXT_DEBUGF(EXT_DBG_OFF, ("UPLOAD last packet") );
 
 #if 0
 	if(__findEndingBoundary(ehc) )
@@ -410,7 +410,7 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 
 	ehc->uploadCtx->close(ehc);
 
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("POST upload %d byte from file %s", ehc->runCfg->firmUpdateInfo.size, ehc->filename ) );
+//	EXT_DEBUGF(EXT_DBG_OFF, ("POST upload %d byte from file %s", ehc->runCfg->firmUpdateInfo.size, ehc->filename ) );
 	
 //	ehc->uploadCtx->priv = NULL;
 	ehc->uploadCtx = NULL;

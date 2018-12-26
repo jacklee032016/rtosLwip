@@ -286,12 +286,19 @@ void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg);
 
 err_t extHttpClientNewRequest(HttpClientReq *req);
 
+#define	WITH_EXT_PBUF_LOCK		1
 
+#if WITH_EXT_PBUF_LOCK
 extern sys_mutex_t _ipBufLock;
 
 #define	LOCK_IP_BUF()			sys_mutex_lock(&_ipBufLock)
 #define	UNLOCK_IP_BUF()		sys_mutex_unlock(&_ipBufLock)
+#else
+#define	LOCK_IP_BUF()			
 
+#define	UNLOCK_IP_BUF()		
+
+#endif
 
 #endif
 

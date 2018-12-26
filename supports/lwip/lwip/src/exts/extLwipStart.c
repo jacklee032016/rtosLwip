@@ -24,6 +24,7 @@ extern	const struct tftp_context		extTftp;
 
 EXT_JSON_PARSER  extParser;
 
+static int		_addressRefreshCount = 0;
 
 /*
 * Only involving join or leave one group. IGMP has been initialized in protocol stack
@@ -305,9 +306,9 @@ void extLwipNetStatusCallback(struct netif *netif)
 		ip = netif_ip4_addr(netif);
 		mask = netif_ip4_netmask(netif);
 		gw = netif_ip4_gw(netif);
-		EXT_INFOF(("IP:%"U16_F".%"U16_F".%"U16_F".%"U16_F";"\
+		EXT_INFOF(("#%d IP:%"U16_F".%"U16_F".%"U16_F".%"U16_F";"\
 			" mask:%"U16_F".%"U16_F".%"U16_F".%"U16_F"; "\
-			" gateway:%"U16_F".%"U16_F".%"U16_F".%"U16_F""LWIP_NEW_LINE, 
+			" gateway:%"U16_F".%"U16_F".%"U16_F".%"U16_F""LWIP_NEW_LINE, _addressRefreshCount+1,
 			ip4_addr1_16(ip), ip4_addr2_16(ip), ip4_addr3_16(ip), ip4_addr4_16(ip), 
 			ip4_addr1_16(mask), ip4_addr2_16(mask), ip4_addr3_16(mask), ip4_addr4_16(mask), 
 			ip4_addr1_16(gw), ip4_addr2_16(gw), ip4_addr3_16(gw), ip4_addr4_16(gw) ));
@@ -323,12 +324,16 @@ void extLwipNetStatusCallback(struct netif *netif)
 #endif /* LWIP_NETIF_HOSTNAME */
 
 
+		if(_addressRefreshCount == 0)
+		{
 #ifdef	ARM
-		gmacBMCastEnable(true);
+			gmacBMCastEnable(true);
 
-		gmacEnableWakeOnLan(netif->ip_addr.addr);
+			gmacEnableWakeOnLan(netif->ip_addr.addr);
 #endif		
-		_extStackUp(netif);
+			_extStackUp(netif);
+		}
+		_addressRefreshCount++;
 
 	}
 	else
@@ -344,35 +349,6 @@ void extLwipNetStatusCallback(struct netif *netif)
 
 /** Maximum transfer unit. */
 #define NET_MTU               1500
-
-#if 0
-static void _initTask(void *param)
-{
-	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)param;
-	struct netif *_netif = (struct netif *)runCfg->netif;
-	
-	/* Bring it up */
-	if(EXT_DHCP_IS_ENABLE(runCfg))
-	{
-		/* DHCP mode. */
-		EXT_DEBUGF(EXT_DBG_OFF, ("DHCP Starting ..."EXT_NEW_LINE) );
-		_netif->flags |= NETIF_FLAG_UP;	/* make it up to process DHCP packets. J.L. */
-		if (ERR_OK != dhcp_start(netif))
-		{
-			EXT_ASSERT(("ERR_OK != dhcp_start"), 0);
-		}
-		EXT_INFOF( ("DHCP Start..."EXT_NEW_LINE) );
-	}
-	else
-	{/* Static mode: start up directly */
-		netif_set_up(_netif);
-	}
-
-	EXT_ERRORF(("Init Task exut"));
-	while(1){};
-}
-#endif
-
 
 
 void extLwipStartNic(EXT_RUNTIME_CFG *runCfg)

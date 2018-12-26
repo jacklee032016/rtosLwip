@@ -285,7 +285,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 	{/* ERROR event has been happened, but FSM still handle existed events */
 		return MHTTP_DATA_TO_SEND_BREAK;
 	}
-	
+
 	if( HTTPREQ_IS_REST(mhc) && HTTP_IS_FINISHED(mhc) )
 	{
 		if(_mHttpSendRest(mhc) == EXIT_FAILURE)
@@ -331,11 +331,11 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 	}
 	else if( (HTTPREQ_IS_UPLOAD(mhc) && mhc->uploadStatus >= _UPLOAD_STATUS_COPY) )
 	{
-#if EXT_HTTPD_DEBUG
 #if 1
-		unsigned short len = mhc->dataSendIndex;
+//		EXT_DEBUGF(EXT_DBG_ON, ("send update firmware data (%"U32_F")\"%s\"", mhc->contentLength, mhc->data));
+		unsigned short len = mhc->contentLength - mhc->dataSendIndex;
 		extHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
-		if(len != mhc->dataSendIndex)
+		if(len < (mhc->contentLength - mhc->dataSendIndex) )
 		{
 			ret = MHTTP_DATA_TO_SEND_CONTINUE;
 		}
@@ -357,7 +357,6 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 //				extHttpConnEof(mhc);
 			}
 		}
-#endif		
 #endif		
 		ret = MHTTP_NO_DATA_TO_SEND;
 		mhc->uploadStatus = _UPLOAD_STATUS_END;

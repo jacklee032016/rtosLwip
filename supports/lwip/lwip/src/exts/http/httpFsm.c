@@ -60,18 +60,6 @@ static unsigned char _httpEventRecvInDataState(void *arg)
 	return H_STATE_RESP;
 }
 
-#if 0
-static unsigned char _httpEventPollOfCloseState(void *arg)
-{
-//	u8_t ret;
-	HttpEvent *he = (HttpEvent *)arg;
-	
-//	ExtHttpConn *ehc = (ExtHttpConn *)he->mhc;
-	extHttpConnClose(he->mhc, he->pcb);
-
-	return H_STATE_ERROR;
-}
-#endif
 
 static unsigned char _httpEventPoll(void *arg)
 {
@@ -96,7 +84,7 @@ static unsigned char _httpEventPoll(void *arg)
 #if 1
 			/* test disable count to close */
 			EXT_DEBUGF(EXT_DBG_ON, ("POLL retry : %d to close connection", ehc->retries ));
-			extHttpConnClose(he->mhc, he->pcb);
+//			extHttpConnClose(he->mhc, he->pcb);
 			return H_STATE_CLOSE;
 #endif			
 		}
@@ -158,9 +146,9 @@ static unsigned char _httpEventSend(void *arg)
 /* close action after polling all */
 static unsigned char _httpEventClose(void *arg)
 {
-	HttpEvent *he = (HttpEvent *)arg;
+//	HttpEvent *he = (HttpEvent *)arg;
 
-	extHttpConnClose(he->mhc, he->pcb);
+//	extHttpConnClose(he->mhc, he->pcb);
 
 	return H_STATE_CLOSE;
 }
@@ -190,7 +178,7 @@ static void _httpEnterStateResp(void *arg)
 	HttpEvent *he = (HttpEvent *)arg;
 	if(extHttpSend( he->mhc))
 	{/* If we wrote anything to be sent, go ahead and send it now. */
-		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
+//		EXT_DEBUGF(EXT_DBG_OFF, ("tcp_output"));
 		tcp_output(he->pcb);
 	}
 }
@@ -201,18 +189,6 @@ static void _httpEnterStateClose(void *arg)
 //	HttpEvent *he = (HttpEvent *)arg;
 //	extHttpConnClose(he->mhc, he->pcb);
 }
-
-/* only free resource, not abort or close connection, eg. PCB has been deallocated by TCP  */
-#if 0
-static void _httpEnterStateError(void *arg)
-{
-#if 0
-	HttpEvent *he = (HttpEvent *)arg;
-	
-	extHttpConnClose(he->mhc, he->pcb);
-#endif	
-}
-#endif	
 
 
 const transition_t	_staticPageStateReq[] =
@@ -303,8 +279,7 @@ const transition_t	_httpStateClose[] =
 #endif	
 };
 
-#if 0
-const transition_t	_httpStateError[] =
+const transition_t	_httpStateFree[] =
 {
 #if 0
 	{
@@ -313,7 +288,6 @@ const transition_t	_httpStateError[] =
 	}
 #endif
 };
-#endif
 
 
 const statemachine_t	_staticPageStateMachine[] =
@@ -343,14 +317,13 @@ const statemachine_t	_staticPageStateMachine[] =
 		_httpEnterStateClose
 	},
 
-#if 0	
 	{
-		H_STATE_ERROR,
-		sizeof(_httpStateError)/sizeof(transition_t),
-		_httpStateError,
-		_httpEnterStateError
+		H_STATE_FREE,
+		sizeof(_httpStateFree)/sizeof(transition_t),
+		_httpStateFree,
+		NULL
 	},
-#endif	
+
 	{
 		EXT_STATE_CONTINUE,
 		0,
@@ -400,6 +373,10 @@ void	httpFsmHandle(HttpEvent *he)
 	}
 
 	_state = _httpFsmFindState(_fsm, ehc->state);
+	if(_state == NULL)
+	{
+		return;
+	}
 	
 //	EXT_DEBUGF(EXT_DBG_ON, ("states %p ", _states)) ;
 //	EXT_DEBUGF(EXT_DBG_ON, ("state %d in FSM, current state is %d", _states->state, fsm->currentState)) ;

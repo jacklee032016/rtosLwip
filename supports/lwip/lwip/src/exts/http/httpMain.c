@@ -334,26 +334,27 @@ static err_t __extHttpSent(void *arg, struct tcp_pcb *pcb, u16_t len)
  */
 err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 {
-	ExtHttpConn *mhc = NULL;
+	ExtHttpConn *ehc = NULL;
 
 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: pcb=%p pcb_state=%s", (void*)pcb, tcp_debug_state_str(pcb->state)));
-	mhc = (ExtHttpConn *)arg;
+	ehc = (ExtHttpConn *)arg;
 
 #if LWIP_EXT_HTTPD_TASK
-	if (mhc == NULL)
+	if (ehc == NULL)
 	{
 		tcp_close(pcb);
 	}
 	else
 	{
-		mhc->retries++;
-		if (mhc->retries == MHTTPD_MAX_RETRIES)
+		ehc->retries++;
+		if (ehc->retries == MHTTPD_MAX_RETRIES)
 		{
-			extHttpPostEvent(mhc, H_EVENT_CLOSE, NULL, pcb);
+			extHttpConnClose(ehc, pcb); /* management of PCB is only executed by TCP task */
+			extHttpPostEvent(ehc, H_EVENT_CLOSE, NULL, pcb);
 		}
 		else
 		{
-			extHttpPostEvent(mhc, H_EVENT_POLL, NULL, pcb);
+			extHttpPostEvent(ehc, H_EVENT_POLL, NULL, pcb);
 		}
 
 #if 0
@@ -374,7 +375,7 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 
 #else
 
-	if (mhc == NULL)
+	if (ehc == NULL)
 	{
 		err_t closed;
 		/* arg is null, close. */
@@ -392,21 +393,21 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 	}
 	else
 	{
-		mhc->retries++;
-		if (mhc->retries == MHTTPD_MAX_RETRIES)
+		ehc->retries++;
+		if (ehc->retries == MHTTPD_MAX_RETRIES)
 		{
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: too many retries, close"));
-			extHttpConnClose(mhc, pcb);
+			extHttpConnClose(ehc, pcb);
 			return ERR_OK;
 		}
 
 		/* If this connection has a file open, try to send some more data. If
 		* it has not yet received a GET request, don't do this since it will
 		* cause the connection to close immediately. */
-		if(mhc )//&& (mhc->handle))
+		if(ehc )//&& (mhc->handle))
 		{
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: try to send more data"));
-			if(extHttpSend( mhc))
+			if(extHttpSend( ehc))
 			{/* If we wrote anything to be sent, go ahead and send it now. */
 				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
 				tcp_output(pcb);
@@ -589,7 +590,7 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 	{/* err is not ERR_OK */
 		EXT_ERRORF(("%s Event RECV error: '%s'", (ehc)?ehc->name:"UNKOWN", lwip_strerr(err)));
 #if LWIP_EXT_HTTPD_TASK
-//		extHttpClosePcb(ehc);
+		extHttpConnClose(ehc, pcb); /* management of PCB is only executed by TCP task */
 		extHttpPostEvent( ehc, H_EVENT_CLOSE, p, pcb);
 //		extHttpPostEvent( ehc, H_EVENT_ERROR, p, pcb);
 #else

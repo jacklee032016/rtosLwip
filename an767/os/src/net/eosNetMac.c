@@ -215,7 +215,7 @@ static void _rxPopulateQueue(struct MAC_CTRL *macDev)
 			if (p == NULL)
 			{
 				EXT_DEBUGF(NETIF_DEBUG, ("pbuf allocation failure when populate RX queue"));
-				EXT_ERRORF(("pbuf allocation failure when populate RX queue") );
+//				EXT_ERRORF(("pbuf allocation failure when populate RX queue") );
 #if LWIP_STATS
 				macDev->macStats->rxErrOOM++;
 #endif
@@ -550,7 +550,7 @@ static  err_t _checkRxStatus(struct MAC_CTRL *macDev)
 	/* Handle GMAC overrun or AHB errors. */
 	if( (status & GMAC_RX_ERRORS) != 0)
 	{
-		EXT_ERRORF(("GMAC overrun: RX Status 0x%"PRIx32"", status) );
+//		EXT_ERRORF(("GMAC overrun: RX Status 0x%"PRIx32"", status) );
 #if 1
 		__reInitRx(macDev);
 #else
