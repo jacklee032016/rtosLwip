@@ -973,6 +973,9 @@ typedef	struct
 	/* UDP command from 811 */
 	unsigned char			isConnect;
 
+	unsigned char			reboot;
+	unsigned char			blink;
+
 	/* http connections */
 	uint32_t				connHttpCount;
 	uint32_t				currentHttpConns;
@@ -1086,6 +1089,7 @@ struct	_EXT_RUNTIME_CFG
 
 	unsigned	int			debugHttpClient;
 	unsigned	int			debugHttp;
+	unsigned	int			debugUdpCmd;
 	
 	unsigned int			currentTimestamp;	/* ms */
 	char					currentHttpConns;	/* number of current HTTP connection */
@@ -1201,6 +1205,18 @@ extern	EXT_RUNTIME_CFG			extRun;
 
 #define	EXT_DEBUG_PKTS_SET_ENABLE()	\
 				(extRun.debugOptions = 1 )
+
+
+/* debug for UDP Command  */
+#define	EXT_DEBUG_UDP_CMD_IS_ENABLE()		\
+				((extRun.debugUdpCmd != 0) )
+
+#define	EXT_DEBUG_UDP_CMD_SET_DISABLE()	\
+				(extRun.debugUdpCmd = 0 )
+
+#define	EXT_DEBUG_UDP_CMD_SET_ENABLE()	\
+				(extRun.debugUdpCmd = 1 )
+
 
 
 /* debug for HTTP server */

@@ -335,6 +335,9 @@ void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg)
 	runCfg->bufRead = _readBuffer;
 	runCfg->bufWrite = _writeBuffer;
 	runCfg->bufLength = sizeof(_readBuffer);
+	
+	runCfg->runtime.reboot = 0;
+	runCfg->runtime.blink = 0;
 }
 
 char	*sysTaskName(void)

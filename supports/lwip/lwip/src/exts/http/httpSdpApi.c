@@ -4,6 +4,7 @@
 #include "http.h"
 #include "jsmn.h"
 #include "httpClient.h"
+#include "extUdpCmd.h"
 
 /* section 5 of RFC4566*/
 #define	SDP_VERSION		"0"
@@ -237,7 +238,10 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_GATEWAY"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway)) );
 	
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_DHCP"\":\"%s\",", ((_netif->ip_addr.u_addr.ip4.addr) ==runCfg->local.ip)?"YES":"NO");
-//	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_DHCP"\":\"%s\","EXT_NEW_LINE, ((_netif->ip_addr.addr) ==runCfg->local.ip)?"YES":"NO");
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_IPCMD_DATA_IS_REBOOT"\":%d,"EXT_NEW_LINE, (runCfg->runtime.reboot)?1:0);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_IPCMD_DATA_BLINK"\":%d,"EXT_NEW_LINE, (runCfg->runtime.blink)?1:0);
+
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_DHCP"\":%d,"EXT_NEW_LINE, (!((_netif->ip_addr.addr) ==runCfg->local.ip)) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_MAC"\":\"%02x:%02x:%02x:%02x:%02x:%02x\","EXT_NEW_LINE, 
 		runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5]);

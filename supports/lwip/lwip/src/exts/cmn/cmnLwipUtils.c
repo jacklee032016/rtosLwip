@@ -544,6 +544,28 @@ char cmnCmdParams(const struct _EXT_CLI_CMD *cmd, char *outBuffer, size_t buffer
 	return EXT_FALSE;
 }
 
+char cmdCmdDebugUdpCmd(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
+{
+	int index = 0;
+	EXT_ASSERT(("Buffer is null"), outBuffer );
+
+	/* Start with an empty string. */
+	outBuffer[ 0 ] = 0x00;
+	if(EXT_DEBUG_UDP_CMD_IS_ENABLE() )
+	{
+		EXT_DEBUG_UDP_CMD_SET_DISABLE();
+	}
+	else
+	{
+		EXT_DEBUG_UDP_CMD_SET_ENABLE();
+	}
+
+	index += snprintf( outBuffer+index, (bufferLen-index), "IP CMD debug is %s"EXT_NEW_LINE, (EXT_DEBUG_HTTP_IS_ENABLE())?"Enabled":"Disabled");
+
+	return EXT_FALSE;
+}
+
+
 char cmdCmdDebugHttp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
 {
 	int index = 0;
@@ -629,10 +651,17 @@ char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t b
 	if(EXT_DEBUG_PKTS_IS_ENABLE() )
 	{
 		EXT_DEBUG_PKTS_SET_DISABLE();
+#ifdef ARM
+		extFpgaBlinkPowerLED(EXT_FALSE);
+#endif
+		
 	}
 	else
 	{
 		EXT_DEBUG_PKTS_SET_ENABLE();
+#ifdef ARM
+		extFpgaBlinkPowerLED(EXT_TRUE);
+#endif
 	}
 
 	index += snprintf( outBuffer+index, (bufferLen-index), "Traffic debug is %s"EXT_NEW_LINE, (EXT_DEBUG_PKTS_IS_ENABLE())?"Enabled":"Disabled");

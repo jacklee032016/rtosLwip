@@ -229,6 +229,8 @@ char	extCmdChangeName(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t b
 
 char cmdCmdDebuggable(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 
+char cmdCmdDebugUdpCmd(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+
 char cmdCmdDebugHttp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 char cmdCmdDebugHttpClient(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 

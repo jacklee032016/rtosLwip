@@ -6,6 +6,7 @@
 
 #include "http.h"
 #include "jsmn.h"
+#include "extUdpCmd.h"
 
 
 const char *httpCommonHeader = EXT_HTTP_HDR_S_SERVER EXT_HTTP_HDR_S_CONTENT_TYPE_JSON;
@@ -224,6 +225,11 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_DEPTH, &rxCfg->runtime.aDepth);
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_CHANNEL, &rxCfg->runtime.aChannels);
+
+	extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_IS_REBOOT, &rxCfg->runtime.reboot );
+
+	extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_BLINK, &rxCfg->runtime.blink );
+
 
 	return ERR_OK;
 	

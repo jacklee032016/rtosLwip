@@ -232,6 +232,8 @@ typedef    _CODE unsigned char    cBYTE;
 
 #define	EXT_CMD_DEBUG_HC				"dhc"
 #define	EXT_CMD_DEBUG_HS				"dhs"
+#define	EXT_CMD_DEBUG_IP_CMD			"dip"
+
 
 #define	EXT_CMD_DEBUG				"debug"
 

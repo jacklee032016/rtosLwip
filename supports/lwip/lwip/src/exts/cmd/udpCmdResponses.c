@@ -21,10 +21,10 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size)
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AUDIO_PORT"\":%d,", parser->runCfg->dest.aport );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_AD_PORT"\":%d,", parser->runCfg->dest.dport );
 #if EXT_FPGA_AUX_ON	
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_ST_PORT"\":%d", parser->runCfg->dest.sport );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_ST_PORT"\":%d,", parser->runCfg->dest.sport );
 #endif
 
-	index += snprintf(data+index, size-index, ",\""EXT_IPCMD_DATA_VIDEO_WIDTH"\":%d,", parser->runCfg->runtime.vWidth );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_WIDTH"\":%d,", parser->runCfg->runtime.vWidth );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_HEIGHT"\":%d,", parser->runCfg->runtime.vHeight);
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":%d,", CMN_INT_FIND_NAME_V_FPS(parser->runCfg->runtime.vFrameRate) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_DEPTH"\":%d,", CMN_INT_FIND_NAME_V_DEPTH(parser->runCfg->runtime.vDepth) );
@@ -61,11 +61,7 @@ char extIpCmdRequestHeaderPrint(EXT_JSON_PARSER  *parser, const char *cmd)
 
 	parser->outIndex = index;
 	
-#if 1
-	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
-#else
-	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
-#endif
+	if(!EXT_DEBUG_UDP_CMD_IS_ENABLE() )
 	{
 		printf("output IP CMD response header %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, data);
 	}
@@ -91,15 +87,13 @@ char extIpCmdResponseHeaderPrint(EXT_JSON_PARSER  *parser )
 //	index += snprintf(data+index, size-index, "\""EXT_JSON_KEY_DEBUG"\":\"%s\"}", parser->msg);
 
 	parser->outIndex = index;
-	
-#if 1
-	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
-#else
-	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
-#endif
+
+#if 0	
+	if(!EXT_DEBUG_UDP_CMD_IS_ENABLE() )
 	{
 		printf("output IP CMD response header %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, data);
 	}
+#endif	
 	return EXIT_SUCCESS;
 
 }
@@ -180,17 +174,16 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_PARITY"\":\"%s\",",  CMN_FIND_RS_PARITY((unsigned short)parser->runCfg->rs232Cfg.parityType) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_STOPBITS"\":%d,", parser->runCfg->rs232Cfg.stopbits );
 
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IS_REBOOT"\":%d,", (parser->runCfg->runtime.reboot)?1:0);
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_BLINK"\":%d,", (parser->runCfg->runtime.blink)?1:0);
+
 	index += extIpCmdPrintMediaCfg(parser, data+index, size-index);
 
 	index += snprintf(data+index, size-index, "}]" );
 
 	parser->outIndex += index;
 
-#if 1
-	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
-#else
-	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
-#endif
+	if(EXT_DEBUG_UDP_CMD_IS_ENABLE() )
 	{
 		printf("output RES %d bytes: '%.*s'"LWIP_NEW_LINE, parser->outIndex, parser->outIndex - IPCMD_HEADER_LENGTH, parser->outBuffer + IPCMD_HEADER_LENGTH);
 	}
@@ -366,18 +359,16 @@ char extJsonHandle(EXT_JSON_PARSER  *parser )
 			{
 				parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 			}	
-//TRACE();
-#if 1
-			if(!EXT_DEBUG_PKTS_IS_ENABLE() )
-#else
-			if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD) && parser->outIndex )
-#endif
+
+#if 0
+			if(EXT_DEBUG_PKTS_IS_ENABLE() )
 			{
 				printf("output IP CMD RES for cmd %s %p, %d bytes: '%.*s'"LWIP_NEW_LINE, 
 					parser->cmd, (void *)parser, parser->outIndex, parser->outIndex-2*IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH );
-				EXT_DEBUGF(EXT_IPCMD_DEBUG, ("output IP CMD RES for cmd %s %p, %d bytes: '%.*s'"LWIP_NEW_LINE, 
-					parser->cmd, (void *)parser, parser->outIndex, parser->outIndex-2*IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH ));
+//				EXT_DEBUGF(EXT_IPCMD_DEBUG, ("output IP CMD RES for cmd %s %p, %d bytes: '%.*s'"LWIP_NEW_LINE, 
+//					parser->cmd, (void *)parser, parser->outIndex, parser->outIndex-2*IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH ));
 			}
+#endif
 
 			return ret;
 		}

@@ -64,7 +64,9 @@ typedef struct _cmn_ext_ip_cmd CMN_IP_COMMAND;
 
 #define	EXT_IPCMD_DATA_IS_DIP					"isDipOn"
 #define	EXT_IPCMD_DATA_IS_RESET					"isReset"
-#define	EXT_IPCMD_DATA_IS_REBOOT				"isReboot"
+
+#define	EXT_IPCMD_DATA_IS_REBOOT					"reboot"
+#define	EXT_IPCMD_DATA_BLINK						"blink_led"
 
 #define	EXT_IPCMD_DATA_BACKUP_MC_IP				"bMcIp"		/* backup Mutlicast IP */
 

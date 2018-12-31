@@ -83,6 +83,9 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 
 	FIELD_INVALIDATE_U8(rxCfg->runtime.isConnect);
 
+	FIELD_INVALIDATE_U8(rxCfg->runtime.reboot);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.blink);
+
 	rxCfg->sdpUriVideo.ip = IPADDR_NONE;
 	FIELD_INVALIDATE_U16(rxCfg->sdpUriVideo.port);
 
@@ -411,6 +414,23 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		EXT_DEBUGF(EXT_DBG_ON, ("RS232 params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_RS232);
+	}
+
+	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.blink) && (rxCfg->runtime.blink != runCfg->runtime.blink) ) 
+	{
+		 runCfg->runtime.blink = rxCfg->runtime.blink;
+#ifdef ARM
+		extFpgaBlinkPowerLED(runCfg->runtime.blink);
+#endif
+	}
+
+	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reboot) && (rxCfg->runtime.reboot != runCfg->runtime.reboot) ) 
+	{
+		 runCfg->runtime.reboot = rxCfg->runtime.reboot;
+
+#ifdef ARM
+		extDelayReboot(1000);
+#endif
 	}
 
 	if(EXT_DEBUG_HTTP_IS_ENABLE() || EXT_DEBUG_HC_IS_ENABLE())

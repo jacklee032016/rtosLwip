@@ -14,16 +14,12 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 	unsigned int crcDecoded, crcReceived;
 
 	ipCmd->length = ntohs(ipCmd->length);
-	
-#if 1
-	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
-#else
-	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
-#endif
+
+	if(EXT_DEBUG_UDP_CMD_IS_ENABLE())
 	{
 		printf("receive %d (IP CMD->length:%d) bytes ", size, ipCmd->length );
 		printf("'%.*s' \n\r", ipCmd->length-IPCMD_HEADER_LENGTH, ipCmd->data );
-		CONSOLE_DEBUG_MEM(data, size, 0, "Raw IP CMD");
+//		CONSOLE_DEBUG_MEM(data, size, 0, "Raw IP CMD");
 	}
 
 	if (CMD_TAG_REQUEST != ipCmd->tag)
@@ -69,11 +65,7 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 		}
 
 #if 0
-#if 1
-		if(!EXT_DEBUG_PKTS_IS_ENABLE() )
-#else
-		if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD))
-#endif
+		if(!EXT_DEBUG_UDP_CMD_IS_ENABLE() )
 		{
 			printf("output RES2 %p, %d bytes: '%.*s'"LWIP_NEW_LINE, (void *)parser, parser->outIndex, parser->outIndex -IPCMD_HEADER_LENGTH, parser->outBuffer+IPCMD_HEADER_LENGTH);
 		}
@@ -81,16 +73,12 @@ static char	 extCmdPaserHandler(EXT_JSON_PARSER  *parser, void *data, u16_t size
 
 	}
 
-#if 1
-	if(!EXT_DEBUG_PKTS_IS_ENABLE() )
-#else
-	if(EXT_DEBUG_IS_ENABLE(EXT_DEBUG_FLAG_CMD) && parser->outIndex )
-#endif
+	if(EXT_DEBUG_UDP_CMD_IS_ENABLE() )
 	{
 		printf("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
 			parser->status, parser->outIndex,  parser->outIndex -IPCMD_HEADER_LENGTH*2, parser->outBuffer+IPCMD_HEADER_LENGTH, parser->msg );
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
-			parser->status, parser->outIndex,  parser->outIndex -IPCMD_HEADER_LENGTH*2, parser->outBuffer+IPCMD_HEADER_LENGTH, parser->msg) );
+//		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RES status %d, size %d , response: '%.*s'; message '%s'"LWIP_NEW_LINE, 
+//			parser->status, parser->outIndex,  parser->outIndex -IPCMD_HEADER_LENGTH*2, parser->outBuffer+IPCMD_HEADER_LENGTH, parser->msg) );
 	}
 	return EXIT_SUCCESS;
 

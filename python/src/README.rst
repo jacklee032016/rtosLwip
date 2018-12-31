@@ -2,6 +2,12 @@
 Usage of Python utilites
 =========================
 
+12.31, 2018
+
+./run setParams '{"reboot":1}' 192.168.168.103 -d
+./run setParams '{"blink_led":1}' 192.168.168.103 -d
+
+
 run './run.py'
 
 ::

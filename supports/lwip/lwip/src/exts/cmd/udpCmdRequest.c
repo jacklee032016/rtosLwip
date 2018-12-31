@@ -479,7 +479,21 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 		tmpCfg->runtime.isConnect = intValue;
 	}
 
+
+	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_IS_REBOOT, &_chVal) == EXIT_SUCCESS)
+	{
+		tmpCfg->runtime.reboot = (_chVal == 0)?0:1;
+//		EXT_DEBUGF(EXT_DBG_OFF, ("reboot : %d", tmpCfg->runtime.reboot) );
+		count++;
+	}
 	
+	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_BLINK, &_chVal) == EXIT_SUCCESS)
+	{
+		tmpCfg->runtime.blink = (_chVal == 0)?0:1;
+//		EXT_DEBUGF(EXT_DBG_OFF, ("blink : %d", tmpCfg->runtime.blink) );
+		count++;
+	}
+
 #if 0//def	X86
 	printf("tx:%d;\tMcIpPort:%d\n\r", runCfg->isTx, runCfg->mcPort);
 

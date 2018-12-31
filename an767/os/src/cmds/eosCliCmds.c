@@ -411,6 +411,12 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 	},
 
 	{
+		name	: EXT_CMD_DEBUG_IP_CMD,
+		helpString: EXT_NEW_LINE EXT_CMD_DEBUG_IP_CMD " "EXT_NEW_LINE" Toggle debug status of IP CMD"EXT_NEW_LINE,
+		callback: cmdCmdDebugUdpCmd,
+	},
+
+	{
 		name	: EXT_CMD_DEBUG_HS,
 		helpString: EXT_NEW_LINE EXT_CMD_DEBUG_HS " "EXT_NEW_LINE" Toggle debug status of HTTP server"EXT_NEW_LINE,
 		callback: cmdCmdDebugHttp,
