@@ -417,9 +417,9 @@
                                if ( \
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
-                                   ((s16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
+                                   ((int16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
                                  _TRACE_OUT(message);printf(EXT_NEW_LINE); \
-                                 if ((debug) & LWIP_DBG_HALT) { \
+                                 if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
                                } \
@@ -1145,7 +1145,7 @@ typedef	char (*MuxDelayJob)(void *data);
 /* ##__VA_ARGS__*/
 	
 
-
+void extBcd2Ascii(unsigned char src, char *dest);
 char extSysAtoInt8(const char *str, unsigned char *value);
 char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr);
 

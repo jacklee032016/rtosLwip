@@ -67,6 +67,7 @@ BSP_SRC += \
 	bspConfigCmds.c \
 	bspConsole.c \
 	bspSpiFlash.c \
+	bspSecureChip.c \
 
 
 MODEM_SRC += \

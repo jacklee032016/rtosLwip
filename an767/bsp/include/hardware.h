@@ -145,6 +145,9 @@
 #define	EXT_PIN_FPGA_DONE			PIO_PA2_IDX
 #define	EXT_PIN_PLL_INIT				PIO_PA1_IDX		/* INIT pin of LMH1983 */
 
+#define	EXT_PIN_SECURE_CHIP			PIO_PA25_IDX		/* security chip */
+
+
 #define	PIN_JUMPER_SELECT				AVR32_PIN_PA06
 
 #define	EXT_PIN_POWER_1V_OK			PIO_PA7

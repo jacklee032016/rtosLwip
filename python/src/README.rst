@@ -2,6 +2,17 @@
 Usage of Python utilites
 =========================
 
+Jan.3rd, 2019
+  curl -H "Content-Type: application/json" POST -d '{"sdpVideoIp":"192.168.168.106", "sdpVideoPort":80, "sdpVideoUri":"video/23/45.sdp", \
+    "sdpAudioIp":"192.168.168.101", "sdpAudioPort":8080, "sdpAudioUri":"audio/23/34.sdp",}' http://192.168.168.101/service -i
+
+
+Jan.2nd, 2019
+
+ ./run rs232 11223344 192.168.168.60
+
+
+
 12.31, 2018
 
 ./run setParams '{"reboot":1}' 192.168.168.103 -d

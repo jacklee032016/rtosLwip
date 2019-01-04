@@ -134,7 +134,7 @@ class DeviceIpCmd(IpCommand):
             {
                 "hexdata": data,
                 "isFeedback": 1,
-                "waitTime": 2
+                "waitTime": 1000
             }
         ]
 

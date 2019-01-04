@@ -26,7 +26,7 @@ int extRs232Read(unsigned char *data, unsigned short size)
 		usart_serial_getchar(USART1, (data+i));
 
 #if EXT_RS232_DEBUG
-		printf("%c ", *(data+i));
+		printf("0x%x ", *(data+i));
 #endif
 		if( *(data+i) == '\n' || *(data+i) == '\r' )
 		{
@@ -216,5 +216,6 @@ void extHwRs232Init(EXT_RUNTIME_CFG *runCfg)
 	extHwRs232Config(runCfg);
 
 	extRs232Write((unsigned char *)"RS232 OK", 8);
+
 }
 

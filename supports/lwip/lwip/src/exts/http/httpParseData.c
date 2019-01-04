@@ -49,10 +49,16 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_VEDIO_URI, strlen(key)))
 	{
 		snprintf(tmpCfg->sdpUriVideo.uri, sizeof(tmpCfg->sdpUriVideo.uri), "%s", value);
+//		EXT_DEBUGF(EXT_DBG_ON, ("Before unescape '%s'", tmpCfg->sdpUriVideo.uri));
+		unescape_uri(tmpCfg->sdpUriVideo.uri);
+//		EXT_DEBUGF(EXT_DBG_ON, ("After unescape '%s'", tmpCfg->sdpUriVideo.uri));
 	}
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_AUDIO_URI, strlen(key)))
 	{
 		snprintf(tmpCfg->sdpUriAudio.uri, sizeof(tmpCfg->sdpUriAudio.uri), "%s", value);
+//		EXT_DEBUGF(EXT_DBG_ON, ("Before unescape '%s'", tmpCfg->sdpUriAudio.uri));
+		unescape_uri(tmpCfg->sdpUriAudio.uri);
+//		EXT_DEBUGF(EXT_DBG_ON, ("After unescape '%s'", tmpCfg->sdpUriAudio.uri));
 	}
 
 	else

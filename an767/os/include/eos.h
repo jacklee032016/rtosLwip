@@ -78,6 +78,7 @@ void vApplicationMallocFailedHook( void );
 void vApplicationIdleHook( void );
 void vApplicationTickHook( void );
 
+void rs232TaskStart( uint16_t usStackSize, unsigned long uxPriority );
 
 void vMuxUartCmdConsoleStart( uint16_t usStackSize, unsigned long uxPriority );
 void extBspUartConsoleConfig(void);

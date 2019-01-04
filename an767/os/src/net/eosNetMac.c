@@ -652,8 +652,10 @@ static void __send2IpLayer(struct netif *netif, struct pbuf *p)
 
 			if (netif->input(p, netif) != ERR_OK)
 			{
+#if 0			
 				EXT_ERRORF(("ethernetif_input: IP input error"EXT_NEW_LINE ) );
 				EXT_ASSERT(("TCPIP input"), 0);
+#endif				
 				/* Free buffer. */
 				pbuf_free(p);
 			}

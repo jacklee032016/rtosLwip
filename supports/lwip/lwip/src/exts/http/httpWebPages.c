@@ -631,7 +631,7 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 		EXT_WEBPAGE_MEDIA);
 #endif
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<div data-text=\"dt_productName\" id=\"id_mainProductName\">500767-%s 3G-SDI/ST2110 over IP Uncompressed Extender %s</div></DIV>" , 
+	CMN_SN_PRINTF(dataBuf, size, index, "<div data-text=\"dt_productName\" id=\"id_mainProductName\">500767-%s 3G-SDI/ST2110 over IP Uncompressed Gateway %s</div></DIV>" , 
 		EXT_IS_TX(&extRun)?"TX":"RX", EXT_IS_TX(&extRun)?"TX":"RX"   );
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"nav\"><a id=\"nav_media\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Media</a>", 

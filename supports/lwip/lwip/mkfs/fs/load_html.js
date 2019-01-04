@@ -66,7 +66,8 @@ function submit_firmware(form, url){
 		if (fpgaAuto) data.append(fpgaAuto.id, fpgaAuto.value);
  
 		for (const pair of new FormData(document.getElementById(form))){
-			data.append(pair[0], pair[1]);
+			// data.append(pair[0], pair[1]);
+			data.append(pair[0], decodeURIComponent(pair[1]));
 		}
 	}
 

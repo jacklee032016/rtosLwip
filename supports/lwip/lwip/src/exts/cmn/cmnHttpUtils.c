@@ -160,11 +160,17 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 	/* SDP */
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_IP, &rxCfg->sdpUriVideo.ip);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT, &rxCfg->sdpUriVideo.port );
-	extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_URI, rxCfg->sdpUriVideo.uri, sizeof(rxCfg->sdpUriAudio.uri) );
+	if(extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_URI, rxCfg->sdpUriVideo.uri, sizeof(rxCfg->sdpUriVideo.uri) ) == EXIT_SUCCESS)
+	{
+		unescape_uri(rxCfg->sdpUriVideo.uri);
+	}
 
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_IP, &rxCfg->sdpUriAudio.ip);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT, &rxCfg->sdpUriAudio.port );
-	extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_URI, rxCfg->sdpUriAudio.uri, sizeof(rxCfg->sdpUriAudio.uri) );
+	if(extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_URI, rxCfg->sdpUriAudio.uri, sizeof(rxCfg->sdpUriAudio.uri) ) == EXIT_SUCCESS)
+	{
+		unescape_uri(rxCfg->sdpUriAudio.uri);
+	}
 
 
 	/* dest address of RTP */
@@ -234,5 +240,65 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 	return ERR_OK;
 	
 }
+
+
+#define HEX_TO_DECIMAL(char1, char2)	\
+    (((char1 >= 'A') ? (((char1 & 0xdf) - 'A') + 10) : (char1 - '0')) * 16) + \
+    (((char2 >= 'A') ? (((char2 & 0xdf) - 'A') + 10) : (char2 - '0')))
+
+
+/* Decodes a uri, changing %xx encodings with the actual character.  The query_string should already be gone.
+ * Return values: *  1: success;  0: illegal string
+ */
+int unescape_uri(char *uri)
+{
+	char c, d;
+	char *uri_old;
+
+	uri_old = uri;
+
+	while ((c = *uri_old))
+	{
+		if (c == '%')
+		{
+			uri_old++;
+			if ((c = *uri_old++) && (d = *uri_old++))
+			{
+				*uri = HEX_TO_DECIMAL(c, d);
+				if (*uri < 32 || *uri > 126)
+				{/* control chars in URI */
+					*uri = '\0';
+					return 0;
+				}
+			}
+			else
+			{
+				*uri = '\0';
+				return 0;
+			}
+			++uri;
+		}
+		else if (c == '?')
+		{  /* query string */
+			*uri = '\0';
+			return (1);
+		}
+		else if (c == '#')
+		{  /* fragment */
+			/* legal part of URL, but we do *not* care.
+			* However, we still have to look for the query string */
+			break;
+		}
+		else
+		{
+			*uri++ = c;
+			uri_old++;
+		}
+	}
+
+	*uri = '\0';
+	return 1;
+}
+
 
 

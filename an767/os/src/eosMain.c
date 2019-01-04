@@ -138,6 +138,7 @@ static void _factoryTask(void *param)
 	EXT_ERRORF(("Reset Task error"));
 }
 
+#if 0
 static char _rs232ReadBuf[128];
 
 static void _rs232Task(void *param)
@@ -155,7 +156,7 @@ static void _rs232Task(void *param)
 
 	EXT_ERRORF(("RS232 read Task error"));
 }
-
+#endif
 
 int main( void )
 {
@@ -229,10 +230,12 @@ int main( void )
 #endif
 	sys_thread_new(EXT_TASK_RESET, _factoryTask, NULL, EXT_TASK_LED_STACK_SIZE*4, EXT_TASK_LED_PRIORITY);
 
-	sys_thread_new(EXT_TASK_RS232, _rs232Task, NULL, EXT_TASK_LED_STACK_SIZE*2, EXT_TASK_LED_PRIORITY-1);
+//	sys_thread_new(EXT_TASK_RS232, _rs232Task, NULL, EXT_TASK_LED_STACK_SIZE*2, EXT_TASK_LED_PRIORITY-1);
 	
 	extBspFpgaReload();
 	extBspNetStackInit(&extRun);
+
+	rs232TaskStart(EXT_TASK_CONSOLE_STACK_SIZE, EXT_TASK_CONSOLE_PRIORITY);
 
 	/* console task must start finally to make the command line prompt */
 	vMuxUartCmdConsoleStart(EXT_TASK_CONSOLE_STACK_SIZE, EXT_TASK_CONSOLE_PRIORITY);

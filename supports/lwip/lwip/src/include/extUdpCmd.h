@@ -103,9 +103,11 @@ typedef struct _cmn_ext_ip_cmd CMN_IP_COMMAND;
 #define	EXT_IPCMD_DATA_811_PORT					"811Port"
 
 
-#define	EXT_IPCMD_RS232_DATA_HEX				"hexdata"
-#define	EXT_IPCMD_RS232_FEEDBACK				"isFeedback"
+#define	EXT_IPCMD_RS232_DATA_HEX					"hexdata"
+#define	EXT_IPCMD_RS232_FEEDBACK					"isFeedback"
 #define	EXT_IPCMD_RS232_WAIT_TIME				"waitTime"
+
+#define	EXT_IPCMD_RS232_DATA_FEEDBACK			"feedbackdata"
 
 /* Security Check */
 #define	EXT_IPCMD_SC_GET_ID						"get_id"

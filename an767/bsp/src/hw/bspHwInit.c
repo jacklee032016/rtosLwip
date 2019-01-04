@@ -239,6 +239,8 @@ static void _bspHwSpiConfig(void)
 	bspHwSpiFlashInit();
 }
 
+char bspScReadRomId(void);
+
 void bspHwInit(boot_mode bMode, uint8_t isTx)
 {
 	EXT_RUNTIME_CFG *runCfg = &extRun;
@@ -317,6 +319,8 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 		EXT_INFOF(("Random MAC"EXT_NEW_LINE));
 		bspHwTrngConfig(EXT_TRUE);
 	}
+
+	bspScReadRomId();
 
 #if EXT_DIP_SWITCH_ON
 	if( EXT_IS_MULTICAST(runCfg) && EXT_IS_DIP_ON(runCfg))

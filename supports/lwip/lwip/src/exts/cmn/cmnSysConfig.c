@@ -13,6 +13,14 @@ static unsigned char		_writeBuffer[EXT_RW_BUFFER_SIZE];
 
 EXT_RUNTIME_CFG			extRun;
 
+void extBcd2Ascii(unsigned char src, char *dest)
+{ 
+	static const char outputs[] = "0123456789ABCDEF";
+	
+	*dest++ = outputs[src>>4];
+	*dest++ = outputs[src&0xf];
+	*dest = '\0';
+}
 
 char extSysAtoInt8(const char *str, unsigned char *value)
 {

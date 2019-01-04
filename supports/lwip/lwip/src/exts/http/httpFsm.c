@@ -83,7 +83,7 @@ static unsigned char _httpEventPoll(void *arg)
 
 #if 1
 			/* test disable count to close */
-			EXT_DEBUGF(EXT_DBG_ON, ("POLL retry : %d to close connection", ehc->retries ));
+//			EXT_DEBUGF(EXT_DBG_OFF, ("POLL retry : %d to close connection", ehc->retries ));
 //			extHttpConnClose(he->mhc, he->pcb);
 			return H_STATE_CLOSE;
 #endif			

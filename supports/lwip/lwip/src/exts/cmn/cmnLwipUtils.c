@@ -560,7 +560,7 @@ char cmdCmdDebugUdpCmd(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t 
 		EXT_DEBUG_UDP_CMD_SET_ENABLE();
 	}
 
-	index += snprintf( outBuffer+index, (bufferLen-index), "IP CMD debug is %s"EXT_NEW_LINE, (EXT_DEBUG_HTTP_IS_ENABLE())?"Enabled":"Disabled");
+	index += snprintf( outBuffer+index, (bufferLen-index), "IP CMD debug is %s"EXT_NEW_LINE, (EXT_DEBUG_UDP_CMD_IS_ENABLE())?"Enabled":"Disabled");
 
 	return EXT_FALSE;
 }

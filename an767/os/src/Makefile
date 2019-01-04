@@ -59,6 +59,7 @@ CMDS_SRC += \
 
 
 TASKS_SRC += \
+	tasks/eosTaskRs232.c \
 	tasks/eosTaskConsole.c \
 	tasks/eosTimerJobs.c \
 
@@ -66,11 +67,13 @@ HW_SRC += \
 	hw/eosHwRtk.c \
 	hw/eosHwFpgaDrv.c \
 	hw/eosHwTC.c \
+	hw/eosSecureChip.c \
 
 	
 
 UTILS_SRC += \
 	utils/eosSyscalls.c \
+	utils/sha256.c \
 
 
 SRC += \

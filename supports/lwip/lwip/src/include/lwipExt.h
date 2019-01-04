@@ -300,5 +300,12 @@ extern sys_mutex_t _ipBufLock;
 
 #endif
 
+
+uint32_t rs232StartRead(uint16_t timeout, char *buf);
+void rs232StartRx(void);
+void rs232StopRx(void);
+
+int unescape_uri(char *uri);
+
 #endif
 

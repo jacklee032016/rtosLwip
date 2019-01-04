@@ -34,7 +34,8 @@ static unsigned char _rs232SendHexStr(char *str )
 	int len = strlen(str);
 	int i;
 	unsigned char value;
-	
+
+
 #if EXT_RS232_DEBUG
 	printf("Sent to RS232:"EXT_NEW_LINE);
 #endif
@@ -67,6 +68,10 @@ static unsigned char _rs232SendHexStr(char *str )
 char extIpCmdSendRsData(EXT_JSON_PARSER  *parser)
 {
 	char ret;
+	int index = 0;
+	char *data = NULL;
+	int size = 0;
+
 
 	ret = extIpCmdIsLocal(parser);
 	if(ret == EXIT_FAILURE)
@@ -95,19 +100,61 @@ char extIpCmdSendRsData(EXT_JSON_PARSER  *parser)
 		snprintf(parser->msg, sizeof(parser->msg), "No '%s' is found or it is invalidate value", EXT_IPCMD_RS232_FEEDBACK);
 		goto parseFailed;
 	}
+	
+	if(EXT_DEBUG_UDP_CMD_IS_ENABLE())
+	{
+		printf("RS232 Data: hexdata:'%s'; feedback:%d; waitMs:%d"EXT_NEW_LINE,parser->setupData.hexData, parser->setupData.isFeedBack, parser->setupData.waitMs);
+	}
 
-	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RS Data: hexdata:'%s'; feedback:%d; waitMs:%d",parser->setupData.hexData, parser->setupData.isFeedBack, parser->setupData.waitMs));
+//	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RS Data: hexdata:'%s'; feedback:%d; waitMs:%d",parser->setupData.hexData, parser->setupData.isFeedBack, parser->setupData.waitMs));
 
+	rs232StartRx();
+	
 	if(_rs232SendHexStr(parser->setupData.hexData) == EXIT_FAILURE)
 	{
 		snprintf(parser->msg, sizeof(parser->msg), "'%s' is not validate when sent to RS232", parser->setupData.hexData);
 		goto parseFailed;
 	}
+
+	if(!parser->setupData.isFeedBack )
+	{
+		parser->status = JSON_STATUS_OK;
+		rs232StopRx();
+		return extIpCmdResponseReply(parser);
+	}
+
+	memset(parser->setupData.hexData, 0, HEX_DATA_MAX_LENGTH);
+	size = rs232StartRead(parser->setupData.waitMs, parser->setupData.hexData);
+	if(size <= 0)
+	{
+		parser->status = JSON_STATUS_CMD_EXEC_ERROR;
+		rs232StopRx();
+		return extIpCmdResponseReply(parser);
+	}
+	
+	extIpCmdResponseHeaderPrint( parser);
+	data = parser->outBuffer+IPCMD_HEADER_LENGTH + parser->outIndex;
+	size = parser->outSize - IPCMD_HEADER_LENGTH - parser->outIndex;
+	
+	if(EXT_DEBUG_UDP_CMD_IS_ENABLE())
+	{
+		printf(EXT_IPCMD_RS232_DATA_FEEDBACK": '%s'"EXT_NEW_LINE, parser->setupData.hexData);
+	}
+	
+	index += snprintf(data+index, size-index, ",\""EXT_IPCMD_DATA_ARRAY"\":[{");
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_RS232_DATA_FEEDBACK"\":\"%s\"", parser->setupData.hexData);
+	index += snprintf(data+index, size-index, "}]" );
+
+	parser->outIndex += index;
 	
 	parser->status = JSON_STATUS_OK;
-	return extIpCmdResponseReply(parser);
+	extIpCmdResponseTailCalculate(parser, EXT_FALSE);
+
+	rs232StopRx();
+	return EXIT_SUCCESS;
 	
 parseFailed:
+	rs232StopRx();
 	parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
 	return EXIT_FAILURE;
 }

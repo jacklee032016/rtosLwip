@@ -276,6 +276,7 @@ static unsigned char _hcEventRecv(void *arg)
 		}
 		else
 		{
+			rxCfg->fpgaAuto = EXT_FALSE;	/* SDP parameter write to flash, and configure into registers, so it is manual mode for FPGA. Jan.2nd, 2019 JL */
 			extSysCompareParams(hc->runCfg, rxCfg);
 			extSysConfigCtrl(hc->runCfg, rxCfg);
 		}
