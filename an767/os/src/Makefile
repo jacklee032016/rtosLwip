@@ -67,13 +67,13 @@ HW_SRC += \
 	hw/eosHwRtk.c \
 	hw/eosHwFpgaDrv.c \
 	hw/eosHwTC.c \
-	hw/eosSecureChip.c \
+
+#	hw/eosSecureChip.c \
 
 	
 
 UTILS_SRC += \
 	utils/eosSyscalls.c \
-	utils/sha256.c \
 
 
 SRC += \

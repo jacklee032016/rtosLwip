@@ -35,6 +35,7 @@ CFLAGS += \
 UTILS_SRC += \
 	utils/rwOps.c \
 	utils/sysUtils.c \
+	utils/sha256.c \
 
 
 DRIVERS_SRC += \

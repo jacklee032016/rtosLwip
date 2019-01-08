@@ -363,6 +363,7 @@ typedef	enum
 
 #define	EXT_FPGA_FLAGS_MCU_ENABLE			0x43	/* for other vendors' product, and enable SDP configuration */
 #define	EXT_FPGA_FLAGS_MCU_DISABLE			0x05	/* for muxlab product */
+#define	EXT_FPGA_FLAGS_DISABLE_ALL			0x00	/* disable for TX and RX */
 
 
 #define	EXT_FPGA_REG_POWER_LED				5	/* -- 0 - LED is on, 1 - LED is flashing*/

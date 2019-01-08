@@ -14,16 +14,8 @@
 #include "eos.h"
 
 
-
 #include "sha256_software.h"
 
-/// /home/alex/buildroot/output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc muxds_app_test.c sha256_software.c -o muxds_app_test
-
-#define DS_MAGIC 'D'
-#define SHA256_READ_ROM_ID			_IOWR(DS_MAGIC, 1, unsigned int *)  
-#define SHA256_INIT_CHIP_PRODUCTION	_IOWR(DS_MAGIC, 2, unsigned int *)  
-#define SHA256_READ_CHIP_MEM		_IOWR(DS_MAGIC, 3, unsigned int *)  
-#define SHA256_COMPUTE_READ_MAC		_IOWR(DS_MAGIC, 4, unsigned int *)  
 
 struct SHA256_ds_msg 
 {
@@ -563,6 +555,7 @@ int chip_mac_test(int seed)
 	{	
 		printf(" 0x%02x ", chip_mac[i]);		
 	}
+	
 	if(!Compute_Software_Mac(page_num, page_data, challenge, rom_id, secret, man_id, anon, chip_mac))
 	{
 		printf("MAC compare ERROR!\n");

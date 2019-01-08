@@ -255,6 +255,64 @@ char cmnCmdLwipPing(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buf
 }
 
 
+
+char cmnCmdSecurityChip(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
+{
+	int index = 0;
+	EXT_RUNTIME_CFG *runCfg = &extRun;
+
+	/* Start with an empty string. */
+	outBuffer[ 0 ] = 0x00;
+
+	if(!IS_SECURITY_CHIP_EXIST(runCfg->sc) )
+	{
+		index += snprintf(outBuffer+index, bufferLen-index, "No security chip found in this board"EXT_NEW_LINE);
+	}
+
+	if(argc < 2)
+	{
+		int i;
+		index += snprintf(outBuffer+index, bufferLen-index, "Rom ID: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x"EXT_NEW_LINE,
+			runCfg->sc->romId[0], runCfg->sc->romId[1], runCfg->sc->romId[2], runCfg->sc->romId[3], 
+			runCfg->sc->romId[4], runCfg->sc->romId[5], runCfg->sc->romId[6], runCfg->sc->romId[7] );
+
+		index += snprintf(outBuffer+index, bufferLen-index, "KEY: "EXT_NEW_LINE"\t");
+		for(i = 0; i < 32; i++)
+		{
+			index += snprintf(outBuffer+index, bufferLen-index, "%02x ", runCfg->sc->secret[i]);
+			if(i == 15)
+			{
+				index += snprintf(outBuffer+index, bufferLen-index, ""EXT_NEW_LINE"\t");
+			}
+		}
+		index += snprintf(outBuffer+index, bufferLen-index, ""EXT_NEW_LINE);
+
+		index += snprintf(outBuffer+index, bufferLen-index, "Command '"EXT_CMD_SECURITY_CHIP"' with param of '"EXT_CMD_SECURITY_CLEAR"|"EXT_CMD_SECURITY_LOAD"'" EXT_NEW_LINE);
+		return EXT_FALSE;
+	}
+	
+	if(strcasecmp(argv[1], EXT_CMD_SECURITY_CLEAR) == 0 )
+	{
+		memset(runCfg->sc->readMac, 0xFF, SC_PAGE_SIZE);
+		bspScWriteKey(runCfg->sc, runCfg->sc->readMac);
+		
+		sprintf( outBuffer, "KEY has been cleared from Security Chip"EXT_NEW_LINE);
+	}
+	else if(strcasecmp(argv[1], EXT_CMD_SECURITY_LOAD) == 0 )
+	{
+		bspScWriteKey(runCfg->sc, runCfg->sc->secret );
+		sprintf( outBuffer, "KEY has been loaded into Security Chip"EXT_NEW_LINE);
+	}
+	else //if( ret == 0 )
+	{
+		sprintf( outBuffer, "Command '"EXT_CMD_SECURITY_CHIP"' with param of '"EXT_CMD_SECURITY_CLEAR"|"EXT_CMD_SECURITY_LOAD"'" EXT_NEW_LINE);
+		return EXT_FALSE;
+	}
+	
+	return EXT_FALSE;
+}
+
+
 char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen )
 {
 	int	ret = 0;

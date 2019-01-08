@@ -444,6 +444,14 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 	
 //	_extFpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport, 2);
 
+	if( IS_SECURITY_CHIP_EXIST(runCfg->sc) && bspScCheckMAC(runCfg->sc)== EXIT_FAILURE)
+	{
+		value = EXT_FPGA_FLAGS_DISABLE_ALL;	
+		_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, &value);
+
+		return EXIT_FAILURE;
+	}
+
 	/*configure dest, only for TX */
 	if(EXT_IS_TX(runCfg) )
 	{

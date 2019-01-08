@@ -53,8 +53,10 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#include "trng.h"
+#include "compact.h"
+#include "bsp.h"
 
+#include "trng.h"
 
 /**
  * \brief Enable TRNG.
@@ -136,8 +138,59 @@ uint32_t trng_read_output_data(Trng *p_trng)
 	return p_trng->TRNG_ODATA;
 }
 
-void bspHwTrngConfig(char isEnable)
+
+static char	_rngMode = RNG_MODE_NONE;
+static char  _countTrngIrqs = 0;
+
+void TRNG_Handler(void)
 {
+	uint32_t status;
+
+	status = trng_get_interrupt_status(TRNG);
+
+	if ((status & TRNG_ISR_DATRDY) == TRNG_ISR_DATRDY)
+	{
+		status = trng_read_output_data(TRNG);
+		
+//		printf("-- Random Value: %x --"EXT_NEW_LINE, status);
+
+		if(_rngMode == RNG_MODE_MAC_ADDRESS)
+		{
+			if(_countTrngIrqs == 0)
+			{
+				memcpy(&extRun.local.mac.address[0], &status, 4);
+			}
+			else
+			{
+				memcpy(&extRun.local.mac.address[4], &status, 2); 
+			}
+
+			extRun.local.mac.address[0] = extRun.local.mac.address[0]*0xFE|0x02;	/* set as unicast address and local mac*/
+		}
+		else// if()
+		{
+			memcpy(extRun.sc->challenge + _countTrngIrqs*4, &status, 4); 
+		}
+
+		/* set local address: bit 0 of first address is 0 */
+		
+		_countTrngIrqs++;
+		if(( (_countTrngIrqs == 2) && (_rngMode == RNG_MODE_MAC_ADDRESS)) || 
+			( (_countTrngIrqs == 8) && (_rngMode == RNG_MODE_SC_CHALLENGE) ) )
+		{
+			_countTrngIrqs = 0;
+			bspHwTrngConfig(EXT_FALSE, RNG_MODE_NONE);
+		}
+	}
+}
+
+
+
+void bspHwTrngConfig(char isEnable, char mode)
+{
+	_countTrngIrqs = 0;
+	_rngMode = mode;
+
 	if(isEnable)
 	{
 		/* Configure PMC */
@@ -159,5 +212,18 @@ void bspHwTrngConfig(char isEnable)
 		NVIC_DisableIRQ(TRNG_IRQn);
 		trng_disable_interrupt(TRNG);
 	}
+
+	/* wait TRNG interrupt happens */
+	delay_us(100);
+}
+
+
+void bspHwTrngWait(void)
+{
+	while(_countTrngIrqs)
+	{
+	}
+
+	EXT_DEBUGF(EXT_DBG_ON, ("Random set finished!"));
 }
 

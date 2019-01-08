@@ -22,7 +22,12 @@
 
 #include "trng.h"
 
-void bspHwTrngConfig(char isEnable);
+#define	RNG_MODE_NONE				0
+#define	RNG_MODE_MAC_ADDRESS		1
+#define	RNG_MODE_SC_CHALLENGE		2
+
+void bspHwTrngConfig(char isEnable, char mode);
+void bspHwTrngWait(void);
 
 #endif
 

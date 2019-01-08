@@ -424,8 +424,8 @@ typedef	struct
 	unsigned char		isFeedBack;
 	unsigned short	waitMs;
 
-	char				scKey[EXT_SC_KEY_MAX_LENGTH];
-	char				scID[EXT_SC_ID_MAX_LENGTH];
+	char				scKey[EXT_SC_KEY_MAX_LENGTH +1];
+	char				scID[EXT_SC_ID_MAX_LENGTH+1];
 }MuxSetupData;
 
 typedef struct

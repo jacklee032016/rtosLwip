@@ -16,44 +16,6 @@
 static uint32_t _firstTime = 0;
 
 
-static char  _countTrngIrqs = 0;
-
-void TRNG_Handler(void)
-{
-	uint32_t status;
-
-	status = trng_get_interrupt_status(TRNG);
-
-	if ((status & TRNG_ISR_DATRDY) == TRNG_ISR_DATRDY)
-	{
-		status = trng_read_output_data(TRNG);
-		
-//		printf("-- Random Value: %x --"EXT_NEW_LINE, status);
-
-		if(_countTrngIrqs == 0)
-		{
-			memcpy(&extRun.local.mac.address[0], &status, 4);
-		}
-		else
-		{
-			memcpy(&extRun.local.mac.address[4], &status, 2); 
-		}
-
-		extRun.local.mac.address[0] = extRun.local.mac.address[0]*0xFE|0x02;	/* set as unicast address and local mac*/
-		
-
-		/* set local address: bit 0 of first address is 0 */
-		
-		_countTrngIrqs++;
-		if(_countTrngIrqs ==2)
-		{
-			bspHwTrngConfig(EXT_FALSE);
-		}
-	}
-}
-
-
-
 /**
  *  Handler for Button 1 rising edge interrupt.
  *  Set button1 event flag (g_button_event).
@@ -239,7 +201,7 @@ static void _bspHwSpiConfig(void)
 	bspHwSpiFlashInit();
 }
 
-char bspScReadRomId(void);
+SC_CTRL		scCtrl;
 
 void bspHwInit(boot_mode bMode, uint8_t isTx)
 {
@@ -248,6 +210,9 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 
 	runCfg->bootMode = bMode;
 	runCfg->isTx = isTx;
+
+	runCfg->sc = &scCtrl;
+	memset(runCfg->sc, 0, sizeof(SC_CTRL));
 	
 	sysclk_init();
 
@@ -314,13 +279,14 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 
 	extCfgInitAfterReadFromFlash(runCfg);
 
+	/* init before random MAC to suit requirement of TRNG IRQ */
+	bspScInit(runCfg->sc);
+
 	if( !runCfg->isMacConfiged && bMode == BOOT_MODE_RTOS )
 	{
 		EXT_INFOF(("Random MAC"EXT_NEW_LINE));
-		bspHwTrngConfig(EXT_TRUE);
+		bspHwTrngConfig(EXT_TRUE, RNG_MODE_MAC_ADDRESS);
 	}
-
-	bspScReadRomId();
 
 #if EXT_DIP_SWITCH_ON
 	if( EXT_IS_MULTICAST(runCfg) && EXT_IS_DIP_ON(runCfg))

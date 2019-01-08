@@ -26,11 +26,26 @@
 // sha256_software.c - SHA-256 implemenation in software for Maxim devices.
 //
 
-#include <linux/string.h>
+#include <string.h>
 //#include <memory.h>
 
 //#include "1wire_ds2465.h"
-#include "sha256_software.h"
+//#include "sha256_software.h"
+
+
+#ifndef uchar
+   typedef unsigned char uchar;
+#endif
+
+#ifndef ushort
+   typedef unsigned short ushort;
+#endif
+
+#ifndef ulong
+   typedef unsigned long ulong;
+#endif
+
+
 
 #define SHA_256_INITIAL_LENGTH    8
 
@@ -496,7 +511,7 @@ void sha256_hashblock(uchar* message, ushort lastblock)
 // 'reverse' - reverse order of digest (reverse=1, MSWord first, LSByte first)
 // 'digest'   - result hash digest in byte order used by 1-Wire device
 //
-int ComputeSHA256(uchar* message, short length, ushort skipconst, ushort reverse, uchar* digest)
+int ComputeSHA256(unsigned char *message, short length, unsigned short skipconst, unsigned short reverse, unsigned char *digest)
 {
    ushort bytes_per_block;
    ushort nonpaddedlength;
@@ -605,6 +620,7 @@ int ComputeSHA256(uchar* message, short length, ushort skipconst, ushort reverse
    return TRUE;
 }
 
+#if 0
 //software calculate MAC
 int Compute_Software_Mac(unsigned char page_num, unsigned char *page_data, unsigned char *challenge, unsigned char *rom_id, unsigned char *secret, unsigned char *man_id, unsigned char anon, unsigned char *chip_mac)
 {
@@ -654,4 +670,5 @@ int Compute_Software_Mac(unsigned char page_num, unsigned char *page_data, unsig
 	}
 	return TRUE; 
 }
+#endif
 

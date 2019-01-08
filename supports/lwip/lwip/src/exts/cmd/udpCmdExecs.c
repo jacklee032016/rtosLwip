@@ -165,6 +165,7 @@ static char _securityCheckId(EXT_JSON_PARSER  *parser)
 	int index = 0;
 	char *data = NULL;
 	int size = 0;
+	int i;
 
 	/* get ID here */
 	if(0)
@@ -174,7 +175,11 @@ static char _securityCheckId(EXT_JSON_PARSER  *parser)
 	}
 	else
 	{
-		snprintf(parser->setupData.scID, sizeof(parser->setupData.scID), "%s", "1234567890");
+		memset(parser->setupData.scID, 0, sizeof(parser->setupData.scID));
+		for(i=0; i< SC_ROM_ID_SIZE; i++)
+		{
+			extBcd2Ascii(parser->runCfg->sc->romId[i], parser->setupData.scID+i*2);
+		}	
 	}
 
 	parser->status = JSON_STATUS_OK;
@@ -184,9 +189,7 @@ static char _securityCheckId(EXT_JSON_PARSER  *parser)
 	size = parser->outSize - IPCMD_HEADER_LENGTH - parser->outIndex;
 	
 	index += snprintf(data+index, size-index, ",\""EXT_IPCMD_DATA_ARRAY"\":[{");
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_SC_GET_ID"\":\"%02X%02X%02X%02X%02X%02X%02X%02X\"", 
-		parser->setupData.scID[0], parser->setupData.scID[1], parser->setupData.scID[2], parser->setupData.scID[3], 
-		parser->setupData.scID[4], parser->setupData.scID[5], parser->setupData.scID[6], parser->setupData.scID[7] );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_SC_GET_ID"\":\"%s\"", parser->setupData.scID );
 	index += snprintf(data+index, size-index, "}]" );
 
 	parser->outIndex += index;
@@ -209,17 +212,42 @@ char extIpCmdSecurityCheck(EXT_JSON_PARSER  *parser)
 	if(ret == EXIT_FAILURE)
 		return ret;
 
-TRACE();	
 	if(extJsonParseDataArray(parser) == EXIT_FAILURE)
 	{
 		snprintf(parser->msg, sizeof(parser->msg), "No 'Data' array is found");
 		goto parseFailed;
 	}
 
-TRACE();	
+	if(! IS_SECURITY_CHIP_EXIST(parser->runCfg->sc) )
+	{
+		snprintf(parser->msg, sizeof(parser->msg), "No Security Chip is found in this unit");
+		goto parseFailed;
+	}
+
 	if(extJsonParseString(parser, EXT_IPCMD_SC_SET_KEY, parser->setupData.scKey, sizeof(parser->setupData.scKey)) == EXIT_SUCCESS)
 	{ /* for set_key */
-		if( 1)
+		int i;
+		for(i=0; i< SC_SECRET_SIZE; i++)
+		{
+			ret = extSysAtoInt8(parser->setupData.scKey+i*2, parser->runCfg->sc->readMac+i);
+			if(ret ==  EXIT_FAILURE)
+			{
+				EXT_ERRORF(("'#%d: %.*s' is not an integer", i, 2, parser->setupData.scKey+i*2) );
+				break;
+			}
+
+			if(parser->runCfg->sc->readMac[i] != parser->runCfg->sc->secret[i] )
+			{
+				EXT_ERRORF(("Key #%d %02x != %02x (board)", i, parser->runCfg->sc->readMac[i], parser->runCfg->sc->secret[i]) );
+			}
+		}
+
+		if( ret == EXIT_SUCCESS)
+		{
+			ret = bspScWriteKey(parser->runCfg->sc, parser->runCfg->sc->readMac);
+		}
+
+		if( ret == EXIT_SUCCESS)
 		{
 			parser->status = JSON_STATUS_OK;
 		}
@@ -228,13 +256,15 @@ TRACE();
 			parser->status = JSON_STATUS_CMD_EXEC_ERROR;
 			snprintf(parser->msg, sizeof(parser->msg), "'%s' error on hardware", EXT_IPCMD_SC_GET_STATUS);
 		}
+		
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("'%s' command OK!",EXT_IPCMD_SC_SET_KEY ));
 		return extIpCmdResponseReply(parser);
 	}
 
 	if(extJsonParseString(parser, EXT_IPCMD_SC_GET_STATUS,  parser->setupData.scKey, sizeof(parser->setupData.scKey) )  == EXIT_SUCCESS )
 	{/* for get_status */
-		if( 1)
+		
+		if( bspScCheckMAC(parser->runCfg->sc ) == EXIT_SUCCESS )
 		{
 			parser->status = JSON_STATUS_OK;
 		}
@@ -247,13 +277,14 @@ TRACE();
 		return extIpCmdResponseReply(parser);
 	}
 
-TRACE();	
+TRACE();
 	if(extJsonParseString(parser, EXT_IPCMD_SC_GET_ID, parser->setupData.scKey, sizeof(parser->setupData.scKey) ) == EXIT_FAILURE)
 	{
 		snprintf(parser->msg, sizeof(parser->msg), "No validate sub-command is found for '%s'", EXT_IPCMD_CMD_SECURITY_CHECK);
 		goto parseFailed;
 	}
 
+	/* default, get_id */
 	if( _securityCheckId(parser) == EXIT_FAILURE)
 	{
 		goto parseFailed;

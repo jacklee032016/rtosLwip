@@ -214,6 +214,8 @@ char	extCmdUdpTxPerf(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bu
 
 char cmnCmdTime(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, unsigned int bufferLen);
 
+char cmnCmdSecurityChip(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
+
 char cmnCmdLwipPing(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 char cmnCmdLwipIgmp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen );
 char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
@@ -258,6 +260,12 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams);;
 void wakeResetInIsr(void);
 
 void extJobPeriod(EXT_RUNTIME_CFG *runCfg);
+
+char	bspScInit(SC_CTRL *sc);
+char bspScCheckMAC(SC_CTRL *sc);
+char bspScWriteKey(SC_CTRL *sc, unsigned char *key);	/* key : 32 bytes*/
+
+
 #endif
 
 #endif

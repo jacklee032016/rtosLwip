@@ -91,8 +91,8 @@
 
 #define	EXT_COMMAND_BUFFER_SIZE			(1024+1024)	/* for output buffer */
 
-#define	EXT_SC_KEY_MAX_LENGTH			32
-#define	EXT_SC_ID_MAX_LENGTH				8
+#define	EXT_SC_KEY_MAX_LENGTH			32*2
+#define	EXT_SC_ID_MAX_LENGTH				8*2
 
 #define	EXT_MAGIC_SIZE					2
 
@@ -1013,6 +1013,36 @@ typedef	struct _HttpClientReq
 	struct _HttpClientReq 	*next;
 }HttpClientReq;
 
+/* definitions for security chip */
+#define	SC_ROM_ID_SIZE				8
+#define	SC_PAGE_SIZE				32
+#define	SC_PERSONNAL_SIZE			4
+#define	SC_CHALLENGE_SIZE			32
+
+#define	SC_SECRET_SIZE				32
+
+
+typedef struct
+{
+	unsigned char		romId[SC_ROM_ID_SIZE];	
+	unsigned char		secret[SC_SECRET_SIZE];			
+	unsigned char		challenge[SC_CHALLENGE_SIZE];
+	unsigned char		pageData[SC_PAGE_SIZE];	/* memory page data, 32 byte */
+	unsigned char		manId[2];
+//	unsigned char 	personalityByte[SC_PERSONNAL_SIZE];
+	
+	unsigned char		readMac[SC_PAGE_SIZE]; /* MAC from chip*/
+	unsigned char 	pageNum;/*page number */
+
+	unsigned char		isAnon;	/*anonymous flag. 1--anonymous mode, 0-NOT anonymous mode, using ROM ID */
+
+	unsigned char		isExist;	/* chip exist or not */
+}SC_CTRL;
+
+
+#define	IS_SECURITY_CHIP_EXIST(sc)		\
+	( (sc)->isExist == EXT_TRUE )
+
 
 /* IP address, port number and state are all defined as unsigned type */
 struct	_EXT_RUNTIME_CFG
@@ -1103,6 +1133,8 @@ struct	_EXT_RUNTIME_CFG
 	void					*data;
 
 	void					*netif;
+
+	SC_CTRL				*sc;
 };//__attribute__((packed));
 
 //EXT_PACK_RESET();

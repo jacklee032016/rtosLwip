@@ -312,7 +312,15 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 		helpString: EXT_NEW_LINE EXT_CMD_TIME":"EXT_NEW_LINE" Displays current time"EXT_NEW_LINE,
 		callback: cmnCmdTime,
 	},
-	
+
+#if 1	
+	{
+		name	: EXT_CMD_SECURITY_CHIP,
+		helpString: EXT_NEW_LINE EXT_CMD_SECURITY_CHIP":"EXT_NEW_LINE" Display ROM Id of security chip"EXT_NEW_LINE,
+		callback: cmnCmdSecurityChip,
+	},
+#endif
+
 
 #if LWIP_EXT_UDP_TX_PERF
 	{

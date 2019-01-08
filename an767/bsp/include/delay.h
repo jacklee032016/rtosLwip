@@ -60,6 +60,10 @@ void portable_delay_cycles(unsigned long n);
 #  define cpu_us_2_cy(us, f_cpu)  \
 	(((uint64_t)(us) * (f_cpu) + (uint64_t)(5.932e6 - 1ul)) / (uint64_t)5.932e6)
 
+#  define cpu_ns_2_cy(ns, f_cpu)  \
+	(((uint64_t)(ns) * (f_cpu) + (uint64_t)(5.932e9 - 1ul)) / (uint64_t)5.932e9)
+
+
 #else
 
 #  define cpu_ms_2_cy(ms, f_cpu)  \
@@ -67,12 +71,18 @@ void portable_delay_cycles(unsigned long n);
 #  define cpu_us_2_cy(us, f_cpu)  \
 	(((uint64_t)(us) * (f_cpu) + (uint64_t)(14e6 - 1ul)) / (uint64_t)14e6)
 
+#  define cpu_ns_2_cy(ns, f_cpu)  \
+	(((uint64_t)(ns) * (f_cpu) + (uint64_t)(14e9 - 1ul)) / (uint64_t)14e9)
+
 #endif
 
 #define delay_cycles               portable_delay_cycles
 
 #define cpu_delay_ms(delay, f_cpu) delay_cycles(cpu_ms_2_cy(delay, f_cpu))
 #define cpu_delay_us(delay, f_cpu) delay_cycles(cpu_us_2_cy(delay, f_cpu))
+
+#define cpu_delay_ns(delay, f_cpu)	delay_cycles(cpu_ns_2_cy(delay, f_cpu))
+
 //! @}
 
 /**
@@ -140,6 +150,8 @@ void portable_delay_cycles(unsigned long n);
  * @param delay Delay in microseconds
  */
 #define delay_us(delay)     ((delay) ? cpu_delay_us(delay, F_CPU) : cpu_delay_us(1, F_CPU))
+
+#define delay_ns(delay)     ((delay) ? cpu_delay_ns(delay, F_CPU) : cpu_delay_ns(1, F_CPU))
 
 
 #endif /* _DELAY_H_ */

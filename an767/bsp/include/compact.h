@@ -267,6 +267,12 @@ typedef    _CODE unsigned char    cBYTE;
 
 #define	EXT_CMD_TIME					"time"	/* current time */
 
+#define	EXT_CMD_SECURITY_CHIP		"sc"
+
+#define	EXT_CMD_SECURITY_CLEAR		"clear"
+#define	EXT_CMD_SECURITY_LOAD		"load"
+
+
 #define	EXT_CMD_HEAP					"heap"
 
 #define	EXT_CMD_PING					"ping"

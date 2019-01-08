@@ -5,6 +5,7 @@
 #include "gpio.h"
 #include "pio_handler.h"
 
+int ComputeSHA256(unsigned char *message, short length, unsigned short skipconst, unsigned short reverse, unsigned char *digest);
 
 // delay durations
 #define EEPROM_WRITE_DELAY       10  	//tprd unit:ms
@@ -38,27 +39,18 @@
 #define	SC_INPUT()	\
 		pio_get_pin_value(EXT_PIN_SECURE_CHIP)
 
+#define	SC_STRONG_PULL_UP_ENABLE() \
+			SC_OUTPUT_HIGH()
 
+#define	SC_STRONG_PULL_UP_DISABLE() \
+			SC_SET_INPUT()
+
+
+//delay_us(2); 
 #define	SC_READ_16BIT(value)	\
-	do{	(value) = 0;	 (value) = _bspScReadByte();	\
-	(value) = (value) + (_bspScReadByte() << 8);  }while(1)
+	do{	(value) = 0;	(value) = _bspScReadByte();	\
+	(value) = (value) + (_bspScReadByte() << 8);  (value) = ((~value) & 0xffff); }while(0)
 	
-
-
-typedef struct
-{
-	unsigned char		romId[8];	
-	unsigned char		secret[8];			
-	unsigned char		challenge[32];
-	unsigned char		pageData[32];		//memory page data, 32 byte
-	unsigned char 	personalityByte[4];//
-	unsigned char		readMac[32];		//MAC from chip
-	unsigned char 	pageNum;			//page number
-
-	unsigned char		anonFlag;				//anonymous flag. 1--anonymous mode, 0-NOT anonymous mode
-}SC_CTRL;
-
-SC_CTRL		chip_ds_msg;
 
 static char _bspScReset(void)
 {
@@ -89,17 +81,7 @@ static char _bspScReset(void)
 		}		
 	}
 
-#if 0	
-	iounmap(s_pio_sionr2);
-	iounmap(pio_msk2);
-	iounmap(pio_cfgr2);
-	iounmap(pio_codr2);
-	iounmap(pio_pdsr2);
-	
-	udelay(60);			//trsth min is 48us
-#endif
-
-	delay_us(60);
+	delay_us(60*5);
 
 	return ret;	
 }
@@ -108,27 +90,6 @@ static void _bspScWriteByte(unsigned char data)
 {
 	unsigned char i;
 	unsigned char temp;
-
-#if 0
-	void *s_pio_sionr2;	
-	void *pio_msk2;	
-	void *pio_cfgr2;		
-	void *pio_codr2;		
-	void *pio_pdsr2;
-	
-	s_pio_sionr2 = ioremap(S_PIO_SIONR2, 4);	
-	pio_msk2  = ioremap(PIO_MSKR2, 4);	
-	pio_cfgr2 = ioremap(PIO_CFGR2, 4);	
-	pio_codr2 = ioremap(PIO_CODR2, 4);	
-	pio_pdsr2 = ioremap(PIO_PDSR2, 4);
-	
-	writel_relaxed(0x02000000, s_pio_sionr2);
-	writel_relaxed(0x02000000, pio_msk2);
-	//avoid glitch
-	writel_relaxed(0x02000000, pio_codr2);
-	//to protect the ds critical section
-	spin_lock_irqsave(&ds_lock, ds_spin_flags);
-#endif
 
 	for(i = 0; i < 8; i ++)
 	{
@@ -143,8 +104,10 @@ static void _bspScWriteByte(unsigned char data)
 		//all communication begins with the master start from pulling data line low write 0
 //		writel_relaxed(0x02000000, pio_codr2);
 		SC_OUTPUT_LOW();
+
 		
-		delay_us(1);      	//tW1L 
+//		delay_us(1);      	//tW1L 
+		delay_ns(20);
 	//	ndelay(100);
 		if(temp)
 		{			
@@ -160,15 +123,6 @@ static void _bspScWriteByte(unsigned char data)
 		SC_SET_INPUT();
     }
 
-#if 0	
-	spin_unlock_irqrestore(&ds_lock, ds_spin_flags);			  	
-	iounmap(s_pio_sionr2);
-	iounmap(pio_msk2);
-	iounmap(pio_cfgr2);
-	iounmap(pio_codr2);
-	iounmap(pio_pdsr2);
-#endif
-
 }
 
 static unsigned char _bspScReadByte(void)
@@ -176,30 +130,9 @@ static unsigned char _bspScReadByte(void)
 	unsigned char i, data = 0x0;
 	unsigned int temp;
 
-#if 0	
-	void *s_pio_sionr2;	
-	void *pio_msk2;	
-	void *pio_cfgr2;	
-	void *pio_codr2;		
-	void *pio_pdsr2;
-	
-	s_pio_sionr2 = ioremap(S_PIO_SIONR2, 4);	
-	pio_msk2 = ioremap(PIO_MSKR2, 4);	
-	pio_cfgr2 = ioremap(PIO_CFGR2, 4);	
-	pio_codr2 = ioremap(PIO_CODR2, 4);	
-	pio_pdsr2 = ioremap(PIO_PDSR2, 4);
-	
-	writel_relaxed(0x02000000, s_pio_sionr2);
-	writel_relaxed(0x02000000, pio_msk2);
-	//avoid glitch
-	writel_relaxed(0x02000000, pio_codr2);
-	//to protect the ds critical section
-	spin_lock_irqsave(&ds_lock, ds_spin_flags);
-#endif
-
 	for(i = 0; i < 8; i ++)
 	{			
-		delay_us(6);	//tREC, recovery time between write, 
+		delay_us(6-1);	//tREC, recovery time between write, 
 		//set PC25 as output
 		//init registers for PC25 as output, non security,	
 //		writel_relaxed(0x00000100, pio_cfgr2);
@@ -214,7 +147,8 @@ static unsigned char _bspScReadByte(void)
 //		writel_relaxed(0x00000000, pio_cfgr2);
 		SC_SET_INPUT();
 		
-		delay_us(1);
+//		delay_us(1);
+		delay_ns(10);
 		
 //		temp = readl_relaxed(pio_pdsr2) & 0x02000000;	
 		temp = SC_INPUT();
@@ -223,25 +157,17 @@ static unsigned char _bspScReadByte(void)
 			data |= (0x1 << i);
 		}
 		
-		delay_us(10);//tslot minimum is 13us
+		delay_us(10-1);//tslot minimum is 13us
 	}
-
-#if 0	
-	spin_unlock_irqrestore(&ds_lock, ds_spin_flags);	
-	iounmap(s_pio_sionr2);
-	iounmap(pio_msk2);
-	iounmap(pio_cfgr2);
-	iounmap(pio_codr2);
-	iounmap(pio_pdsr2);	
-#endif
 
 	return data;
 }
 
 //compute rom_id crc8
-int calc_rom_id_crc(int dataByte, int crc)
+static unsigned char __calcCrc8(unsigned char dataByte, unsigned char crc)
 {
-	int bit_mask = 0, carry_check = 0, temp_data = 0;
+	int bit_mask = 0;
+	unsigned char carry_check = 0, temp_data = 0;
 	temp_data = dataByte;
 	
 	for ( bit_mask = 0; bit_mask <= 7; bit_mask ++)
@@ -263,14 +189,12 @@ int calc_rom_id_crc(int dataByte, int crc)
 }
 
 
-char bspScReadRomId(void)
+static char _bspScReadRomId(SC_CTRL *sc)
 {
 	int ret, i;
-	int crc_tmp, data_byte;
-	unsigned char rom_id[8];
+	unsigned char crc_tmp;
 	
-	TRACE();
-	memset(rom_id, 0, sizeof(rom_id));
+	memset(sc->romId, 0, sizeof(sc->romId));
 	
 	ret = _bspScReset();
 	if(ret == EXIT_FAILURE)				
@@ -282,25 +206,23 @@ char bspScReadRomId(void)
 	_bspScWriteByte(SC_CMD_READ_ROM);	
 	for(i = 0; i < 8; i++)
 	{
-		rom_id[i] = _bspScReadByte();
+		sc->romId[i] = _bspScReadByte();
 	}
-	EXT_DEBUGF(EXT_DBG_ON, ("Rom ID: 0x%2x:0x%2x:0x%2x:0x%2x:0x%2x:0x%2x:0x%2x:0x%2x:",
-		rom_id[0],rom_id[1],rom_id[2],rom_id[3],rom_id[4],rom_id[5],rom_id[6],rom_id[7] ));
 	
 	crc_tmp = 0;
 	for(i = 0; i < 7; i++)
 	{
-		data_byte = rom_id[i];	
-		crc_tmp = calc_rom_id_crc(data_byte, crc_tmp);
+		crc_tmp = __calcCrc8(sc->romId[i], crc_tmp);
 	}
 	
-	if((crc_tmp == rom_id[7]) && (rom_id[0] == 0x17))//check device family code 0x17 for DS28E15
+	if((crc_tmp == sc->romId[7]) && (sc->romId[0] == 0x17))//check device family code 0x17 for DS28E15
 	{
 		return EXIT_SUCCESS;
 	}	
 	else
 	{
-		EXT_ERRORF(("Read security chip rom ID error!"));
+		EXT_ERRORF(("Read security chip rom ID error CRC:%02x: "EXT_NEW_LINE"\t'%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+			crc_tmp, sc->romId[0],sc->romId[1],sc->romId[2],sc->romId[3],sc->romId[4],sc->romId[5],sc->romId[6],sc->romId[7]) );
 		return EXIT_FAILURE;
 	}
 }
@@ -308,10 +230,8 @@ char bspScReadRomId(void)
 
 static unsigned short CRC16;
 
-//--------------------------------------------------------------------------
 // Calculate a new CRC16 from the input data shorteger.  Return the current
 // CRC16 and also update the global variable CRC16.
-//
 static short oddparity[16] = { 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 };
 
 static unsigned short docrc16(unsigned short data)
@@ -331,21 +251,19 @@ static unsigned short docrc16(unsigned short data)
 }
 
 
-/*
-* Write the 256 bit(32 byte) data to scratchpad with CRC16 verification for DS28E15.  
-* 'data'- data to write
-* Return: 1 - write to scratch verified; 0 - error writing scratch
-*/
-static int write_scratch_pad(unsigned char *data)
+/* Write the 256 bit(32 byte) data to scratchpad with CRC16 verification for DS28E15 */
+static char __bspWriteScratchPad(unsigned char *data)
 {
 	int i;
-	unsigned short read_crc;	
+	unsigned short read_crc;
+	unsigned short cmd = SC_CMD_READ_WRITE_SCRATCHPAD;
 
 	CRC16 = 0;
 	//CMD code
-	docrc16(SC_CMD_READ_WRITE_SCRATCHPAD);
+	docrc16(cmd);
 	////PB--parameter byte bitmap, BIT3-0:0000 write, 1111 read
-	docrc16(0x0);
+	cmd = 0x0;
+	docrc16(cmd);
 	
 	_bspScReset();
 	
@@ -356,12 +274,12 @@ static int write_scratch_pad(unsigned char *data)
 	
 	//first crc	
 	SC_READ_16BIT(read_crc);
-		
-	if( CRC16 != ( (~read_crc) & 0xffff ) )
+	if( CRC16 != read_crc )
 	{
-		EXT_ERRORF(("SC: write_scratch first CRC error!"));
+		EXT_ERRORF(("SC: write_scratch first CRC error! %04x != %04x", CRC16,  read_crc) );
 		return EXIT_FAILURE;
-	}		
+	}
+	EXT_DEBUGF(EXT_DBG_ON, ("WriteScratch CMD CRC: %04x:%04x", CRC16, read_crc));
 		
 	//data			
 	for(i = 0; i < 32; i++ )
@@ -370,23 +288,23 @@ static int write_scratch_pad(unsigned char *data)
 	}
 	
 	SC_READ_16BIT(read_crc);
-
+	
 	CRC16 = 0;		
 	for(i = 0; i < 32; i++ )
 	{
 		docrc16(data[i]);		
 	}
 	
-	if( CRC16 != ( (~read_crc) & 0xffff ) )	
+	if( CRC16 != read_crc )	
 	{
-		EXT_ERRORF(("SC: write_scratch second CRC error!"));
+		EXT_ERRORF(("SC: write_scratch second CRC error : %04x !=%04x !", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}
+	EXT_DEBUGF(EXT_DBG_ON, ("WriteScratch Data CRC: %04x:%04x", CRC16, read_crc));
 	
 	return EXIT_SUCCESS;
 }
 
-//----------------------------------------------------------------------
 // Read the 256 bit(32 byte) data from scratchpad with CRC16 verification for DS28E15.  
 // 'data'- data from scratchpad
 //
@@ -449,45 +367,54 @@ static int read_scratch_pad(unsigned char *data)
 // 
 //  Parameters
 //     page - page number, 0 or 1
-//	   seg_num seg number, 0 to 7
+//	  seg_num seg number, 0 to 7
 //     data - 4 byte buffer containing the data to write, B0 B1 B2 B3
 //
 //  Returns: TRUE - block written
 //           FALSE - Failed to write block (no presence or invalid CRC16)
 */
-char write_block(unsigned char page, unsigned char seg_num, unsigned char *data)
+static char _writeBlock(unsigned char page, unsigned char seg_num, unsigned char *data)
 {
 	int i;
 	unsigned short read_crc;
+	unsigned short cmd = SC_CMD_WRITE_MEMORY;
 	unsigned char PB;
 
 	if(page >= 2)
+	{
 		return EXIT_FAILURE;
+	}
 	if(seg_num > 7)
+	{
 		return EXIT_FAILURE;
+	}
 	
 	PB = ((seg_num & 0x7) << 5) + (page & 0x1);
+	
 	CRC16 = 0;
 	//CMD code
-	docrc16(SC_CMD_WRITE_MEMORY);
+	docrc16(cmd);
 	////PB--parameter byte bitmap, seg 0, page 0
-	docrc16(PB);	//get first CRC 
-	
+	cmd = PB;
+	docrc16(cmd);	//get first CRC 
+
 	_bspScReset();
+	
 	//SKIP_ROM
-	_bspScWriteByte(SC_CMD_ROM_SKIP);	
-	_bspScWriteByte(SC_CMD_WRITE_MEMORY);		
+	_bspScWriteByte(SC_CMD_ROM_SKIP);
+	_bspScWriteByte(SC_CMD_WRITE_MEMORY);
 	_bspScWriteByte(PB);	
 	
 	//first crc	
 	SC_READ_16BIT(read_crc);
-		
-	if(CRC16 != ((~read_crc) & 0xffff))
+	if(CRC16 != read_crc )
 	{
-		EXT_ERRORF(("SC: write_block first CRC error! page = %d, block = %d", page, seg_num));
+		EXT_ERRORF(("SC: write block first CRC error %04x != %04x on page#%d, block#%d", CRC16, read_crc, page, seg_num));
 		return EXIT_FAILURE;
-	}		
-		
+	}
+
+	EXT_DEBUGF(EXT_DBG_ON, ("WriteBlock CMD CRC: %04x:%04x on Page#%d, block#%d", CRC16, read_crc, page, seg_num ));
+
 	//write 4 byte data
 	for(i = 0; i < 4; i++)
 	{
@@ -503,41 +430,53 @@ char write_block(unsigned char page, unsigned char seg_num, unsigned char *data)
 		docrc16(data[i]);
 	}
 	
-	if(CRC16 != ((~read_crc) & 0xffff))
+	if(CRC16 != read_crc )
 	{
-		EXT_ERRORF(("SC: write_block second CRC error! page = %d, block = %d", page, seg_num) );
+		EXT_ERRORF(("SC: write_block second CRC error %04x != %04x on page#%d, block#%d", CRC16, read_crc, page, seg_num) );
 		return EXIT_FAILURE;
 	}
+	EXT_DEBUGF(EXT_DBG_ON, ("WriteBlock Data CRC: %04x:%04x on Page#%d, block#%d", CRC16, read_crc, page, seg_num ));
 	
 	//send release
 	_bspScWriteByte(0xAA);
 	
 	//strong pull up
-	enable_ds_pull_up();
-	delay_ms(EEPROM_WRITE_DELAY);	
-	disable_ds_pull_up();
+//	enable_ds_pull_up();
+	SC_STRONG_PULL_UP_ENABLE();
+	delay_ms(EEPROM_WRITE_DELAY);
+	SC_STRONG_PULL_UP_DISABLE();
+//	disable_ds_pull_up();
 	
-	read_crc = _bspScReadByte();	
-	if(read_crc != 0xAA)
+	PB = _bspScReadByte();	
+	if(PB != 0xAA)
 	{
-		EXT_ERRORF(("SC: write_block CS error!"));
-		return EXIT_FAILURE;	
+//		read_crc = _bspScReadByte();	
+//		if(read_crc != 0xAA)
+		{
+			EXT_ERRORF(("SC: write_block CS error: %02x on page#%d, block#%d", PB, page, seg_num));
+			return EXIT_FAILURE;	
+		}
 	}
 
 	return EXIT_SUCCESS;
 }
 
 //write 32 bytes to one page
-char write_page(unsigned char page_num, unsigned char *data)
+static char _bspScWritePage(unsigned char page_num, unsigned char *data)
 {
 	unsigned char block_data[4];
 	int i;
+/*	
+	_bspScReset();
+	delay_us(55);
+	_bspScReset();
+*/	
 	for(i = 0; i < 8; i++)
 	{
 		memcpy(block_data, &data[i*4], 4);
-		if(write_block(page_num, i, block_data) == EXIT_FAILURE)
+		if(_writeBlock(page_num, i, block_data) == EXIT_FAILURE)
 		{
-			EXT_ERRORF(("SC: Write page %d, block %d error!", page_num, i));
+//			EXT_ERRORF(("SC: Write page %d, block %d error!", page_num, i));
 			return EXIT_FAILURE;
 		}
 	}
@@ -545,15 +484,18 @@ char write_page(unsigned char page_num, unsigned char *data)
 	return EXIT_SUCCESS;
 }
 
+#if 0
 //read one page data, from seg0 to seg7, B0 to B3
-int read_page(unsigned char page_num, unsigned char *data)
+int bspScReadPage(unsigned char page_num, unsigned char *data)
 {
 	int i;
 	unsigned short read_crc;
 	unsigned char PB;
 	
 	if(page_num > 1)
+	{
 		return EXIT_FAILURE;
+	}
 
 	PB = page_num & 0x1;
 	
@@ -571,7 +513,6 @@ int read_page(unsigned char page_num, unsigned char *data)
 	
 	//first crc	
 	SC_READ_16BIT(read_crc);
-		
 	if(CRC16 != ((~read_crc) & 0xffff))
 	{
 		EXT_ERRORF(("SC: read_page first CRC error!"));
@@ -586,7 +527,6 @@ int read_page(unsigned char page_num, unsigned char *data)
 	
 	//second crc
 	SC_READ_16BIT(read_crc);
-	
 	CRC16 = 0;
 	for(i = 0; i < 32; i++)
 	{
@@ -594,24 +534,26 @@ int read_page(unsigned char page_num, unsigned char *data)
 	}
 	if(CRC16 != ((~read_crc) & 0xffff))
 	{
-		EXT_ERRORF(("read_page second CRC error!"));
+		EXT_ERRORF(("SC: read_page second CRC error!"));
 		return EXIT_FAILURE;
 	}
 	
 	return EXIT_SUCCESS;
 }
+#endif
 
-
-static int read_status_personality(unsigned char *status)
+static char read_status_personality(unsigned char *status)
 {
 	int i;
 	unsigned short read_crc;
+	unsigned short cmd = SC_CMD_READ_STATUS;
 	
 	CRC16 = 0;
 	//CMD code
-	docrc16(SC_CMD_READ_STATUS);
+	docrc16(cmd);
 	////PB--parameter byte bitmap, read personality 4 bytes
-	docrc16(0xE0);	
+	cmd = 0xE0;
+	docrc16(cmd);	
 	
 	_bspScReset();
 	//SKIP_ROM
@@ -622,11 +564,12 @@ static int read_status_personality(unsigned char *status)
 	//first crc	
 	SC_READ_16BIT(read_crc);
 		
-	if(CRC16 != ((~read_crc) & 0xffff))
+	if(CRC16 != read_crc )
 	{
-		EXT_ERRORF(("CMD_READ_STATUS first CRC error!"));
+		EXT_ERRORF(("CMD_READ_STATUS first CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}		
+	EXT_DEBUGF(EXT_DBG_ON, ("Read Status CMD CRC: %04x:%04x", CRC16, read_crc));
 			
 	//read one page data, 32 byte
 	for(i = 0; i < 4; i++)
@@ -634,26 +577,27 @@ static int read_status_personality(unsigned char *status)
 		status[i] = _bspScReadByte();	
 	}
 	
-	//second crc
 	SC_READ_16BIT(read_crc);
 	
+	//second crc
 	CRC16 = 0;
 	for(i = 0; i < 4; i++)
 	{
 		docrc16(status[i]);
 	}
-	if(CRC16 != ((~read_crc) & 0xffff))
+	
+	if(CRC16 !=  read_crc )
 	{
-		EXT_ERRORF(("SC: CMD_READ_STATUS second CRC error!"));
+		EXT_ERRORF(("SC: CMD_READ_STATUS second CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}
+	EXT_DEBUGF(EXT_DBG_ON, ("Read Status Data CRC: %04x:%04x", CRC16, read_crc));
 	
 	return EXIT_SUCCESS;
 }
 
 
-/*  Do Compute Page MAC command and return MAC. Optionally do
-//  anonymous mode (anon != 0). 
+/*  Do Compute Page MAC command and return MAC. Optionally do anonymous mode (anon != 0). 
 // 
 //  Parameters
 //     page_num - page number to read 0 - 16
@@ -664,11 +608,12 @@ static int read_status_personality(unsigned char *status)
 //  Returns: TRUE - page read has correct MAC
 //           FALSE - Failed to read page or incorrect MAC
 */
-int compute_read_page_mac(unsigned char page_num, unsigned char *challenge, unsigned char *mac, unsigned char anon)
+static char compute_read_page_mac(unsigned char page_num, unsigned char *challenge, unsigned char *mac, unsigned char anon)
 {
 	unsigned char buf[32];
 	int i;
-	unsigned short read_crc;	
+	unsigned short read_crc;
+	unsigned short cmd = SC_CMD_COMPUTE_READ_PAGE_MAC;
 	unsigned char PB;
 	
 	if(anon == 1)	//anonymous 
@@ -679,17 +624,18 @@ int compute_read_page_mac(unsigned char page_num, unsigned char *challenge, unsi
 	PB |= (page_num & 0x1);
 	
 	// write the challenge 32 bytes to the scratchpad
-	if(!write_scratch_pad(challenge))
+	if(__bspWriteScratchPad(challenge) == EXIT_FAILURE)
 	{
-		EXT_ERRORF(("SC: compute_read_page_mac write_scratch_pad fail."));
+		EXT_ERRORF(("SC: compute_read_page_mac fail."));
 		return EXIT_FAILURE;
 	}
 	
 	CRC16 = 0;
 	//CMD code
-	docrc16(SC_CMD_COMPUTE_READ_PAGE_MAC);
+	docrc16(cmd);
 	////PB--parameter byte bitmap, BIT3-0:0000 write, 1111 read
-	docrc16(PB);
+	cmd = PB;
+	docrc16(cmd);
 	
 	_bspScReset();
 	//SKIP_ROM
@@ -700,11 +646,12 @@ int compute_read_page_mac(unsigned char page_num, unsigned char *challenge, unsi
 	//first crc	
 	SC_READ_16BIT(read_crc);
 		
-	if( CRC16 != ( (~read_crc) & 0xffff ) )
+	if( CRC16 !=  read_crc )
 	{
-		EXT_ERRORF(("SC: CMD_COMPUTE_READ_PAGE_MAC first CRC error!"));
+		EXT_ERRORF(("SC: CMD_COMPUTE_READ_PAGE_MAC first CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}		
+	EXT_DEBUGF(EXT_DBG_ON, ("Read MAC CMD CRC: %04x:%04x", CRC16, read_crc));
 
 	//wait for 2*tcsha
 	delay_ms(2*SHA_COMPUTATION_DELAY);
@@ -731,13 +678,14 @@ int compute_read_page_mac(unsigned char page_num, unsigned char *challenge, unsi
 		docrc16(buf[i]);
 	}
 	
-	if(CRC16 != ((~read_crc) & 0xffff ))	
+	if(CRC16 != read_crc)
 	{
-		EXT_ERRORF(("SC: CMD_COMPUTE_READ_PAGE_MAC second CRC error!"));
+		EXT_ERRORF(("SC: CMD_COMPUTE_READ_PAGE_MAC second CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}
-	else
-		memcpy(mac, buf, 32);
+	memcpy(mac, buf, 32);
+
+	EXT_DEBUGF(EXT_DBG_ON, ("Read MAC Data CRC: %04x:%04x", CRC16, read_crc));
 	
 	return EXIT_SUCCESS;	
 }
@@ -747,31 +695,34 @@ int compute_read_page_mac(unsigned char page_num, unsigned char *challenge, unsi
 // 'secret'- secret to load
 // 'lock_flag' - 1: lock , 0: no lock
 // 'magic - 0x5A, protect lock_flag
-//
-// Return: 1 - load&lock secret ok
-//         0 - error load&lock secret
 */
-static int load_lock_secret(unsigned char *secret, unsigned lock_flag, unsigned char lock_magic)
+static char load_lock_secret(unsigned char *secret, unsigned char lock_flag, unsigned char lock_magic)
 {
 	unsigned short read_crc;	
+	unsigned short cmd = SC_CMD_LOAD_LOCK_SECRET;	
 	unsigned char PB;
 	
-	if(!write_scratch_pad(secret))
+	if(__bspWriteScratchPad(secret) == EXIT_FAILURE)
 	{
-		EXT_ERRORF(("CMD_LOAD_LOCK_SECRET write_scratch_pad error!"));
+		EXT_ERRORF(("SC: CMD_LOAD_LOCK_SECRET error!"));
 		return EXIT_FAILURE;
 	}	
 		
 	if((lock_flag == 1)&&(lock_magic == 0x5A))
+	{
 		PB = 0xE0;
+	}
 	else
+	{
 		PB = 0x00;
+	}
 
 	CRC16 = 0;
 	//CMD code
-	docrc16(SC_CMD_LOAD_LOCK_SECRET);
+	docrc16(cmd);
 	////PB--parameter byte bitmap, BIT3-0:0000 write, 1111 read
-	docrc16(PB);
+	cmd = PB;
+	docrc16(cmd);
 	
 	_bspScReset();
 	//SKIP_ROM
@@ -781,21 +732,23 @@ static int load_lock_secret(unsigned char *secret, unsigned lock_flag, unsigned 
 	
 	//first crc	
 	SC_READ_16BIT(read_crc);
-		
-	if( CRC16 != ( (~read_crc) & 0xffff ) )
+	if( CRC16 != read_crc)
 	{
-		EXT_ERRORF(("SC: CMD_LOAD_LOCK_SECRET first CRC error!"));
+		EXT_ERRORF(("SC: CMD_LOAD_LOCK_SECRET first CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}		
+	EXT_DEBUGF(EXT_DBG_ON, ("Read Load Secret CMD CRC: %04x:%04x", CRC16, read_crc));
 	
 	//send release
 	_bspScWriteByte(0xAA);
 	//strong pull up
-	enable_ds_pull_up();				
+//	enable_ds_pull_up();
+	SC_STRONG_PULL_UP_ENABLE();
 	//delay tprs
 	delay_ms(SECRET_PROGRAM_DELAY);
+	SC_STRONG_PULL_UP_DISABLE();
 	
-	disable_ds_pull_up();
+//	disable_ds_pull_up();
 	
 	read_crc = _bspScReadByte();	
 	if(read_crc == 0xAA)
@@ -814,177 +767,278 @@ static int load_lock_secret(unsigned char *secret, unsigned lock_flag, unsigned 
 	}			
 }
 
-void initKey()
-{
-	unsigned char	rom_id[8];	
-	unsigned char	secret[8];			
-	unsigned char 	challenge[32];
-	unsigned char	page_data[32];		//memory page data, 32 byte
-	unsigned char 	personality_byte[4];//
-	unsigned char   read_mac[32];		//MAC from chip
-	unsigned char 	page_num;			//page number
-	unsigned char 	lock_flag;			//1--lock chip secret forever
-	unsigned char 	lock_magic;				
-	unsigned char   anon;				//anonymous flag. 1--anonymous mode, 0-NOT anonymous mode
-	int i;
-	int ret;
 
-				ret = copy_from_user(&chip_ds_msg, (struct ds_msg __user *)arg, sizeof(chip_ds_msg));
-				if(ret != 0)			
-				{
-					printk(KERN_ERR"INIT_CHIP_PRODUCTION_KEY copy from user error! ret = %d\n", ret);
-					return -EACCES;				
-				}				
-				ds_read_rom_id(rom_id);
-				//ds_reset();
-				memset(page_data, 0, sizeof(page_data));				
-				//write_page(0, page_data);
-				udelay(10);
-				//write_page(1, page_data);
-				ds_reset();
-				memcpy(page_data, &chip_ds_msg.page_0_data[0], 32);				
-				if(!write_page(0, page_data))
-				{
-					printk(KERN_ERR"INIT_CHIP_PRODUCTION_KEY Write page 0 data to chip FAIL!\n");
-					return -EACCES;						
-				}					
-				
-				//write page 1 data to chip, page 1 data has MAC address inside, it is written in PRODUCTION_MAC command
-				//memcpy(page_data, &chip_ds_msg.page_1_data[0], 32);
-				//if(!write_page(1, page_data))
-				//{
-				//	printk(KERN_ERR"INIT_CHIP_PRODUCTION Write page data to chip FAIL!\n");
-				//	return -EACCES;						
-				//}	
-				
-				//load and lock secret		
-				lock_flag = chip_ds_msg.lock_flag;
-				lock_magic = chip_ds_msg.lock_magic;
-				memcpy(secret, &chip_ds_msg.secret[0], 32);				
-				if(!load_lock_secret(secret, lock_flag, lock_magic))
-				{
-					printk(KERN_ERR"INIT_CHIP_PRODUCTION_KEY load lock secret to chip FAIL!\n");
-					return -EACCES;						
-				}												
+static void _bspScCreateSecrect(SC_CTRL *sc)
+{
+	sc->secret[0] = (sc->romId[0] + 0x2A + 0x2) & 0xFF;
+	sc->secret[1] = (sc->romId[1] + 0x4D + 0x2) & 0xFF;
+	sc->secret[2] = (sc->romId[2] + 0x41 + 0x2) & 0xFF;
+	sc->secret[3] = (sc->romId[3] + 0x52 + 0x2) & 0xFF;
+
+	sc->secret[4] = (sc->romId[4] + 0x42 + 0x2) & 0xFF;
+	sc->secret[5] = (sc->romId[5] + 0x4F + 0x2) & 0xFF;
+	sc->secret[6] = (sc->romId[6] + 0x48 + 0x2) & 0xFF;
+	sc->secret[7] = (sc->romId[7] + 0x4A + 0x2) & 0xFF;
+
+	sc->secret[8]  = (sc->romId[0] + 0x4F + 0x4) & 0xFF;
+	sc->secret[9]  = (sc->romId[1] + 0x43 + 0x4) & 0xFF;
+	sc->secret[10] = (sc->romId[2] + 0x41 + 0x4) & 0xFF;
+	sc->secret[11] = (sc->romId[3] + 0x55 + 0x4) & 0xFF;
+
+	sc->secret[12] = (sc->romId[4] + 0x42 + 0x4) & 0xFF;
+	sc->secret[13] = (sc->romId[5] + 0x50 + 0x4) & 0xFF;
+	sc->secret[14] = (sc->romId[6] + 0x45 + 0x4) & 0xFF;
+	sc->secret[15] = (sc->romId[7] + 0x54 + 0x4) & 0xFF;
+
+	sc->secret[16] = (sc->romId[0] + 0x4A + 0x6) & 0xFF;	
+	sc->secret[17] = (sc->romId[1] + 0x49 + 0x6) & 0xFF;
+	sc->secret[18] = (sc->romId[2] + 0x41 + 0x6) & 0xFF;
+	sc->secret[19] = (sc->romId[3] + 0x52 + 0x6) & 0xFF;
+
+	sc->secret[20] = (sc->romId[4] + 0x4F + 0x6) & 0xFF;
+	sc->secret[21] = (sc->romId[5] + 0x44 + 0x6) & 0xFF;
+	sc->secret[22] = (sc->romId[6] + 0x46 + 0x6) & 0xFF;
+	sc->secret[23] = (sc->romId[7] + 0x41 + 0x6) & 0xFF;
+
+	sc->secret[24] = (sc->romId[0] + 0x4E + 0x8) & 0xFF;	
+	sc->secret[25] = (sc->romId[1] + 0x53 + 0x8) & 0xFF;
+	sc->secret[26] = (sc->romId[2] + 0x41 + 0x8) & 0xFF;
+	sc->secret[27] = (sc->romId[3] + 0x4E + 0x8) & 0xFF;
+
+	sc->secret[28] = (sc->romId[4] + 0x50 + 0x8) & 0xFF;
+	sc->secret[29] = (sc->romId[5] + 0x41 + 0x8) & 0xFF;
+	sc->secret[30] = (sc->romId[6] + 0x54 + 0x8) & 0xFF;
+	sc->secret[31] = (sc->romId[7] + 0x2A + 0x8) & 0xFF;
+
 
 }
 
-
-void initMac()
+static char _bspScCreatePage(SC_CTRL *sc)
 {
-	unsigned char	rom_id[8];	
-	unsigned char	secret[8];			
-	unsigned char 	challenge[32];
-	unsigned char	page_data[32];		//memory page data, 32 byte
-	unsigned char 	personality_byte[4];//
-	unsigned char   read_mac[32];		//MAC from chip
-	unsigned char 	page_num;			//page number
-	unsigned char 	lock_flag;			//1--lock chip secret forever
-	unsigned char 	lock_magic;				
-	unsigned char   anon;				//anonymous flag. 1--anonymous mode, 0-NOT anonymous mode
-	int i;
-	int ret;
-
-				ret = copy_from_user(&chip_ds_msg, (struct ds_msg __user *)arg, sizeof(chip_ds_msg));
-				if(ret != 0)			
-				{
-					printk(KERN_ERR"INIT_CHIP_PRODUCTION_MAC copy from user error! ret = %d\n", ret);
-					return -EACCES;				
-				}				
-				ds_read_rom_id(rom_id);
-				//ds_reset();
-				memset(page_data, 0, sizeof(page_data));				
-				//write_page(0, page_data);
-				udelay(10);
-				//write_page(1, page_data);
-				ds_reset();							
-				//PAGE 1 structure	
-				//[0-5] 6 byte MAC address, [10]-- model_id, [20]--production_name_id, [31]--CRC8 of [0]~[30])				
-				memcpy(page_data, &chip_ds_msg.page_1_data[0], 32);
-				if(!write_page(1, page_data))
-				{
-					printk(KERN_ERR"INIT_CHIP_PRODUCTION_MAC Write page 1 data to chip FAIL!\n");
-					return -EACCES;						
-				}						
-
+	/* page structure */
+	memset(sc->pageData, 0, sizeof(sc->pageData) );				
+	memcpy(sc->pageData, sc->romId, 8);
+	memcpy(sc->pageData + 8, EXT_767_MODEL, 6);
+	memcpy(sc->pageData + 14, EXT_767_PRODUCT_NAME, 13);
+	sc->pageData[27] = EXT_MAGIC_VALUE_A;
+	sc->pageData[28] = EXT_MAGIC_VALUE_B;
+	sc->pageData[29] = EXT_MAGIC_VALUE_A;
+	sc->pageData[30] = EXT_MAGIC_VALUE_B;
+	
+	//write_page(0, page_data);
+	delay_us(10);
+	//write_page(1, page_data);
+	_bspScReset();
+	
+	return _bspScWritePage(sc->pageNum, sc->pageData);
 }
 
-void readMac()
+
+static char _bspScComputeMAC(SC_CTRL *sc)
 {
-	ret = copy_from_user(&chip_ds_msg, (struct ds_msg __user *)arg, sizeof(chip_ds_msg));
-	if(ret != 0)			
+	int i,j;
+	uint8_t calc_mac[32];
+	uint8_t tmp[4]; 
+	uint8_t MT[128];
+	
+	// create buffer to compute and verify mac
+	memset(MT,0,128);
+
+	// insert page data
+	memcpy(&MT[0], sc->pageData, 32);
+
+	// insert challenge
+	memcpy(&MT[32], sc->challenge,32);
+   
+	// insert secret
+	memcpy(&MT[64], sc->secret, 32);
+	// insert ROM number or FF
+	if (sc->isAnon )
 	{
-		printk(KERN_ERR"COMPUTE_READ_MAC copy from user FAIL!\n");
-		return -EACCES;				
-	}								
-	page_num = chip_ds_msg.page_num;
-	anon = chip_ds_msg.anon;
-	memcpy(challenge, &chip_ds_msg.challenge[0], 32);				
-	ret = compute_read_page_mac(page_num, challenge, read_mac, anon);				
-	if(ret == 0)
-	{
-		printk(KERN_ERR"COMPUTE_READ_MAC read_auth_page FAIL!\n");
-		return -EACCES;
+		memset(&MT[96], 0xFF, 8);
 	}
-	memcpy(&chip_ds_msg.mac[0], read_mac, 32);				
-	ret = copy_to_user((struct ds_msg __user *)arg, &chip_ds_msg.rom_id[0], sizeof(chip_ds_msg));
-	if(ret != 0)			
+	else
 	{
-		printk(KERN_ERR"COMPUTE_READ_MAC copy to user FAIL!\n");
-		return -EACCES;				
-	}			
+		memcpy(&MT[96], sc->romId, 8);
+	}
 
+	MT[106] = sc->pageNum;
+	MT[105] = sc->manId[0];
+	MT[104] = sc->manId[1];
+
+	// change to little endian for A1 devices    
+	for (i = 0; i < 108; i+=4)
+	{
+		for (j = 0; j < 4; j++)
+		{
+			tmp[3 - j] = MT[i + j];
+		}
+
+		for (j = 0; j < 4; j++)
+		{
+			MT[i + j] = tmp[j];
+		}
+	}
+
+	ComputeSHA256(MT, 119, EXT_TRUE, EXT_TRUE, calc_mac);
+	// Compare calculated mac with one read from device
+	for (i = 0; i < 32; i++)
+	{
+		if (sc->readMac[i] != calc_mac[i])
+		{
+			return EXIT_FAILURE;
+		}
+	}
+	
+	return EXIT_SUCCESS; 
 }
 
-void readMemo()
+
+static char _bspScPrepare4Check(SC_CTRL *sc)
 {
-	unsigned char	rom_id[8];	
-	unsigned char	secret[8];			
-	unsigned char 	challenge[32];
-	unsigned char	page_data[32];		//memory page data, 32 byte
-	unsigned char 	personality_byte[4];//
-	unsigned char   read_mac[32];		//MAC from chip
-	unsigned char 	page_num;			//page number
-	unsigned char 	lock_flag;			//1--lock chip secret forever
-	unsigned char 	lock_magic;				
-	unsigned char   anon;				//anonymous flag. 1--anonymous mode, 0-NOT anonymous mode
-	int i;
-	int ret;
+	unsigned char	personality_byte[4];
+	
+	if(_bspScCreatePage(sc) == EXIT_FAILURE)
+	{
+		return EXIT_FAILURE;
+	}
 
-				ret = copy_from_user(&chip_ds_msg, (struct ds_msg __user *)arg, sizeof(chip_ds_msg));
-				if(ret != 0)			
-				{
-					printk(KERN_ERR"READ_CHIP_MEM copy from user FAIL!\n");
-					return -EACCES;				
-				}						
-				memset(page_data, 0, sizeof(page_data));				
-				ds_read_rom_id(rom_id);
-				if(!read_page(0, page_data))
-				{
-					printk(KERN_ERR"READ_CHIP_MEM read page 0 FAIL!\n");
-					return -EACCES;				
-				}	
-				memcpy(&chip_ds_msg.page_0_data[0], page_data, 32);
-				if(!read_page(1, page_data))
-				{
-					printk(KERN_ERR"READ_CHIP_MEM read page 1 FAIL!\n");
-					return -EACCES;				
-				}	
-				memcpy(&chip_ds_msg.page_1_data[0], page_data, 32);
-				if(!read_status_personality(personality_byte))
-				{
-					printk(KERN_ERR"READ_CHIP_MEM read personality FAIL!\n");
-					return -EACCES;				
-				}
-				chip_ds_msg.man_id[0] = personality_byte[2];
-				chip_ds_msg.man_id[1] = personality_byte[3];				
-				
-				ret = copy_to_user((struct ds_msg __user *)arg, &chip_ds_msg.rom_id[0], sizeof(chip_ds_msg));
-				if(ret != 0)			
-				{
-					printk(KERN_ERR"READ_CHIP_MEM copy to user FAIL!\n");
-					return -EACCES;				
-				}			
+	/* personality */
+	if(read_status_personality(personality_byte) == EXIT_FAILURE)
+	{
+		return EXIT_FAILURE;
+	}
+	
+	sc->manId[0] = personality_byte[2];
+	sc->manId[1] = personality_byte[3];
+
+	EXT_DEBUGF(EXT_DBG_ON, ("personality_byte: %02x %02x %02x %02x", 
+		personality_byte[0], personality_byte[1], personality_byte[2], personality_byte[3]) );
+
+	return EXIT_SUCCESS;
 }
 
+
+/* write to page 0 (seed or key) and test secret (rom ID) */
+char bspScWriteKey(SC_CTRL *sc, unsigned char *key)	/* key : 32 bytes*/
+{
+	unsigned char lock_magic = 0x5A;
+	unsigned char lock_flag = 0;
+	
+	if(!IS_SECURITY_CHIP_EXIST(sc))
+	{
+		return EXIT_FAILURE;
+	}
+	
+	//write_page(0, page_data);
+	delay_us(10);
+	//write_page(1, page_data);
+	_bspScReset();
+	
+	//load and lock secret		
+	return load_lock_secret(key, lock_flag, lock_magic);
+}
+
+
+/* read Message Authen Code from chip, and check */
+char bspScCheckMAC(SC_CTRL *sc)
+{
+	char ret = EXIT_FAILURE;
+
+	if(!IS_SECURITY_CHIP_EXIST(sc))
+	{
+		return EXIT_FAILURE;
+	}
+	
+	if(_bspScPrepare4Check(sc) == EXIT_FAILURE)
+	{
+		EXT_ERRORF(("SC: Prepare page for check failed!"));
+//		return EXIT_FAILURE;
+	}
+
+	ret = compute_read_page_mac(sc->pageNum, sc->challenge, sc->readMac, sc->isAnon);
+	if(ret == EXIT_FAILURE)
+	{
+		EXT_ERRORF(("SC: read MAC from chip failed!"));
+		return ret;
+	}
+
+	ret = _bspScComputeMAC(sc);
+	if(ret == EXIT_FAILURE)			
+	{
+		EXT_ERRORF(("SC: Security check failed!"));
+	}
+
+	return ret;
+}
+
+#define	SC_HW_TEST 		1
+
+char	bspScInit(SC_CTRL *sc)
+{
+	char ret = EXIT_FAILURE;
+	int i;
+	
+	ret = _bspScReadRomId(sc);
+	if(ret == EXIT_FAILURE)
+	{
+		sc->isExist = EXT_FALSE;
+		return ret;
+	}
+	sc->isExist = EXT_TRUE;
+
+#if SC_HW_TEST
+#define	_TEST_COUNT	2000
+
+	int errs =0;
+
+	printf(EXT_NEW_LINE"Begin %d times ROM ID tests..."EXT_NEW_LINE, _TEST_COUNT);
+	for(i = 0; i < _TEST_COUNT; i++)
+	{
+		ret = _bspScReadRomId(sc);
+		printf("%s", (ret == EXIT_FAILURE)?"'x":".");
+		if(ret == EXIT_FAILURE)
+		{
+			errs++;
+		}
+	}
+	printf(EXT_NEW_LINE"Error %d times in Total %d tests!"EXT_NEW_LINE, errs, _TEST_COUNT);
+#endif
+
+	_bspScCreateSecrect(sc);
+
+	/* challenge*/
+	bspHwTrngConfig(EXT_TRUE, RNG_MODE_SC_CHALLENGE);
+
+	bspHwTrngWait();
+
+
+	if(_bspScPrepare4Check(sc) == EXIT_FAILURE)
+	{
+		EXT_ERRORF(("SC: Prepare page for check failed!"));
+		return EXIT_FAILURE;
+	}
+
+#if 1
+	EXT_DEBUGF(EXT_DBG_ON, ("Rom ID: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+		sc->romId[0],sc->romId[1],sc->romId[2],sc->romId[3],sc->romId[4],sc->romId[5],sc->romId[6],sc->romId[7] ));
+
+	printf("Secret key is : "EXT_NEW_LINE);
+	for(i = 0; i < 32; i++)
+	{
+		printf("%02x ", sc->secret[i]);
+	}
+	
+	printf(EXT_NEW_LINE"Challenge is : "EXT_NEW_LINE);
+	for(i = 0; i < 32; i++)
+	{
+		printf("%02x ", sc->challenge[i]);
+	}
+
+	printf(EXT_NEW_LINE" "EXT_NEW_LINE);
+
+#endif
+
+	return EXIT_SUCCESS;
+}
 
