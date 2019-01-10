@@ -203,8 +203,13 @@ void bspHwTrngConfig(char isEnable, char mode)
 		NVIC_DisableIRQ(TRNG_IRQn);
 		NVIC_ClearPendingIRQ(TRNG_IRQn);
 		NVIC_SetPriority(TRNG_IRQn, 0);
-		NVIC_EnableIRQ(TRNG_IRQn);
+
+//	TRACE();
+		
 		trng_enable_interrupt(TRNG);
+//	TRACE();
+		NVIC_EnableIRQ(TRNG_IRQn);
+//	TRACE();
 	}
 	else
 	{
@@ -224,6 +229,6 @@ void bspHwTrngWait(void)
 	{
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Random set finished!"));
+//	EXT_DEBUGF(EXT_DBG_ON, ("Random set finished!"));
 }
 

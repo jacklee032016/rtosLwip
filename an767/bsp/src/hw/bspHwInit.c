@@ -279,8 +279,10 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 
 	extCfgInitAfterReadFromFlash(runCfg);
 
-	/* init before random MAC to suit requirement of TRNG IRQ */
-	bspScInit(runCfg->sc);
+	if(bMode == BOOT_MODE_RTOS)
+	{
+		bspScInit(runCfg->sc);
+	}
 
 	if( !runCfg->isMacConfiged && bMode == BOOT_MODE_RTOS )
 	{

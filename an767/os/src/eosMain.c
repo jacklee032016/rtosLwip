@@ -15,6 +15,7 @@
 
 #include "eos.h"
 
+
 _CODE char *versionString = EXT_OS_NAME;
 
 void vApplicationMallocFailedHook( void )

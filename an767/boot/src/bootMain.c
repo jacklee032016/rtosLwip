@@ -203,6 +203,7 @@ void	wakeResetInIsr(void )
 {
 }
 
+
 int main( void )
 {
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)
@@ -226,7 +227,7 @@ int main( void )
 	}
 #endif
 
-	if(!extRun.isUpdate && stayInBootloader == 0)
+	if(1)//!extRun.isUpdate && stayInBootloader == 0)
 #else
 	if(!extRun.isUpdate )
 #endif

@@ -61,7 +61,7 @@ char extIpCmdRequestHeaderPrint(EXT_JSON_PARSER  *parser, const char *cmd)
 
 	parser->outIndex = index;
 	
-	if(!EXT_DEBUG_UDP_CMD_IS_ENABLE() )
+	if( EXT_DEBUG_UDP_CMD_IS_ENABLE() )
 	{
 		printf("output IP CMD response header %d bytes: '%s'"LWIP_NEW_LINE, parser->outIndex, data);
 	}

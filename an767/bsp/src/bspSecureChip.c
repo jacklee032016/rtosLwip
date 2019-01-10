@@ -5,12 +5,14 @@
 #include "gpio.h"
 #include "pio_handler.h"
 
+#define	BSP_SC_DEBUG		EXT_DBG_OFF
+
 int ComputeSHA256(unsigned char *message, short length, unsigned short skipconst, unsigned short reverse, unsigned char *digest);
 
 // delay durations
-#define EEPROM_WRITE_DELAY       10  	//tprd unit:ms
-#define SHA_COMPUTATION_DELAY    3   	//unit:ms
-#define SECRET_PROGRAM_DELAY	 100	//tprs unit:ms
+#define EEPROM_WRITE_DELAY					10  	//tprd unit:ms
+#define SHA_COMPUTATION_DELAY					3   	//unit:ms
+#define SECRET_PROGRAM_DELAY					100	//tprs unit:ms
 
 #define	SC_CMD_READ_ROM						0x33	//Read rom ID
 #define	SC_CMD_READ_WRITE_SCRATCHPAD		0x0F	//Read/write scratchpad 
@@ -93,7 +95,7 @@ static void _bspScWriteByte(unsigned char data)
 
 	for(i = 0; i < 8; i ++)
 	{
-		delay_us(6);	//tREC, recovery time between write
+		delay_us(6-2);	//tREC, recovery time between write
 		
 		//set for PC25 as output, non security,	
 		//writel_relaxed(0x00000100, pio_cfgr2);
@@ -116,7 +118,7 @@ static void _bspScWriteByte(unsigned char data)
 			SC_SET_INPUT();
 		}
 		
-		delay_us(10);//keep slot time
+		delay_us(10-2);//keep slot time
 		
 		//set PC25 as input
 //		writel_relaxed(0x00000000, pio_cfgr2);
@@ -132,7 +134,7 @@ static unsigned char _bspScReadByte(void)
 
 	for(i = 0; i < 8; i ++)
 	{			
-		delay_us(6-1);	//tREC, recovery time between write, 
+		delay_us(6-2);	//tREC, recovery time between write, 
 		//set PC25 as output
 		//init registers for PC25 as output, non security,	
 //		writel_relaxed(0x00000100, pio_cfgr2);
@@ -157,7 +159,7 @@ static unsigned char _bspScReadByte(void)
 			data |= (0x1 << i);
 		}
 		
-		delay_us(10-1);//tslot minimum is 13us
+		delay_us(10-2);//tslot minimum is 13us
 	}
 
 	return data;
@@ -199,7 +201,7 @@ static char _bspScReadRomId(SC_CTRL *sc)
 	ret = _bspScReset();
 	if(ret == EXIT_FAILURE)				
 	{
-		EXT_INFOF(("Secerity Chip reset fail"));
+		EXT_INFOF(("Security Chip reset fail"));
 		return ret;
 	}
 	
@@ -221,8 +223,10 @@ static char _bspScReadRomId(SC_CTRL *sc)
 	}	
 	else
 	{
+#if BSP_SC_DEBUG
 		EXT_ERRORF(("Read security chip rom ID error CRC:%02x: "EXT_NEW_LINE"\t'%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 			crc_tmp, sc->romId[0],sc->romId[1],sc->romId[2],sc->romId[3],sc->romId[4],sc->romId[5],sc->romId[6],sc->romId[7]) );
+#endif
 		return EXIT_FAILURE;
 	}
 }
@@ -276,10 +280,12 @@ static char __bspWriteScratchPad(unsigned char *data)
 	SC_READ_16BIT(read_crc);
 	if( CRC16 != read_crc )
 	{
-		EXT_ERRORF(("SC: write_scratch first CRC error! %04x != %04x", CRC16,  read_crc) );
+#if BSP_SC_DEBUG
+		EXT_ERRORF(("SC: writeScratch CMD CRC error: %04x != %04x", CRC16,  read_crc) );
+#endif
 		return EXIT_FAILURE;
 	}
-	EXT_DEBUGF(EXT_DBG_ON, ("WriteScratch CMD CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: WriteScratch CMD CRC: %04x:%04x", CRC16, read_crc));
 		
 	//data			
 	for(i = 0; i < 32; i++ )
@@ -297,10 +303,12 @@ static char __bspWriteScratchPad(unsigned char *data)
 	
 	if( CRC16 != read_crc )	
 	{
-		EXT_ERRORF(("SC: write_scratch second CRC error : %04x !=%04x !", CRC16, read_crc) );
+#if BSP_SC_DEBUG
+		EXT_ERRORF(("SC: writeScratch Data CRC error : %04x !=%04x !", CRC16, read_crc) );
+#endif
 		return EXIT_FAILURE;
 	}
-	EXT_DEBUGF(EXT_DBG_ON, ("WriteScratch Data CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: WriteScratch Data CRC: %04x:%04x", CRC16, read_crc));
 	
 	return EXIT_SUCCESS;
 }
@@ -409,11 +417,11 @@ static char _writeBlock(unsigned char page, unsigned char seg_num, unsigned char
 	SC_READ_16BIT(read_crc);
 	if(CRC16 != read_crc )
 	{
-		EXT_ERRORF(("SC: write block first CRC error %04x != %04x on page#%d, block#%d", CRC16, read_crc, page, seg_num));
+		EXT_ERRORF(("SC: WriteBlock CMD CRC error %04x != %04x on page#%d, block#%d", CRC16, read_crc, page, seg_num));
 		return EXIT_FAILURE;
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON, ("WriteBlock CMD CRC: %04x:%04x on Page#%d, block#%d", CRC16, read_crc, page, seg_num ));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: WriteBlock CMD CRC: %04x:%04x on Page#%d, block#%d", CRC16, read_crc, page, seg_num ));
 
 	//write 4 byte data
 	for(i = 0; i < 4; i++)
@@ -432,10 +440,10 @@ static char _writeBlock(unsigned char page, unsigned char seg_num, unsigned char
 	
 	if(CRC16 != read_crc )
 	{
-		EXT_ERRORF(("SC: write_block second CRC error %04x != %04x on page#%d, block#%d", CRC16, read_crc, page, seg_num) );
+		EXT_ERRORF(("SC: writeBlock Data CRC error %04x != %04x on page#%d, block#%d", CRC16, read_crc, page, seg_num) );
 		return EXIT_FAILURE;
 	}
-	EXT_DEBUGF(EXT_DBG_ON, ("WriteBlock Data CRC: %04x:%04x on Page#%d, block#%d", CRC16, read_crc, page, seg_num ));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("WriteBlock Data CRC: %04x:%04x on Page#%d, block#%d", CRC16, read_crc, page, seg_num ));
 	
 	//send release
 	_bspScWriteByte(0xAA);
@@ -453,7 +461,7 @@ static char _writeBlock(unsigned char page, unsigned char seg_num, unsigned char
 //		read_crc = _bspScReadByte();	
 //		if(read_crc != 0xAA)
 		{
-			EXT_ERRORF(("SC: write_block CS error: %02x on page#%d, block#%d", PB, page, seg_num));
+			EXT_ERRORF(("SC: writeBlock CS error: %02x on page#%d, block#%d", PB, page, seg_num));
 			return EXIT_FAILURE;	
 		}
 	}
@@ -542,7 +550,7 @@ int bspScReadPage(unsigned char page_num, unsigned char *data)
 }
 #endif
 
-static char read_status_personality(unsigned char *status)
+static char _readStatusPersonality(unsigned char *status)
 {
 	int i;
 	unsigned short read_crc;
@@ -566,10 +574,10 @@ static char read_status_personality(unsigned char *status)
 		
 	if(CRC16 != read_crc )
 	{
-		EXT_ERRORF(("CMD_READ_STATUS first CRC error %04x != %04x!", CRC16, read_crc) );
+		EXT_ERRORF(("SC: ReadStatus CMD CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}		
-	EXT_DEBUGF(EXT_DBG_ON, ("Read Status CMD CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: ReadStatus CMD CRC: %04x:%04x", CRC16, read_crc));
 			
 	//read one page data, 32 byte
 	for(i = 0; i < 4; i++)
@@ -588,45 +596,45 @@ static char read_status_personality(unsigned char *status)
 	
 	if(CRC16 !=  read_crc )
 	{
-		EXT_ERRORF(("SC: CMD_READ_STATUS second CRC error %04x != %04x!", CRC16, read_crc) );
+		EXT_ERRORF(("SC: ReadStatus Data CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}
-	EXT_DEBUGF(EXT_DBG_ON, ("Read Status Data CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: ReadStatus Data CRC: %04x:%04x", CRC16, read_crc));
 	
 	return EXIT_SUCCESS;
 }
 
 
 /*  Do Compute Page MAC command and return MAC. Optionally do anonymous mode (anon != 0). 
-// 
-//  Parameters
-//     page_num - page number to read 0 - 16
-//     challange - 32 byte buffer containing the challenge
-//     mac - 32 byte buffer for page data read
-//     anon - Flag to indicate Anonymous mode if (anon != 0)
-//
-//  Returns: TRUE - page read has correct MAC
-//           FALSE - Failed to read page or incorrect MAC
+* page_num - page number to read 0 - 16
+* challange - 32 byte buffer containing the challenge
+* mac - 32 byte buffer for page data read
+* anon - Flag to indicate Anonymous mode if (anon != 0)
 */
-static char compute_read_page_mac(unsigned char page_num, unsigned char *challenge, unsigned char *mac, unsigned char anon)
+static char _readMAC(SC_CTRL *sc)
 {
-	unsigned char buf[32];
 	int i;
 	unsigned short read_crc;
 	unsigned short cmd = SC_CMD_COMPUTE_READ_PAGE_MAC;
-	unsigned char PB;
+	unsigned char PB;	
 	
-	if(anon == 1)	//anonymous 
+	if(sc->isAnon == 1)	//anonymous 
+	{
 		PB = 0xE0;
+	}
 	else
+	{
 		PB = 0x00;	//use ROM ID
+	}
 	
-	PB |= (page_num & 0x1);
+	PB |= (sc->pageNum & 0x1);
 	
 	// write the challenge 32 bytes to the scratchpad
-	if(__bspWriteScratchPad(challenge) == EXIT_FAILURE)
+	if(__bspWriteScratchPad(sc->challenge) == EXIT_FAILURE)
 	{
-		EXT_ERRORF(("SC: compute_read_page_mac fail."));
+#if BSP_SC_DEBUG
+		EXT_ERRORF(("SC: WriteScratchPad fail."));
+#endif
 		return EXIT_FAILURE;
 	}
 	
@@ -648,10 +656,10 @@ static char compute_read_page_mac(unsigned char page_num, unsigned char *challen
 		
 	if( CRC16 !=  read_crc )
 	{
-		EXT_ERRORF(("SC: CMD_COMPUTE_READ_PAGE_MAC first CRC error %04x != %04x!", CRC16, read_crc) );
+		EXT_ERRORF(("SC: ReadMAC CMD CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}		
-	EXT_DEBUGF(EXT_DBG_ON, ("Read MAC CMD CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: ReadMAC CMD CRC: %04x:%04x", CRC16, read_crc));
 
 	//wait for 2*tcsha
 	delay_ms(2*SHA_COMPUTATION_DELAY);
@@ -660,43 +668,53 @@ static char compute_read_page_mac(unsigned char page_num, unsigned char *challen
 	read_crc = _bspScReadByte();
 	if(read_crc != 0xAA)
 	{
-		EXT_ERRORF(("read cs error! 0x%x", read_crc));
+		EXT_ERRORF(("SC: ReadDMA read cs error: 0x%x", read_crc));
 		return EXIT_FAILURE;
 	}
 	
 	//read 32 byte MAC 
 	for(i = 0; i < 32; i++ )
 	{
-		buf[i] = _bspScReadByte();
+		sc->readMac[i] = _bspScReadByte();
 	}
 	
 	SC_READ_16BIT(read_crc);
 	
+#if BSP_SC_DEBUG
+	CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read MAC");
+#endif
+
 	CRC16 = 0;		
 	for(i = 0; i < 32; i++ )
 	{
-		docrc16(buf[i]);
+		PB = sc->readMac[i];
+		docrc16(PB);
 	}
-	
+
 	if(CRC16 != read_crc)
 	{
-		EXT_ERRORF(("SC: CMD_COMPUTE_READ_PAGE_MAC second CRC error %04x != %04x!", CRC16, read_crc) );
+#if BSP_SC_DEBUG
+		EXT_ERRORF(("SC: ReadMAC Data CRC error: %04x != %04x!", CRC16, read_crc) );
+		CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read error MAC");
+#endif
 		return EXIT_FAILURE;
 	}
-	memcpy(mac, buf, 32);
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Read MAC Data CRC: %04x:%04x", CRC16, read_crc));
+#if BSP_SC_DEBUG
+	CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read MAC");
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: ReadMAC Data CRC: %04x:%04x", CRC16, read_crc));
+#endif
 	
 	return EXIT_SUCCESS;	
 }
 
 /*
-// load and lock the 256 bit(32 byte) secret to chip
-// 'secret'- secret to load
-// 'lock_flag' - 1: lock , 0: no lock
-// 'magic - 0x5A, protect lock_flag
+* load and lock the 256 bit(32 byte) secret to chip
+* 'secret'- secret to load
+* 'lock_flag' - 1: lock , 0: no lock
+* 'magic - 0x5A, protect lock_flag
 */
-static char load_lock_secret(unsigned char *secret, unsigned char lock_flag, unsigned char lock_magic)
+static char _loadLockSecret(unsigned char *secret, unsigned char lock_flag, unsigned char lock_magic)
 {
 	unsigned short read_crc;	
 	unsigned short cmd = SC_CMD_LOAD_LOCK_SECRET;	
@@ -704,7 +722,7 @@ static char load_lock_secret(unsigned char *secret, unsigned char lock_flag, uns
 	
 	if(__bspWriteScratchPad(secret) == EXIT_FAILURE)
 	{
-		EXT_ERRORF(("SC: CMD_LOAD_LOCK_SECRET error!"));
+		EXT_ERRORF(("SC: LoadSecret error!"));
 		return EXIT_FAILURE;
 	}	
 		
@@ -734,10 +752,10 @@ static char load_lock_secret(unsigned char *secret, unsigned char lock_flag, uns
 	SC_READ_16BIT(read_crc);
 	if( CRC16 != read_crc)
 	{
-		EXT_ERRORF(("SC: CMD_LOAD_LOCK_SECRET first CRC error %04x != %04x!", CRC16, read_crc) );
+		EXT_ERRORF(("SC: LoadSecret CMD CRC error %04x != %04x!", CRC16, read_crc) );
 		return EXIT_FAILURE;
 	}		
-	EXT_DEBUGF(EXT_DBG_ON, ("Read Load Secret CMD CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: LoadSecret CMD CRC: %04x:%04x", CRC16, read_crc));
 	
 	//send release
 	_bspScWriteByte(0xAA);
@@ -757,12 +775,12 @@ static char load_lock_secret(unsigned char *secret, unsigned char lock_flag, uns
 	}
 	else if(read_crc == 0x55)
 	{
-		EXT_ERRORF(("SC: CMD_LOAD_LOCK_SECRET secret was locked before."));
+		EXT_ERRORF(("SC: LoadSecret: secret was locked before."));
 		return EXIT_FAILURE;
 	}
 	else
 	{
-		EXT_ERRORF(("SC: CMD_LOAD_LOCK_SECRET fail."));
+		EXT_ERRORF(("SC: LoadSecret fail."));
 		return EXIT_FAILURE;
 	}			
 }
@@ -813,18 +831,25 @@ static void _bspScCreateSecrect(SC_CTRL *sc)
 
 }
 
-static char _bspScCreatePage(SC_CTRL *sc)
+
+static void _bspScInitPage(SC_CTRL *sc)
 {
 	/* page structure */
-	memset(sc->pageData, 0, sizeof(sc->pageData) );				
+	memset(sc->pageData, 0, sizeof(sc->pageData) );
+	
 	memcpy(sc->pageData, sc->romId, 8);
 	memcpy(sc->pageData + 8, EXT_767_MODEL, 6);
 	memcpy(sc->pageData + 14, EXT_767_PRODUCT_NAME, 13);
+	
 	sc->pageData[27] = EXT_MAGIC_VALUE_A;
 	sc->pageData[28] = EXT_MAGIC_VALUE_B;
 	sc->pageData[29] = EXT_MAGIC_VALUE_A;
 	sc->pageData[30] = EXT_MAGIC_VALUE_B;
-	
+	sc->pageData[31] = EXT_MAGIC_VALUE_A;
+}
+
+static char _bspScCreatePage(SC_CTRL *sc)
+{
 	//write_page(0, page_data);
 	delay_us(10);
 	//write_page(1, page_data);
@@ -833,6 +858,24 @@ static char _bspScCreatePage(SC_CTRL *sc)
 	return _bspScWritePage(sc->pageNum, sc->pageData);
 }
 
+static char _bspScReadStatus(SC_CTRL *sc)
+{
+	unsigned char	personality_byte[4];
+	
+	/* personality */
+	if(_readStatusPersonality(personality_byte) == EXIT_FAILURE)
+	{
+		return EXIT_FAILURE;
+	}
+	
+	sc->manId[0] = personality_byte[2];
+	sc->manId[1] = personality_byte[3];
+
+	EXT_DEBUGF(BSP_SC_DEBUG, ("personality_byte: %02x %02x %02x %02x", 
+		personality_byte[0], personality_byte[1], personality_byte[2], personality_byte[3]) );
+
+	return EXIT_SUCCESS;
+}
 
 static char _bspScComputeMAC(SC_CTRL *sc)
 {
@@ -881,6 +924,10 @@ static char _bspScComputeMAC(SC_CTRL *sc)
 	}
 
 	ComputeSHA256(MT, 119, EXT_TRUE, EXT_TRUE, calc_mac);
+#if BSP_SC_DEBUG
+	CONSOLE_DEBUG_MEM(calc_mac, 32, 0, "Calculated MAC");
+#endif
+
 	// Compare calculated mac with one read from device
 	for (i = 0; i < 32; i++)
 	{
@@ -889,33 +936,9 @@ static char _bspScComputeMAC(SC_CTRL *sc)
 			return EXIT_FAILURE;
 		}
 	}
-	
+
+
 	return EXIT_SUCCESS; 
-}
-
-
-static char _bspScPrepare4Check(SC_CTRL *sc)
-{
-	unsigned char	personality_byte[4];
-	
-	if(_bspScCreatePage(sc) == EXIT_FAILURE)
-	{
-		return EXIT_FAILURE;
-	}
-
-	/* personality */
-	if(read_status_personality(personality_byte) == EXIT_FAILURE)
-	{
-		return EXIT_FAILURE;
-	}
-	
-	sc->manId[0] = personality_byte[2];
-	sc->manId[1] = personality_byte[3];
-
-	EXT_DEBUGF(EXT_DBG_ON, ("personality_byte: %02x %02x %02x %02x", 
-		personality_byte[0], personality_byte[1], personality_byte[2], personality_byte[3]) );
-
-	return EXIT_SUCCESS;
 }
 
 
@@ -931,12 +954,18 @@ char bspScWriteKey(SC_CTRL *sc, unsigned char *key)	/* key : 32 bytes*/
 	}
 	
 	//write_page(0, page_data);
+	if(_bspScCreatePage(sc) == EXIT_FAILURE)
+	{
+		EXT_ERRORF(("SC: Prepare page for check failed!"));
+		return EXIT_FAILURE;
+	}
+
 	delay_us(10);
 	//write_page(1, page_data);
 	_bspScReset();
 	
 	//load and lock secret		
-	return load_lock_secret(key, lock_flag, lock_magic);
+	return _loadLockSecret(key, lock_flag, lock_magic);
 }
 
 
@@ -944,25 +973,25 @@ char bspScWriteKey(SC_CTRL *sc, unsigned char *key)	/* key : 32 bytes*/
 char bspScCheckMAC(SC_CTRL *sc)
 {
 	char ret = EXIT_FAILURE;
+	int index = 0;
 
 	if(!IS_SECURITY_CHIP_EXIST(sc))
 	{
 		return EXIT_FAILURE;
 	}
-	
-	if(_bspScPrepare4Check(sc) == EXIT_FAILURE)
-	{
-		EXT_ERRORF(("SC: Prepare page for check failed!"));
-//		return EXIT_FAILURE;
-	}
 
-	ret = compute_read_page_mac(sc->pageNum, sc->challenge, sc->readMac, sc->isAnon);
+	do
+	{
+		ret = _readMAC(sc);
+		index++;
+	}while(ret == EXIT_FAILURE && index< 5 );
+
 	if(ret == EXIT_FAILURE)
 	{
-		EXT_ERRORF(("SC: read MAC from chip failed!"));
+		EXT_ERRORF(("SC: read MAC from chip failed after tried %d times!", index) );
 		return ret;
 	}
-
+	
 	ret = _bspScComputeMAC(sc);
 	if(ret == EXIT_FAILURE)			
 	{
@@ -972,13 +1001,15 @@ char bspScCheckMAC(SC_CTRL *sc)
 	return ret;
 }
 
-#define	SC_HW_TEST 		1
+#define	SC_HW_TEST 		0
 
 char	bspScInit(SC_CTRL *sc)
 {
 	char ret = EXIT_FAILURE;
+#if BSP_SC_DEBUG
 	int i;
-	
+#endif
+
 	ret = _bspScReadRomId(sc);
 	if(ret == EXIT_FAILURE)
 	{
@@ -986,6 +1017,7 @@ char	bspScInit(SC_CTRL *sc)
 		return ret;
 	}
 	sc->isExist = EXT_TRUE;
+
 
 #if SC_HW_TEST
 #define	_TEST_COUNT	2000
@@ -1005,7 +1037,11 @@ char	bspScInit(SC_CTRL *sc)
 	printf(EXT_NEW_LINE"Error %d times in Total %d tests!"EXT_NEW_LINE, errs, _TEST_COUNT);
 #endif
 
+	_bspScInitPage( sc);
+
 	_bspScCreateSecrect(sc);
+
+	_bspScReadStatus(sc);
 
 	/* challenge*/
 	bspHwTrngConfig(EXT_TRUE, RNG_MODE_SC_CHALLENGE);
@@ -1013,14 +1049,8 @@ char	bspScInit(SC_CTRL *sc)
 	bspHwTrngWait();
 
 
-	if(_bspScPrepare4Check(sc) == EXIT_FAILURE)
-	{
-		EXT_ERRORF(("SC: Prepare page for check failed!"));
-		return EXIT_FAILURE;
-	}
-
-#if 1
-	EXT_DEBUGF(EXT_DBG_ON, ("Rom ID: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+#if BSP_SC_DEBUG
+	EXT_DEBUGF(BSP_SC_DEBUG, ("Rom ID: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 		sc->romId[0],sc->romId[1],sc->romId[2],sc->romId[3],sc->romId[4],sc->romId[5],sc->romId[6],sc->romId[7] ));
 
 	printf("Secret key is : "EXT_NEW_LINE);

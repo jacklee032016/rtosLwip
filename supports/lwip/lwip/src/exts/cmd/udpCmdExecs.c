@@ -227,18 +227,34 @@ char extIpCmdSecurityCheck(EXT_JSON_PARSER  *parser)
 	if(extJsonParseString(parser, EXT_IPCMD_SC_SET_KEY, parser->setupData.scKey, sizeof(parser->setupData.scKey)) == EXIT_SUCCESS)
 	{ /* for set_key */
 		int i;
-		for(i=0; i< SC_SECRET_SIZE; i++)
+		memset(parser->runCfg->sc->readMac, 0xFF, SC_SECRET_SIZE);
+		
+		if(strlen(parser->setupData.scKey)%2 != 0)
 		{
-			ret = extSysAtoInt8(parser->setupData.scKey+i*2, parser->runCfg->sc->readMac+i);
-			if(ret ==  EXIT_FAILURE)
+			EXT_ERRORF(("Key size is %d, is not even number of letters !", strlen(parser->setupData.scKey) ));
+			snprintf(parser->msg, sizeof(parser->msg), "'%s' error: Key size '%d' is not even number", EXT_IPCMD_SC_GET_STATUS);
+			ret = EXIT_FAILURE;
+		}
+		else
+		{
+//			for(i=0; i< SC_SECRET_SIZE; i++)
+			for(i=0; i< strlen(parser->setupData.scKey)/2; i++)
 			{
-				EXT_ERRORF(("'#%d: %.*s' is not an integer", i, 2, parser->setupData.scKey+i*2) );
-				break;
-			}
+				ret = extSysAtoInt8(parser->setupData.scKey+i*2, parser->runCfg->sc->readMac+i);
+				if(ret ==  EXIT_FAILURE)
+				{
+					EXT_ERRORF(("#%d: '%.*s' is not an integer", i*2, 2, parser->setupData.scKey+i*2) );
+					snprintf(parser->msg, sizeof(parser->msg), "'%s' error: #%d letters '%.*s' is not an integer", EXT_IPCMD_SC_GET_STATUS, i*2, 2, parser->setupData.scKey+i*2);
+					break;
+				}
 
-			if(parser->runCfg->sc->readMac[i] != parser->runCfg->sc->secret[i] )
-			{
-				EXT_ERRORF(("Key #%d %02x != %02x (board)", i, parser->runCfg->sc->readMac[i], parser->runCfg->sc->secret[i]) );
+#if 0
+				if(parser->runCfg->sc->readMac[i] != parser->runCfg->sc->secret[i] )
+				{
+					EXT_ERRORF(("Key #%d %02x != %02x (board)", i, parser->runCfg->sc->readMac[i], parser->runCfg->sc->secret[i]) );
+					snprintf(parser->msg, sizeof(parser->msg), "'%s' error: key is not correct", EXT_IPCMD_SC_GET_STATUS);
+				}
+#endif				
 			}
 		}
 
@@ -254,7 +270,7 @@ char extIpCmdSecurityCheck(EXT_JSON_PARSER  *parser)
 		else
 		{
 			parser->status = JSON_STATUS_CMD_EXEC_ERROR;
-			snprintf(parser->msg, sizeof(parser->msg), "'%s' error on hardware", EXT_IPCMD_SC_GET_STATUS);
+//			snprintf(parser->msg, sizeof(parser->msg), "'%s' error on hardware", EXT_IPCMD_SC_GET_STATUS);
 		}
 		
 		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("'%s' command OK!",EXT_IPCMD_SC_SET_KEY ));
