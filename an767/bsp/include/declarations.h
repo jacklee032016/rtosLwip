@@ -196,6 +196,9 @@ void	extFpgaBlinkPowerLED(char	isEnable);
 
 char *extFgpaReadVersion(void);
 
+const char *sysBuildTime(void);
+const char *sysVersion(void);
+
 
 #endif
 

@@ -175,7 +175,7 @@ static const	EXT_CONST_STR	_hcStringEvents[] =
 };
 
 
-static const	EXT_CONST_STR	_ipcmdStringRsParities[] =
+const	EXT_CONST_STR	_ipcmdStringRsParities[] =
 {
 	{
 		type	: EXT_RS232_PARITY_NONE,
@@ -188,6 +188,26 @@ static const	EXT_CONST_STR	_ipcmdStringRsParities[] =
 	{
 		type	: EXT_RS232_PARITY_EVEN,
 		name	: EXT_RS232_PAR_STR_EVEN
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+const	EXT_CONST_STR	_ipcmdStringRsStopbits[] =
+{
+	{
+		type	: EXT_RS232_STOP_BITS_1,
+		name	: "1"
+	},
+	{
+		type	: EXT_RS232_STOP_BITS_2,
+		name	: "2"
+	},
+	{
+		type	: EXT_RS232_STOP_BITS_15,
+		name	: "1.5"
 	},
 	{
 		type	: EXT_INVALIDATE_STRING_TYPE,
@@ -232,7 +252,8 @@ const	EXT_CONST_STR	_videoColorSpaces[] =
 		type	: EXT_V_COLORSPACE_RGB,
 		name	: "RGB"
 	},
-
+#if 0
+	
 	{
 		type	: EXT_V_COLORSPACE_YCBCR_420,
 		name	: "YCbCr-4:2:0"
@@ -258,6 +279,7 @@ const	EXT_CONST_STR	_videoColorSpaces[] =
 		type	: EXT_V_COLORSPACE_CL_YCBCR_420,
 		name	: "CLYCbCr-4:2:0"
 	},
+#endif		
 	{
 		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
@@ -436,6 +458,26 @@ const short videoHeightList[]=
 //	1440,
 //	1600,
 //	2160,
+	0
+};
+
+const short constRs232Baudrates[]=
+{
+	EXT_BAUDRATE_9600,
+	EXT_BAUDRATE_19200,
+	EXT_BAUDRATE_38400,
+	EXT_BAUDRATE_57600,
+	EXT_BAUDRATE_115200,
+	0
+};
+
+
+const short constRs232Databits[]=
+{
+	EXT_RS232_CHAR_LENGTH_5,
+	EXT_RS232_CHAR_LENGTH_6,
+	EXT_RS232_CHAR_LENGTH_7,
+	EXT_RS232_CHAR_LENGTH_8,
 	0
 };
 
@@ -856,5 +898,229 @@ const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name)
 	EXT_ERRORF(("unknown type %d in constant type :%d", name, intType) );
 	return 0xFF;
 }
+
+
+const MediaParam constMediaParams[] = 
+{
+	/* 720 */
+	{/* 1 */
+		index: 0,
+		desc	:	"720p23.98",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_23,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 2 */
+		index: 1,
+		desc	:	"720p24",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_24,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 3 */
+		index: 2,
+		desc	:	"720p25",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_25,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 4 */
+		index: 3,
+		desc	:	"720p29.97",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_29,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/*5 */
+		index: 4,
+		desc	:	"720p30",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_30,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 6 */
+		index: 5,
+		desc	:	"720p50",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_50,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 7 */
+		index: 6,
+		desc	:	"720p59.94",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_59,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 8 */
+		index: 7,
+		desc	:	"720p60",
+		width:	1280,
+		height:	720,
+		fps	:	EXT_V_FRAMERATE_T_60,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+
+
+	/* 1080 */
+	{/* 1 */
+		index: 8,
+		desc	:	"1080p23.98",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_23,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 2 */
+		index: 9,
+		desc	:	"1080p24",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_24,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 3 */
+		index: 10,
+		desc	:	"1080p25",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_25,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 4 */
+		index: 11,
+		desc	:	"1080p29.97",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_29,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/*5 */
+		index: 12,
+		desc	:	"1080p30",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_30,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 6 */
+		index: 13,
+		desc	:	"1080i50",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_50,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 7 */
+		index: 14,
+		desc	:	"1080i59.94",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_59,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 8 */
+		index: 15,
+		desc	:	"1080i60",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_60,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+
+
+	/* 1080 3GA */
+	{/* 1 */
+		index: 16,
+		desc	:	"1080p50 3GA",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_50,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 2 */
+		index: 17,
+		desc	:	"1080p59.94 3GA",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_59,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 3 */
+		index: 18,
+		desc	:	"1080p60 3GA",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_60,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 4 */
+		index: 19,
+		desc	:	"1080p50 3GB",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_50,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/*5 */
+		index: 20,
+		desc	:	"1080p59.97 3GB",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_59,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+	{/* 6 */
+		index: 21,
+		desc	:	"1080p60 3GB",
+		width:	1920,
+		height:	1080,
+		fps	:	EXT_V_FRAMERATE_T_60,
+		isInterlaced 	: 0,
+		isSegmented	: 0
+	},
+
+
+	{
+		index: INVALIDATE_VALUE_U32,
+		desc	:	NULL,
+		width:	INVALIDATE_VALUE_U16,
+		height:	INVALIDATE_VALUE_U16,
+
+		fps	:	INVALIDATE_VALUE_U8,
+
+		isInterlaced 	: INVALIDATE_VALUE_U8,
+		isSegmented	: INVALIDATE_VALUE_U8
+	}
+
+};
 
 

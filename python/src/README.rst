@@ -2,6 +2,18 @@
 Usage of Python utilites
 =========================
 
+Jan.7th, 2019 Monday
+ ./run getId 192.168.168.106 -d
+
+ ./run getSecSta 192.168.168.106 -d
+
+ ./run setKey 430786dc44514ad86aff88e1465449e467078ae0554a4cd36d138cde58495cbe 192.168.168.106 -d
+ 
+
+43 07 86 dc 44 51 4a d8 6a ff 88 e1 46 54 49 e4 67 07 8a e0 55 4a 4c d3 6d 13 8c de 58 49 5c be
+
+430786dc44514ad86aff88e1465449e467078ae0554a4cd36d138cde58495cbe
+
 Jan.3rd, 2019
   curl -H "Content-Type: application/json" POST -d '{"sdpVideoIp":"192.168.168.106", "sdpVideoPort":80, "sdpVideoUri":"video/23/45.sdp", \
     "sdpAudioIp":"192.168.168.101", "sdpAudioPort":8080, "sdpAudioUri":"audio/23/34.sdp",}' http://192.168.168.101/service -i

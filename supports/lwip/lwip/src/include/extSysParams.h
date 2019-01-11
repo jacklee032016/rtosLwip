@@ -254,11 +254,15 @@
 #define	EXT_WEBPAGE_UPDATE_MCU				"mcuUpdate"
 #define	EXT_WEBPAGE_UPDATE_FPGA				"fpgaUpdate"
 
+#define	EXT_WEBPAGE_SYS_CFGS					"sysCfgs"
+#define	EXT_WEBPAGE_SYS_UPDATE				"sysUpdate"
+
+
 #define	EXT_WEBPAGE_REBOOT					"reboot"
 
 
-#define	EXT_WEBPAGE_UPDATE_MCU_HTML		"upgradeMcu.html"
-#define	EXT_WEBPAGE_UPDATE_FPGA_HTML		"upgradeFpga.html"
+#define	EXT_WEBPAGE_UPDATE_HTML				"upgrade.html"
+#define	EXT_WEBPAGE_SETTINGS_HTML			"settings.html"
 
 #define	EXT_WEBPAGE_SDP_VIDEO				"video.sdp"
 #define	EXT_WEBPAGE_SDP_AUDIO				"audio.sdp"
@@ -906,6 +910,21 @@ typedef struct
 }EXT_CONST_INT;
 
 
+typedef	struct
+{
+	int			index;
+	char			*desc;
+
+	uint16_t		width;
+	uint16_t		height;
+
+	uint8_t		fps;
+
+	uint8_t		isInterlaced;
+	uint8_t		isSegmented;
+}MediaParam;
+
+
 const uint8_t extCmnIntFindName(CMN_INT_TYPE  intType, uint8_t type);
 const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name);
 
@@ -1337,6 +1356,9 @@ extern	const	EXT_CONST_STR	_videoColorSpaces[];
 extern	const short	videoWidthList[];
 extern	const short 	videoHeightList[];
 
+extern	const short constRs232Baudrates[];
+extern	const short constRs232Databits[];
+
 extern	const	EXT_CONST_STR	_videoFormats[];
 
 
@@ -1347,6 +1369,14 @@ extern	const	EXT_CONST_INT	intVideoFpsList[];
 extern	const char 	audioChannelsList[];
 extern	const	EXT_CONST_STR	_audioPktSizes[];
 extern	const	EXT_CONST_STR	_audioRates[];
+
+
+extern	const	EXT_CONST_STR	_ipcmdStringRsParities[];
+extern	const	EXT_CONST_STR	_ipcmdStringRsStopbits[];
+
+
+extern	const MediaParam constMediaParams[];
+
 
 extern	EXT_RUNTIME_CFG tmpRuntime;
 

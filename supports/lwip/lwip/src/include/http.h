@@ -491,6 +491,7 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_VERSION				"version"
 
 #define	EXT_WEB_CFG_FIELD_ADDRESS				"address"
+#define	EXT_WEB_CFG_FIELD_NETMASK				"netmask"
 #define	EXT_WEB_CFG_FIELD_GATEWAY				"gateway"
 #define	EXT_WEB_CFG_FIELD_IS_DHCP				"isDHCP"
 
@@ -535,6 +536,11 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_AUDIO_DEPTH			"audioDepth"
 #define	EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE		"audioPktSize"
 #define	EXT_WEB_CFG_FIELD_IS_CONNECT			"isConnect"	/* 811 send to TX(stop/start) or RX(connect/disconnect) */
+
+#define	EXT_WEB_CFG_FIELD_RS232_BAUDRATE		"rs232Baudrate"
+#define	EXT_WEB_CFG_FIELD_RS232_DATABITS		"rs232DataBit"
+#define	EXT_WEB_CFG_FIELD_RS232_PARITY			"rs232Parity"
+#define	EXT_WEB_CFG_FIELD_RS232_STOPBITS		"rs232StopBit"
 
 
 #define	EXT_HTTP_VERSION_11						"HTTP/1.1 "

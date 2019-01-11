@@ -57,6 +57,10 @@ static uint16_t _extHttpWebPageReboot(ExtHttpConn  *ehc, void *data)
 #define	FORM_ID_CFG_DATA		"formSettingsData"
 #define	FORM_ID_CFG_SDP		"formSettingsSdp"
 
+#define	FORM_ID_CFG_NETWORK		"formNet"
+#define	FORM_ID_CFG_RS232			"formRs232"
+
+
 //#define	FORM_ID		"formFirmware"
 static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 {
@@ -65,6 +69,8 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	struct netif *_netif = (struct netif *)runCfg->netif;
 	const EXT_CONST_STR *_str;
 	const EXT_CONST_INT *_int;
+
+	const MediaParam *_mParam = NULL;
 
 	const char *chVal;
 	const short *shVal;
@@ -176,6 +182,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	if(EXT_IS_TX(runCfg))
 	{
 		/* media parameters */
+#if 0		
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Resolution:</LABEL>"EXT_NEW_LINE);
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t%dx%d</DIV>"EXT_NEW_LINE, runCfg->runtime.vWidth, runCfg->runtime.vHeight);
@@ -185,7 +192,11 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 		
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Frame Rate:</LABEL>"EXT_NEW_LINE"\t\t%d</DIV>" EXT_NEW_LINE, 
 			CMN_INT_FIND_NAME_V_FPS(runCfg->runtime.vFrameRate));
-
+#else
+		_mParam = constMediaParams;
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Media:</LABEL>"EXT_NEW_LINE"\t\t%s</DIV>" EXT_NEW_LINE, 
+			_mParam->desc);
+#endif
 		/* color depth */
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Color Depth:</LABEL>"EXT_NEW_LINE"\t\t%d</DIV>"EXT_NEW_LINE,
 			CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth) );
@@ -212,7 +223,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<div class=\"field\"><label>Media Settings:</label>"EXT_NEW_LINE);
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_FPGA_AUTO"\"  onchange=\"javascript_:showdiv(this.options[this.selectedIndex].value)\">"EXT_NEW_LINE );
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\""EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO"\" %s>"EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO"</OPTION>"EXT_NEW_LINE, 
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\""EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO"\" %s>ANC Data</OPTION>"EXT_NEW_LINE, 
 			(runCfg->fpgaAuto)?"selected":"" );
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\""EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL"\" %s>"EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL"</OPTION>"EXT_NEW_LINE, 
 			(runCfg->fpgaAuto)?"":"selected" );
@@ -223,6 +234,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 
 		/* media parameters */
+#if 0
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Resolution:</LABEL>"EXT_NEW_LINE);
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\">"EXT_NEW_LINE );
@@ -269,6 +281,18 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 			_int++;
 		}
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
+#else
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Media:</LABEL>"EXT_NEW_LINE);
+
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\">"EXT_NEW_LINE );
+		_mParam = constMediaParams;
+		while(_mParam->desc != NULL)
+		{
+			CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _mParam->index, (1== runCfg->runtime.vWidth)?"selected":"", _mParam->desc );
+			_mParam++;
+		}
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+#endif
 
 		/* color depth */
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Color Depth:</LABEL>"EXT_NEW_LINE"\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_COLOR_DEPTH"\">"EXT_NEW_LINE);
@@ -381,8 +405,9 @@ static uint16_t _extHttpWebPageInfoHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Model:</LABEL><DIV class=\"label\">%s-%s</DIV></DIV>"EXT_NEW_LINE, EXT_767_MODEL, EXT_IS_TX(runCfg)?"TX":"RX" );
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Custom Name:</LABEL><DIV class=\"label\" >%s</DIV></DIV>", runCfg->name);
 #ifdef	ARM
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Firmware Version:</LABEL><DIV class=\"label\">%s(Build %s)</DIV></DIV>",  EXT_VERSION_STRING, BUILD_DATE_TIME );
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Firmware Version:</LABEL><DIV class=\"label\">%s(Build %s)</DIV></DIV>",  sysVersion(), sysBuildTime() );
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >FPGA Version:</LABEL><DIV class=\"label\">%s</DIV></DIV>",  extFgpaReadVersion() );
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Security Check:</LABEL><DIV class=\"label\">%s</DIV></DIV>",  (bspScCheckMAC(runCfg->sc)==EXIT_FAILURE)?"FAILED":"PASS" );
 #else
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"field\"><LABEL >Firmware Version:</LABEL><DIV class=\"label\">%02d.%02d.%02d</DIV></DIV>",
 		runCfg->version.major, runCfg->version.minor, runCfg->version.revision);
@@ -614,6 +639,122 @@ error:
 }
 
 
+//#define	FORM_ID		"formFirmware"
+static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle)
+{
+	int index = 0;
+	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
+	struct netif *_netif = (struct netif *)runCfg->netif;
+	const EXT_CONST_STR *_str;
+	const EXT_CONST_INT *_int;
+
+	const char *chVal;
+	const short *shVal;
+//	unsigned char _regValue;
+
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
+
+
+	/* IP address */
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>NETWORK</H2></DIV>"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_NETWORK"\" >" );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >DHCP:</LABEL>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_IS_DHCP"\">"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"1\" %s>Enabled</OPTION>"EXT_NEW_LINE,  EXT_DHCP_IS_ENABLE(runCfg)?"selected":"");
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"0\" %s>Disabled</OPTION>"EXT_NEW_LINE,  EXT_DHCP_IS_ENABLE(runCfg)?"":"selected");
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_ADDRESS"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Netmask:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_NETMASK"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+		EXT_LWIP_IPADD_TO_STR(&(runCfg->ipMask))  );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Gateway:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_GATEWAY"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
+		EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway))  );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >MAC Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_MAC"\" value=\"%02x:%02x:%02x:%02x:%02x:%02x\"/></DIV>"EXT_NEW_LINE, 
+		runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_NETWORK"','"EXT_WEBPAGE_SYS_UPDATE"')\"/>"EXT_NEW_LINE
+			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV></DIV>"EXT_NEW_LINE );
+	
+
+
+	/* RS232 */
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>RS232</H2></DIV>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_RS232"\" >" );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Baudrate:</LABEL>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_RS232_BAUDRATE"\">"EXT_NEW_LINE );
+	shVal = constRs232Baudrates;
+	while(*shVal != 0)
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *shVal, (*shVal== runCfg->rs232Cfg.baudRate)?"selected":"", *shVal);
+		shVal++;
+	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Databits:</LABEL>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_RS232_DATABITS"\">"EXT_NEW_LINE );
+	shVal = constRs232Databits;
+	while(*shVal != 0)
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *shVal, (*shVal== runCfg->rs232Cfg.charLength)?"selected":"", *shVal);
+		shVal++;
+	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Paritiy:</LABEL>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_RS232_PARITY"\">" EXT_NEW_LINE);
+	_str = _ipcmdStringRsParities;
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type== runCfg->rs232Cfg.parityType)?"selected":"", _str->name);
+		_str++;
+	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Stopbits:</LABEL>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_RS232_STOPBITS"\">" EXT_NEW_LINE);
+	_str = _ipcmdStringRsStopbits;
+	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type== runCfg->rs232Cfg.stopbits)?"selected":"", _str->name);
+		_str++;
+	}
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
+
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_NETWORK"','"EXT_WEBPAGE_SYS_UPDATE"')\"/>"EXT_NEW_LINE
+			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV></DIV></DIV>"EXT_NEW_LINE );
+	
+
+	/* Reset */
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Reset</H2></DIV>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV class=\"field\"><DIV style=\"margin-left: 5px;\">Restore the device to factory settings.</DIV></DIV>" );
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"buttons\"><input type=\"button\" value=\"Reset\" class=\"btnSubmit\" onclick=\"reset_device()\"></DIV></DIV>" );
+
+
+	/* Reboot */
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Reboot</H2></DIV>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV class=\"field\"><DIV style=\"margin-left: 5px;\">Please wait one minute after rebooting.</DIV></DIV>" );
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"buttons\"><input type=\"button\" value=\"Reboot\" class=\"btnSubmit\" onclick=\"reboot_device()\"></DIV></DIV>" );
+
+#if EXT_HTTPD_DEBUG
+	printf("Data:'%s'\r\n", dataBuf);
+#endif
+	
+	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
+	return index;
+}
+
 uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 {
 	int index = 0;
@@ -640,13 +781,13 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "<a data-text=\"Info\" id=\"nav_info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">System Info</a>", 
 		EXT_WEBPAGE_INFO);
 	
-	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_mcu\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Upgrade MCU</a>", 
-		EXT_WEBPAGE_UPDATE_MCU_HTML);
+	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_mcu\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Upgrade</a>", 
+		EXT_WEBPAGE_UPDATE_HTML);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Upgrade FPGA</a>",
-		EXT_WEBPAGE_UPDATE_FPGA_HTML);
+	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Settings</a></DIV>",
+		EXT_WEBPAGE_SYS_CFGS);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:reboot_device()\">Reboot</a></DIV>");
+//	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:reboot_device()\">Reboot</a></DIV>");
 
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"message\"></DIV><DIV id=\"content\"></DIV><DIV id=\"footer\">&copy; MuxLab Inc. %s</DIV></DIV>", EXT_OS_NAME );
 
@@ -835,6 +976,13 @@ static const MuxHttpHandle	_webpages[] =
 		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_MEDIA,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	_extHttpWebPageMediaHander,
+		respType: 	WEB_RESP_HTML
+	},
+
+	{
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SYS_CFGS,
+		method	: 	HTTP_METHOD_GET,
+		handler	:	_extHttpWebPageSysCfgsHander,
 		respType: 	WEB_RESP_HTML
 	},
 

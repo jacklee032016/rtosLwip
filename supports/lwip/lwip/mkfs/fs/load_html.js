@@ -55,7 +55,7 @@ function showdiv(aval){
 		divSettingsData.style.display= 'inline-block';}
 }
 function submit_firmware(form, url){
-	 if (form == 'formFirmware')	{
+	 if( 'formFirmwareFPGA' || form == 'formFirmwareMCU')	{
 		var fileInput = document.querySelector('input[type="file"]');
 		var data = new FormData();
 		data.append('file', fileInput.files[0]);
@@ -86,3 +86,10 @@ function reboot_device(){
 	}
 }
 
+function reset_device(){
+	var response = confirm("Do you want to restore the device to factory settings?"); 
+	if (response){ 
+		load_http_doc('reset', 'content',''); 
+		setTimeout(function(){window.location.reload(1);}, 3000); 
+	}
+}

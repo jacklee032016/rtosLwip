@@ -15,8 +15,18 @@
 
 #include "eos.h"
 
-
 _CODE char *versionString = EXT_OS_NAME;
+
+/* add 2 functions to keep synchronization of version and time */
+const char *sysBuildTime(void)
+{
+	return BUILD_DATE_TIME;
+}
+
+const char *sysVersion(void)
+{
+	return EXT_VERSION_STRING;
+}
 
 void vApplicationMallocFailedHook( void )
 {

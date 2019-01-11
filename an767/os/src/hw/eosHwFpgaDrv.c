@@ -291,6 +291,8 @@ static char _frpgaReadParamRegisters(EXT_RUNTIME_CFG *runCfg)
 	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_RATE, &runCfg->runtime.aSampleRate);
 	
 	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_PKT_SIZE, &runCfg->runtime.aPktSize);
+
+	return EXIT_SUCCESS;
 }
 
 unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
@@ -544,7 +546,7 @@ char	extFpgaConfig(EXT_RUNTIME_CFG *runCfg )
 	else
 	{/* RX */
 //		const ip4_addr_t *mcIpAddr;
-		unsigned int	intValue;
+//		unsigned int	intValue;
 
 		vCfg = &runCfg->dest;
 #if 0
@@ -731,6 +733,7 @@ static const FpgaIntTable _vDepthTable[]=
 	}
 };
 
+#if 0
 static unsigned char _translateFrameRate(unsigned char rate, unsigned char isFromFpga)
 {
 	unsigned int i;
@@ -778,7 +781,7 @@ static unsigned char _translateDepth(unsigned char depth, unsigned char isFromFp
 		return EXT_V_FRAMERATE_T_23;
 	return 2; /* 23.9 for FPGA */
 }
-
+#endif
 
 void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 {

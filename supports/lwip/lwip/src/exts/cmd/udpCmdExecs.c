@@ -226,13 +226,13 @@ char extIpCmdSecurityCheck(EXT_JSON_PARSER  *parser)
 
 	if(extJsonParseString(parser, EXT_IPCMD_SC_SET_KEY, parser->setupData.scKey, sizeof(parser->setupData.scKey)) == EXIT_SUCCESS)
 	{ /* for set_key */
-		int i;
+		unsigned int i;
 		memset(parser->runCfg->sc->readMac, 0xFF, SC_SECRET_SIZE);
 		
 		if(strlen(parser->setupData.scKey)%2 != 0)
 		{
 			EXT_ERRORF(("Key size is %d, is not even number of letters !", strlen(parser->setupData.scKey) ));
-			snprintf(parser->msg, sizeof(parser->msg), "'%s' error: Key size '%d' is not even number", EXT_IPCMD_SC_GET_STATUS);
+			snprintf(parser->msg, sizeof(parser->msg), "'%s' error: Key size '%d' is not even number", EXT_IPCMD_SC_GET_STATUS, strlen(parser->setupData.scKey) );
 			ret = EXIT_FAILURE;
 		}
 		else

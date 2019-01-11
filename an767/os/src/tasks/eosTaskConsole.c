@@ -301,7 +301,9 @@ void vMuxConsoleOutput( const char *pcMessage )
 
 void vMuxUartCmdConsoleStart( uint16_t usStackSize, unsigned long uxPriority )
 {
+#if CONSOLE_ISR_EN
 	err_t err;
+#endif
 
 	_xTxMutex = xSemaphoreCreateMutex();
 	configASSERT( _xTxMutex );
