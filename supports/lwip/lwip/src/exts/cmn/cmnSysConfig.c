@@ -338,6 +338,23 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->endMagic[1] = EXT_MAGIC_VALUE_A;
 }
 
+
+void extCfgFactoryKeepMac( EXT_RUNTIME_CFG *cfg )
+{
+	EXT_MAC_ADDRESS macAddress;
+	
+	unsigned char isMacConfiged = cfg->isMacConfiged;
+	memcpy(&macAddress, &cfg->local.mac, sizeof(EXT_MAC_ADDRESS));
+
+	extCfgFromFactory(cfg);
+
+	memcpy(&cfg->local.mac, &macAddress, sizeof(EXT_MAC_ADDRESS));
+	cfg->isMacConfiged = isMacConfiged;
+
+	bspCfgSave(cfg, EXT_CFG_MAIN);
+
+}
+
 void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg)
 {
 	runCfg->bufRead = _readBuffer;

@@ -9,12 +9,12 @@
 				<INPUT type="file" name="fpgaFmUpload" id="fpgaFmUpload">
 			</DIV>
 			<DIV class="buttons">
-				<input type="button" value="Submit" class="btnSubmit" onClick="submit_firmware('formFirmware', 'fpgaUpdate')" id="btnSubmit" />
+				<input type="button" value="Submit" class="btnSubmit" onClick="submit_firmware('formFirmwareFPGA', 'fpgaUpdate')" id="btnSubmit" />
 			</DIV>
 		</DIV>
 	</FORM>
 
-	<FORM method="post" id="formFirmwareMCU" enctype="multipart/form-data" action="mcuUpdate" target="dummyframe">
+	<FORM method="post" id="formFirmwareMCU" enctype="multipart/form-data"  target="dummyframe">
 		<DIV class="title">
 			<H2>Upgrade MCU Firmware</H2>
 		</DIV>
@@ -24,9 +24,20 @@
 				<INPUT type="file" name="mcuFmUpload" id="mcuFmUpload">
 			</DIV>
 			<DIV class="buttons">
-				<input type="button" value="Submit" class="btnSubmit" onClick="submit_firmware('formFirmware', 'mcuUpdate')" id="btnSubmit" />
+				<input type="button" value="Submit" class="btnSubmit" onClick="submit_firmware('formFirmwareMCU', 'mcuUpdate')" id="btnSubmit" />
 			</DIV>
 		</DIV>
 	</FORM>
 
+
+		<DIV class="title">
+			<H2>Note:</H2>
+		</DIV>
+	  <DIV class="fields">
+  		<DIV class="field">
+  			<DIV style=\"margin-left: 5px;\">Please UnZip the update file and install both files as requested above.</DIV>
+  		</DIV>
+  	</DIV>
+  
 </DIV>
+

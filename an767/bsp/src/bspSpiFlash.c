@@ -310,6 +310,12 @@ char	bspCmdSpiFlashRead(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsign
 	unsigned int offset =0;
 	unsigned int size = FLASH_N250_PAGE_SIZE;
 
+	if( bspHwSpiFlashCheck() == EXIT_FAILURE)
+	{
+		snprintf( outBuffer, bufferLen, "Access SPI Flash failed: check FPGA firmware"EXT_NEW_LINE);
+		return EXT_FALSE;
+	}
+
 	if(argc >= 2)
 	{
 		startPage = (int)atoi(argv[1]);
@@ -353,6 +359,12 @@ char	bspCmdSpiFlashErase(const struct _EXT_CLI_CMD *cmd, char *outBuffer,  unsig
 	int countSector = 1;
 	int i;
 
+	if( bspHwSpiFlashCheck() == EXIT_FAILURE)
+	{
+		snprintf( outBuffer, bufferLen, "Access SPI Flash failed: check FPGA firmware"EXT_NEW_LINE);
+		return EXT_FALSE;
+	}
+	
 	if(argc >= 2)
 	{
 		startSector = (int)atoi(argv[1]);

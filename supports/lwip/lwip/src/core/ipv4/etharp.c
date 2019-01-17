@@ -56,6 +56,8 @@
 
 #include <string.h>
 
+#include "lwipExt.h"
+
 #ifdef LWIP_HOOK_FILENAME
 #include LWIP_HOOK_FILENAME
 #endif

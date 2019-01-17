@@ -77,6 +77,20 @@ void extDelayReboot(unsigned short delayMs)
 	_extJobDelay("reboot", delayMs, _delayReboot, NULL);
 }
 
+static char _delayReset(void *data)
+{
+	extCfgFactoryKeepMac(&extRun);
+	
+	EXT_REBOOT();
+	return EXIT_SUCCESS;
+}
+
+
+void extDelayReset(unsigned short delayMs)
+{
+	_extJobDelay("reset", delayMs, _delayReset, NULL);
+}
+
 
 
 static void _periodJobCallback(TimerHandle_t pxTimer)

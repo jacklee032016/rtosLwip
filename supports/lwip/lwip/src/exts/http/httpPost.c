@@ -354,7 +354,7 @@ TRACE();
 }
 
 /* begin to execute on the recevied data of POST request or when conn is closed */
-void extHttpPostDataFinished(ExtHttpConn *ehc)
+void extHttpPostDataFinished(ExtHttpConn *ehc, char isFinished)
 {
 //	EXT_DEBUGF(EXT_DBG_OFF, ("POST request on '%s' ended: '%.*s' bounary:'%s'", ehc->uri, (int)ehc->dataSendIndex, ehc->data, ehc->boundary) );
 //	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", ehc->uri, ehc->dataSendIndex, ehc->data, ehc->boundary) ;
@@ -407,13 +407,14 @@ void extHttpPostDataFinished(ExtHttpConn *ehc)
 //		EXT_INFOF( ("POST upload %d byte from file %s, type: %d", ehc->runCfg->firmUpdateInfo.size, ehc->filename, ehc->runCfg->firmUpdateInfo.type ) );
 	}
 #endif
-
-	ehc->uploadCtx->close(ehc);
+	ehc->uploadCtx->close(ehc, isFinished);
 
 //	EXT_DEBUGF(EXT_DBG_OFF, ("POST upload %d byte from file %s", ehc->runCfg->firmUpdateInfo.size, ehc->filename ) );
 	
 //	ehc->uploadCtx->priv = NULL;
 	ehc->uploadCtx = NULL;
+
+//TRACE();
 
 	CANCEL_UPDATE(ehc->runCfg);
 
@@ -483,7 +484,7 @@ err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p)
 #endif
 
 		EXT_INFOF(("HTTP Post data finished"));
-		extHttpPostDataFinished(mhc);
+		extHttpPostDataFinished(mhc, EXT_TRUE);
 		return ERR_OK;
 	}
 

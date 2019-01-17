@@ -285,9 +285,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	{
 		count++;
 		
-		if(tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_9600 && tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_19200 &&
-			tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_38400 && tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_57600 &&
-			tmpCfg->rs232Cfg.baudRate != EXT_BAUDRATE_115200 && tmpCfg->rs232Cfg.baudRate != 0 )
+		if(CHECK_BAUDRATE( tmpCfg->rs232Cfg.baudRate) )
 		{
 			snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR invalidate value '%"U32_F"' for '%s' object", tmpCfg->rs232Cfg.baudRate, EXT_IPCMD_DATA_RS_BAUDRATE);
 			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;
@@ -299,9 +297,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_RS_DATABITS, &tmpCfg->rs232Cfg.charLength ) == EXIT_SUCCESS)
 	{
 		count++;
-		if(tmpCfg->rs232Cfg.charLength != EXT_RS232_CHAR_LENGTH_5 && tmpCfg->rs232Cfg.charLength != EXT_RS232_CHAR_LENGTH_6 &&
-			tmpCfg->rs232Cfg.charLength != EXT_RS232_CHAR_LENGTH_7 && tmpCfg->rs232Cfg.charLength != EXT_RS232_CHAR_LENGTH_8 && 
-			tmpCfg->rs232Cfg.charLength != 0 )
+		if(CHECK_DATABITS(tmpCfg->rs232Cfg.charLength))
 		{
 			snprintf(parser->msg, EXT_JSON_MESSAGE_SIZE, "ERROR invalidate value '%d' for '%s' object", tmpCfg->rs232Cfg.charLength, EXT_IPCMD_DATA_RS_DATABITS);
 			parser->status = JSON_STATUS_PARSE_PARAM_ERROR;

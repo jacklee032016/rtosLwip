@@ -74,6 +74,8 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 /* parse data from form of setting web page */
 char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char *value)
 {
+	uint8_t	charVal;
+	uint32_t	intVal;
 //	EXT_DEBUGF(EXT_DBG_ON, ("new vDepth=%d, value:%s, '%s'='%s'", tmpCfg->runtime.vDepth, value, key, value ));
 
 //	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"'%s'='%s'", key, value) );extSysCfgDebugData(&tmpRuntime);
@@ -166,6 +168,22 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 	}
 #endif
 
+#if 1
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_VIDEO_PARAMS, strlen(key)))
+	{
+		if(cmnUtilsParseInt8(value, &charVal) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate index value for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+
+		if(extCmnVideoParamPopulate(tmpCfg, charVal) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate index of video param for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+#else
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_VIDEO_WIDTH, strlen(key)))
 	{
 		if(cmnUtilsParseInt16(value, &tmpCfg->runtime.vWidth) == EXIT_FAILURE)
@@ -181,29 +199,6 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
 		}
-	}
-
-	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_COLOR_SPACE, strlen(key)))
-	{
-//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"'%s'='%s'", key, value) );extSysCfgDebugData(&tmpRuntime);
-//		EXT_DEBUGF(EXT_DBG_ON, ("new vColorSpace=%d, vDepth:%d", tmpCfg->runtime.vColorSpace, tmpCfg->runtime.vDepth));
-		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.vColorSpace) == EXIT_FAILURE)
-		{
-			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
-			return EXIT_FAILURE;
-		}
-//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"'%s'='%s'", key, value) );extSysCfgDebugData(&tmpRuntime);
-//		EXT_DEBUGF(EXT_DBG_ON, ("new vColorSpace=%d, vDepth:%d", tmpCfg->runtime.vColorSpace, tmpCfg->runtime.vDepth));
-	}
-
-	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_COLOR_DEPTH, strlen(key)))
-	{
-		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.vDepth) == EXIT_FAILURE)
-		{
-			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
-			return EXIT_FAILURE;
-		}
-		EXT_DEBUGF(EXT_DBG_OFF, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
 	}
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_FRAME_RATE, strlen(key)))
 	{
@@ -229,6 +224,30 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 			EXT_ERRORF(("'%s(%d)' is not validate interlaced for '%s'", value, tmpCfg->runtime.vIsInterlaced, key));
 			tmpCfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_INTERLACED;
 		}
+	}
+#endif
+
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_COLOR_SPACE, strlen(key)))
+	{
+//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"'%s'='%s'", key, value) );extSysCfgDebugData(&tmpRuntime);
+//		EXT_DEBUGF(EXT_DBG_ON, ("new vColorSpace=%d, vDepth:%d", tmpCfg->runtime.vColorSpace, tmpCfg->runtime.vDepth));
+		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.vColorSpace) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"'%s'='%s'", key, value) );extSysCfgDebugData(&tmpRuntime);
+//		EXT_DEBUGF(EXT_DBG_ON, ("new vColorSpace=%d, vDepth:%d", tmpCfg->runtime.vColorSpace, tmpCfg->runtime.vDepth));
+	}
+
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_COLOR_DEPTH, strlen(key)))
+	{
+		if(cmnUtilsParseInt8(value, &tmpCfg->runtime.vDepth) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+		EXT_DEBUGF(EXT_DBG_OFF, ("new vDepth=%d, value:%s", tmpCfg->runtime.vDepth, value));
 	}
 
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_AUDIO_CHANNEL, strlen(key)))
@@ -258,6 +277,100 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 		}
 		EXT_DEBUGF(EXT_DBG_OFF, ("new aPktSize=%d; aChannels=%d"EXT_NEW_LINE, tmpCfg->runtime.aPktSize, tmpCfg->runtime.aChannels));
 	}
+
+	/* network update */
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_IS_DHCP, strlen(key)))
+	{
+		if(cmnUtilsParseInt8(value, &charVal) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate integer for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+		
+		EXT_CFG_SET_DHCP(tmpCfg, (charVal==0)?EXT_FALSE:EXT_TRUE);
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_ADDRESS, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->local.ip) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_NETMASK, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->ipMask) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_GATEWAY, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->ipGateway) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+
+	/* RS232 update */
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_RS232_BAUDRATE, strlen(key)))
+	{
+		if(cmnUtilsParseInt32(value, &intVal) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate integer for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+
+		if( CHECK_BAUDRATE(intVal) )
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate baudrate for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+		else
+		{
+			tmpCfg->rs232Cfg.baudRate = intVal;
+		}
+
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_RS232_DATABITS, strlen(key)))
+	{
+		if(cmnUtilsParseInt8(value, &charVal) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate integer for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+		
+		if( CHECK_DATABITS(charVal) )
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate databit for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+		else
+		{
+			tmpCfg->rs232Cfg.charLength = charVal;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_RS232_PARITY, strlen(key)))
+	{
+		if(cmnUtilsParseInt8(value, &charVal) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate integer for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+		tmpCfg->rs232Cfg.parityType = charVal;
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_RS232_STOPBITS, strlen(key)))
+	{
+		if(cmnUtilsParseInt8(value, &charVal) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate integer for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+		tmpCfg->rs232Cfg.stopbits = charVal;
+	}
+
 	else
 	{
 		EXT_INFOF(("Key '%s' and value '%s' is not support now", key,  value));

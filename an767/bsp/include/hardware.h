@@ -145,6 +145,10 @@
 #define	EXT_PIN_FPGA_DONE			PIO_PA2_IDX
 #define	EXT_PIN_PLL_INIT				PIO_PA1_IDX		/* INIT pin of LMH1983 */
 
+//#define  FPGA_GET_DONE_SIGNAL()		(gpio_pin_is_high(EXT_PIN_FPGA_PROGRAM ) )
+#define  FPGA_GET_DONE_SIGNAL()		(gpio_pin_is_high(EXT_PIN_FPGA_DONE ) )
+
+
 #define	EXT_PIN_SECURE_CHIP			PIO_PA25_IDX		/* security chip */
 
 

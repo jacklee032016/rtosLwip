@@ -276,7 +276,7 @@ static void __extHttpErr(void *arg, err_t err)
 	LWIP_UNUSED_ARG(err);
 
 //	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_err: %s", lwip_strerr(err)));
-	EXT_ERRORF(("http_err: %s", lwip_strerr(err)));
+//	EXT_ERRORF(("http_err: %s", lwip_strerr(err)));
 	ehc = (ExtHttpConn *)arg;
 
 	if (ehc != NULL)
@@ -342,19 +342,47 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 #if LWIP_EXT_HTTPD_TASK
 	if (ehc == NULL)
 	{
+//		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http poll: ehc is null now"));
 		tcp_close(pcb);
+
+#if 0
+		tcp_arg(pcb, NULL);
+		
+		tcp_recv(pcb, NULL);
+		tcp_err(pcb, NULL);
+		tcp_poll(pcb, NULL, 0);
+		tcp_sent(pcb, NULL);
+#endif
+		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http poll: abort tcp when ehc is null"));
+			tcp_abort(pcb);
+			return ERR_ABRT;
+		}
+//TRACE();
+		return ERR_ABRT;
+//		return ERR_OK;
+		
 	}
 	else
 	{
 		ehc->retries++;
-		if (ehc->retries == MHTTPD_MAX_RETRIES)
+		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s poll: try %d times", ehc->name, ehc->retries));
+		if(ehc->state == H_STATE_FREE)
 		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http poll: abort tcp") );
+			tcp_abort(pcb);
+			return ERR_ABRT;
+		}
+		
+		if (ehc->retries >= HTTPD_MAX_RETRIES  )
+		{
+			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s poll: reach %d times, close connect", ehc->name, ehc->retries));
 			extHttpConnClose(ehc, pcb); /* management of PCB is only executed by TCP task */
 			extHttpPostEvent(ehc, H_EVENT_CLOSE, NULL, pcb);
 		}
 		else
 		{
-			extHttpPostEvent(ehc, H_EVENT_POLL, NULL, pcb);
+//			extHttpPostEvent(ehc, H_EVENT_POLL, NULL, pcb);
 		}
 
 #if 0
@@ -394,7 +422,7 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 	else
 	{
 		ehc->retries++;
-		if (ehc->retries == MHTTPD_MAX_RETRIES)
+		if (ehc->retries >= HTTPD_MAX_RETRIES)
 		{
 			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: too many retries, close"));
 			extHttpConnClose(ehc, pcb);
@@ -406,7 +434,6 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 		* cause the connection to close immediately. */
 		if(ehc )//&& (mhc->handle))
 		{
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http_poll: try to send more data"));
 			if(extHttpSend( ehc))
 			{/* If we wrote anything to be sent, go ahead and send it now. */
 				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("tcp_output"));
@@ -416,6 +443,7 @@ err_t extHttpPoll(void *arg, struct tcp_pcb *pcb)
 	}
 #endif		
 
+//	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("http poll: return"));
 	return ERR_OK;
 }
 
@@ -566,6 +594,7 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("%s Event RECV : CONN closed",(ehc)?ehc->name:"UNKNOWN") );
 		if(ehc == NULL)
 		{
+//TRACE();
 			tcp_close(pcb);
 		}
 		else
@@ -582,6 +611,9 @@ static err_t __extHttpRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 			return err;
 		}
 #else		
+//TRACE();
+			extHttpConnClose(ehc, pcb); /* management of PCB is only executed by TCP task */
+//TRACE();
 			extHttpPostEvent( ehc, H_EVENT_CLOSE, p, pcb);
 		}
 #endif
@@ -701,6 +733,8 @@ void extHttpSvrMain(void *data)
 
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
 
+	runCfg->runtime.connHttpCount = 0;
+	runCfg->runtime.currentHttpConns = 0;
 
 #if	0//MHTTPD_USE_MEM_POOL
 	LWIP_MEMPOOL_INIT(MHTTPD_STATE);

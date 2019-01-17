@@ -76,7 +76,7 @@ static unsigned char _httpEventPoll(void *arg)
 	}
 	else
 	{
-		if (ehc->retries >= MHTTPD_MAX_RETRIES)
+		if (ehc->retries >= HTTPD_MAX_RETRIES)
 		{
 //			extHttpPostEvent(ehc, H_EVENT_CLOSE, NULL, NULL); /* close in CLOSE event */
 //			return EXT_STATE_CONTINUE;
@@ -165,7 +165,8 @@ static unsigned char _httpEventError(void *arg)
 	}
 #endif
 
-	return H_STATE_ERROR;
+//	return H_STATE_ERROR;
+	return H_STATE_CLOSE;
 }
 
 
@@ -396,7 +397,7 @@ void	httpFsmHandle(HttpEvent *he)
 //				EXT_INFOF(("%s from state %s enter into state %s", ehc->name, CMN_FIND_HTTP_STATE(ehc->state), CMN_FIND_HTTP_STATE(newState)));
 
 				_state = _httpFsmFindState(_fsm, newState);
-				if(_state->enter_handle )
+				if( _state != NULL && _state->enter_handle )
 				{
 					(_state->enter_handle)(he);
 				}

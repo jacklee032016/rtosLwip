@@ -332,3 +332,31 @@ void bspHwSpiFlashInit(void)
 }
 
 
+/* check SPI flash: read Flash Manufacture ID */
+char  bspHwSpiFlashCheck(void)
+{
+	U8 cmd = NFLASH_CMD_READ_DEVICE_ID;
+	unsigned char idBuf[16];
+
+	bspHwSpiFlashReset();
+
+	LOCK_SPI();
+	{
+//		_bspFlashSend(NFLASH_CMD_READ_DEVICE_ID); //read device ID.
+		extBspSpiWritePacket(&cmd, 1);
+//		spi_send_address(0);
+
+		extBspSpiReadPacket(idBuf, sizeof(idBuf));
+
+		if(idBuf[0]!=FLASH_N25Q_ID_MANU || idBuf[1]!=FLASH_N25Q_ID_DEVICE || idBuf[2]!=FLASH_N25Q_ID_CAPACITY )
+		{
+			EXT_ERRORF(("Flash Manu ID Wrong:%2x:%2x:%2x"EXT_NEW_LINE, idBuf[0], idBuf[3], idBuf[2] ));
+			return EXIT_FAILURE;
+		}
+	}
+
+	UNLOCK_SPI();
+
+	return EXIT_SUCCESS;
+}
+

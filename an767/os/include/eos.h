@@ -118,7 +118,6 @@ unsigned int  extFgpaRegisterDebug( char *data, unsigned int size);
 /************** ATMEL and others ************/
 
 void sys_init_timing(void);
-uint32_t sys_get_ms(void);
 
 void extEtherDebug(void);
 

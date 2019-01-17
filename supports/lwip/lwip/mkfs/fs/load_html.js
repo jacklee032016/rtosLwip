@@ -55,8 +55,9 @@ function showdiv(aval){
 		divSettingsData.style.display= 'inline-block';}
 }
 function submit_firmware(form, url){
-	 if( 'formFirmwareFPGA' || form == 'formFirmwareMCU')	{
-		var fileInput = document.querySelector('input[type="file"]');
+	 if( form == 'formFirmwareFPGA' || form == 'formFirmwareMCU')	{
+		// var fileInput = document.forms[form].querySelector('input[type="file"]');
+		var fileInput = document.querySelector('#'+form+' input[type="file"]');
 		var data = new FormData();
 		data.append('file', fileInput.files[0]);
 	} 
@@ -92,4 +93,28 @@ function reset_device(){
 		load_http_doc('reset', 'content',''); 
 		setTimeout(function(){window.location.reload(1);}, 3000); 
 	}
+}
+
+function dhcpEnable(){
+	var dhcpEnable = document.getElementsByName("isDHCP")[0].value;
+	if (dhcpEnable == 1) {
+		document.getElementsByName("address")[0].disabled = true;
+		document.getElementsByName("netmask")[0].disabled = true;
+		document.getElementsByName("gateway")[0].disabled = true;
+	} else {
+		document.getElementsByName("address")[0].disabled = false;
+		document.getElementsByName("netmask")[0].disabled = false;
+		document.getElementsByName("gateway")[0].disabled = false;
+	}
+}
+
+function tabColor(elementId){
+	/* clear all tabs */
+	var anchors = document.getElementsByClassName("anchor");
+	var i;
+	for (i = 0; i < anchors.length; i++) {
+		anchors[i].classList.remove("black");
+	} 
+	/* turn the link black */
+	document.getElementById(elementId).classList.add("black");
 }

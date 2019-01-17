@@ -315,8 +315,14 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 	}
 	else if( HTTPREQ_IS_CGI(mhc) )
 	{
-		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send CGI web page data (%"U32_F")\"%s\"", mhc->contentLength, mhc->data));
+//		EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("send CGI web page data (%"U32_F")\"%s\"", mhc->contentLength, mhc->data));
+//		EXT_DEBUGF(EXT_DBG_ON, ("send CGI web page data (%"U32_F")\"%s\"", mhc->contentLength, mhc->data));
 		unsigned short len = mhc->contentLength - mhc->dataSendIndex;
+
+		if(EXT_DEBUG_HTTP_IS_ENABLE())
+		{
+			printf("send CGI web page data (%"U32_F":%d)\"%s\"", mhc->contentLength, len, mhc->data);
+		}
 		extHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
 		if(len < (mhc->contentLength - mhc->dataSendIndex) )
 		{

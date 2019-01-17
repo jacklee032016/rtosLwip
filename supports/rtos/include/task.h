@@ -2329,6 +2329,7 @@ void *pvTaskIncrementMutexHeldCount( void ) PRIVILEGED_FUNCTION;
  */
 void vTaskInternalSetTimeOutState( TimeOut_t * const pxTimeOut ) PRIVILEGED_FUNCTION;
 
+void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 
 #ifdef __cplusplus
 }

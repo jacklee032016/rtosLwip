@@ -49,7 +49,7 @@ static void _extHttpConnEof(ExtHttpConn *ehc)
 	}
 #endif
 
-	if (ehc->req)
+	if ((!HTTPREQ_IS_UPLOAD(ehc)) && ehc->req)
 	{
 		EXT_DEBUGF(EXT_HTTPD_DEBUG,("CONN %s free pbuf 0x%p for request", ehc->name, ehc->req ) );
 		pbuf_free(ehc->req);
@@ -72,25 +72,25 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 
 	EXT_ASSERT(("CONN is null now"), ehc!=NULL);
 	
-	EXT_DEBUGF(EXT_DBG_ON, ("Closing connection %s on %p\n", (ehc)?ehc->name:"NULL CONN", (void*)pcb));
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Closing %s connection %s on %p\n", (HTTPREQ_IS_UPLOAD(ehc))?"Upload":"Normal", (ehc)?ehc->name:"NULL CONN", (void*)pcb));
 
 //	EXT_RUNTIME_CFG *runCfg = NULL;
-	if(ehc->pcb == NULL)
+	if(ehc != NULL && ehc->pcb == NULL)
 	{/* CONN is broken by peer, and PCB is deallocated now */
 		return err;
 	}
 	
 	if (ehc != NULL)
 	{
-		if ( HTTPREQ_IS_UPLOAD(ehc) && ((ehc->postDataLeft != 0 )
+		if ( HTTPREQ_IS_UPLOAD(ehc) /*(&& (ehc->postDataLeft != 0 )*/
 #if	MHTTPD_POST_MANUAL_WND
 			|| ((ehc->no_auto_wnd != 0) && (ehc->unrecved_bytes != 0))  
 #endif
-			) )
+			) //)
 		{
 
 			/* make sure the post code knows that the connection is closed */
-			extHttpPostDataFinished(ehc);
+			extHttpPostDataFinished(ehc, EXT_FALSE);
 		}
 
 		if( HTTPREQ_IS_WEBSOCKET(ehc) )
@@ -100,6 +100,7 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 
 	}
 
+//TRACE();
 	if (abort_conn)
 	{
 		EXT_INFOF( ("TCP connection %s %p is abort"EXT_NEW_LINE, ehc->name,  (void*)pcb));
@@ -107,7 +108,7 @@ static err_t _extHttpConnCloseOrAbort(ExtHttpConn *ehc, struct tcp_pcb *pcb, u8_
 		return ERR_OK;
 	}
 
-TRACE();		
+//TRACE();
 	err = tcp_close(pcb);
 	if (err != ERR_OK)
 	{
@@ -120,6 +121,7 @@ TRACE();
 	{
 		EXT_ASSERT(("HTTP Connection is null"), ehc!= NULL);
 		
+//TRACE();
 		if (ehc != NULL)
 		{
 #if 0		
@@ -129,22 +131,22 @@ TRACE();
 #endif
 			ehc->state = H_STATE_FREE;
 //			EXT_INFOF( ("TCP connection %s %p set FREE"EXT_NEW_LINE, ehc->name,  (void*)pcb));
+			ehc->runCfg->currentHttpConns --;
 		}
-		ehc->runCfg->currentHttpConns --;
 
-TRACE();		
+//TRACE();
 		tcp_arg(pcb, NULL);
 		
 		tcp_recv(pcb, NULL);
 		tcp_err(pcb, NULL);
 		tcp_poll(pcb, NULL, 0);
 		tcp_sent(pcb, NULL);
-TRACE();		
+//TRACE();
+
 	}
 #if 0	
 #endif
 
-TRACE();		
 	return err;
 }
 

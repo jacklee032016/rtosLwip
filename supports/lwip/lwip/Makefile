@@ -106,6 +106,7 @@ EXTS_WEB_SRC += \
 	$(EXT_HOME)/http/httpSend.c \
 	$(EXT_HOME)/http/httpWebSocket.c \
 	$(EXT_HOME)/http/httpWebPages.c \
+	$(EXT_HOME)/http/httpWebUpdate.c \
 	$(EXT_HOME)/http/httpFsm.c \
 	$(EXT_HOME)/http/httpSdpApi.c \
 	$(EXT_HOME)/http/httpParseData.c \

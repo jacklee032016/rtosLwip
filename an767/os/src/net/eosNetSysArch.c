@@ -562,6 +562,7 @@ extern volatile unsigned portLONG ulCriticalNesting;
  *
  * \return 1 on success.
  */
+#if 0
 sys_prot_t sys_arch_protect(void)
 {
 	vPortEnterCritical();
@@ -579,7 +580,6 @@ void sys_arch_unprotect(sys_prot_t pval)
 	vPortExitCritical();
 }
 
-#if 0
 /* */
 uint32_t sys_get_ms(void)
 {

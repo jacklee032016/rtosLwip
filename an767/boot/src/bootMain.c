@@ -152,13 +152,22 @@ static int	_bootUpdate(EXT_RUNTIME_CFG *runCfg)
 {
 	int	length= 0;
 
-	if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS)
+	if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS ||runCfg->firmUpdateInfo.type == EXT_FM_TYPE_FPGA )
 	{
-		length = __bootUpdateRtos(runCfg);
-	}
-	else if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_FPGA)
-	{
-		length = bspBootUpdateFpga(runCfg);
+		if(bspFpgaReload() == EXIT_FAILURE)
+		{
+			EXT_ERRORF(("Loading SPI Flash failed, firmware can't be updated!") );
+			return 0;
+		}
+
+		if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS )
+		{
+			length = __bootUpdateRtos(runCfg);
+		}
+		else
+		{
+			length = bspBootUpdateFpga(runCfg);
+		}
 	}
 	else
 	{
@@ -212,7 +221,10 @@ int main( void )
 
 	bspHwInit(BOOT_MODE_BOOTLOADER, EXT_FALSE);
 
-	_bootUpdate(&extRun);
+//	if( bspHwSpiFlashCheck() == EXIT_SUCCESS)
+	{
+		_bootUpdate(&extRun);
+	}
 	
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)
 	stayInBootloader = gpio_pin_is_low(PIO_PA30_IDX);

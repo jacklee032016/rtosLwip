@@ -12,17 +12,21 @@
 
 
 
-static uint16_t _httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
+uint16_t httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
 {
 	int index = 0;
 	int contentLength = 0;
+	
+	index = ehc->responseHeaderLength;
 
 	contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
 		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\">Result:%s</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
 		title, msg);
 
+// 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Reply %d bytes data: '%s'", contentLength,  ehc->data));
+
 	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
-	return contentLength;
+	return (uint16_t)contentLength;
 }
 
 
@@ -54,6 +58,25 @@ static uint16_t _extHttpWebPageReboot(ExtHttpConn  *ehc, void *data)
 }
 
 
+
+static uint16_t _extHttpWebPageReset(ExtHttpConn  *ehc, void *data)
+{
+	int index = 0;
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
+
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Reset</H2></DIV>"); 
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"fields-info\"><DIV class=\"field\"><DIV>Resetting, please waite.....</DIV></DIV></DIV>");
+
+#ifdef	ARM
+	extDelayReset(1000);
+#endif
+
+	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
+	return index;
+}
+
+
 #define	FORM_ID_CFG_DATA		"formSettingsData"
 #define	FORM_ID_CFG_SDP		"formSettingsSdp"
 
@@ -73,7 +96,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	const MediaParam *_mParam = NULL;
 
 	const char *chVal;
-	const short *shVal;
+//	const short *shVal;
 //	unsigned char _regValue;
 
 	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
@@ -193,9 +216,9 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Frame Rate:</LABEL>"EXT_NEW_LINE"\t\t%d</DIV>" EXT_NEW_LINE, 
 			CMN_INT_FIND_NAME_V_FPS(runCfg->runtime.vFrameRate));
 #else
-		_mParam = constMediaParams;
+		_mParam = extCmnVideoParamFind(runCfg);
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Media:</LABEL>"EXT_NEW_LINE"\t\t%s</DIV>" EXT_NEW_LINE, 
-			_mParam->desc);
+			(_mParam != NULL &&  _mParam->desc != NULL)?_mParam->desc: "Unknown" );
 #endif
 		/* color depth */
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Color Depth:</LABEL>"EXT_NEW_LINE"\t\t%d</DIV>"EXT_NEW_LINE,
@@ -219,6 +242,12 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	}	
 	else
 	{
+		const MediaParam *_tempParam = NULL;
+		int	tmpIndex = 0;
+
+		_tempParam = extCmnVideoParamFind(runCfg);
+		tmpIndex = (_tempParam != NULL)?_tempParam->index:0;
+		
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<br /><div class=\"field\">"EXT_NEW_LINE);
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<div class=\"field\"><label>Media Settings:</label>"EXT_NEW_LINE);
 
@@ -284,11 +313,11 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 #else
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Media:</LABEL>"EXT_NEW_LINE);
 
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\">"EXT_NEW_LINE );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_VIDEO_PARAMS"\">"EXT_NEW_LINE );
 		_mParam = constMediaParams;
 		while(_mParam->desc != NULL)
 		{
-			CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _mParam->index, (1== runCfg->runtime.vWidth)?"selected":"", _mParam->desc );
+			CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _mParam->index, (tmpIndex== _mParam->index)?"selected":"", _mParam->desc );
 			_mParam++;
 		}
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
@@ -348,8 +377,8 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 		}
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t</DIV>"EXT_NEW_LINE);/* for auto configuration */
-		}
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t</DIV></DIV>"EXT_NEW_LINE);/* for auto configuration */
+	}
 
 
 //<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
@@ -359,7 +388,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
 //	CMN_SN_PRINTF(data, size, index,  "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" id=\"btnSubmit\" />"EXT_NEW_LINE
 #endif
-			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
+			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/>"EXT_NEW_LINE );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV>"EXT_NEW_LINE );
 
@@ -549,95 +578,6 @@ error:
 	return 0;
 }
 
-static uint16_t _extHttpWebSettingHander(ExtHttpConn *ehc, void *pageHandle)
-{
-//	int index = 0;
-
-	EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
-	MuxHttpHandle *page = (MuxHttpHandle *)pageHandle;
-
-	short left = ehc->leftData;
-	char *data = ehc->headers + ehc->headerLength+__HTTP_CRLF_SIZE;
-	char *key, *value, *nextKey;
-	int i = 0;
-	uint16_t headerLength;
-
-	extSysClearConfig(rxCfg);
-
-//	EXT_DEBUGF(EXT_DBG_ON, (EXT_NEW_LINE"Before configured, Runtime Configuration") );extSysCfgDebugData(&tmpRuntime);
-	
-	data[left] = 0;
-	key = data;
-	while(key)
-	{
-		value = lwip_strnstr(key, _CHAR_EQUAL, left );
-		if(value == NULL)
-		{
-			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' has no value defined", key);
-			snprintf(ehc->filename, sizeof(ehc->filename), "ERROR");
-			goto error;
-		}
-		key[value-key] = 0;
-		value++;
-		
-//	EXT_DEBUGF(EXT_DBG_ON, ("RX vFrameRate=%d; vDepth=%d", rxCfg->runtime.vFrameRate, rxCfg->runtime.vDepth));
-		nextKey = lwip_strnstr(value, _CHAR_SEPERATE,  left - (value-key)) ;
-		if(nextKey)
-		{
-			value[nextKey-value] = 0;
-		}
-		else
-		{
-			value[left-(value-key)] = 0;
-		}
-		
-		if(EXT_DEBUG_HTTP_IS_ENABLE())
-		{
-			printf("\tNo#%d: '%s' = '%s'"EXT_NEW_LINE, ++i, key, value);
-		}
-
-
-#if 0		
-		if( lwip_strnstr(key+1, EXT_WEB_CFG_FIELD_SDP_VEDIO, (value-key-1)))
-		{
-			snprintf(retVal, size, "%.*s", JSON_TOKEN_LENGTH(valueObj), parser->currentJSonString + valueObj->start);
-		}
-#endif
-		if(extHttpParseData(ehc, rxCfg, key, value) == EXIT_FAILURE)
-		{
-			snprintf(ehc->boundary, sizeof(ehc->boundary), "key '%s' : value '%s' wrong", key, value);
-			snprintf(ehc->filename, sizeof(ehc->filename), "ERROR");
-			goto error;
-		}
-//	EXT_DEBUGF(EXT_DBG_ON, ("RX vFrameRate=%d; vDepth=%d", rxCfg->runtime.vFrameRate, rxCfg->runtime.vDepth));
-			
-		if(nextKey)
-		{
-			nextKey++;
-			left = left - (nextKey-key);
-		}
-		
-		key = nextKey;
-	}
-
-//	EXT_DEBUGF(EXT_DBG_ON, ("CFG vFrameRate=%d; vDepth=%d", ehc->runCfg->runtime.vFrameRate, ehc->runCfg->runtime.vDepth));
-
-	extSysCompareParams(ehc->runCfg, rxCfg);
-	extSysConfigCtrl(ehc->runCfg, rxCfg);
-
-//	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
-
-	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
-	ehc->headerLength = headerLength;
-	headerLength = 0;
-
-	return _httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now");
-	
-error:
-	ehc->httpStatusCode = WEB_RES_ERROR;
-	return 0;
-}
-
 
 //#define	FORM_ID		"formFirmware"
 static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle)
@@ -646,10 +586,9 @@ static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle
 	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
 	struct netif *_netif = (struct netif *)runCfg->netif;
 	const EXT_CONST_STR *_str;
-	const EXT_CONST_INT *_int;
 
-	const char *chVal;
 	const short *shVal;
+	const int32_t *intVal;
 //	unsigned char _regValue;
 
 	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
@@ -662,42 +601,40 @@ static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle
 	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_NETWORK"\" >" );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >DHCP:</LABEL>"EXT_NEW_LINE);
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_IS_DHCP"\">"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_IS_DHCP"\" onchange=\"dhcpEnable()\" >"EXT_NEW_LINE );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"1\" %s>Enabled</OPTION>"EXT_NEW_LINE,  EXT_DHCP_IS_ENABLE(runCfg)?"selected":"");
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"0\" %s>Disabled</OPTION>"EXT_NEW_LINE,  EXT_DHCP_IS_ENABLE(runCfg)?"":"selected");
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_ADDRESS"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
-		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >IP Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_ADDRESS"\" value=\"%s\"/ %s></DIV>"EXT_NEW_LINE, 
+		inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_DHCP_IS_ENABLE(runCfg)?"disabled":"" );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Netmask:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_NETMASK"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
-		EXT_LWIP_IPADD_TO_STR(&(runCfg->ipMask))  );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Netmask:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_NETMASK"\" value=\"%s\"/ %s></DIV>"EXT_NEW_LINE, 
+		EXT_LWIP_IPADD_TO_STR(&(runCfg->ipMask)), EXT_DHCP_IS_ENABLE(runCfg)?"disabled":""  );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Gateway:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_GATEWAY"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
-		EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway))  );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Gateway:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_GATEWAY"\" value=\"%s\"/ %s></DIV>"EXT_NEW_LINE, 
+		EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway)) , EXT_DHCP_IS_ENABLE(runCfg)?"disabled":"" );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >MAC Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_MAC"\" value=\"%02x:%02x:%02x:%02x:%02x:%02x\"/></DIV>"EXT_NEW_LINE, 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >MAC Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_MAC"\" value=\"%02x:%02x:%02x:%02x:%02x:%02x\"/ disabled></DIV>"EXT_NEW_LINE, 
 		runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_NETWORK"','"EXT_WEBPAGE_SYS_UPDATE"')\"/>"EXT_NEW_LINE
 			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
-	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV></DIV>"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV>"EXT_NEW_LINE EXT_NEW_LINE);
 	
-
-
 	/* RS232 */
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>RS232</H2></DIV>"EXT_NEW_LINE);
-	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_RS232"\" >" );
+	CMN_SN_PRINTF(dataBuf, size, index,  "<DIV class=\"fields\"><DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_RS232"\" >" );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Baudrate:</LABEL>"EXT_NEW_LINE);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_RS232_BAUDRATE"\">"EXT_NEW_LINE );
-	shVal = constRs232Baudrates;
-	while(*shVal != 0)
+	intVal = constRs232Baudrates;
+	while(*intVal != 0)
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *shVal, (*shVal== runCfg->rs232Cfg.baudRate)?"selected":"", *shVal);
-		shVal++;
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%ld\" %s>%ld</OPTION>"EXT_NEW_LINE, *intVal, (*intVal== (int32_t)runCfg->rs232Cfg.baudRate)?"selected":"", *intVal);
+		intVal++;
 	}
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Databits:</LABEL>"EXT_NEW_LINE);
@@ -705,17 +642,17 @@ static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle
 	shVal = constRs232Databits;
 	while(*shVal != 0)
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *shVal, (*shVal== runCfg->rs232Cfg.charLength)?"selected":"", *shVal);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%d</OPTION>"EXT_NEW_LINE, *shVal, (*shVal== (const unsigned short)runCfg->rs232Cfg.charLength)?"selected":"", *shVal);
 		shVal++;
 	}
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >Paritiy:</LABEL>"EXT_NEW_LINE);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT name=\""EXT_WEB_CFG_FIELD_RS232_PARITY"\">" EXT_NEW_LINE);
 	_str = _ipcmdStringRsParities;
 	while(_str->type!= EXT_INVALIDATE_STRING_TYPE)
 	{
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type== runCfg->rs232Cfg.parityType)?"selected":"", _str->name);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\"%d\" %s>%s</OPTION>"EXT_NEW_LINE, _str->type, (_str->type==(const unsigned short) runCfg->rs232Cfg.parityType)?"selected":"", _str->name);
 		_str++;
 	}
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
@@ -731,21 +668,21 @@ static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_NETWORK"','"EXT_WEBPAGE_SYS_UPDATE"')\"/>"EXT_NEW_LINE
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_RS232"','"EXT_WEBPAGE_RS232_UPDATE"')\"/>"EXT_NEW_LINE
 			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
-	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV></DIV></DIV>"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV>"EXT_NEW_LINE EXT_NEW_LINE);
 	
 
 	/* Reset */
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Reset</H2></DIV>"EXT_NEW_LINE);
-	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV class=\"field\"><DIV style=\"margin-left: 5px;\">Restore the device to factory settings.</DIV></DIV>" );
-	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"buttons\"><input type=\"button\" value=\"Reset\" class=\"btnSubmit\" onclick=\"reset_device()\"></DIV></DIV>" );
+	CMN_SN_PRINTF(dataBuf, size, index,  "<DIV class=\"fields\"><DIV class=\"field\"><DIV style=\"margin-left: 5px;\">Restore the device to factory settings.</DIV>" EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index,  "<DIV class=\"buttons\"><input type=\"button\" value=\"Reset\" class=\"btnSubmit\" onclick=\"reset_device()\"></DIV></DIV></DIV>"EXT_NEW_LINE EXT_NEW_LINE);
 
 
 	/* Reboot */
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Reboot</H2></DIV>"EXT_NEW_LINE);
-	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"fields\"><DIV class=\"field\"><DIV style=\"margin-left: 5px;\">Please wait one minute after rebooting.</DIV></DIV>" );
-	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV class=\"buttons\"><input type=\"button\" value=\"Reboot\" class=\"btnSubmit\" onclick=\"reboot_device()\"></DIV></DIV>" );
+	CMN_SN_PRINTF(dataBuf, size, index,  "<DIV class=\"fields\"><DIV class=\"field\"><DIV style=\"margin-left: 5px;\">Please wait one minute after rebooting.</DIV>" EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index,  "<DIV class=\"buttons\"><input type=\"button\" value=\"Reboot\" class=\"btnSubmit\" onclick=\"reboot_device()\"></DIV></DIV></DIV>"EXT_NEW_LINE EXT_NEW_LINE);
 
 #if EXT_HTTPD_DEBUG
 	printf("Data:'%s'\r\n", dataBuf);
@@ -768,23 +705,23 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "<BODY onload=\"JavaScript:load_http_doc('%s', 'content','')\"><DIV id=\"body\"><DIV id=\"header\"><a id=\"logo\" href=\"/\"><img alt=\"Muxlab Control Panel\" src=\"/logo.jpg\"></a><br />",
 		EXT_WEBPAGE_MEDIA);
 #else
-	CMN_SN_PRINTF(dataBuf, size, index, "<BODY onload=\"JavaScript:load_http_doc('%s', 'content','')\"><DIV id=\"body\"><DIV id=\"header\"><br />",
+	CMN_SN_PRINTF(dataBuf, size, index, "<BODY onload=\"JavaScript:tabColor('nav_media');load_http_doc('%s', 'content','')\"><DIV id=\"body\"><DIV id=\"header\"><br />",
 		EXT_WEBPAGE_MEDIA);
 #endif
 
 	CMN_SN_PRINTF(dataBuf, size, index, "<div data-text=\"dt_productName\" id=\"id_mainProductName\">500767-%s 3G-SDI/ST2110 over IP Uncompressed Gateway %s</div></DIV>" , 
 		EXT_IS_TX(&extRun)?"TX":"RX", EXT_IS_TX(&extRun)?"TX":"RX"   );
 	
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"nav\"><a id=\"nav_media\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Media</a>", 
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"nav\"><a id=\"nav_media\" class=\"anchor\" href=\"JavaScript:tabColor('nav_media');load_http_doc('%s', 'content','')\">Media</a>", 
 		EXT_WEBPAGE_MEDIA);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<a data-text=\"Info\" id=\"nav_info\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">System Info</a>", 
+	CMN_SN_PRINTF(dataBuf, size, index, "<a data-text=\"Info\" id=\"nav_info\" class=\"anchor\" href=\"JavaScript:tabColor('nav_info');load_http_doc('%s', 'content','')\">System Info</a>", 
 		EXT_WEBPAGE_INFO);
 	
-	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_mcu\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Upgrade</a>", 
+	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_mcu\" class=\"anchor\" href=\"JavaScript:tabColor('nav_upgrade_mcu');load_http_doc('%s', 'content','')\">Upgrade</a>", 
 		EXT_WEBPAGE_UPDATE_HTML);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:load_http_doc('%s', 'content','')\">Settings</a></DIV>",
+	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"anchor\" href=\"JavaScript:tabColor('nav_upgrade_fpga');load_http_doc('%s', 'content','')\">Settings</a></DIV>",
 		EXT_WEBPAGE_SYS_CFGS);
 
 //	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:reboot_device()\">Reboot</a></DIV>");
@@ -993,11 +930,33 @@ static const MuxHttpHandle	_webpages[] =
 		respType: 	WEB_RESP_HTML
 	},
 
-	/* HTML POST */
 	{
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_RESET,
+		method	: 	HTTP_METHOD_GET,
+		handler	:	_extHttpWebPageReset,
+		respType: 	WEB_RESP_HTML
+	},
+
+
+	/* HTML POST */
+	{/* AV params */
 		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SETTING,
 		method	: 	HTTP_METHOD_POST,
-		handler	:	_extHttpWebSettingHander,
+		handler	:	extHttpWebUpdateAvParams,
+		respType: 	WEB_RESP_HTML
+	},
+
+	{/* system, eg. network params */
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SYS_UPDATE,
+		method	: 	HTTP_METHOD_POST,
+		handler	:	extHttpWebUpdateNetParams,
+		respType: 	WEB_RESP_HTML
+	},
+
+	{/* RS232 update */
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_RS232_UPDATE,
+		method	: 	HTTP_METHOD_POST,
+		handler	:	extHttpWebUpdateRs232Params,
 		respType: 	WEB_RESP_HTML
 	},
 
@@ -1075,14 +1034,23 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 
 			if(ehc->httpStatusCode != WEB_RES_REQUEST_OK )
 			{
-				contentLength = _httpWebPageResult(ehc, "ERROR"/*ehc->filename*/, ehc->boundary );
+				contentLength = httpWebPageResult(ehc, "ERROR"/*ehc->filename*/, ehc->boundary );
 			}
 
-			/* update content-length header */
-			snprintf(strLength, sizeof(strLength), "%d", contentLength);
-			strncpy((char *)ehc->data+headerLength-8, strLength, strlen(strLength) );
+#if 0
+			if(HTTP_IS_POST(ehc) )
+			{
+				headerLength = 0; /* ignore header for POST */
+			}
+			else
+#endif				
+			{
+				/* update content-length header */
+				snprintf(strLength, sizeof(strLength), "%d", contentLength);
+				strncpy((char *)ehc->data+headerLength-8, strLength, strlen(strLength) );
+//				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("response content length:'%s'", strLength));
+			}
 
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("response content length:'%s'", strLength));
 			ehc->contentLength = (unsigned short)(headerLength + contentLength);
 			ehc->dataSendIndex = 0;
 			
@@ -1116,7 +1084,7 @@ char extHttpWebPageResult(ExtHttpConn  *ehc, char *title, char *msg)
 	index += cmnHttpPrintResponseHeader(ehc, WEB_RESP_HTML);
 	headerLength = index;
 
-///	contentLength = _httpWebPageResult(ehc, title, msg);
+///	contentLength = httpWebPageResult(ehc, title, msg);
 	contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
 		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\">Result:%s</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
 		title, msg);

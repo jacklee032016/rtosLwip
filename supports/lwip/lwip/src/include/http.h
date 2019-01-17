@@ -266,7 +266,7 @@ struct _MuxUploadContext
 {
 	char (*open)(struct _ExtHttpConn *mhc);
 
-	void (*close)(struct _ExtHttpConn *mhc);
+	void (*close)(struct _ExtHttpConn *mhc, char isFinished);
 
 	unsigned short (*write)(struct _ExtHttpConn *mhc, void *data, unsigned short size);
 
@@ -397,7 +397,7 @@ typedef struct _ExtHttpConn
 #endif
 
 
-	u32_t				postDataLeft;
+	s32_t				postDataLeft;
 #if	MHTTPD_POST_MANUAL_WND
 	u32_t				unrecved_bytes;
 	u8_t					no_auto_wnd;
@@ -521,6 +521,8 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO		"Auto"
 #define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL		"Manual"
 
+
+#define	EXT_WEB_CFG_FIELD_VIDEO_PARAMS			"videoParams"		/* replace width/height/framerate/interlaced(segmented). 01.15, 2019 */
 
 #define	EXT_WEB_CFG_FIELD_VIDEO_WIDTH			"videoWidth"
 #define	EXT_WEB_CFG_FIELD_VIDEO_HEIGHT			"videoHeight"
@@ -666,7 +668,7 @@ char extHttpWebPageResult(ExtHttpConn  *mhc, char *title, char *msg);
 err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp);
 
 err_t extHttpPostDataBegin(ExtHttpConn *ehc);
-void extHttpPostDataFinished(ExtHttpConn *mhc);
+void extHttpPostDataFinished(ExtHttpConn *mhc, char isFinished);
 
 
 char extNmosRootApHander(ExtHttpConn  *mhc, void *data);
@@ -678,10 +680,13 @@ char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, str
 
 
 uint16_t extHttpSimpleRestApi(ExtHttpConn  *mhc, void *data);
-
 uint16_t extHttpSdpAudio(ExtHttpConn  *mhc, void *data);
-
 uint16_t extHttpSdpVideo(ExtHttpConn  *mhc, void *data);
+
+
+uint16_t extHttpWebUpdateAvParams(ExtHttpConn *ehc, void *pageHandle);
+uint16_t extHttpWebUpdateNetParams(ExtHttpConn *ehc, void *pageHandle);
+uint16_t extHttpWebUpdateRs232Params(ExtHttpConn *ehc, void *pageHandle);
 
 
 extern	sys_mutex_t			_httpMutex;
@@ -713,6 +718,7 @@ void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg);
 int cmnHttpPrintResponseHeader(ExtHttpConn *mhc, const char contentType);
 err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size);
 
+uint16_t httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg);
 
 #endif
 

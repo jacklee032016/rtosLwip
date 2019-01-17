@@ -99,7 +99,7 @@ body {
 	min-height: 600px;
 	width: 100%;
 	margin: 0 0 0 0;
-	padding-bottom: 10px;
+	padding-bottom: 50px;
 	position: relative;
 	background: #E6E6E6;
 }
@@ -144,12 +144,16 @@ body {
 	text-align: center
 }
 
-.gray {
-	color: #525252
-}
-
 .green {
 	color: #1DA41D
+}
+
+.black {
+	color: #000 !important;
+}
+
+.gray {
+	color: #525252
 }
 
 .red {

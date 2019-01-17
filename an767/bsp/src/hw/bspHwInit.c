@@ -334,3 +334,104 @@ void bspHwInit(boot_mode bMode, uint8_t isTx)
 }
 
 
+
+
+/* Wait for FPGA to load firmware from SPI memory */
+char  bspFpgaWaitDone(unsigned int  seconds)
+{
+//	char data;
+	uint32_t	timeout;
+	char  done = EXT_FALSE;
+//	wdt_opt_t watchdog_opt;
+	
+//	watchdog_opt.us_timeout_period = 4000000;	// timeout after 2 second
+	
+	timeout = seconds;
+
+	while (1)
+	{
+//		wdt_enable(&watchdog_opt);
+		done = FPGA_GET_DONE_SIGNAL();
+		if (done== EXT_FALSE)
+		{
+			printf("L");
+		}
+		else
+		{
+			printf("H");
+			break;
+		}
+		
+		if (timeout == 0)
+		{
+			printf("Timeout in waiting FPGA Done"EXT_NEW_LINE);
+			break;
+		}
+
+		timeout--;
+		EXT_DELAY_MS(1000);
+	}
+	
+	
+	return done;
+}
+
+
+/* Reload FPGA from SPI memory */
+char  bspFpgaReload(void)
+{
+#define	_TIMEOUT_VALUE		20 	// 60
+	char		isOK = EXT_FALSE;
+	unsigned char data;
+	int timeoutSecond = _TIMEOUT_VALUE;	/* when compare with negative number, it must be int, not char */
+
+	bspHwClockInit();
+
+	EXT_INFOF(("Reconfiguring FPGA....."EXT_NEW_LINE));
+	gpio_set_pin_low(EXT_PIN_FPGA_PROGRAM);
+		
+	EXT_DELAY_MS(10);
+
+	gpio_set_pin_high(EXT_PIN_FPGA_PROGRAM);
+	
+	EXT_DELAY_MS(50);
+
+	/* wait for FPGA done pin
+	* up to 20 second is the secondary image is loaded 
+	*/
+	isOK = bspFpgaWaitDone(20);	/* 120 */
+	
+	printf("FPGA load image %s"EXT_NEW_LINE, (isOK== EXT_FALSE)?"failed":"sucessed");
+
+	printf("Waiting FPGA ....."EXT_NEW_LINE);
+	do
+	{
+		isOK = FPGA_I2C_READ(EXT_FPGA_REG_ETHERNET_RESET, &data, 1);
+		timeoutSecond--;
+		
+//		EXT_ERRORF(("Timeout %d seconds when waiting FPGA status10"EXT_NEW_LINE, timeoutSecond));
+		if(timeoutSecond<0)
+		{
+//			EXT_ERRORF(("Timeout %d seconds when waiting FPGA status0"EXT_NEW_LINE, _TIMEOUT_VALUE));
+			break;
+		}
+		EXT_DELAY_US(1000*100);
+	}while(isOK!= EXIT_SUCCESS);
+
+	if(isOK == EXIT_SUCCESS)
+	{
+		printf("FPGA Ethernet Reset register %d : %2x"EXT_NEW_LINE, EXT_FPGA_REG_ETHERNET_RESET, data);
+
+		FPGA_I2C_READ(EXT_FPGA_REG_ETHERNET_RESET, &data, 1);
+		data = data||0x01;
+		FPGA_I2C_WRITE(EXT_FPGA_REG_ETHERNET_RESET, &data, 1);
+	}
+	else
+	{
+		EXT_ERRORF(("Timeout %d seconds when waiting FPGA status"EXT_NEW_LINE, _TIMEOUT_VALUE));
+	}
+	
+	return isOK;
+}
+
+

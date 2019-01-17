@@ -72,7 +72,7 @@ int extRs232Write(unsigned char *data, unsigned short size)
 
 static void _checkRs232Params(EXT_RUNTIME_CFG *runCfg)
 {
-	if(runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_9600 && 
+	if(  runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_9600 && 
 		runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_19200 && 
 		runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_38400 && 
 		runCfg->rs232Cfg.baudRate != EXT_BAUDRATE_57600 &&  

@@ -58,18 +58,38 @@ static char _firmwareUpdateInit(EXT_RUNTIME_CFG *runCfg, EXT_FM_T fmT, const cha
 	return EXIT_SUCCESS;
 }
 
-static void _firmwareUpdateEnd(EXT_RUNTIME_CFG	*runCfg)
+static void _firmwareUpdateEnd(EXT_RUNTIME_CFG	*runCfg, void *_mhc, char isFinished)
 {
 #ifdef	ARM
+	struct _ExtHttpConn *mhc = (struct _ExtHttpConn *)_mhc;
+
 	/* write the left data in last page into flash*/
 	bspSpiFlashFlush();
 
 	gmacBMCastEnable(EXT_TRUE);
 
+	if(isFinished == EXT_FALSE )
+	{
+		EXT_ERRORF(("Firmware update not finished, upload %d bytes, abort this operation", runCfg->firmUpdateInfo.size) );
+		return;
+	}
+	
+	if( mhc != NULL && mhc->postDataLeft > 0)
+	{
+		EXT_ERRORF(("Update failed: upload %d bytes, %ld bytes are still left", runCfg->firmUpdateInfo.size, mhc->postDataLeft ) );
+		return;
+	}
+
+#if 0
+	if(mhc )
+	{
+		EXT_INFOF(("Update finished, upload %d bytes (content length %ld, %ld bytes are still left)", runCfg->firmUpdateInfo.size,  mhc->contentLength, mhc->postDataLeft));
+	}
+#endif
 	/* only RTOS updating need saving configuration*/
 	if(runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS || runCfg->firmUpdateInfo.type == EXT_FM_TYPE_FPGA)		
 	{
-		EXT_INFOF(("Update finished, reboot to make it effective"));
+		EXT_INFOF(("Update %d bytes, reboot to make it effective", runCfg->firmUpdateInfo.size));
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 	}
 
@@ -107,14 +127,14 @@ static char _extUploadOpen(struct _ExtHttpConn *mhc)
 	return _firmwareUpdateInit(runCfg, fmt, (const char *)mhc->filename,  1);
 }
 
-static void  _extUploadClose(struct _ExtHttpConn *mhc)
+static void  _extUploadClose(struct _ExtHttpConn *mhc, char isFinished)
 {
 //	struct _MuxUploadContext *ctx = mhc->uploadCtx;
 	EXT_RUNTIME_CFG	*runCfg = mhc->runCfg;
 	
 //	EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("File finished:'%s' %d bytes", mhc->filename, runCfg->firmUpdateInfo.size ));
 	printf(EXT_NEW_LINE);fflush(stdout);
-	_firmwareUpdateEnd(runCfg);
+	_firmwareUpdateEnd(runCfg, mhc, isFinished);
 
 }
 
@@ -214,7 +234,7 @@ static void  _extTftpClose(void* handle)
 		__extTftpWriteData(runCfg, runCfg->bufWrite, ctx->dataIndex);
 	}
 	
-	_firmwareUpdateEnd(runCfg);
+	_firmwareUpdateEnd(runCfg, NULL, EXT_TRUE);
 
 	printf(EXT_NEW_LINE);fflush(stdout);
 

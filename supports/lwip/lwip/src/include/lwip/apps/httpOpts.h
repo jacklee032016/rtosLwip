@@ -86,6 +86,8 @@
 #define	MHTTPD_MAX_RETRIES                   2
 #endif
 
+#define	HTTPD_MAX_RETRIES			(MHTTPD_MAX_RETRIES+4)
+
 /** The poll delay is X*500ms */
 #if !defined MHTTPD_POLL_INTERVAL
 #define	MHTTPD_POLL_INTERVAL			4

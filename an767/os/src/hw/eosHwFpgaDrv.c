@@ -136,51 +136,6 @@ volatile xSemaphoreHandle FPGA_Mutex = NULL;
 static char _fpgaVersion[128];
 
 
-//#define  FPGA_GET_DONE_SIGNAL()		(gpio_pin_is_high(EXT_PIN_FPGA_PROGRAM ) )
-#define  FPGA_GET_DONE_SIGNAL()		(gpio_pin_is_high(EXT_PIN_FPGA_DONE ) )
-
-
-/* Wait for FPGA to load firmware from SPI memory */
-static char  _extBspFpgaWaitDone(unsigned int  seconds)
-{
-//	char data;
-	uint32_t	timeout;
-	char  done = EXT_FALSE;
-//	wdt_opt_t watchdog_opt;
-	
-//	watchdog_opt.us_timeout_period = 4000000;	// timeout after 2 second
-	LOCK_FPGA();
-	
-	timeout = seconds;
-
-	while (1)
-	{
-//		wdt_enable(&watchdog_opt);
-		done = FPGA_GET_DONE_SIGNAL();
-		if (done== EXT_FALSE)
-		{
-			printf("L");
-		}
-		else
-		{
-			printf("H");
-			break;
-		}
-		
-		if (timeout == 0)
-		{
-			printf("Timeout in waiting FPGA Done"EXT_NEW_LINE);
-			break;
-		}
-
-		timeout--;
-		EXT_DELAY_MS(1000);
-	}
-	
-	UNLOCK_FPGA();
-	
-	return done;
-}
 
 static void _extFpgaRegisterRead(unsigned char address, unsigned char *data, unsigned char size)
 {
@@ -911,8 +866,6 @@ void	extFpgaBlinkPowerLED(char	isEnable)
 	_extFpgaWriteByte(EXT_FPGA_REG_POWER_LED, &data);
 }
 
-
-
 /* Reload FPGA from SPI memory */
 char  extBspFpgaReload(void)
 {
@@ -934,7 +887,7 @@ char  extBspFpgaReload(void)
 #if 1	
 		EXT_DELAY_MS(10);
 #else
-		isOK = _extBspFpgaWaitDone(20);
+		isOK = bspFpgaWaitDone(20);
 		EXT_DELAY_MS(5000);
 #endif	
 	}
@@ -946,13 +899,12 @@ char  extBspFpgaReload(void)
 
 	gpio_set_pin_high(EXT_PIN_FPGA_PROGRAM);
 	
-//	isOK = _extBspFpgaWaitDone(20);
 	EXT_DELAY_MS(50);
 
 	/* wait for FPGA done pin
 	* up to 20 second is the secondary image is loaded 
 	*/
-	isOK = _extBspFpgaWaitDone(20);
+	isOK = bspFpgaWaitDone(20);
 	
 	printf("FPGA load image %s"EXT_NEW_LINE, (isOK== EXT_FALSE)?"failed":"sucessed");
 

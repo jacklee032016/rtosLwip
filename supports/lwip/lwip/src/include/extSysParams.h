@@ -256,9 +256,11 @@
 
 #define	EXT_WEBPAGE_SYS_CFGS					"sysCfgs"
 #define	EXT_WEBPAGE_SYS_UPDATE				"sysUpdate"
+#define	EXT_WEBPAGE_RS232_UPDATE			"rs232Update"
 
 
 #define	EXT_WEBPAGE_REBOOT					"reboot"
+#define	EXT_WEBPAGE_RESET					"reset"
 
 
 #define	EXT_WEBPAGE_UPDATE_HTML				"upgrade.html"
@@ -739,6 +741,14 @@ typedef	enum
 }EXT_V_FRAMERATE;
 
 
+#define	VIDEO_WIDTH_1920				1920
+#define	VIDEO_HEIGHT_1080				1080
+
+#define	VIDEO_WIDTH_1280				1280
+#define	VIDEO_HEIGHT_720				720
+
+
+
 typedef	enum
 {/* value definitions are from FPGA */
 	EXT_V_COLORSPACE_YCBCR_422		= 0,
@@ -912,16 +922,15 @@ typedef struct
 
 typedef	struct
 {
-	int			index;
-	char			*desc;
+	int					index;
+	const char			*desc;
 
-	uint16_t		width;
-	uint16_t		height;
+	uint16_t				width;
+	uint16_t				height;
 
-	uint8_t		fps;
+	uint8_t				fps;
 
-	uint8_t		isInterlaced;
-	uint8_t		isSegmented;
+	uint8_t				interlaced;	/* refer to EXT_VIDEO_INTLC */
 }MediaParam;
 
 
@@ -966,7 +975,7 @@ typedef	struct
 	unsigned char			vColorSpace;
 	unsigned char			vDepth;
 
-	unsigned char			vIsInterlaced;	/* not used now */
+	unsigned char			vIsInterlaced;	/* used now. 01.15, 2019 */
 	unsigned char			vIsSegmented;
 
 	unsigned char			aSampleRate;
@@ -1201,6 +1210,8 @@ char extSysAtoInt8(const char *str, unsigned char *value);
 char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr);
 
 void extCfgFromFactory( EXT_RUNTIME_CFG *cfg );
+void extCfgFactoryKeepMac( EXT_RUNTIME_CFG *cfg );
+
 void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg);
 
 char	*sysTaskName(void);
@@ -1356,7 +1367,7 @@ extern	const	EXT_CONST_STR	_videoColorSpaces[];
 extern	const short	videoWidthList[];
 extern	const short 	videoHeightList[];
 
-extern	const short constRs232Baudrates[];
+extern	const int32_t constRs232Baudrates[];
 extern	const short constRs232Databits[];
 
 extern	const	EXT_CONST_STR	_videoFormats[];
@@ -1410,6 +1421,24 @@ uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength);
 
 
 char *getTaskName(void);
+
+
+#define	CHECK_BAUDRATE(baudRate)	\
+	( (baudRate) != EXT_BAUDRATE_9600 && (baudRate) != EXT_BAUDRATE_19200 && \
+			(baudRate) != EXT_BAUDRATE_38400 && (baudRate) != EXT_BAUDRATE_57600 &&	\
+			(baudRate) != EXT_BAUDRATE_115200 && (baudRate) != 0 )
+
+
+#define	CHECK_DATABITS(dataBits)	\
+		( (dataBits) != EXT_RS232_CHAR_LENGTH_5 && (dataBits) != EXT_RS232_CHAR_LENGTH_6 &&	\
+			(dataBits) != EXT_RS232_CHAR_LENGTH_7 && (dataBits) != EXT_RS232_CHAR_LENGTH_8 && 	\
+			(dataBits) != 0 )
+
+
+
+const MediaParam *extCmnVideoParamFind(EXT_RUNTIME_CFG *runCfg);
+char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index);
+
 
 
 #endif

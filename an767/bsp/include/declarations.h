@@ -135,6 +135,7 @@ char bspHwSpiFlashEraseSector(unsigned int  sectorNo);
 char bspHwSpiFlashRead(unsigned int address, unsigned char *data, unsigned int size);
 char bspHwSpiFlashWritePage(unsigned int pageNo, unsigned char *data, unsigned int length);
 
+char  bspHwSpiFlashCheck(void);
 
 
 void  bspHwClockInit(void);
@@ -155,6 +156,9 @@ void bspHwInit(boot_mode bMode, uint8_t isTx);
 //void bspButtonConfig(boot_mode bMode);
 void bspButtonConfig(boot_mode bMode, char isRiseEdge);
 
+
+char  bspFpgaWaitDone(unsigned int  seconds);
+char  bspFpgaReload(void);
 
 
 void bspSpiMasterInitialize(uint32_t pcs);
@@ -250,6 +254,7 @@ char bspMultiAddressFromDipSwitch(void);
 
 
 void extDelayReboot(unsigned short delayMs);
+void extDelayReset(unsigned short delayMs);
 
 void extNetPingInit(void);
 void extNetPingSendNow(unsigned int destIp);

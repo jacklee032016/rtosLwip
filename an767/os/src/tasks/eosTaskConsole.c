@@ -149,7 +149,7 @@ void vMuxUartPutString( const char *pcString, unsigned short usStringLength )
 	write(1,  ( signed char *) pcString, usStringLength);
 }
 
-signed portBASE_TYPE xSerialGetChar( signed char *pcRxedChar, TickType_t xBlockTime )
+static signed portBASE_TYPE xSerialGetChar( signed char *pcRxedChar, TickType_t xBlockTime )
 {
 //	ptr_get(stdio_base, (char*)pcRxedChar);
 
@@ -162,7 +162,7 @@ signed portBASE_TYPE xSerialGetChar( signed char *pcRxedChar, TickType_t xBlockT
 	return pdTRUE;
 }
 
-signed portBASE_TYPE xSerialPutChar( signed char outChar, TickType_t xBlockTime )
+static signed portBASE_TYPE xSerialPutChar( signed char outChar, TickType_t xBlockTime )
 {
 #if 0
 //	if (ptr_put(stdio_base, outChar) == 0)

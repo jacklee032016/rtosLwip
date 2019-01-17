@@ -205,10 +205,12 @@ const	EXT_CONST_STR	_ipcmdStringRsStopbits[] =
 		type	: EXT_RS232_STOP_BITS_2,
 		name	: "2"
 	},
+#if 0	
 	{
 		type	: EXT_RS232_STOP_BITS_15,
 		name	: "1.5"
 	},
+#endif	
 	{
 		type	: EXT_INVALIDATE_STRING_TYPE,
 		name	: NULL
@@ -461,7 +463,7 @@ const short videoHeightList[]=
 	0
 };
 
-const short constRs232Baudrates[]=
+const int32_t constRs232Baudrates[]=
 {
 	EXT_BAUDRATE_9600,
 	EXT_BAUDRATE_19200,
@@ -474,8 +476,10 @@ const short constRs232Baudrates[]=
 
 const short constRs232Databits[]=
 {
+#if 0
 	EXT_RS232_CHAR_LENGTH_5,
 	EXT_RS232_CHAR_LENGTH_6,
+#endif	
 	EXT_RS232_CHAR_LENGTH_7,
 	EXT_RS232_CHAR_LENGTH_8,
 	0
@@ -906,74 +910,66 @@ const MediaParam constMediaParams[] =
 	{/* 1 */
 		index: 0,
 		desc	:	"720p23.98",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_23,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 2 */
 		index: 1,
 		desc	:	"720p24",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_24,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 3 */
 		index: 2,
 		desc	:	"720p25",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_25,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 4 */
 		index: 3,
 		desc	:	"720p29.97",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_29,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/*5 */
 		index: 4,
 		desc	:	"720p30",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_30,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 6 */
 		index: 5,
 		desc	:	"720p50",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_50,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 7 */
 		index: 6,
 		desc	:	"720p59.94",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_59,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 8 */
 		index: 7,
 		desc	:	"720p60",
-		width:	1280,
-		height:	720,
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
 		fps	:	EXT_V_FRAMERATE_T_60,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 
 
@@ -981,131 +977,120 @@ const MediaParam constMediaParams[] =
 	{/* 1 */
 		index: 8,
 		desc	:	"1080p23.98",
-		width:	1920,
-		height:	1080,
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_23,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 2 */
 		index: 9,
 		desc	:	"1080p24",
-		width:	1920,
-		height:	1080,
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_24,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 3 */
 		index: 10,
 		desc	:	"1080p25",
-		width:	1920,
-		height:	1080,
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_25,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 4 */
 		index: 11,
 		desc	:	"1080p29.97",
-		width:	1920,
-		height:	1080,
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_29,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/*5 */
 		index: 12,
 		desc	:	"1080p30",
-		width:	1920,
-		height:	1080,
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_30,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 6 */
 		index: 13,
 		desc	:	"1080i50",
-		width:	1920,
-		height:	1080,
-		fps	:	EXT_V_FRAMERATE_T_50,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+//		fps	:	EXT_V_FRAMERATE_T_50,
+		fps	:	EXT_V_FRAMERATE_T_25,
+		interlaced	: EXT_VIDEO_INTLC_INTERLACED
 	},
 	{/* 7 */
 		index: 14,
 		desc	:	"1080i59.94",
-		width:	1920,
-		height:	1080,
-		fps	:	EXT_V_FRAMERATE_T_59,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+//		fps	:	EXT_V_FRAMERATE_T_59,
+		fps	:	EXT_V_FRAMERATE_T_29,
+		interlaced	: EXT_VIDEO_INTLC_INTERLACED
 	},
 	{/* 8 */
 		index: 15,
 		desc	:	"1080i60",
-		width:	1920,
-		height:	1080,
-		fps	:	EXT_V_FRAMERATE_T_60,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+//		fps	:	EXT_V_FRAMERATE_T_60,
+		fps	:	EXT_V_FRAMERATE_T_30,
+		interlaced	: EXT_VIDEO_INTLC_INTERLACED
 	},
 
 
 	/* 1080 3GA */
 	{/* 1 */
 		index: 16,
-		desc	:	"1080p50 3GA",
-		width:	1920,
-		height:	1080,
+		desc	:	"3GA 1080p50",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_50,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 2 */
 		index: 17,
-		desc	:	"1080p59.94 3GA",
-		width:	1920,
-		height:	1080,
+		desc	:	"3GA 1080p59.94",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_59,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 3 */
 		index: 18,
-		desc	:	"1080p60 3GA",
-		width:	1920,
-		height:	1080,
+		desc	:	"3GA 1080p60",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_60,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced	: EXT_VIDEO_INTLC_A_PROGRESSIVE
 	},
 	{/* 4 */
 		index: 19,
-		desc	:	"1080p50 3GB",
-		width:	1920,
-		height:	1080,
+		desc	:	"3GB 1080p50",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_50,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced	: EXT_VIDEO_INTLC_B_PROGRESSIVE
 	},
 	{/*5 */
 		index: 20,
-		desc	:	"1080p59.97 3GB",
-		width:	1920,
-		height:	1080,
+		desc	:	"3GB 1080p59.97",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_59,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced	: EXT_VIDEO_INTLC_B_PROGRESSIVE
 	},
 	{/* 6 */
 		index: 21,
-		desc	:	"1080p60 3GB",
-		width:	1920,
-		height:	1080,
+		desc	:	"3GB 1080p60",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_60,
-		isInterlaced 	: 0,
-		isSegmented	: 0
+		interlaced	: EXT_VIDEO_INTLC_B_PROGRESSIVE
 	},
 
 
@@ -1117,10 +1102,48 @@ const MediaParam constMediaParams[] =
 
 		fps	:	INVALIDATE_VALUE_U8,
 
-		isInterlaced 	: INVALIDATE_VALUE_U8,
-		isSegmented	: INVALIDATE_VALUE_U8
+		interlaced	: INVALIDATE_VALUE_U8
 	}
 
 };
+
+
+const MediaParam *extCmnVideoParamFind(EXT_RUNTIME_CFG *runCfg)
+{
+	const MediaParam *videoP = constMediaParams;
+
+	while(videoP->desc != NULL)
+	{
+		if(videoP->width == runCfg->runtime.vWidth && videoP->height == runCfg->runtime.vHeight &&
+			videoP->fps == runCfg->runtime.vFrameRate && videoP->interlaced == runCfg->runtime.vIsInterlaced )
+		{
+			return videoP;
+		}
+		videoP ++;
+	}
+
+	EXT_ERRORF(("Video Param: 'w:%d; h:%d; fps:%d; interlace:%d' not found", runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vIsInterlaced) );
+
+	return NULL;
+}
+
+char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index)
+{
+//	const MediaParam *videoP = constMediaParams;
+
+	if(index >= EXT_ARRAYSIZE(constMediaParams) )
+	{
+		EXT_ERRORF(("Index %d is out of the range %d of params", index, EXT_ARRAYSIZE(constMediaParams) ));
+		return EXIT_FAILURE;
+	}
+
+	runCfg->runtime.vWidth = constMediaParams[index].width;
+	runCfg->runtime.vHeight = constMediaParams[index].height;
+	runCfg->runtime.vFrameRate = constMediaParams[index].fps;
+	runCfg->runtime.vIsInterlaced = constMediaParams[index].interlaced;
+
+	return EXIT_SUCCESS;
+}
+
 
 
