@@ -2,6 +2,9 @@
 Usage of Python utilites
 =========================
 
+  curl -H "Content-Type: text/html" -d 'rs232Baudrate=57600&rs232DataBit=8&rs232Parity=0&rs232StopBit=1' http://192.168.168.101/rs232Update -i
+
+
 Jan.7th, 2019 Monday
  ./run getId 192.168.168.106 -d
 
