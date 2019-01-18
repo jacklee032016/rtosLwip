@@ -429,7 +429,7 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		 runCfg->runtime.reboot = rxCfg->runtime.reboot;
 
 #ifdef ARM
-		extDelayReboot(1000);
+		extDelayReboot(2000);
 #endif
 	}
 

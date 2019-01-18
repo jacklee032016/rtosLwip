@@ -434,7 +434,7 @@
                              
 	#define	EXT_INFOF(message)		{printf(ANSI_COLOR_CYAN "%s:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF(message);printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
 	
-	#define	EXT_ERRORF(message)		{printf(ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);_TRACE_OUT(message); printf((ERROR_TEXT_END  EXT_NEW_LINE));}
+	#define	EXT_ERRORF(message)		{printf(ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF(message); printf((ERROR_TEXT_END  EXT_NEW_LINE));}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
 	#define	EXT_ASSERT(msg, x)			{if((x)==0) {printf(ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf msg ;printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
@@ -1411,6 +1411,7 @@ void extHttpClientMain(void *data);
 
 #if 1
 #define		HTTP_HDR_SDP					"application/octet-stream"
+#define		HTTP_HDR_SDP_EXT				"application/sdp"
 #else
 #define		HTTP_HDR_SDP					"application/sdp"
 #endif

@@ -133,6 +133,10 @@ static char _findResponseType(char *response, uint32_t size)
 	{
 		return HC_REQ_SDP;
 	}
+	else if(lwip_strnstr(response, HTTP_HDR_SDP_EXT, size) != NULL )
+	{
+		return HC_REQ_SDP;
+	}
 	else if(lwip_strnstr(response, HTTP_HDR_JSON, size) != NULL )
 	{
 		return HC_REQ_JSON;
