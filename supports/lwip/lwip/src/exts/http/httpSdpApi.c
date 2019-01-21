@@ -68,7 +68,7 @@
 
 #define	SDP_P_AUDIO_PACK_SIZE						"ptime"
 
-#define	SDP_P_AUDIO_PACK_TIME_125US				"0.12"
+#define	SDP_P_AUDIO_PACK_TIME_125US				"0.125"
 #define	SDP_P_AUDIO_PACK_TIME_1MS				"1"
 
 static uint16_t _extSdpSessionDescription(ExtHttpConn  *ehc, char *dataBuf, uint16_t size, char isVideo)
@@ -489,7 +489,7 @@ static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, cha
 	}
 	else
 	{
-		rxCfg->runtime.aPktSize = EXT_A_PKT_SIZE_125US;
+		rxCfg->runtime.aPktSize = EXT_A_PKT_SIZE_1MS;
 		EXT_ERRORF(("Not support audio packet size '%s'", pnext));
 	}
 

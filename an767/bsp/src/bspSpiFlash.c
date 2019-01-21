@@ -515,12 +515,17 @@ int	bspBootUpdateFpga(EXT_RUNTIME_CFG *runCfg)
 	_EXT_SPI_FLASH_T _spiFlashRead;	/* read interface of Flash */
 
 	int readSector = SFLASH_START_SECTOR_TEMP_FPGA;
+#if 1
+	unsigned int 	writeSector = SFLASH_START_SECTOR_FIRST_IMAGE;
+#else
+	unsigned int 	writeSector = SFLASH_START_SECTOR_SECOND_IMAGE;
+#endif
 
 	/* read interface initialized with startAddress */
 	_bspSpiFlashInit(&_spiFlashRead, readSector, FLASH_N250_SECTOR_ADDRESS(readSector), EXT_FALSE);
 
 	/* SPI flash writing interface: initialize with sector address (to erase) at #0 */
-	bspSpiFlashInit(SFLASH_START_SECTOR_FIRST_IMAGE, 0, EXT_TRUE);
+	bspSpiFlashInit(writeSector, 0, EXT_TRUE);
 
 	printf( ("Update FPGA"EXT_NEW_LINE) );
 	while(total < runCfg->firmUpdateInfo.size )

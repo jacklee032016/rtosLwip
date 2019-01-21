@@ -269,6 +269,8 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	_checkNumU8FieldValue(&runCfg->runtime.aDepth, rxCfg->runtime.aDepth, ret);	
 
+	_checkNumU8FieldValue(&runCfg->runtime.aPktSize, rxCfg->runtime.aPktSize, ret);	
+
 	return ret;
 }
 
