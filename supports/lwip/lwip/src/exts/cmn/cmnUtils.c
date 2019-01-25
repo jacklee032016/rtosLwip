@@ -337,6 +337,53 @@ const	EXT_CONST_STR	_videoFramerates[] =
 
 
 
+const	EXT_CONST_STR	_videoFps4Rest[] =
+{
+	{
+		type	: EXT_V_FRAMERATE_T_23,
+		name	: "23.98"
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_24,
+		name	: "24"
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_25,
+		name	: "25"
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_29,
+		name	: "29.97"
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_30,
+		name	: "30"
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_50,
+		name	: "50"
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_59,
+		name	: "59.94"
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_60,
+		name	: "60"
+	},
+	
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL
+	}
+};
+
+
 const	EXT_CONST_STR	_audioPktSizes[] =
 {
 	{
@@ -530,6 +577,10 @@ const char *extCmnStringFind(CMN_STR_TYPE  strType, unsigned short type)
 			_str = _videoFramerates;
 			break;
 
+		case CMN_STR_T_V_FPS_4_REST:
+			_str = _videoFps4Rest;
+			break;
+
 		case CMN_STR_T_V_IMAGE_FORMAT:
 			_str = _videoFormats;
 			break;
@@ -591,6 +642,10 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 			_str = _videoFramerates;
 			break;
 			
+		case CMN_STR_T_V_FPS_4_REST:
+			_str = _videoFps4Rest;
+			break;
+			
 		case CMN_STR_T_V_IMAGE_FORMAT:
 			_str = _videoFormats;
 			break;
@@ -616,7 +671,7 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 			break;
 
 		default:
-			return -1;
+			return INVALIDATE_VALUE_U16;
 			break;
 	}
 
@@ -631,7 +686,7 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str)
 	}
 	
 	EXT_ERRORF(("unknown type %s in constant type :%s", str, __extCmnFindTypeStr(strType) ) );
-	return -1;
+	return INVALIDATE_VALUE_U16;
 }
 
 int	cmnParseGetHexIntValue(char *hexString)
@@ -1078,7 +1133,7 @@ const MediaParam constMediaParams[] =
 	},
 	{/*5 */
 		index: 20,
-		desc	:	"3GB 1080p59.97",
+		desc	:	"3GB 1080p59.94",
 		width:	VIDEO_WIDTH_1920,
 		height:	VIDEO_HEIGHT_1080,
 		fps	:	EXT_V_FRAMERATE_T_59,

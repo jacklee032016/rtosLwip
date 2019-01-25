@@ -172,7 +172,7 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "c="SDP_NET_TYPE" "SDP_ADDR_TYPE" %s/%d" EXT_NEW_LINE , EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)), SDP_P_TTL);
 
 	/* attribute of RTP map */
-	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP":%d %s/%s/%d"EXT_NEW_LINE, 
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d %s/%s/%d"EXT_NEW_LINE, 
 		SDP_P_MEDIA_FORMAT_AUDIO, SDP_P_AUDIO_DEPTH, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate),  runCfg->runtime.aChannels );
 
 	/* channel order: see specs 2110-30 */
@@ -236,9 +236,11 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_ADDRESS"\":\"%s\","EXT_NEW_LINE, inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_GATEWAY"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->ipGateway)) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_NETMASK"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->ipMask)) );
 	
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_DHCP"\":\"%s\",", ((_netif->ip_addr.u_addr.ip4.addr) ==runCfg->local.ip)?"YES":"NO");
 
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_IPCMD_DATA_IS_RESET"\":%d,"EXT_NEW_LINE, (runCfg->runtime.reset)?1:0);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_IPCMD_DATA_IS_REBOOT"\":%d,"EXT_NEW_LINE, (runCfg->runtime.reboot)?1:0);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_IPCMD_DATA_BLINK"\":%d,"EXT_NEW_LINE, (runCfg->runtime.blink)?1:0);
 
@@ -282,7 +284,7 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\":%d,"EXT_NEW_LINE, runCfg->runtime.vHeight);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.vWidth);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FRAME_RATE"\":%d,"EXT_NEW_LINE, CMN_INT_FIND_NAME_V_FPS(runCfg->runtime.vFrameRate) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FRAME_RATE"\":%s,"EXT_NEW_LINE, CMN_FIND_V_FPS_4_REST(runCfg->runtime.vFrameRate) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_COLOR_SPACE"\":\"%s\","EXT_NEW_LINE, CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_COLOR_DEPTH"\":%d,"EXT_NEW_LINE, CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth) );
 
@@ -299,8 +301,12 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_CHANNEL"\":%d,"EXT_NEW_LINE, runCfg->runtime.aChannels );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_DEPTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.aDepth );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE"\":\"%s\""EXT_NEW_LINE,CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE"\":\"%s\","EXT_NEW_LINE,CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
 	
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_RS232_BAUDRATE"\":%"U32_F","EXT_NEW_LINE, runCfg->rs232Cfg.baudRate );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_RS232_DATABITS"\":%d,"EXT_NEW_LINE, runCfg->rs232Cfg.charLength );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_RS232_PARITY"\":\"%s\","EXT_NEW_LINE, CMN_FIND_RS_PARITY((unsigned short)runCfg->rs232Cfg.parityType) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_RS232_STOPBITS"\":%d"EXT_NEW_LINE, runCfg->rs232Cfg.stopbits );
 //	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IS_CONNECT"\":%d"EXT_NEW_LINE, runCfg->runtime.isConnect);
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "}"EXT_NEW_LINE);

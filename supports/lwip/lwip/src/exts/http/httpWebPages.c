@@ -12,15 +12,31 @@
 
 
 
-uint16_t httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg)
+uint16_t httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg, const char *url)
 {
 	int index = 0;
 	int contentLength = 0;
+	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
+	struct netif *_netif = (struct netif *)runCfg->netif;
 	
 	index = ehc->responseHeaderLength;
 
-	contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
-		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\">Result:%s</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
+	if(url != NULL)
+	{
+#if 0
+		contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, 
+			"<head><meta http-equiv=\"refresh\" content=\"0; URL=http://%s/%s\" /></head>"EXT_NEW_LINE,
+			inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), url);
+#endif
+//		contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, "<script language=\"JavaScript\"><!--setTimeout('window.location.replace(\"http://%s/%s\")', 100)//-->\n</script>"EXT_NEW_LINE, 
+//		contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, "<script type = \"text/javascript\">\n<!--\n window.location.replace(\"http://%s/%s\");\n //-->\n</script>"EXT_NEW_LINE, 
+		contentLength += snprintf((char *)ehc->data+index, sizeof(ehc->data)-index, "<script type = \"text/javascript\">\n<!--\n window.location.href = \"http://%s/%s\"; \n //-->\n</script>"EXT_NEW_LINE, 
+			inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), url);
+
+	}
+	
+	contentLength += snprintf((char *)ehc->data+contentLength+index, sizeof(ehc->data)-contentLength-index, 
+		"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\">%s</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
 		title, msg);
 
 // 	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Reply %d bytes data: '%s'", contentLength,  ehc->data));
@@ -66,7 +82,7 @@ static uint16_t _extHttpWebPageReset(ExtHttpConn  *ehc, void *data)
 	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
 	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"title\"><H2>Reset</H2></DIV>"); 
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"fields-info\"><DIV class=\"field\"><DIV>Resetting, please waite.....</DIV></DIV></DIV>");
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV class=\"fields-info\"><DIV class=\"field\"><DIV>Resetting, please wait.....</DIV></DIV></DIV>");
 
 #ifdef	ARM
 	extDelayReset(1000);
@@ -1034,7 +1050,7 @@ char extHttpWebService(ExtHttpConn *ehc, void *data)
 
 			if(ehc->httpStatusCode != WEB_RES_REQUEST_OK )
 			{
-				contentLength = httpWebPageResult(ehc, "ERROR"/*ehc->filename*/, ehc->boundary );
+				contentLength = httpWebPageResult(ehc, "ERROR"/*ehc->filename*/, ehc->boundary, (const char *)NULL );
 			}
 
 #if 0

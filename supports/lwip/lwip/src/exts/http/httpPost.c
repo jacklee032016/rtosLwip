@@ -416,11 +416,23 @@ void extHttpPostDataFinished(ExtHttpConn *ehc, char isFinished)
 
 //TRACE();
 
+//	extHttpWebPageResult(ehc,  (char *)"Upload Firmware", ehc->boundary);
+	if(ehc->runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS )
+	{
+//		snprintf(ehc->boundary, sizeof(ehc->boundary), "%"U32_F" bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
+		snprintf(ehc->boundary, sizeof(ehc->boundary), "Firmware uploaded. Please reboot.");
+	}
+	else /* runCfg->firmUpdateInfo.type == EXT_FM_TYPE_FPGA) */
+	{
+//		snprintf(ehc->boundary, sizeof(ehc->boundary), "%"U32_F" bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
+		snprintf(ehc->boundary, sizeof(ehc->boundary), "Firmware uploaded. Please reboot the unit, FPGA firmware programmation can take up to 2 minutes.");
+	}
+	
+	httpWebPageResult(ehc, (char *)"Upload Firmware", ehc->boundary, (const char *)NULL);
+
 	CANCEL_UPDATE(ehc->runCfg);
 
 //	_updatePageResult(ehc, (char *)"Upload Firmware", ehc->uri);
-
-	extHttpWebPageResult(ehc,  (char *)"Upload Firmware", ehc->boundary);
 
 //	TRACE();
 }
@@ -463,7 +475,7 @@ err_t extHttpPostRxDataPbuf(ExtHttpConn *mhc, struct pbuf *p)
 
 //	if (mhc->postDataLeft == 0)
 //	if (mhc->postDataLeft <= 0)
-	if (mhc->uploadStatus == _UPLOAD_STATUS_END )
+	if (mhc->postDataLeft <= 0 || mhc->uploadStatus == _UPLOAD_STATUS_END )
 	{
 #if	MHTTPD_POST_MANUAL_WND
 		if (mhc->unrecved_bytes != 0)

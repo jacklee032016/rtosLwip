@@ -62,8 +62,8 @@ typedef struct _cmn_ext_ip_cmd CMN_IP_COMMAND;
 #define	EXT_IPCMD_DATA_IS_MCAST					"isMCAST"
 #define	EXT_IPCMD_DATA_MCAST_IP					"MCASTip"
 
-#define	EXT_IPCMD_DATA_IS_DIP					"isDipOn"
-#define	EXT_IPCMD_DATA_IS_RESET					"isReset"
+#define	EXT_IPCMD_DATA_IS_DIP						"isDipOn"
+#define	EXT_IPCMD_DATA_IS_RESET					"reset"
 
 #define	EXT_IPCMD_DATA_IS_REBOOT					"reboot"
 #define	EXT_IPCMD_DATA_BLINK						"blink_led"

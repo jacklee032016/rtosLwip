@@ -376,13 +376,22 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 		count++;
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_VIDEO_HEIGHT, &tmpCfg->runtime.vHeight) == EXIT_SUCCESS)
 		count++;
-	
+#if 0	
 	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_VIDEO_FRAMERATE, &_chVal) == EXIT_SUCCESS)
 	{
 		tmpCfg->runtime.vFrameRate = CMN_INT_FIND_TYPE_V_FPS(_chVal);
 		count++;
 	}
-	
+#else	
+	memset(tmpCfg->model, 0, sizeof(tmpCfg->model));	
+	if(extJsonParseString(parser, EXT_IPCMD_DATA_VIDEO_FRAMERATE, tmpCfg->model, sizeof(tmpCfg->model) ) == EXIT_SUCCESS)
+	{
+		tmpCfg->runtime.vFrameRate = CMN_FIND_STR_V_FPS_4_REST(tmpCfg->model);
+		count++;
+		memset(tmpCfg->model, 0, sizeof(tmpCfg->model));	
+	}
+#endif
+
 	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_VIDEO_DEPTH, &_chVal) == EXIT_SUCCESS)
 	{
 		tmpCfg->runtime.vDepth = CMN_INT_FIND_TYPE_V_DEPTH(_chVal);
@@ -418,6 +427,7 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 			}
 			tmpCfg->runtime.vColorSpace = type;
 		}
+		memset(tmpCfg->model, 0, sizeof(tmpCfg->model));	
 	}
 
 	if(extJsonParseUnsignedShort(parser, EXT_IPCMD_DATA_AUDIO_SAMPE_RATE, &_shVal ) == EXIT_SUCCESS)
@@ -476,6 +486,11 @@ char extJsonRequestParse(EXT_JSON_PARSER *parser, EXT_RUNTIME_CFG	*tmpCfg)
 	}
 
 
+	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_IS_RESET, &_chVal) == EXIT_SUCCESS)
+	{
+		tmpCfg->runtime.reset = (_chVal == 0)?0:1;
+		count++;
+	}
 	if(extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_IS_REBOOT, &_chVal) == EXIT_SUCCESS)
 	{
 		tmpCfg->runtime.reboot = (_chVal == 0)?0:1;

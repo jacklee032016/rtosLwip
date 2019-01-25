@@ -718,7 +718,7 @@ void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg);
 int cmnHttpPrintResponseHeader(ExtHttpConn *mhc, const char contentType);
 err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size);
 
-uint16_t httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg);
+uint16_t httpWebPageResult(ExtHttpConn  *ehc, const char *title, char *msg, const char *url);
 
 #endif
 

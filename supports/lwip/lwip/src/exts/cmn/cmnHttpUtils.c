@@ -134,10 +134,12 @@ int cmnHttpPrintResponseHeader(ExtHttpConn *ehc, const char contentType)
 err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size)
 {
 	uint8_t _chVal;
+	unsigned int _intValue;
+	short	shValue;
 	
 	EXT_JSON_PARSER  *parser = &extParser;
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Parsing JSON Data %d bytes: '%.*s'", size,  size, jsonData)  );
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Parsing JSON Data %d bytes: '%.*s'", size,  size, jsonData)  );
 
 	extSysClearConfig(rxCfg);
 
@@ -151,11 +153,15 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 	/* system parsms */
 	extJsonParseString(parser, EXT_WEB_CFG_FIELD_PRODUCT, rxCfg->name, sizeof(rxCfg->name) );
 
+#if 0
+	/* MAC is read only for REST API */
 	extJsonParseMacAddress(parser, EXT_WEB_CFG_FIELD_MAC, &rxCfg->local.mac);
+#endif
 
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_IS_DHCP, &rxCfg->netMode);
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_ADDRESS, &rxCfg->local.ip);
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_GATEWAY, &rxCfg->ipGateway);
+	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_NETMASK, &rxCfg->ipMask );
 
 	/* SDP */
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_IP, &rxCfg->sdpUriVideo.ip);
@@ -195,11 +201,21 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 	/* params of video stream */
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_WIDTH, &rxCfg->runtime.vWidth);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_HEIGHT, &rxCfg->runtime.vHeight);
+
+#if 0
 	if(extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_FRAME_RATE, &_chVal) == EXIT_SUCCESS)
 	{
 		rxCfg->runtime.vFrameRate = CMN_INT_FIND_TYPE_V_FPS(_chVal);
 	}
-	
+#else
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_FRAME_RATE, rxCfg->model, sizeof(rxCfg->model));
+	if(!IS_STRING_NULL(rxCfg->model))
+	{
+		rxCfg->runtime.vFrameRate = CMN_FIND_STR_V_FPS_4_REST(rxCfg->model );
+		memset(rxCfg->model, 0, sizeof(rxCfg->model));
+	}
+#endif
+
 	if(extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_COLOR_DEPTH, &_chVal) == EXIT_SUCCESS)
 	{
 		rxCfg->runtime.vDepth = CMN_INT_FIND_TYPE_V_DEPTH(_chVal);
@@ -232,9 +248,57 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_DEPTH, &rxCfg->runtime.aDepth);
 	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_AUDIO_CHANNEL, &rxCfg->runtime.aChannels);
 
+	extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_IS_RESET, &rxCfg->runtime.reset );
 	extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_IS_REBOOT, &rxCfg->runtime.reboot );
 
 	extJsonParseUnsignedChar(parser, EXT_IPCMD_DATA_BLINK, &rxCfg->runtime.blink );
+
+
+	if(extJsonParseUnsignedInteger(parser, EXT_WEB_CFG_FIELD_RS232_BAUDRATE, &_intValue) == EXIT_SUCCESS)
+	{
+		if( CHECK_BAUDRATE(_intValue) )
+		{
+//			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate baudrate for '%s'", value, key);
+//			return EXIT_FAILURE;
+		}
+		else
+		{
+			rxCfg->rs232Cfg.baudRate = _intValue;
+		}
+	}
+	
+	if( extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_RS232_DATABITS, &_chVal) == EXIT_SUCCESS)
+	{
+		if( CHECK_DATABITS(_chVal) )
+		{
+//			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate databit for '%s'", value, key);
+//			return EXIT_FAILURE;
+		}
+		else
+		{
+			rxCfg->rs232Cfg.charLength = _chVal;
+		}
+	}
+
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_RS232_PARITY, rxCfg->model, sizeof(rxCfg->model));
+	if(!IS_STRING_NULL(rxCfg->model))
+	{
+		shValue = CMN_FIND_STR_RS_PARITY(rxCfg->model );
+		if(shValue != INVALIDATE_VALUE_U16)
+		{
+			rxCfg->rs232Cfg.parityType = (unsigned char )shValue;
+		}
+		memset(rxCfg->model, 0, sizeof(rxCfg->model));
+	}
+	
+	if( extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_RS232_STOPBITS, &_chVal )== EXIT_SUCCESS )
+	{
+		if(_chVal == 1 || _chVal == 2 )
+		{
+			rxCfg->rs232Cfg.stopbits = _chVal;
+		}
+	}
+
 
 
 	return ERR_OK;

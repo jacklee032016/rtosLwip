@@ -147,6 +147,7 @@ static int	__bootUpdateRtos(EXT_RUNTIME_CFG *runCfg)
 	return total;
 }
 
+
 /* update firmware from backup zone in SPI flash */
 static int	_bootUpdate(EXT_RUNTIME_CFG *runCfg)
 {

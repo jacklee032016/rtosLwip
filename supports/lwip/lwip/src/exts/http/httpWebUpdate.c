@@ -91,7 +91,7 @@ uint16_t extHttpWebUpdateAvParams(ExtHttpConn *ehc, void *pageHandle)
 	ehc->headerLength = headerLength;
 	headerLength = 0;
 
-	return httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now");
+	return httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now", EXT_WEBPAGE_MEDIA);
 	
 error:
 	ehc->httpStatusCode = WEB_RES_ERROR;
@@ -182,7 +182,7 @@ uint16_t extHttpWebUpdateNetParams(ExtHttpConn *ehc, void *pageHandle)
 	ehc->headerLength = headerLength;
 	headerLength = 0;
 
-	return httpWebPageResult(ehc, "OK",(char *) "New configuration can been active after reboot");
+	return httpWebPageResult(ehc, "OK",(char *) "New configuration can been active after reboot", EXT_WEBPAGE_SYS_CFGS);
 	
 error:
 	ehc->httpStatusCode = WEB_RES_ERROR;
@@ -273,7 +273,7 @@ uint16_t extHttpWebUpdateRs232Params(ExtHttpConn *ehc, void *pageHandle)
 	ehc->headerLength = headerLength;
 	headerLength = 0;
 
-	return httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now");
+	return httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now", EXT_WEBPAGE_SYS_CFGS);
 	
 error:
 	ehc->httpStatusCode = WEB_RES_ERROR;

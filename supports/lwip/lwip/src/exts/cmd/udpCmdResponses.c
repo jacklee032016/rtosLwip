@@ -26,7 +26,7 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size)
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_WIDTH"\":%d,", parser->runCfg->runtime.vWidth );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_HEIGHT"\":%d,", parser->runCfg->runtime.vHeight);
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":%d,", CMN_INT_FIND_NAME_V_FPS(parser->runCfg->runtime.vFrameRate) );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":%s,", CMN_FIND_V_FPS_4_REST(parser->runCfg->runtime.vFrameRate) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_DEPTH"\":%d,", CMN_INT_FIND_NAME_V_DEPTH(parser->runCfg->runtime.vDepth) );
 #if 0
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_INTERLACED"\":%d,", (parser->runCfg->runtime.vIsInterlaced)?1:0);
@@ -174,6 +174,7 @@ char	extJsonResponsePrintConfig(EXT_JSON_PARSER  *parser)
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_PARITY"\":\"%s\",",  CMN_FIND_RS_PARITY((unsigned short)parser->runCfg->rs232Cfg.parityType) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_RS_STOPBITS"\":%d,", parser->runCfg->rs232Cfg.stopbits );
 
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IS_RESET"\":%d,", (parser->runCfg->runtime.reset)?1:0);
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_IS_REBOOT"\":%d,", (parser->runCfg->runtime.reboot)?1:0);
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_BLINK"\":%d,", (parser->runCfg->runtime.blink)?1:0);
 

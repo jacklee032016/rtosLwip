@@ -613,6 +613,9 @@ typedef	struct
 #define	INVALIDATE_VALUE_U16						0xFFFF
 #define	INVALIDATE_VALUE_U32						0xFFFFFFFF
 
+#define	EXT_INVALIDATE_STRING_TYPE				0xFFFF
+
+
 
 #define	FIELD_INVALIDATE_U8( field) 					((field) = INVALIDATE_VALUE_U8)
 #define	FIELD_INVALIDATE_U16(field) 					((field) = INVALIDATE_VALUE_U16)
@@ -804,6 +807,8 @@ typedef	enum
 
 	CMN_STR_T_V_FRAME_RATE,
 
+	CMN_STR_T_V_FPS_4_REST,
+
 	CMN_STR_T_V_DEPTH,
 	CMN_STR_T_V_IMAGE_FORMAT,
 	
@@ -842,6 +847,10 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 #define	CMN_FIND_V_FRAME_RATE(type)		\
 	extCmnStringFind(CMN_STR_T_V_FRAME_RATE, (type) )
 
+#define	CMN_FIND_V_FPS_4_REST(type)		\
+	extCmnStringFind(CMN_STR_T_V_FPS_4_REST, (type) )
+
+
 #define	CMN_FIND_V_FORMAT(type)		\
 	extCmnStringFind(CMN_STR_T_V_IMAGE_FORMAT, (type) )
 
@@ -877,6 +886,10 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 #define	CMN_FIND_STR_V_FRAME_RATE(str)		\
 	extCmnTypeFind(CMN_STR_T_V_FRAME_RATE, (str) )
 
+#define	CMN_FIND_STR_V_FPS_4_REST(str)		\
+	extCmnTypeFind(CMN_STR_T_V_FPS_4_REST, (str) )
+
+
 #define	CMN_FIND_STR_V_FORMAT(str)		\
 	extCmnTypeFind(CMN_STR_T_V_IMAGE_FORMAT, (str) )
 
@@ -899,11 +912,6 @@ const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
 
 #define	CMN_FIND_STR_A_RATE(str)		\
 	extCmnTypeFind(CMN_STR_T_A_RATE, (str) )
-
-
-#define	EXT_INVALIDATE_STRING_TYPE			0xFFFF
-
-
 
 
 typedef struct
@@ -1002,6 +1010,7 @@ typedef	struct
 	unsigned char			isConnect;
 
 	unsigned char			reboot;
+	unsigned char			reset;
 	unsigned char			blink;
 
 	/* http connections */
@@ -1429,12 +1438,16 @@ char *getTaskName(void);
 			(baudRate) != EXT_BAUDRATE_38400 && (baudRate) != EXT_BAUDRATE_57600 &&	\
 			(baudRate) != EXT_BAUDRATE_115200 && (baudRate) != 0 )
 
-
+#if 0
 #define	CHECK_DATABITS(dataBits)	\
 		( (dataBits) != EXT_RS232_CHAR_LENGTH_5 && (dataBits) != EXT_RS232_CHAR_LENGTH_6 &&	\
 			(dataBits) != EXT_RS232_CHAR_LENGTH_7 && (dataBits) != EXT_RS232_CHAR_LENGTH_8 && 	\
 			(dataBits) != 0 )
-
+#else
+#define	CHECK_DATABITS(dataBits)	\
+		( (dataBits) != EXT_RS232_CHAR_LENGTH_7 && (dataBits) != EXT_RS232_CHAR_LENGTH_8 && 	\
+			(dataBits) != 0 )
+#endif
 
 
 const MediaParam *extCmnVideoParamFind(EXT_RUNTIME_CFG *runCfg);

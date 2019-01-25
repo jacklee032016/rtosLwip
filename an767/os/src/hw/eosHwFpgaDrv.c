@@ -367,7 +367,7 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 
 
 	index += snprintf(data+index, size-index, EXT_NEW_LINE"Video :\tWxH:%hux%hu; ", rxCfg->runtime.vWidth, rxCfg->runtime.vHeight);
-	index += snprintf(data+index, size-index, "FPS:%d; ", CMN_INT_FIND_NAME_V_FPS(rxCfg->runtime.vFrameRate));
+	index += snprintf(data+index, size-index, "FPS:%s; ", CMN_FIND_V_FPS_4_REST(rxCfg->runtime.vFrameRate));
 	index += snprintf(data+index, size-index, "Depth:%d; ", CMN_INT_FIND_NAME_V_DEPTH(rxCfg->runtime.vDepth) );
 	index += snprintf(data+index, size-index, "ColorSpace:%s; ", CMN_FIND_V_COLORSPACE(rxCfg->runtime.vColorSpace));
 	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, (rxCfg->runtime.vIsInterlaced == EXT_VIDEO_INTLC_INTERLACED)?"Interlaced":"Progressive");

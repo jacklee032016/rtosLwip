@@ -83,6 +83,7 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 
 	FIELD_INVALIDATE_U8(rxCfg->runtime.isConnect);
 
+	FIELD_INVALIDATE_U8(rxCfg->runtime.reset);
 	FIELD_INVALIDATE_U8(rxCfg->runtime.reboot);
 	FIELD_INVALIDATE_U8(rxCfg->runtime.blink);
 
@@ -143,6 +144,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(rxCfg->ipGateway != IPADDR_NONE)	
 	{
 		runCfg->ipGateway = rxCfg->ipGateway;
+		ret = EXT_TRUE;
 	}
 
 #if 0	
@@ -171,7 +173,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &rxCfg->local.mac) )
 		{
-//			EXT_DEBUGF(EXT_IPCMD_DEBUG, ("MAC address is not same:%s=%s"LWIP_NEW_LINE, runCfg->local.mac.address, rxCfg->local.mac.address));
+			EXT_DEBUGF(EXT_DBG_ON, ("MAC address is not same:%s=%s"LWIP_NEW_LINE, runCfg->local.mac.address, rxCfg->local.mac.address));
 			memcpy(&runCfg->local.mac, &rxCfg->local.mac, EXT_MAC_ADDRESS_LENGTH);
 			runCfg->isMacConfiged = EXT_TRUE;
 			ret = EXT_TRUE;
@@ -426,12 +428,21 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 #endif
 	}
 
+	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reset) && (rxCfg->runtime.reboot != runCfg->runtime.reset) ) 
+	{
+		 runCfg->runtime.reset = rxCfg->runtime.reset;
+
+#ifdef ARM
+		extDelayReset(3000);
+#endif
+	}
+
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reboot) && (rxCfg->runtime.reboot != runCfg->runtime.reboot) ) 
 	{
 		 runCfg->runtime.reboot = rxCfg->runtime.reboot;
 
 #ifdef ARM
-		extDelayReboot(2000);
+		extDelayReboot(2800);
 #endif
 	}
 
@@ -455,7 +466,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 #ifdef	ARM
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
-//#else
+#else
 		EXT_DEBUGF(EXT_DBG_ON, ("New system configuration, saving configuration and reboot") );
 #endif
 	}

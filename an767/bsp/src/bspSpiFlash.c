@@ -515,7 +515,7 @@ int	bspBootUpdateFpga(EXT_RUNTIME_CFG *runCfg)
 	_EXT_SPI_FLASH_T _spiFlashRead;	/* read interface of Flash */
 
 	int readSector = SFLASH_START_SECTOR_TEMP_FPGA;
-#if 1
+#if 0
 	unsigned int 	writeSector = SFLASH_START_SECTOR_FIRST_IMAGE;
 #else
 	unsigned int 	writeSector = SFLASH_START_SECTOR_SECOND_IMAGE;
