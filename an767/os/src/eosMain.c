@@ -175,6 +175,7 @@ int main( void )
 	char restoringFactory = 0;
 #endif
 
+
 	unsigned int debugOption;
 
 #if TX_VERSION	

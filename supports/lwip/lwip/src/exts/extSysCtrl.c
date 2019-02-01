@@ -87,6 +87,11 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	FIELD_INVALIDATE_U8(rxCfg->runtime.reboot);
 	FIELD_INVALIDATE_U8(rxCfg->runtime.blink);
 
+
+	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeVideo);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeAudio);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeAnc);
+	
 	rxCfg->sdpUriVideo.ip = IPADDR_NONE;
 	FIELD_INVALIDATE_U16(rxCfg->sdpUriVideo.port);
 
@@ -243,7 +248,7 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
 		{
 			runCfg->fpgaAuto = rxCfg->fpgaAuto;
-			EXT_DEBUGF(EXT_DBG_ON, ("FpgaAuto: %s", (rxCfg->fpgaAuto)? "YES":"NO") );
+			EXT_DEBUGF(EXT_DBG_ON, (EXT_WEB_CFG_FIELD_FPGA_AUTO": %s", (rxCfg->fpgaAuto)? "YES":"NO") );
 			ret = EXT_TRUE;
 		}
 	}
@@ -272,6 +277,11 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	_checkNumU8FieldValue(&runCfg->runtime.aDepth, rxCfg->runtime.aDepth, ret);	
 
 	_checkNumU8FieldValue(&runCfg->runtime.aPktSize, rxCfg->runtime.aPktSize, ret);	
+
+
+	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeVideo, rxCfg->runtime.rtpTypeVideo, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeAudio, rxCfg->runtime.rtpTypeAudio, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeAnc, rxCfg->runtime.rtpTypeAnc, ret);	
 
 	return ret;
 }
@@ -391,32 +401,32 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("System params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, ("System params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
 	}
 
 	if(_compareProtocolConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("Protocol params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, ("Protocol params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_PROTOCOL);
 	}
 	
 	if(_compareMediaCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("Media params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, ("Media params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
 	}
 
 
 	if(_compareSdpConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("SDP params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, ("SDP params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_SDP);
 	}
 
 	if(_compareRs232Config(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_ON, ("RS232 params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, ("RS232 params changing") );
 		SETUP_SET_TYPE(_SETUP_TYPE_RS232);
 	}
 
@@ -490,7 +500,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		{
 			extHwRs232Config(runCfg);
 		}
-//#else
+#else
 		EXT_DEBUGF(EXT_DBG_ON, ("RS232 save and setup") );
 #endif
 	}
@@ -505,7 +515,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 
 		extFpgaConfig(runCfg);
-//#else
+#else
 		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Protocol"));
 #endif
 	}
@@ -516,7 +526,7 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
 		extFpgaConfigParams(runCfg);
-//#else
+#else
 		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Media") );
 #endif
 	}
@@ -588,7 +598,7 @@ void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg)
 	printf("\tAudio IP:%s; Port:%d;"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->dest.audioIp), cfg->dest.aport);
 	printf("\tANC IP:%s; Port:%d;"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->dest.ancIp), cfg->dest.dport);
 
-	printf("\tfpgaAuto:%d; "EXT_NEW_LINE, cfg->fpgaAuto);
+	printf("\tmediaSet:%d; "EXT_NEW_LINE, cfg->fpgaAuto);
 	
 	printf("\tVideo:Width:%d; height:%d; fps:%d; colorspce:%d; depth=%d, interlaced:%d"EXT_NEW_LINE, 
 		cfg->runtime.vWidth, cfg->runtime.vHeight, cfg->runtime.vFrameRate, cfg->runtime.vColorSpace, cfg->runtime.vDepth, cfg->runtime.vIsInterlaced);
@@ -597,5 +607,8 @@ void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg)
 
 	printf("\tVideo SDP IP:%s; Port:%d; URI:%s"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->sdpUriVideo.ip), cfg->sdpUriVideo.port, cfg->sdpUriVideo.uri);
 	printf("\tAudio SDP IP:%s; Port:%d; URI:%s"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->sdpUriAudio.ip), cfg->sdpUriAudio.port, cfg->sdpUriAudio.uri);
+
+	printf("\tRTP Payload Video:%d; Audio:%d; Anc:%d"EXT_NEW_LINE, cfg->runtime.rtpTypeVideo, cfg->runtime.rtpTypeAudio, cfg->runtime.rtpTypeAnc);
+
 }
 

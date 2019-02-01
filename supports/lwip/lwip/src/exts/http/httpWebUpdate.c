@@ -88,7 +88,7 @@ uint16_t extHttpWebUpdateAvParams(ExtHttpConn *ehc, void *pageHandle)
 //	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
-	ehc->headerLength = headerLength;
+	ehc->responseHeaderLength = headerLength;
 	headerLength = 0;
 
 	return httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now", EXT_WEBPAGE_MEDIA);
@@ -179,7 +179,7 @@ uint16_t extHttpWebUpdateNetParams(ExtHttpConn *ehc, void *pageHandle)
 //	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
-	ehc->headerLength = headerLength;
+	ehc->responseHeaderLength = headerLength;
 	headerLength = 0;
 
 	return httpWebPageResult(ehc, "OK",(char *) "New configuration can been active after reboot", EXT_WEBPAGE_SYS_CFGS);
@@ -270,7 +270,7 @@ uint16_t extHttpWebUpdateRs232Params(ExtHttpConn *ehc, void *pageHandle)
 //	EXT_DEBUGF(EXT_DBG_ON, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
-	ehc->headerLength = headerLength;
+	ehc->responseHeaderLength = headerLength;
 	headerLength = 0;
 
 	return httpWebPageResult(ehc, "OK",(char *) "New configuration has been active now", EXT_WEBPAGE_SYS_CFGS);

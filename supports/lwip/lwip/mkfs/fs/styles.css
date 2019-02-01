@@ -96,7 +96,8 @@ body {
 }
 
 #content, #content_center {
-	min-height: 600px;
+	/*min-height: 600px;*/
+	height: 725px;
 	width: 100%;
 	margin: 0 0 0 0;
 	padding-bottom: 50px;
@@ -416,7 +417,7 @@ input[type="text"]:disabled{
 
 input[type="file"]{
 	background: #E6E6E6;
-	
+	width: 500px;	
 }
 
 select {

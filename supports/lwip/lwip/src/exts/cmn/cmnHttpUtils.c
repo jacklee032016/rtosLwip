@@ -166,17 +166,22 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 	/* SDP */
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_IP, &rxCfg->sdpUriVideo.ip);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT, &rxCfg->sdpUriVideo.port );
-	if(extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_URI, rxCfg->sdpUriVideo.uri, sizeof(rxCfg->sdpUriVideo.uri) ) == EXIT_SUCCESS)
-	{
-		unescape_uri(rxCfg->sdpUriVideo.uri);
+
+	if(!EXT_IS_TX(parser->runCfg) )
+	{/* only RX */
+		if(extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_VEDIO_URI, rxCfg->sdpUriVideo.uri, sizeof(rxCfg->sdpUriVideo.uri) ) == EXIT_SUCCESS)
+		{
+			unescape_uri(rxCfg->sdpUriVideo.uri);
+		}
+		
+		if(extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_URI, rxCfg->sdpUriAudio.uri, sizeof(rxCfg->sdpUriAudio.uri) ) == EXIT_SUCCESS)
+		{
+			unescape_uri(rxCfg->sdpUriAudio.uri);
+		}
 	}
 
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_IP, &rxCfg->sdpUriAudio.ip);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT, &rxCfg->sdpUriAudio.port );
-	if(extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_URI, rxCfg->sdpUriAudio.uri, sizeof(rxCfg->sdpUriAudio.uri) ) == EXIT_SUCCESS)
-	{
-		unescape_uri(rxCfg->sdpUriAudio.uri);
-	}
 
 
 	/* dest address of RTP */

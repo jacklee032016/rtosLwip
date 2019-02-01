@@ -56,9 +56,6 @@
 /* private definitions of SDP */
 #define	SDP_P_SESSION_VERSION						1
 
-#define	SDP_P_MEDIA_FORMAT_VIDEO				96
-#define	SDP_P_MEDIA_FORMAT_AUDIO				100
-
 #define	SDP_P_TTL									64
 
 /* p.21 of AES67-2015 */
@@ -116,10 +113,15 @@ uint16_t extHttpSdpVideo(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d "SDP_2110_VIDEO_FORMAT EXT_NEW_LINE, SDP_P_MEDIA_FORMAT_VIDEO);
 
 	/* format parameters 'fmtp', page 15~20, specs 2110-20:2017 */
+#if 0
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d "SDP_2110_VKEY_SAMPLING"=%s; "SDP_2110_VKEY_WIDTH"=%d; "SDP_2110_VKEY_HEIGHT"=%d; "SDP_2110_VKEY_FRAME_RATE"=%s; ",
 		SDP_P_MEDIA_FORMAT_VIDEO, CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace), runCfg->runtime.vWidth, runCfg->runtime.vHeight, 
 		CMN_FIND_V_FRAME_RATE(runCfg->runtime.vFrameRate) );
-
+#else
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d "SDP_2110_VKEY_SAMPLING"=%s; "SDP_2110_VKEY_WIDTH"=%d; "SDP_2110_VKEY_HEIGHT"=%d; "SDP_2110_VKEY_FRAME_RATE"=%s; ",
+		runCfg->runtime.rtpTypeVideo, CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace), runCfg->runtime.vWidth, runCfg->runtime.vHeight, 
+		CMN_FIND_V_FRAME_RATE(runCfg->runtime.vFrameRate) );
+#endif
 	/* PM: Packing Mode; TCP: Transfer Characteritic System; SSN: SMPTE Standard Number */
 	/*  TP=2110TPN; is not defined in specs */
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_2110_VKEY_DEPTH"=%d; "SDP_2110_VKEY_TCS"=SDR; "SDP_2110_VKEY_COLORIMETRY"=BT709; "SDP_2110_VKEY_PM"=%s; "SDP_2110_VKEY_SSN"=ST2110-20:2017;",
@@ -172,8 +174,13 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "c="SDP_NET_TYPE" "SDP_ADDR_TYPE" %s/%d" EXT_NEW_LINE , EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)), SDP_P_TTL);
 
 	/* attribute of RTP map */
+#if 0	
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d %s/%s/%d"EXT_NEW_LINE, 
 		SDP_P_MEDIA_FORMAT_AUDIO, SDP_P_AUDIO_DEPTH, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate),  runCfg->runtime.aChannels );
+#else
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d %s/%s/%d"EXT_NEW_LINE, 
+		runCfg->runtime.rtpTypeAudio, SDP_P_AUDIO_DEPTH, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate),  runCfg->runtime.aChannels );
+#endif
 
 	/* channel order: see specs 2110-30 */
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d channel-order=SMPTE2110.(SGRP,SGRP,SGRP,SGRP)" EXT_NEW_LINE, SDP_P_MEDIA_FORMAT_AUDIO);
@@ -395,6 +402,13 @@ static uint16_t _sdpParseAudioStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, cha
 		EXT_ERRORF(("Invalidate format '"SDP_ADDR_TYPE"' for SDP stream"));
 		return 0;
 	}
+	if(cmnUtilsParseInt8(p+ strlen(SDP_MEDIA_RTP_MAP), &rxCfg->runtime.rtpTypeAudio) == EXIT_FAILURE)
+	{
+		EXT_ERRORF(("No rtpmap for SDP audio stream"));
+		rxCfg->runtime.rtpTypeAudio = SDP_P_MEDIA_FORMAT_AUDIO;
+		return 0;
+	}
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Audio RTP Payload : '%d'", rxCfg->runtime.rtpTypeAudio ));
 	
 	index= p -data;
 
@@ -637,7 +651,17 @@ static err_t _sdpParseVideoStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *
 		EXT_ERRORF(("Invalidate format for SDP stream"));
 		return ERR_ARG;
 	}
+
 	p += strlen(SDP_MEDIA_FORMAP_PARAMS);
+	
+	if(cmnUtilsParseInt8(p, &rxCfg->runtime.rtpTypeVideo) == EXIT_FAILURE)
+	{
+		EXT_ERRORF(("No rtpmap for SDP video stream: '%s'", p ));
+		rxCfg->runtime.rtpTypeVideo = SDP_P_MEDIA_FORMAT_VIDEO;
+		return 0;
+	}
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Video RTP Payload : '%d'", rxCfg->runtime.rtpTypeVideo));
+
 	while(*p != ' ')/* for rtpmap constants */
 	{
 		p++;

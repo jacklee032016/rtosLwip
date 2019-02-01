@@ -147,7 +147,11 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 	if(EXT_IS_TX(runCfg) )
 	{
+#if 0	
+		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), runCfg->sdpUriVideo.uri);
+#else
 		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_VIDEO);
+#endif
 	}
 	else
 	{
@@ -161,7 +165,11 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >SDP Audio:</LABEL>");
 	if(EXT_IS_TX(runCfg) )
 	{
+#if 0
+		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), runCfg->sdpUriAudio.uri);
+#else
 		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_AUDIO);
+#endif
 	}
 	else
 	{
@@ -172,11 +180,12 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 		
 	//<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
 #if _JAVA_SCRIPT_OLD
-		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Apply\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\" style=\"display: table-cell;\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
 #else
-		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Apply\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\" style=\"display: table-cell;\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_SDP"','"EXT_WEBPAGE_SDP_CLIENT"')\"/>"EXT_NEW_LINE
 #endif
 				"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
+		CMN_SN_PRINTF(dataBuf, size, index, "<label id=\"lblAutoApply\" class=\"green\" style=\"display: none; padding-left: 10px; float: none;\">Submitted</label>"EXT_NEW_LINE );
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM> </div></div>"EXT_NEW_LINE );
 	}
@@ -399,12 +408,14 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 //<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
 #if _JAVA_SCRIPT_OLD
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\" style=\"display: table-cell;\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
 #else
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\" style=\"display: table-cell;\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_DATA"','"EXT_WEBPAGE_SETTING"')\"/>"EXT_NEW_LINE
 //	CMN_SN_PRINTF(data, size, index,  "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"submit\" value=\"Submit\" class=\"btnSubmit\" id=\"btnSubmit\" />"EXT_NEW_LINE
 #endif
-			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/>"EXT_NEW_LINE );
+			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
+
+	CMN_SN_PRINTF(dataBuf, size, index, "<label id=\"lblManualApply\" class=\"green\" style=\"display: none; padding-left: 10px; float: none;\">Submitted</label>"EXT_NEW_LINE );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV>"EXT_NEW_LINE );
 
@@ -634,8 +645,9 @@ static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle
 	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\"><LABEL >MAC Address:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_MAC"\" value=\"%02x:%02x:%02x:%02x:%02x:%02x\"/ disabled></DIV>"EXT_NEW_LINE, 
 		runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_NETWORK"','"EXT_WEBPAGE_SYS_UPDATE"')\"/>"EXT_NEW_LINE
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\" style=\"display: table-cell;\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_NETWORK"','"EXT_WEBPAGE_SYS_UPDATE"')\"/>"EXT_NEW_LINE
 			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<label id=\"lblNetworkApply\" class=\"green\" style=\"display: none; padding-left: 10px; float: none;\">Submitted</label>"EXT_NEW_LINE );
 	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV>"EXT_NEW_LINE EXT_NEW_LINE);
 	
 	/* RS232 */
@@ -684,8 +696,9 @@ static uint16_t _extHttpWebPageSysCfgsHander(ExtHttpConn  *ehc, void *pageHandle
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT></DIV>"EXT_NEW_LINE);
 
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_RS232"','"EXT_WEBPAGE_RS232_UPDATE"')\"/>"EXT_NEW_LINE
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"buttons\" style=\"display: table-cell;\">"EXT_NEW_LINE"\t<INPUT type=\"button\" value=\"Submit\" class=\"btnSubmit\" onClick=\"submit_firmware('"FORM_ID_CFG_RS232"','"EXT_WEBPAGE_RS232_UPDATE"')\"/>"EXT_NEW_LINE
 			"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t<label id=\"lblRs232Apply\" class=\"green\" style=\"display: none; padding-left: 10px; float: none;\">Submitted</label>"EXT_NEW_LINE );
 	CMN_SN_PRINTF(dataBuf, size, index, "</FORM></DIV></DIV>"EXT_NEW_LINE EXT_NEW_LINE);
 	
 
@@ -716,6 +729,7 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "<HTML><HEAD><TITLE>Muxlab %s-500767</TITLE>", EXT_IS_TX(&extRun)?"TX":"RX" );
+//	CMN_SN_PRINTF(dataBuf, size, index, "<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\"><SCRIPT type=\"text/javascript\" src=\"load_html.js\"></SCRIPT></HEAD>"EXT_NEW_LINE );
 	CMN_SN_PRINTF(dataBuf, size, index, "<LINK href=\"/styles.css\" type=\"text/css\" rel=\"stylesheet\"><SCRIPT type=\"text/javascript\" src=\"/load_html.js\"></SCRIPT></HEAD>"EXT_NEW_LINE );
 #if 0
 	CMN_SN_PRINTF(dataBuf, size, index, "<BODY onload=\"JavaScript:load_http_doc('%s', 'content','')\"><DIV id=\"body\"><DIV id=\"header\"><a id=\"logo\" href=\"/\"><img alt=\"Muxlab Control Panel\" src=\"/logo.jpg\"></a><br />",
@@ -742,7 +756,7 @@ uint16_t extHttpWebPageRootHander(ExtHttpConn  *ehc, void *pageHandle)
 
 //	CMN_SN_PRINTF(dataBuf, size, index, "<a id=\"nav_upgrade_fpga\" class=\"\" href=\"JavaScript:reboot_device()\">Reboot</a></DIV>");
 
-	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"message\"></DIV><DIV id=\"content\"></DIV><DIV id=\"footer\">&copy; MuxLab Inc. %s</DIV></DIV>", EXT_OS_NAME );
+	CMN_SN_PRINTF(dataBuf, size, index, "<DIV id=\"message\"></DIV><DIV id=\"content\">This version supports Firefox or Chrome</DIV><DIV id=\"footer\">&copy; MuxLab Inc. %s</DIV></DIV>", EXT_OS_NAME );
 
 	CMN_SN_PRINTF(dataBuf, size, index,  
 		"<iframe width=\"0\" height=\"0\" name=\"dummyframe\" id=\"dummyframe\"></iframe>"EXT_NEW_LINE);

@@ -338,7 +338,7 @@ u8_t extHttpSend( ExtHttpConn *mhc)
 	else if( (HTTPREQ_IS_UPLOAD(mhc) && mhc->uploadStatus >= _UPLOAD_STATUS_COPY) )
 	{
 #if 1
-		EXT_DEBUGF(EXT_DBG_ON, ("send update firmware data (%"U32_F")\"%s\"", mhc->contentLength, mhc->data));
+		EXT_DEBUGF(EXT_DBG_OFF, ("send update firmware data (%"U32_F")\"%s\"", mhc->contentLength, mhc->data));
 		unsigned short len = mhc->contentLength - mhc->dataSendIndex;
 		extHttpWrite(mhc, mhc->data, &len, TCP_WRITE_FLAG_COPY);
 		if(len < (mhc->contentLength - mhc->dataSendIndex) )

@@ -404,6 +404,7 @@ char  bspFpgaReload(void)
 	printf("FPGA load image %s"EXT_NEW_LINE, (isOK== EXT_FALSE)?"failed":"sucessed");
 
 	printf("Waiting FPGA ....."EXT_NEW_LINE);
+	EXT_DELAY_US(1000*500);
 	do
 	{
 		isOK = FPGA_I2C_READ(EXT_FPGA_REG_ETHERNET_RESET, &data, 1);

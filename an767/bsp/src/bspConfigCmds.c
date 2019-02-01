@@ -24,9 +24,13 @@ char bspCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
 		cfg->rs232Cfg.stopbits = EXT_RS232_STOP_BITS_1;
 		return EXIT_SUCCESS;
 	}
-	
+
+#if 0	
 	if(cfg->magic[0]!=EXT_MAGIC_VALUE_A ||cfg->magic[1] != EXT_MAGIC_VALUE_B ||
 		cfg->endMagic[0]!=EXT_MAGIC_VALUE_B ||cfg->endMagic[1] != EXT_MAGIC_VALUE_A)
+#else		
+	if(cfg->magic[0]!=EXT_MAGIC_VALUE_A ||cfg->magic[1] != EXT_MAGIC_VALUE_B )
+#endif		
 	{
 		EXT_ERRORF(("Configuration data is corrupted!!"EXT_NEW_LINE));
 		return EXIT_FAILURE;

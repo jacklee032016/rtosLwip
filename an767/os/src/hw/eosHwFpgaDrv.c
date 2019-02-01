@@ -32,6 +32,11 @@ struct Tx_Register_Address
 	uint8_t		dstAuxIp;
 	uint8_t		dstAuxMac;
 	uint8_t		dstAuxPort;
+
+	uint8_t		rtpVideo;
+	uint8_t		rtpAudio;
+	uint8_t		rtpAnc;
+	
 };
 
 
@@ -59,7 +64,12 @@ const struct Tx_Register_Address FTX_ADDRESS =
 
 	dstAuxIp		:	100,
 	dstAuxMac	:	82,
-	dstAuxPort	:	110
+	dstAuxPort	:	110,
+
+	rtpVideo		:	37,
+	rtpAudio		:	38,
+	rtpAnc		:	39
+
 };
 
 
@@ -86,6 +96,10 @@ struct Rx_Register_Address
 	uint8_t		srcPortAnc;
 	uint8_t		srcPortAux;
 
+	uint8_t		rtpVideo;
+	uint8_t		rtpAudio;
+	uint8_t		rtpAnc;
+
 };
 
 
@@ -111,6 +125,11 @@ const struct Rx_Register_Address FRX_ADDRESS =
 	srcPortAudio	:	78,
 	srcPortAnc	:	82,
 	srcPortAux	:	86,
+
+	rtpVideo		:	114,
+	rtpAudio		:	115,
+	rtpAnc		:	116
+
 };
 
 
@@ -247,6 +266,15 @@ static char _frpgaReadParamRegisters(EXT_RUNTIME_CFG *runCfg)
 	
 	_extFpgaReadByte(EXT_FPGA_REG_AUDIO_PKT_SIZE, &runCfg->runtime.aPktSize);
 
+	_extFpgaReadByte(FTX_ADDRESS.rtpVideo, &_chValue);
+	runCfg->runtime.rtpTypeVideo = (_chValue&0x7F);
+
+	_extFpgaReadByte(FTX_ADDRESS.rtpAudio, &_chValue);
+	runCfg->runtime.rtpTypeAudio = (_chValue&0x7F);
+
+	_extFpgaReadByte(FTX_ADDRESS.rtpAnc, &_chValue);
+	runCfg->runtime.rtpTypeAnc = (_chValue&0x7F);
+
 	return EXIT_SUCCESS;
 }
 
@@ -363,6 +391,15 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 		_extFpgaReadShort(FRX_ADDRESS.portAux,  (unsigned char *)&port);
 		index += snprintf(data+index, size-index, EXT_NEW_LINE"\tAUX : \tIP:%s;\tPort:%d;", inet_ntoa(intValue), port);
 #endif
+		_extFpgaReadByte(FRX_ADDRESS.rtpVideo, &_chVal);
+		rxCfg->runtime.rtpTypeVideo = (_chVal&0x7F);
+
+		_extFpgaReadByte(FRX_ADDRESS.rtpAudio, &_chVal);
+		rxCfg->runtime.rtpTypeAudio = (_chVal&0x7F);
+
+		_extFpgaReadByte(FRX_ADDRESS.rtpAnc, &_chVal);
+		rxCfg->runtime.rtpTypeAnc = (_chVal&0x7F);
+
 	}
 
 
@@ -374,6 +411,9 @@ unsigned int extFgpaRegisterDebug( char *data, unsigned int size)
 
 	index += snprintf(data+index, size-index, "Audio :\tChannels:%d; Sample Rate:%d; Pkt Size: %s"EXT_NEW_LINE, 
 		rxCfg->runtime.aChannels, rxCfg->runtime.aSampleRate, CMN_FIND_A_PKTSIZE(rxCfg->runtime.aPktSize) );
+
+	index += snprintf(data+index, size-index, "RTP Payload :\tVideo:%d; Audio:%d; ANC: %d"EXT_NEW_LINE, 
+		rxCfg->runtime.rtpTypeVideo, rxCfg->runtime.rtpTypeAudio, rxCfg->runtime.rtpTypeAnc );
 
 	_extFpgaReadByte(EXT_FPGA_REG_ENABLE, &_chVal);
 	_extFpgaReadByte(EXT_FPGA_REG_PARAM_STATUS, address);
@@ -790,6 +830,10 @@ char extFpgaReadParams( EXT_RUNTIME_CFG *runCfg)
 		FIELD_INVALIDATE_U8(runCfg->runtime.aChannels);
 		FIELD_INVALIDATE_U8(runCfg->runtime.aSampleRate);
 		FIELD_INVALIDATE_U8(runCfg->runtime.aPktSize);
+
+		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeVideo);
+		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeAudio);
+		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeAnc);
 		
 		return EXIT_SUCCESS;
 	}
@@ -839,6 +883,11 @@ char extFpgaConfigParams(EXT_RUNTIME_CFG *runCfg)
 		
 		/* third, start it */
 		_extFpgaWriteByte(EXT_FPGA_REG_PARAM_STATUS, &_chValue);
+
+		_extFpgaWriteByte(FRX_ADDRESS.rtpVideo, &runCfg->runtime.rtpTypeVideo);
+		_extFpgaWriteByte(FRX_ADDRESS.rtpAudio, &runCfg->runtime.rtpTypeAudio);
+		_extFpgaWriteByte(FRX_ADDRESS.rtpAnc, &runCfg->runtime.rtpTypeAnc);
+
 	}
 
 	return EXIT_SUCCESS;
@@ -909,6 +958,7 @@ char  extBspFpgaReload(void)
 	printf("FPGA load image %s"EXT_NEW_LINE, (isOK== EXT_FALSE)?"failed":"sucessed");
 
 	printf("Waiting FPGA ....."EXT_NEW_LINE);
+	EXT_DELAY_US(1000*500);
 	do
 	{
 		isOK = FPGA_I2C_READ(EXT_FPGA_REG_ETHERNET_RESET, &data, 1);

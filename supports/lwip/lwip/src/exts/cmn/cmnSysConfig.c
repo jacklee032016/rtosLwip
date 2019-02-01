@@ -300,6 +300,10 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->runtime.vColorSpace = EXT_V_COLORSPACE_YCBCR_444;
 	cfg->runtime.vDepth = EXT_V_DEPTH_10;
 	cfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_INTERLACED;
+
+	cfg->runtime.rtpTypeVideo = SDP_P_MEDIA_FORMAT_VIDEO;
+	cfg->runtime.rtpTypeAudio = SDP_P_MEDIA_FORMAT_AUDIO;
+	cfg->runtime.rtpTypeAnc = SDP_P_MEDIA_FORMAT_ANC;
 	
 //	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;

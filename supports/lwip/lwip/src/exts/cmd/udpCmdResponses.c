@@ -26,7 +26,7 @@ int	extIpCmdPrintMediaCfg(EXT_JSON_PARSER  *parser, char *data, int size)
 
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_WIDTH"\":%d,", parser->runCfg->runtime.vWidth );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_HEIGHT"\":%d,", parser->runCfg->runtime.vHeight);
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":%s,", CMN_FIND_V_FPS_4_REST(parser->runCfg->runtime.vFrameRate) );
+	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_FRAMERATE"\":\"%s\",", CMN_FIND_V_FPS_4_REST(parser->runCfg->runtime.vFrameRate) );
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_DEPTH"\":%d,", CMN_INT_FIND_NAME_V_DEPTH(parser->runCfg->runtime.vDepth) );
 #if 0
 	index += snprintf(data+index, size-index, "\""EXT_IPCMD_DATA_VIDEO_INTERLACED"\":%d,", (parser->runCfg->runtime.vIsInterlaced)?1:0);

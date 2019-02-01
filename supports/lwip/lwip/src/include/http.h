@@ -344,6 +344,8 @@ typedef struct _ExtHttpConn
 	char						boundary[MHTTPD_URI_BUF_LEN+1];		/* for HTTP upload, also as content of error message */
 	char						filename[MHTTPD_URI_BUF_LEN+1];		/* also as title of error message */
 	char						uploadStatus;
+
+	char						countOfParseFileName;
 	unsigned short			recvLength;
 	struct _MuxUploadContext  *uploadCtx;
 
@@ -516,7 +518,7 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_PORT_DATA				"portData"
 #define	EXT_WEB_CFG_FIELD_PORT_STREM			"portStrem"
 
-#define	EXT_WEB_CFG_FIELD_FPGA_AUTO				"fpgaAuto"
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO				"mediaSet"
 
 #define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO		"Auto"
 #define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL		"Manual"

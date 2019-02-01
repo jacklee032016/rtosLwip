@@ -277,6 +277,7 @@ static err_t _httpParseHeaders(ExtHttpConn *ehc, struct pbuf *inp)
 		{/* it is update firmware, so return IP_PROCESS to enter DATA state */
 			return ERR_INPROGRESS;
 		}
+//		TRACE();
 	}
 
 	/* following check URL */

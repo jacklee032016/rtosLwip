@@ -991,6 +991,10 @@ typedef	struct
 	unsigned char			aDepth;		/* 16, 24 bits, etc.  not configurable, 12.07, 2018 */
 	unsigned char			aPktSize;	/* 1ms or 125ms. */
 
+	unsigned char			rtpTypeVideo;
+	unsigned char			rtpTypeAudio;
+	unsigned char			rtpTypeAnc;
+
 
 	/* version */	
 	unsigned char			version;
@@ -1146,7 +1150,7 @@ struct	_EXT_RUNTIME_CFG
 
 	unsigned char			fpgaAuto;			/* RX auto configured itself */
 	
-	MuxRunTimeParam		runtime;
+	MuxRunTimeParam		runtime;				/* must be saved */
 
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
 
@@ -1452,6 +1456,11 @@ char *getTaskName(void);
 
 const MediaParam *extCmnVideoParamFind(EXT_RUNTIME_CFG *runCfg);
 char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index);
+
+
+#define	SDP_P_MEDIA_FORMAT_VIDEO				96
+#define	SDP_P_MEDIA_FORMAT_AUDIO				97
+#define	SDP_P_MEDIA_FORMAT_ANC					100
 
 
 

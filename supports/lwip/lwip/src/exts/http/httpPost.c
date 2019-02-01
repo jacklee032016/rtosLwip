@@ -201,7 +201,9 @@ static char _extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
 				mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
 				snprintf(mhc->uri, sizeof(mhc->uri), "Error: no file is transmitted"  );
 
+				EXT_DEBUGF(EXT_DBG_ON, ("Error: no file is select to be transmitted") );
 				return extHttpWebPageResult(mhc,(char *)"Upload Firmware", mhc->uri);
+//				return httpWebPageResult(mhc,(char *)"Upload Firmware", mhc->uri);
 			}
 			
 			mhc->uploadStatus = _UPLOAD_STATUS_COPY;
@@ -224,15 +226,23 @@ static char _extHttpPostDataRecv(ExtHttpConn *mhc, struct pbuf *p)
 				p = p->next;
 			}
 			
-			EXT_DEBUGF(EXT_HTTPD_DATA_DEBUG, ("UPLOAD copied %d byte filename: '%s', move header :%d", (endOfFilename-filename), mhc->filename, dataOffset) );
+//			EXT_DEBUGF(EXT_DBG_OFF, ("UPLOAD copied %d byte filename: '%s', move header :%d", (endOfFilename-filename), mhc->filename, dataOffset) );
 			/* hide the remaining HTTP header */
 			pbuf_header(p, -(s16_t)dataOffset);
 			mhc->dataSendIndex = 0;
 		}
 		else
 		{
-			mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
-			return EXIT_FAILURE;
+
+			mhc->countOfParseFileName++;
+			if(mhc->countOfParseFileName >= 2)
+			{
+				EXT_ERRORF(("HTTP Upload can't found file details"));
+				mhc->uploadStatus = _UPLOAD_STATUS_ERROR;
+				return EXIT_FAILURE;
+			}
+			
+			return EXIT_SUCCESS;
 		}
 	}
 
@@ -269,6 +279,8 @@ err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp)
 		goto badPostRequest;
 	}	
 
+
+	ehc->uploadStatus = _UPLOAD_STATUS_INIT;
 	ehc->uploadCtx = (struct _MuxUploadContext *)&extUpload;
 //			mhc->uploadCtx->priv = mhc;
 
@@ -280,7 +292,7 @@ err_t extHttpPostCheckUpdate(ExtHttpConn *ehc, struct pbuf *inp)
 	snprintf(ehc->boundary, sizeof(ehc->boundary), "%.*s", endOfLine -1 - boundary, boundary);
 
 	ehc->postDataLeft = (u32_t)ehc->contentLength;
-	EXT_DEBUGF(EXT_HTTPD_DEBUG, ("UPLOAD %"U32_F" (%"U32_F")bytes: bounary(%d):'%.*s'", ehc->postDataLeft, ehc->contentLength, strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
+//	EXT_DEBUGF(EXT_DBG_OFF, ("UPLOAD %"U32_F" (%"U32_F")bytes: bounary(%d):'%.*s'", ehc->postDataLeft, ehc->contentLength, strlen(ehc->boundary), strlen(ehc->boundary), ehc->boundary));
 
 	if(_extHttpPostDataRecv(ehc, inp) == EXIT_SUCCESS)
 	{
@@ -359,6 +371,7 @@ void extHttpPostDataFinished(ExtHttpConn *ehc, char isFinished)
 //	EXT_DEBUGF(EXT_DBG_OFF, ("POST request on '%s' ended: '%.*s' bounary:'%s'", ehc->uri, (int)ehc->dataSendIndex, ehc->data, ehc->boundary) );
 //	printf("\r\nPOST request on '%s' ended: '%.*s' bounary:'%s'\r\n", ehc->uri, ehc->dataSendIndex, ehc->data, ehc->boundary) ;
 
+
 #if LWIP_EXT_NMOS
 	if(HTTPREQ_IS_REST(ehc) )
 	{
@@ -416,7 +429,12 @@ void extHttpPostDataFinished(ExtHttpConn *ehc, char isFinished)
 
 //TRACE();
 
+	ehc->responseHeaderLength = cmnHttpPrintResponseHeader(ehc, WEB_RESP_HTML);
+//	ehc->headerLength = headerLength;
+
+
 //	extHttpWebPageResult(ehc,  (char *)"Upload Firmware", ehc->boundary);
+	memset(ehc->boundary, 0, sizeof(ehc->boundary));
 	if(ehc->runCfg->firmUpdateInfo.type == EXT_FM_TYPE_RTOS )
 	{
 //		snprintf(ehc->boundary, sizeof(ehc->boundary), "%"U32_F" bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
@@ -427,8 +445,22 @@ void extHttpPostDataFinished(ExtHttpConn *ehc, char isFinished)
 //		snprintf(ehc->boundary, sizeof(ehc->boundary), "%"U32_F" bytes uploaded for '%s'", ehc->runCfg->firmUpdateInfo.size+ ehc->dataSendIndex, ehc->filename );
 		snprintf(ehc->boundary, sizeof(ehc->boundary), "Firmware uploaded. Please reboot the unit, FPGA firmware programmation can take up to 2 minutes.");
 	}
-	
+
+#if 1
 	httpWebPageResult(ehc, (char *)"Upload Firmware", ehc->boundary, (const char *)NULL);
+
+#else
+	int contentLength = httpWebPageResult(ehc, (char *)"Upload Firmware", ehc->boundary, (const char *)NULL);
+
+	char  strLength[16];
+	snprintf(strLength, sizeof(strLength), "%d", contentLength);
+	strncpy((char *)ehc->data+ehc->responseHeaderLength-8, strLength, strlen(strLength) );
+//				EXT_DEBUGF(EXT_HTTPD_DEBUG, ("response content length:'%s'", strLength));
+
+	ehc->contentLength = (unsigned short)(ehc->responseHeaderLength + contentLength);
+	ehc->dataSendIndex = 0;
+#endif	
+//	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
 
 	CANCEL_UPDATE(ehc->runCfg);
 
