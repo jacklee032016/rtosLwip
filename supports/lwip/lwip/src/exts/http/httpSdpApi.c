@@ -237,7 +237,7 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "{"EXT_NEW_LINE);
 
 	/* resource core fields */
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_MODEL"\":\"%s\","EXT_NEW_LINE, runCfg->model);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_MODEL"\":\"%s-%s\","EXT_NEW_LINE, runCfg->model, EXT_IS_TX(runCfg)?"TX":"RX");
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PRODUCT"\":\"%s\","EXT_NEW_LINE, runCfg->name);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VERSION"\":\"%02d.%02d-%02d\","EXT_NEW_LINE, runCfg->version.major, runCfg->version.minor, runCfg->version.revision);
 
