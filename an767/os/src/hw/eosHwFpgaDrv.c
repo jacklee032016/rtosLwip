@@ -275,6 +275,8 @@ static char _frpgaReadParamRegisters(EXT_RUNTIME_CFG *runCfg)
 	_extFpgaReadByte(FTX_ADDRESS.rtpAnc, &_chValue);
 	runCfg->runtime.rtpTypeAnc = (_chValue&0x7F);
 
+	_extFpgaReadByte(EXT_FPGA_REG_ANC_VPID, &runCfg->runtime.vpid);
+
 	return EXIT_SUCCESS;
 }
 
@@ -834,6 +836,8 @@ char extFpgaReadParams( EXT_RUNTIME_CFG *runCfg)
 		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeVideo);
 		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeAudio);
 		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeAnc);
+
+		FIELD_INVALIDATE_U8(runCfg->runtime.vpid );
 		
 		return EXIT_SUCCESS;
 	}
@@ -851,7 +855,7 @@ char extFpgaConfigParams(EXT_RUNTIME_CFG *runCfg)
 		return EXIT_FAILURE;
 	}
 
-	if(runCfg->fpgaAuto)
+	if(runCfg->fpgaAuto == FPGA_CFG_AUTO )
 	{
 		_chValue = EXT_FPGA_FLAGS_MCU_DISABLE;
 		_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, &_chValue);

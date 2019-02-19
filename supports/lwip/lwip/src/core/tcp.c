@@ -657,8 +657,10 @@ err_t tcp_bind(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
 	pcb->local_port = port;
 	TCP_REG(&tcp_bound_pcbs, pcb);
 	LWIP_DEBUGF(TCP_DEBUG, ("tcp_bind: bind to port %"U16_F"\n", port));
+//	LWIP_DEBUGF(LWIP_DBG_ON, ("tcp_bind: bind to port %"U16_F""LWIP_NEW_LINE, port));
 	return ERR_OK;
-	}
+}
+
 #if LWIP_CALLBACK_API
 /**
  * Default accept callback if no accept callback is specified by the user.
@@ -905,102 +907,112 @@ again:
  */
 err_t tcp_connect(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port, tcp_connected_fn connected)
 {
-  err_t ret;
-  u32_t iss;
-  u16_t old_local_port;
+	err_t ret;
+	u32_t iss;
+	u16_t old_local_port;
 
-  if ((pcb == NULL) || (ipaddr == NULL)) {
-    return ERR_VAL;
-  }
+	if ((pcb == NULL) || (ipaddr == NULL)) {
+		return ERR_VAL;
+	}
 
-  LWIP_ERROR(("tcp_connect: can only connect from state CLOSED"), pcb->state == CLOSED, return ERR_ISCONN);
+	LWIP_ERROR(("tcp_connect: can only connect from state CLOSED"), pcb->state == CLOSED, return ERR_ISCONN);
 
-  LWIP_DEBUGF(TCP_DEBUG, ("tcp_connect to port %"U16_F"\n", port));
-  ip_addr_set(&pcb->remote_ip, ipaddr);
-  pcb->remote_port = port;
+	LWIP_DEBUGF(TCP_DEBUG, ("tcp_connect to port %"U16_F"\n", port));
+	ip_addr_set(&pcb->remote_ip, ipaddr);
+	pcb->remote_port = port;
 
-  /* check if we have a route to the remote host */
-  if (ip_addr_isany(&pcb->local_ip)) {
-    /* no local IP address set, yet. */
-    struct netif *netif;
-    const ip_addr_t *local_ip;
-    ip_route_get_local_ip(&pcb->local_ip, &pcb->remote_ip, netif, local_ip);
-    if ((netif == NULL) || (local_ip == NULL)) {
-      /* Don't even try to send a SYN packet if we have no route
-         since that will fail. */
-      return ERR_RTE;
-    }
-    /* Use the address as local address of the pcb. */
-    ip_addr_copy(pcb->local_ip, *local_ip);
-  }
+	/* check if we have a route to the remote host */
+	if (ip_addr_isany(&pcb->local_ip))
+	{
+		/* no local IP address set, yet. */
+		struct netif *netif;
+		const ip_addr_t *local_ip;
+		ip_route_get_local_ip(&pcb->local_ip, &pcb->remote_ip, netif, local_ip);
+		if ((netif == NULL) || (local_ip == NULL))
+		{
+			/* Don't even try to send a SYN packet if we have no route since that will fail. */
+			return ERR_RTE;
+		}
+		/* Use the address as local address of the pcb. */
+		ip_addr_copy(pcb->local_ip, *local_ip);
+	}
 
-  old_local_port = pcb->local_port;
-  if (pcb->local_port == 0) {
-    pcb->local_port = tcp_new_port();
-    if (pcb->local_port == 0) {
-      return ERR_BUF;
-    }
-  } else {
+	old_local_port = pcb->local_port;
+	if (pcb->local_port == 0)
+	{
+		pcb->local_port = tcp_new_port();
+		if (pcb->local_port == 0)
+		{
+			return ERR_BUF;
+		}
+	}
+	else
+	{
 #if SO_REUSE
-    if (ip_get_option(pcb, SOF_REUSEADDR)) {
-      /* Since SOF_REUSEADDR allows reusing a local address, we have to make sure
-         now that the 5-tuple is unique. */
-      struct tcp_pcb *cpcb;
-      int i;
-      /* Don't check listen- and bound-PCBs, check active- and TIME-WAIT PCBs. */
-      for (i = 2; i < NUM_TCP_PCB_LISTS; i++) {
-        for (cpcb = *tcp_pcb_lists[i]; cpcb != NULL; cpcb = cpcb->next) {
-          if ((cpcb->local_port == pcb->local_port) &&
-              (cpcb->remote_port == port) &&
-              ip_addr_cmp(&cpcb->local_ip, &pcb->local_ip) &&
-              ip_addr_cmp(&cpcb->remote_ip, ipaddr)) {
-            /* linux returns EISCONN here, but ERR_USE should be OK for us */
-            return ERR_USE;
-          }
-        }
-      }
-    }
+		if (ip_get_option(pcb, SOF_REUSEADDR))
+		{
+			/* Since SOF_REUSEADDR allows reusing a local address, we have to make sure
+			now that the 5-tuple is unique. */
+			struct tcp_pcb *cpcb;
+			int i;
+			/* Don't check listen- and bound-PCBs, check active- and TIME-WAIT PCBs. */
+			for (i = 2; i < NUM_TCP_PCB_LISTS; i++)
+			{
+				for (cpcb = *tcp_pcb_lists[i]; cpcb != NULL; cpcb = cpcb->next)
+				{
+					if ((cpcb->local_port == pcb->local_port) && (cpcb->remote_port == port) && 	
+						ip_addr_cmp(&cpcb->local_ip, &pcb->local_ip) && ip_addr_cmp(&cpcb->remote_ip, ipaddr))
+					{
+						/* linux returns EISCONN here, but ERR_USE should be OK for us */
+						return ERR_USE;
+					}
+				}
+			}
+		}
 #endif /* SO_REUSE */
-  }
+	}
 
-  iss = tcp_next_iss(pcb);
-  pcb->rcv_nxt = 0;
-  pcb->snd_nxt = iss;
-  pcb->lastack = iss - 1;
-  pcb->snd_wl2 = iss - 1;
-  pcb->snd_lbb = iss - 1;
-  /* Start with a window that does not need scaling. When window scaling is
-     enabled and used, the window is enlarged when both sides agree on scaling. */
-  pcb->rcv_wnd = pcb->rcv_ann_wnd = TCPWND_MIN16(TCP_WND);
-  pcb->rcv_ann_right_edge = pcb->rcv_nxt;
-  pcb->snd_wnd = TCP_WND;
-  /* As initial send MSS, we use TCP_MSS but limit it to 536.
-     The send MSS is updated when an MSS option is received. */
-  pcb->mss = INITIAL_MSS;
+	iss = tcp_next_iss(pcb);
+	pcb->rcv_nxt = 0;
+	pcb->snd_nxt = iss;
+	pcb->lastack = iss - 1;
+	pcb->snd_wl2 = iss - 1;
+	pcb->snd_lbb = iss - 1;
+	/* Start with a window that does not need scaling. When window scaling is
+	enabled and used, the window is enlarged when both sides agree on scaling. */
+	pcb->rcv_wnd = pcb->rcv_ann_wnd = TCPWND_MIN16(TCP_WND);
+	pcb->rcv_ann_right_edge = pcb->rcv_nxt;
+	pcb->snd_wnd = TCP_WND;
+	/* As initial send MSS, we use TCP_MSS but limit it to 536.
+	The send MSS is updated when an MSS option is received. */
+	pcb->mss = INITIAL_MSS;
 #if TCP_CALCULATE_EFF_SEND_MSS
-  pcb->mss = tcp_eff_send_mss(pcb->mss, &pcb->local_ip, &pcb->remote_ip);
+	pcb->mss = tcp_eff_send_mss(pcb->mss, &pcb->local_ip, &pcb->remote_ip);
 #endif /* TCP_CALCULATE_EFF_SEND_MSS */
-  pcb->cwnd = 1;
+	pcb->cwnd = 1;
 #if LWIP_CALLBACK_API
-  pcb->connected = connected;
+	pcb->connected = connected;
 #else /* LWIP_CALLBACK_API */
-  LWIP_UNUSED_ARG(connected);
+	LWIP_UNUSED_ARG(connected);
 #endif /* LWIP_CALLBACK_API */
 
-  /* Send a SYN together with the MSS option. */
-  ret = tcp_enqueue_flags(pcb, TCP_SYN);
-  if (ret == ERR_OK) {
-    /* SYN segment was enqueued, changed the pcbs state now */
-    pcb->state = SYN_SENT;
-    if (old_local_port != 0) {
-      TCP_RMV(&tcp_bound_pcbs, pcb);
-    }
-    TCP_REG_ACTIVE(pcb);
-    MIB2_STATS_INC(mib2.tcpactiveopens);
+	/* Send a SYN together with the MSS option. */
+	ret = tcp_enqueue_flags(pcb, TCP_SYN);
+	if (ret == ERR_OK)
+	{
+		/* SYN segment was enqueued, changed the pcbs state now */
+		pcb->state = SYN_SENT;
+		if (old_local_port != 0)
+		{
+			TCP_RMV(&tcp_bound_pcbs, pcb);
+		}
+		TCP_REG_ACTIVE(pcb);
+		MIB2_STATS_INC(mib2.tcpactiveopens);
 
-    tcp_output(pcb);
-  }
-  return ret;
+		tcp_output(pcb);
+	}
+	
+	return ret;
 }
 
 /**

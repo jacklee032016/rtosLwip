@@ -94,10 +94,12 @@
 #define	EXT_SC_KEY_MAX_LENGTH			32*2
 #define	EXT_SC_ID_MAX_LENGTH				8*2
 
-#define	EXT_MAGIC_SIZE					2
+#define	EXT_MAGIC_SIZE						2
 
 #define	EXT_USER_SIZE						16
-#define	EXT_PASSWORD_SIZE				16
+#define	EXT_PASSWORD_SIZE					16
+
+#define	HEX_DATA_MAX_LENGTH				128
 
 
 #define	EXT_MAGIC_VALUE_A				0xA5
@@ -268,6 +270,7 @@
 
 #define	EXT_WEBPAGE_SDP_VIDEO				"video.sdp"
 #define	EXT_WEBPAGE_SDP_AUDIO				"audio.sdp"
+#define	EXT_WEBPAGE_SDP_ANC					"anc.sdp"
 
 #define	EXT_WEBPAGE_API_SERVICE				"service"
 
@@ -285,8 +288,8 @@
 #define	EXT_GLUE(a, b)							a ## b
 #define	EXT_JOIN(a, b)							EXT_GLUE(a, b)
 
-#define	EXT_VERSION_MAJOR					0
-#define	EXT_VERSION_MINOR					1
+#define	EXT_VERSION_MAJOR						1
+#define	EXT_VERSION_MINOR						1
 #define	EXT_VERSION_REVISION					1
 
 #define	BL_VERSION_MAJOR						0
@@ -995,6 +998,8 @@ typedef	struct
 	unsigned char			rtpTypeAudio;
 	unsigned char			rtpTypeAnc;
 
+	unsigned char			vpid;		/* VPID_CODE */
+
 
 	/* version */	
 	unsigned char			version;
@@ -1034,7 +1039,9 @@ typedef	enum
 
 typedef	enum
 {
-	HC_REQ_SDP,
+	HC_REQ_SDP_VIDEO,
+	HC_REQ_SDP_AUDIO,
+	HC_REQ_SDP_ANC,
 	HC_REQ_JSON,
 	HC_REQ_HTML,
 	HC_REQ_UNKNOWN
@@ -1083,6 +1090,14 @@ typedef struct
 
 #define	IS_SECURITY_CHIP_EXIST(sc)		\
 	( (sc)->isExist == EXT_TRUE )
+
+
+#define	FPGA_CFG_AUTO				0
+#define	FPGA_CFG_MANUAL			1
+#define	FPGA_CFG_SDP				2
+
+#define	FPGA_CFG_STR_NAME(fpgaAuto)	\
+	((fpgaAuto)==FPGA_CFG_AUTO)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO:((fpgaAuto)==FPGA_CFG_MANUAL)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL:((fpgaAuto)==FPGA_CFG_SDP)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP:"None"
 
 
 /* IP address, port number and state are all defined as unsigned type */
@@ -1140,6 +1155,8 @@ struct	_EXT_RUNTIME_CFG
 
 	HttpClientReq			sdpUriVideo;
 	HttpClientReq			sdpUriAudio;
+	HttpClientReq			sdpUriAnc;
+	
 	HttpClientReq			restUrl;		/* REST API */
 	HttpClientReq			htmlUrl;
 		
@@ -1153,6 +1170,9 @@ struct	_EXT_RUNTIME_CFG
 	MuxRunTimeParam		runtime;				/* must be saved */
 
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
+
+
+	char					hexData[HEX_DATA_MAX_LENGTH]; /* string, for RS232 data */
 
 
 	/* following fields are only for runtime and not save in NVRAM */
@@ -1462,6 +1482,12 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index);
 #define	SDP_P_MEDIA_FORMAT_AUDIO				97
 #define	SDP_P_MEDIA_FORMAT_ANC					100
 
+
+unsigned char rs232SendHexStr(char *str );
+
+uint32_t sys_get_ms(void);
+
+char *sysTimestamp(void);
 
 
 #endif

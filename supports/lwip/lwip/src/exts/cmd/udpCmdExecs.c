@@ -29,7 +29,7 @@ char extIpCmdIsLocal(EXT_JSON_PARSER  *parser)
 }
 
 
-static unsigned char _rs232SendHexStr(char *str )
+unsigned char rs232SendHexStr(char *str )
 {
 	int len = strlen(str);
 	int i;
@@ -110,7 +110,7 @@ char extIpCmdSendRsData(EXT_JSON_PARSER  *parser)
 
 	rs232StartRx();
 	
-	if(_rs232SendHexStr(parser->setupData.hexData) == EXIT_FAILURE)
+	if(rs232SendHexStr(parser->setupData.hexData) == EXIT_FAILURE)
 	{
 		snprintf(parser->msg, sizeof(parser->msg), "'%s' is not validate when sent to RS232", parser->setupData.hexData);
 		goto parseFailed;
@@ -151,6 +151,7 @@ char extIpCmdSendRsData(EXT_JSON_PARSER  *parser)
 	extIpCmdResponseTailCalculate(parser, EXT_FALSE);
 
 	rs232StopRx();
+	
 	return EXIT_SUCCESS;
 	
 parseFailed:

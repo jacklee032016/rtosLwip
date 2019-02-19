@@ -33,7 +33,7 @@
 #define	SDP_MEDIA_PROTOCOL_AVP					"RTP/AVP"
 
 /* 2110 definitions */
-#define	SDP_2110_VIDEO_FORMAT					"raw/90000"
+#define	SDP_2110_VIDEO_FORMAT					"raw"
 #define	SDP_2110_PM_GENERAL						"2110GPM"	/* general packing mode */
 #define	SDP_2110_PM_BLOCK						"2110BPM"	/* general packing mode */
 
@@ -52,6 +52,11 @@
 #define	SDP_2110_VKEY_SSN							"SSN"			/* SMPTE Standard Number  */
 #define	SDP_2110_VKEY_TP							"TP"  			/*  TP=2110TPN; is not defined in specs */
 
+#define	SDP_2110_ANC_FORMAT						"smpte291"
+
+#define	SDP_VIDEO_DEFAULT_RATE					"90000"
+
+#define	SDP_2110_ANC_VPID_CODE					"VPID_Code"
 
 /* private definitions of SDP */
 #define	SDP_P_SESSION_VERSION						1
@@ -67,6 +72,10 @@
 
 #define	SDP_P_AUDIO_PACK_TIME_125US				"0.125"
 #define	SDP_P_AUDIO_PACK_TIME_1MS				"1"
+
+
+#define		WITH_STATIC_RTP_PAYLOAD_TYPE		0
+
 
 static uint16_t _extSdpSessionDescription(ExtHttpConn  *ehc, char *dataBuf, uint16_t size, char isVideo)
 {
@@ -104,16 +113,24 @@ uint16_t extHttpSdpVideo(ExtHttpConn  *ehc, void *pageHandle)
 
 	/**** media stream description ******/
 	/* media description*/
+#if WITH_STATIC_RTP_PAYLOAD_TYPE
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_VIDEO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE, runCfg->dest.vport, SDP_P_MEDIA_FORMAT_VIDEO);
+#else
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_VIDEO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE, runCfg->dest.vport, runCfg->runtime.rtpTypeVideo);
+#endif
 
 	/*connection */
 	CMN_SN_PRINTF(dataBuf, size, index, "c="SDP_NET_TYPE" "SDP_ADDR_TYPE" %s/%d" EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)), SDP_P_TTL );
 
 	/* RTP map attribute */
-	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d "SDP_2110_VIDEO_FORMAT EXT_NEW_LINE, SDP_P_MEDIA_FORMAT_VIDEO);
+#if WITH_STATIC_RTP_PAYLOAD_TYPE
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d "SDP_2110_VIDEO_FORMAT"/"SDP_VIDEO_DEFAULT_RATE EXT_NEW_LINE, SDP_P_MEDIA_FORMAT_VIDEO);
+#else
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d "SDP_2110_VIDEO_FORMAT"/"SDP_VIDEO_DEFAULT_RATE EXT_NEW_LINE, runCfg->runtime.rtpTypeVideo);
+#endif
 
 	/* format parameters 'fmtp', page 15~20, specs 2110-20:2017 */
-#if 0
+#if WITH_STATIC_RTP_PAYLOAD_TYPE
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d "SDP_2110_VKEY_SAMPLING"=%s; "SDP_2110_VKEY_WIDTH"=%d; "SDP_2110_VKEY_HEIGHT"=%d; "SDP_2110_VKEY_FRAME_RATE"=%s; ",
 		SDP_P_MEDIA_FORMAT_VIDEO, CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace), runCfg->runtime.vWidth, runCfg->runtime.vHeight, 
 		CMN_FIND_V_FRAME_RATE(runCfg->runtime.vFrameRate) );
@@ -167,14 +184,17 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *ehc, void *pageHandle)
 	index = _extSdpSessionDescription(ehc, dataBuf, size, EXT_FALSE);
 
 	/* media stream */
-	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_AUDIO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE, 
-		runCfg->dest.aport, SDP_P_MEDIA_FORMAT_AUDIO);
+#if WITH_STATIC_RTP_PAYLOAD_TYPE
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_AUDIO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE, runCfg->dest.aport, SDP_P_MEDIA_FORMAT_AUDIO);
+#else
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_AUDIO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE,  runCfg->dest.aport, runCfg->runtime.rtpTypeAudio);
+#endif
 
 	/* connection */
 	CMN_SN_PRINTF(dataBuf, size, index, "c="SDP_NET_TYPE" "SDP_ADDR_TYPE" %s/%d" EXT_NEW_LINE , EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)), SDP_P_TTL);
 
 	/* attribute of RTP map */
-#if 0	
+#if WITH_STATIC_RTP_PAYLOAD_TYPE	
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d %s/%s/%d"EXT_NEW_LINE, 
 		SDP_P_MEDIA_FORMAT_AUDIO, SDP_P_AUDIO_DEPTH, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate),  runCfg->runtime.aChannels );
 #else
@@ -183,7 +203,11 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *ehc, void *pageHandle)
 #endif
 
 	/* channel order: see specs 2110-30 */
+#if WITH_STATIC_RTP_PAYLOAD_TYPE
 	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d channel-order=SMPTE2110.(SGRP,SGRP,SGRP,SGRP)" EXT_NEW_LINE, SDP_P_MEDIA_FORMAT_AUDIO);
+#else
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d channel-order=SMPTE2110.(SGRP,SGRP,SGRP,SGRP)" EXT_NEW_LINE, runCfg->runtime.rtpTypeAudio);
+#endif
 	/* packing time. table 4 in p.21  */
 	CMN_SN_PRINTF(dataBuf, size, index, "a="SDP_P_AUDIO_PACK_SIZE":%s"EXT_NEW_LINE, (runCfg->runtime.aPktSize == EXT_A_PKT_SIZE_125US)?SDP_P_AUDIO_PACK_TIME_125US:SDP_P_AUDIO_PACK_TIME_1MS );
 
@@ -203,6 +227,49 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *ehc, void *pageHandle)
 	return index;
 }
 
+
+
+uint16_t extHttpSdpAnc(ExtHttpConn  *ehc, void *pageHandle)
+{
+	int index = 0;
+	EXT_RUNTIME_CFG	*runCfg = ehc->runCfg;
+	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
+	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
+
+#ifdef	ARM
+	extFpgaReadParams(runCfg);
+#endif
+
+	index = _extSdpSessionDescription(ehc, dataBuf, size, EXT_FALSE);
+
+	/* attribute of RTP map */
+#if WITH_STATIC_RTP_PAYLOAD_TYPE
+	/* media stream */
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_VIDEO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE,  runCfg->dest.dport, SDP_P_MEDIA_FORMAT_ANC);
+
+	/* connection */
+	CMN_SN_PRINTF(dataBuf, size, index, "c="SDP_NET_TYPE" "SDP_ADDR_TYPE" %s/%d" EXT_NEW_LINE , EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ancIp)), SDP_P_TTL);
+
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d %s/%s"EXT_NEW_LINE, SDP_P_MEDIA_FORMAT_ANC, SDP_2110_ANC_FORMAT, SDP_VIDEO_DEFAULT_RATE );
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d "SDP_2110_ANC_VPID_CODE"=%d" EXT_NEW_LINE, SDP_P_MEDIA_FORMAT_AUDIO, runCfg->runtime.vpid );
+#else
+	/* media stream */
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_VIDEO" %d "SDP_MEDIA_PROTOCOL_AVP" %d" EXT_NEW_LINE,  runCfg->dest.dport, runCfg->runtime.rtpTypeAnc);
+
+	/* connection */
+	CMN_SN_PRINTF(dataBuf, size, index, "c="SDP_NET_TYPE" "SDP_ADDR_TYPE" %s/%d" EXT_NEW_LINE , EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ancIp)), SDP_P_TTL);
+
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_RTP_MAP"%d %s/%s"EXT_NEW_LINE, runCfg->runtime.rtpTypeAnc, SDP_2110_ANC_FORMAT, SDP_VIDEO_DEFAULT_RATE );
+	CMN_SN_PRINTF(dataBuf, size, index, SDP_MEDIA_FORMAP_PARAMS"%d "SDP_2110_ANC_VPID_CODE"=%d;" EXT_NEW_LINE, runCfg->runtime.rtpTypeAnc, runCfg->runtime.vpid );
+#endif
+
+
+	/* offset between media and RTP */
+	CMN_SN_PRINTF(dataBuf, size, index, "a=mediaclk:direct=0"EXT_NEW_LINE);
+
+	ehc->httpStatusCode = WEB_RES_REQUEST_OK;
+	return index;
+}
 
 uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 {
@@ -262,6 +329,9 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\":%d,"EXT_NEW_LINE,  EXT_SDP_SVR_PORT);
+
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_ANC_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)) );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_ANC_PORT"\":%d,"EXT_NEW_LINE,  EXT_SDP_SVR_PORT);
 	}
 	else
 	{
@@ -270,10 +340,14 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriAudio.ip)) );
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\":%d,"EXT_NEW_LINE,  runCfg->sdpUriAudio.port );
+
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_ANC_IP"\":\"%s\","EXT_NEW_LINE,  inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriAnc.ip)) );
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_ANC_PORT"\":%d,"EXT_NEW_LINE,  runCfg->sdpUriAnc.port );
 	}
 		
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_VEDIO_URI"\":\"%s\","EXT_NEW_LINE, runCfg->sdpUriVideo.uri);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_AUDIO_URI"\":\"%s\","EXT_NEW_LINE, runCfg->sdpUriAudio.uri);
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_SDP_ANC_URI"\":\"%s\","EXT_NEW_LINE, runCfg->sdpUriAnc.uri);
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IP_VEDIO"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.ip)) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_IP_AUDIO"\":\"%s\","EXT_NEW_LINE, EXT_LWIP_IPADD_TO_STR(&(runCfg->dest.audioIp)) );
@@ -286,12 +360,15 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_PORT_STREM"\":%d,"EXT_NEW_LINE, runCfg->dest.sport );
 #endif
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FPGA_AUTO"\":%d,"EXT_NEW_LINE, runCfg->fpgaAuto );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FPGA_AUTO"\":\"%s\","EXT_NEW_LINE, 
+		FPGA_CFG_STR_NAME(runCfg->fpgaAuto) );
+
+	printf("mediaSet:%d"EXT_NEW_LINE, runCfg->fpgaAuto);
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\":%d,"EXT_NEW_LINE, runCfg->runtime.vHeight);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.vWidth);
 
-	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FRAME_RATE"\":%s,"EXT_NEW_LINE, CMN_FIND_V_FPS_4_REST(runCfg->runtime.vFrameRate) );
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FRAME_RATE"\":\"%s\","EXT_NEW_LINE, CMN_FIND_V_FPS_4_REST(runCfg->runtime.vFrameRate) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_COLOR_SPACE"\":\"%s\","EXT_NEW_LINE, CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace) );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_COLOR_DEPTH"\":%d,"EXT_NEW_LINE, CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth) );
 
@@ -309,6 +386,10 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_DEPTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.aDepth );
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_AUDIO_PKT_SIZE"\":\"%s\","EXT_NEW_LINE,CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
+
+
+	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_RS232_DATA"\":\"%s\","EXT_NEW_LINE, runCfg->hexData );
+
 	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_RS232_BAUDRATE"\":%"U32_F","EXT_NEW_LINE, runCfg->rs232Cfg.baudRate );
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_RS232_DATABITS"\":%d,"EXT_NEW_LINE, runCfg->rs232Cfg.charLength );
@@ -715,16 +796,46 @@ static err_t _sdpParseVideoStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *
 }
 
 
+static uint16_t _sdpParseAncStream(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
+{
+	char *p;
+	
+	p = lwip_strnstr(data, SDP_2110_ANC_VPID_CODE, size );
+	if(p== NULL)
+	{
+		EXT_ERRORF(("Invalidate format '"SDP_2110_ANC_VPID_CODE"' for SDP ANC stream"));
+		return 0;
+	}
+	if(cmnUtilsParseInt8(p+ strlen(SDP_2110_ANC_VPID_CODE)+1, &rxCfg->runtime.vpid) == EXIT_FAILURE)
+	{
+		EXT_ERRORF(("No VPID_CODE for SDP audio stream"));
+		rxCfg->runtime.vpid = 132;
+		return 0;
+	}
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Audio RTP Payload : '%d'", rxCfg->runtime.rtpTypeAudio ));
+	
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("\tParsed SDP ANC params:IP:%s; Port:%d; PDID:%d"EXT_NEW_LINE,
+			EXT_LWIP_IPADD_TO_STR(&rxCfg->dest.ancIp), rxCfg->dest.dport, rxCfg->runtime.vpid);
+	}
+	
+	return ERR_OK;
+}
+
 err_t extHttpSdpParse(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16_t size)
 {
 #define	_SDP_TYPE_UNKNOWN		0
 #define	_SDP_TYPE_VIDEO			1
 #define	_SDP_TYPE_AUDIO			2
+#define	_SDP_TYPE_ANC				3
+
 	int index = 0;
 	uint16_t 	port;
 	uint32_t 	ip;
 	char type = _SDP_TYPE_UNKNOWN;
 	err_t err = ERR_OK;
+	char* p;
 	
 	index = _sdpParsePort(data, size, SDP_MEDIA_VIDEO, &port);
 	if(index == 0 || port == -1)
@@ -738,6 +849,11 @@ err_t extHttpSdpParse(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16
 	else
 	{
 		type = _SDP_TYPE_VIDEO;
+		p= lwip_strnstr(data, SDP_2110_ANC_FORMAT, size);
+		if(p != NULL)
+		{
+			type = _SDP_TYPE_ANC;
+		}
 	}
 	
 	if(type == _SDP_TYPE_UNKNOWN )
@@ -761,11 +877,17 @@ err_t extHttpSdpParse(HttpClient *hc, EXT_RUNTIME_CFG	*rxCfg, char *data, uint16
 		rxCfg->dest.aport = port;
 		err = _sdpParseAudioStream(hc, rxCfg, data+index, size-index);
 	}
-	else
+	else if(type == _SDP_TYPE_VIDEO)
 	{
 		rxCfg->dest.ip = ip;
 		rxCfg->dest.vport = port;
 		err = _sdpParseVideoStream(hc,rxCfg, data+index, size-index);
+	}
+	else
+	{
+		rxCfg->dest.ancIp = ip;
+		rxCfg->dest.dport = port;
+		err = _sdpParseAncStream(hc,rxCfg, data+index, size-index);
 	}
 
 	return err;

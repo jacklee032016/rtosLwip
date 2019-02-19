@@ -597,7 +597,7 @@ static  err_t _checkRxStatus(struct MAC_CTRL *macDev)
 
 	if((status & (GMAC_RSR_HNO)) != 0)
 	{
-		EXT_INFOF(("MAC HNO: HResp Not OK"));
+//		EXT_INFOF(("MAC HNO: HResp Not OK"));
 		/* test. dec.20, 2018  */
 //		__reInitRx(macDev);
 
@@ -607,7 +607,7 @@ static  err_t _checkRxStatus(struct MAC_CTRL *macDev)
 
 	if((status & (GMAC_RSR_BNA)) != 0)
 	{
-		EXT_INFOF(("MAC BNA: Buffer Not Available"));
+//		EXT_INFOF(("MAC BNA: Buffer Not Available"));
 		/* test. dec.20, 2018  */
 		__reInitRx(macDev);
 

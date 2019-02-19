@@ -219,3 +219,5 @@ void extHwRs232Init(EXT_RUNTIME_CFG *runCfg)
 
 }
 
+
+

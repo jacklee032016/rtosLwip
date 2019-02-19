@@ -134,10 +134,11 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 		CMN_SN_PRINTF(dataBuf, size, index, "\t<DIV class=\"field\">"EXT_NEW_LINE"\t\t<DIV class=\"field\"><LABEL >Input Type:</LABEL>"EXT_NEW_LINE);
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<select id=\"inputtype\" onchange=\"javascript_:showdiv(this.options[this.selectedIndex].value)\">"EXT_NEW_LINE);
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"SDP\">SDP</option>"EXT_NEW_LINE);
-		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"Data\" selected>Manual</option>"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"SDP\" %s>SDP</option>"EXT_NEW_LINE, (runCfg->fpgaAuto==FPGA_CFG_SDP)?"selected":"");
+		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t\t<option value=\"Data\" %s>Manual</option>"EXT_NEW_LINE, (runCfg->fpgaAuto!=FPGA_CFG_SDP)?"selected":"");
 		CMN_SN_PRINTF(dataBuf, size, index, "</select>"EXT_NEW_LINE "</DIV></DIV></DIV>"EXT_NEW_LINE);
-		CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsSdp\" style=\"display:none;\">"EXT_NEW_LINE);
+		CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsSdp\" style=\"display:%s;\">"EXT_NEW_LINE, (runCfg->fpgaAuto==FPGA_CFG_SDP)?"inline-block":"none");
+//		CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsSdp\" style=\"display:%s;\">"EXT_NEW_LINE, (runCfg->fpgaAuto==FPGA_CFG_SDP)?"SDP":"none");
 	}
 
 	/* SDP */
@@ -168,7 +169,7 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 #if 0
 		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), runCfg->sdpUriAudio.uri);
 #else
-		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_AUDIO);
+		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_AUDIO);
 #endif
 	}
 	else
@@ -177,6 +178,25 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT"\" value=\"%d\" style=\"width: 30px;\"/>"EXT_NEW_LINE
 			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_AUDIO_URI"\" value=\"%s\"/>" EXT_NEW_LINE,
 			inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriAudio.ip)), runCfg->sdpUriAudio.port, runCfg->sdpUriAudio.uri );
+	}
+	
+	CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE ); /* DIV of fields */
+
+	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >SDP ANC:</LABEL>");
+	if(EXT_IS_TX(runCfg) )
+	{
+#if 0
+		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), runCfg->sdpUriAudio.uri);
+#else
+		CMN_SN_PRINTF(dataBuf, size, index, "http://%s/%s"EXT_NEW_LINE"</DIV>", inet_ntoa(*(struct in_addr *)&(_netif->ip_addr)), EXT_WEBPAGE_SDP_ANC);
+#endif
+	}
+	else
+	{
+		CMN_SN_PRINTF(dataBuf, size, index, "http://<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_ANC_IP"\" value=\"%s\" style=\"width: 115px;\"/>:"EXT_NEW_LINE
+			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_ANC_PORT"\" value=\"%d\" style=\"width: 30px;\"/>"EXT_NEW_LINE
+			"<INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_SDP_ANC_URI"\" value=\"%s\"/>" EXT_NEW_LINE,
+			inet_ntoa(*(struct in_addr *)&(runCfg->sdpUriAnc.ip)), runCfg->sdpUriAnc.port, runCfg->sdpUriAnc.uri );
 		
 	//<INPUT type="button" value="Submit" class="btnSubmit" id="btnSubmit" />
 #if _JAVA_SCRIPT_OLD
@@ -186,15 +206,23 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 #endif
 				"\t<INPUT name=\"ResetButton\" type=\"reset\" class=\"btnReset\" value=\"Cancel\" id=\"ResetButton\"/></DIV>"EXT_NEW_LINE );
 		CMN_SN_PRINTF(dataBuf, size, index, "<label id=\"lblAutoApply\" class=\"green\" style=\"display: none; padding-left: 10px; float: none;\">Submitted</label>"EXT_NEW_LINE );
-
+#if 1
 		CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM> </div></div>"EXT_NEW_LINE );
+#else
+		CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE"</FORM> "EXT_NEW_LINE );
+
+		index += extHttpClientStatus(dataBuf+index, size-index);
+		CMN_SN_PRINTF(dataBuf, size, index, "\t</div></div>" EXT_NEW_LINE);
+#endif
+
 	}
+	
 	CMN_SN_PRINTF(dataBuf, size, index, "\t</DIV>"EXT_NEW_LINE ); /* DIV of fields */
 
 
-
 	/* DATA */
-	CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsData\"><DIV class=\"fields\">"EXT_NEW_LINE);
+	CMN_SN_PRINTF(dataBuf, size, index, "<br />"EXT_NEW_LINE "<div id=\"divSettingsData\" style=\"display:%s;\"><DIV class=\"fields\">"EXT_NEW_LINE, 
+		(runCfg->fpgaAuto==FPGA_CFG_AUTO || runCfg->fpgaAuto==FPGA_CFG_MANUAL)?"inline-block":"none");
 	CMN_SN_PRINTF(dataBuf, size, index, EXT_NEW_LINE EXT_NEW_LINE"<DIV id=\"forms\"><FORM method=\"post\" id=\""FORM_ID_CFG_DATA"\" >" );
 
 	CMN_SN_PRINTF(dataBuf, size, index, ""EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Name:</LABEL><INPUT type=\"text\" name=\""EXT_WEB_CFG_FIELD_PRODUCT"\" value=\"%s\"/></DIV>"EXT_NEW_LINE, 
@@ -278,13 +306,13 @@ static uint16_t _extHttpWebPageMediaHander(ExtHttpConn  *ehc, void *pageHandle)
 
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t<SELECT id=\""EXT_WEB_CFG_FIELD_FPGA_AUTO"\"  onchange=\"javascript_:showdiv(this.options[this.selectedIndex].value)\">"EXT_NEW_LINE );
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\""EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO"\" %s>ANC Data</OPTION>"EXT_NEW_LINE, 
-			(runCfg->fpgaAuto)?"selected":"" );
+			(runCfg->fpgaAuto==FPGA_CFG_AUTO)?"selected":"" );
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t\t<OPTION value=\""EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL"\" %s>"EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL"</OPTION>"EXT_NEW_LINE, 
-			(runCfg->fpgaAuto)?"":"selected" );
+			(runCfg->fpgaAuto==FPGA_CFG_MANUAL)?"selected":"");
 		CMN_SN_PRINTF(dataBuf, size, index, "\t\t</SELECT>"EXT_NEW_LINE);
 		
 		CMN_SN_PRINTF(dataBuf, size, index, "\t</div></div>"EXT_NEW_LINE);
-		CMN_SN_PRINTF(dataBuf, size, index, "\t<div id=\"divVideoSettings\" style=\"display:%s;\">"EXT_NEW_LINE, (runCfg->fpgaAuto)?"none":"inline-block");
+		CMN_SN_PRINTF(dataBuf, size, index, "\t<div id=\"divVideoSettings\" style=\"display:%s;\">"EXT_NEW_LINE, (runCfg->fpgaAuto==FPGA_CFG_MANUAL)?"inline-block":"none");
 
 
 		/* media parameters */
@@ -518,7 +546,7 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 	short left = ehc->leftData;
 	char *data = ehc->headers + ehc->headerLength+__HTTP_CRLF_SIZE;
 	char *key, *value, *nextKey;
-	err_t ret, ret2 ;
+	err_t ret;//, ret2, ret3 ;
 //	int i = 0;
 	uint16_t headerLength;
 
@@ -571,20 +599,32 @@ static uint16_t _extHttpWebSdpClientHander(ExtHttpConn *ehc, void *pageHandle)
 		key = nextKey;
 	}
 
+
 	extSysConfigSdpClient(ehc->runCfg, rxCfg);
 
+#if 0
 	ehc->runCfg->sdpUriVideo.next = NULL;
 	ret = extHttpClientNewRequest(&ehc->runCfg->sdpUriVideo) ;
 	ehc->runCfg->sdpUriAudio.next = NULL;
 	ret2 = extHttpClientNewRequest(&ehc->runCfg->sdpUriAudio);
 
+	ehc->runCfg->sdpUriAnc.next = NULL;
+	ret3 = extHttpClientNewRequest(&ehc->runCfg->sdpUriAnc);
+#else
+
+	ret = extHttpClientStart(ehc->runCfg);
+#endif
 //	EXT_DEBUGF(EXT_DBG_OFF, ("Data:%"U32_F":%d'%.*s", ehc->contentLength, ehc->leftData, ehc->leftData, ehc->headers+ehc->headerLength+__HTTP_CRLF_SIZE));
 
 	headerLength = cmnHttpPrintResponseHeader(ehc, page->respType);
 	ehc->responseHeaderLength = headerLength;
 	headerLength = 0;
 
-	if(ret == ERR_OK && ret2 == ERR_ALREADY )
+#if 0
+	if(ret == ERR_OK && ret2 == ERR_ALREADY && ret3 == ERR_ALREADY  )
+#else
+	if(ret == ERR_OK )
+#endif
 	{
 		CMN_SN_PRINTF((char *)ehc->data+ehc->responseHeaderLength, sizeof(ehc->data)-ehc->responseHeaderLength, headerLength, 
 			"<DIV class=\"title\"><H2>%s</H2></DIV>"EXT_NEW_LINE"<DIV class=\"fields-info\">"EXT_NEW_LINE"\t<DIV class=\"field\"><LABEL >Result:%s</LABEL></DIV>"EXT_NEW_LINE"</DIV>"EXT_NEW_LINE EXT_NEW_LINE,
@@ -1009,6 +1049,13 @@ static const MuxHttpHandle	_webpages[] =
 		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SDP_AUDIO,
 		method	: 	HTTP_METHOD_GET,
 		handler	:	extHttpSdpAudio,
+		respType: 	WEB_RESP_SDP
+	},
+
+	{
+		uri 		: 	EXT_WEBPAGE_ROOT EXT_WEBPAGE_SDP_ANC,
+		method	: 	HTTP_METHOD_GET,
+		handler	:	extHttpSdpAnc,
 		respType: 	WEB_RESP_SDP
 	},
 

@@ -163,15 +163,21 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 		cfg->local.sport = EXT_MEDIA_PORT_TX_STREA;
 #endif
 
-		cfg->sdpUriAudio.type = HC_REQ_SDP;
+		cfg->sdpUriAudio.type = HC_REQ_SDP_AUDIO;
 		cfg->sdpUriAudio.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		cfg->sdpUriAudio.port = EXT_SDP_SVR_PORT;
 		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), "%s", EXT_WEBPAGE_SDP_AUDIO);
 
-		cfg->sdpUriVideo.type = HC_REQ_SDP;
+		cfg->sdpUriVideo.type = HC_REQ_SDP_VIDEO;
 		cfg->sdpUriVideo.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		cfg->sdpUriVideo.port = EXT_SDP_SVR_PORT;
 		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), "%s", EXT_WEBPAGE_SDP_VIDEO);
+
+		cfg->sdpUriAnc.type = HC_REQ_SDP_ANC;
+		cfg->sdpUriAnc.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
+		cfg->sdpUriAnc.port = EXT_SDP_SVR_PORT;
+		snprintf(cfg->sdpUriAnc.uri, sizeof(cfg->sdpUriAnc.uri), "%s", EXT_WEBPAGE_SDP_ANC);
+
 
 		cfg->restUrl.type = HC_REQ_JSON;
 		cfg->restUrl.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
@@ -231,15 +237,21 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 		cfg->local.sport = EXT_MEDIA_PORT_RX_STREA;
 #endif
 
-		cfg->sdpUriAudio.type = HC_REQ_SDP;
+		cfg->sdpUriAudio.type = HC_REQ_SDP_AUDIO;
 		cfg->sdpUriAudio.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		cfg->sdpUriAudio.port = EXT_SDP_SVR_PORT;
 		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), "%s", EXT_WEBPAGE_SDP_AUDIO);
 
-		cfg->sdpUriVideo.type = HC_REQ_SDP;
+		cfg->sdpUriVideo.type = HC_REQ_SDP_VIDEO;
 		cfg->sdpUriVideo.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 		cfg->sdpUriVideo.port = EXT_SDP_SVR_PORT;
 		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), "%s", EXT_WEBPAGE_SDP_VIDEO);
+
+		cfg->sdpUriAnc.type = HC_REQ_SDP_ANC;
+		cfg->sdpUriAnc.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
+		cfg->sdpUriAnc.port = EXT_SDP_SVR_PORT;
+		snprintf(cfg->sdpUriAnc.uri, sizeof(cfg->sdpUriAnc.uri), "%s", EXT_WEBPAGE_SDP_ANC);
+
 
 		cfg->restUrl.type = HC_REQ_JSON;
 		cfg->restUrl.ip = CFG_MAKEU32(ETHERNET_CONF_IPADDR3_TX, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
@@ -287,7 +299,7 @@ void extCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->ipSvr811 = CFG_MAKEU32(CONF_SVR811_IPADDR3, CONF_SVR811_IPADDR2, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR0);
 	cfg->portSvr811 = CONF_SVR811_PORT;
 	
-	cfg->fpgaAuto = EXT_TRUE;
+	cfg->fpgaAuto = FPGA_CFG_AUTO;
 	
 	cfg->runtime.aChannels = 12;
 	cfg->runtime.aSampleRate= EXT_A_RATE_48K;
@@ -365,8 +377,11 @@ void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg)
 	runCfg->bufWrite = _writeBuffer;
 	runCfg->bufLength = sizeof(_readBuffer);
 	
+	runCfg->runtime.reset = 0;
 	runCfg->runtime.reboot = 0;
 	runCfg->runtime.blink = 0;
+
+	memset(runCfg->hexData, 0, sizeof(runCfg->hexData) );
 }
 
 char	*sysTaskName(void)
@@ -387,5 +402,24 @@ char	*sysTaskName(void)
 #endif
 }
 
+
+char *sysTimestamp(void)
+{
+	static char timestamp[32];
+	
+	uint32_t _sysTimeSecond = sys_get_ms()/1000;
+	int seconds = _sysTimeSecond;
+	int minutes = seconds /60;
+	int hours = minutes/60;
+	int days = hours/24;
+	
+	minutes = minutes%60;
+	seconds = _sysTimeSecond%60;
+	hours = hours%24;
+	
+	snprintf(timestamp, sizeof(timestamp), "%2u:%2u:%2u:%2u", days, hours, minutes, seconds);
+
+	return timestamp;
+}
 
 

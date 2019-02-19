@@ -417,6 +417,13 @@ void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg)
 		}
 
 	}
+	else
+	{/* SDP client */
+		if(runCfg->fpgaAuto == FPGA_CFG_SDP)
+		{
+			extHttpClientStart(runCfg);
+		}
+	}
 
 }
 

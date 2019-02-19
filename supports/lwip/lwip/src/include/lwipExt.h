@@ -284,7 +284,13 @@ void extMediaInit( void *arg);
 void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg);
 
 
-err_t extHttpClientNewRequest(HttpClientReq *req);
+//err_t extHttpClientNewRequest(HttpClientReq *req);
+
+err_t extHttpClientStart(EXT_RUNTIME_CFG *runCfg);
+
+void extHttpClientBeginRequest(HttpClientReq *req);
+uint16_t extHttpClientStatus(char *buf, uint16_t size);
+
 
 #define	WITH_EXT_PBUF_LOCK		1
 

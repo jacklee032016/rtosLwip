@@ -97,6 +97,9 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 
 	rxCfg->sdpUriAudio.ip = IPADDR_NONE;
 	FIELD_INVALIDATE_U16(rxCfg->sdpUriAudio.port);
+
+	rxCfg->sdpUriAnc.ip = IPADDR_NONE;
+	FIELD_INVALIDATE_U16(rxCfg->sdpUriAnc.port);
 	
 	rxCfg->local.ip = IPADDR_NONE;
 
@@ -245,11 +248,15 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->fpgaAuto) )
 	{
-		if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
+		if(rxCfg->fpgaAuto == FPGA_CFG_AUTO || rxCfg->fpgaAuto == FPGA_CFG_MANUAL || rxCfg->fpgaAuto == FPGA_CFG_SDP )
 		{
-			runCfg->fpgaAuto = rxCfg->fpgaAuto;
-			EXT_DEBUGF(EXT_DBG_ON, (EXT_WEB_CFG_FIELD_FPGA_AUTO": %s", (rxCfg->fpgaAuto)? "YES":"NO") );
-			ret = EXT_TRUE;
+			if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
+			{
+				runCfg->fpgaAuto = rxCfg->fpgaAuto;
+				EXT_DEBUGF(EXT_DBG_ON, (EXT_WEB_CFG_FIELD_FPGA_AUTO": %s", FPGA_CFG_STR_NAME(rxCfg->fpgaAuto)) );
+	//				(rxCfg->fpgaAuto==FPGA_CFG_AUTO)? EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO:(rxCfg->fpgaAuto==FPGA_CFG_MANUAL)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL:EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP) );
+				ret = EXT_TRUE;
+			}
 		}
 	}
 
@@ -315,6 +322,18 @@ static char _compareSdpConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(( !IS_STRING_NULL(rxCfg->sdpUriAudio.uri) ) && (!IS_STRING_EQUAL(rxCfg->sdpUriAudio.uri, runCfg->sdpUriAudio.uri) ))
 	{
 		snprintf(runCfg->sdpUriAudio.uri, sizeof(runCfg->sdpUriAudio.uri), "%s", rxCfg->sdpUriAudio.uri);
+		ret = EXT_TRUE;
+	}
+
+	if(rxCfg->sdpUriAnc.ip != IPADDR_NONE && rxCfg->sdpUriAnc.ip != runCfg->sdpUriAnc.ip )
+	{
+		 runCfg->sdpUriAnc.ip = rxCfg->sdpUriAnc.ip;
+		ret = EXT_TRUE;
+	}
+	_checkNumU16FieldValue(&runCfg->sdpUriAnc.port, rxCfg->sdpUriAnc.port, ret);	
+	if(( !IS_STRING_NULL(rxCfg->sdpUriAnc.uri) ) && (!IS_STRING_EQUAL(rxCfg->sdpUriAnc.uri, runCfg->sdpUriAnc.uri) ))
+	{
+		snprintf(runCfg->sdpUriAnc.uri, sizeof(runCfg->sdpUriAnc.uri), "%s", rxCfg->sdpUriAnc.uri);
 		ret = EXT_TRUE;
 	}
 
@@ -438,7 +457,7 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 #endif
 	}
 
-	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reset) && (rxCfg->runtime.reboot != runCfg->runtime.reset) ) 
+	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reset) && (rxCfg->runtime.reset != runCfg->runtime.reset) ) 
 	{
 		 runCfg->runtime.reset = rxCfg->runtime.reset;
 
@@ -456,6 +475,11 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 #endif
 	}
 
+	if(! IS_STRING_NULL(rxCfg->hexData) )
+	{
+		memcpy(runCfg->hexData, rxCfg->hexData, sizeof(rxCfg->hexData) );
+	}
+
 	if(EXT_DEBUG_HTTP_IS_ENABLE() || EXT_DEBUG_HC_IS_ENABLE())
 	{
 		printf(EXT_NEW_LINE"After configured, Runtime Configuration:"EXT_NEW_LINE);
@@ -464,6 +488,32 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	return EXIT_SUCCESS;
 }
 
+static char _sendRsData(EXT_RUNTIME_CFG *runCfg)
+{
+	char ret = EXIT_SUCCESS;
+	
+	uint32_t size = 0;
+	
+	rs232StartRx();
+	
+	if(rs232SendHexStr(runCfg->hexData) == EXIT_FAILURE)
+	{
+		snprintf(runCfg->hexData + strlen(runCfg->hexData), sizeof(runCfg->hexData)-strlen(runCfg->hexData), " is not validate when sent to RS232");
+		return EXIT_FAILURE;
+	}
+
+	memset(runCfg->hexData, 0, sizeof(runCfg->hexData) );
+	size = rs232StartRead(0, runCfg->hexData);
+	if(size <= 0)
+	{
+		snprintf(runCfg->hexData, sizeof(runCfg->hexData), "No reply from RS232");
+		ret = EXIT_FAILURE;
+	}
+	
+	rs232StopRx();
+
+	return ret;
+}
 
 char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
@@ -543,6 +593,12 @@ char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	}
 #endif
 
+	if(! IS_STRING_NULL(runCfg->hexData) )
+	{
+		_sendRsData(runCfg);
+	}
+
+
 	return EXIT_SUCCESS;
 }
 
@@ -578,8 +634,13 @@ char extSysConfigSdpClient(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	ret = _compareOneSdp(&runCfg->sdpUriVideo, &rxCfg->sdpUriVideo);
 
 	ret = _compareOneSdp(&runCfg->sdpUriAudio, &rxCfg->sdpUriAudio);
-	
-	if(ret == EXT_TRUE)
+
+	ret = _compareOneSdp(&runCfg->sdpUriAnc, &rxCfg->sdpUriAnc);
+
+	runCfg->fpgaAuto = FPGA_CFG_SDP;
+
+	/* always save configuration because fpgaAuto == SDP is set here */
+//	if(ret == EXT_TRUE)
 	{
 #ifdef	ARM
 		bspCfgSave(runCfg, EXT_CFG_MAIN);
@@ -598,7 +659,8 @@ void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg)
 	printf("\tAudio IP:%s; Port:%d;"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->dest.audioIp), cfg->dest.aport);
 	printf("\tANC IP:%s; Port:%d;"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->dest.ancIp), cfg->dest.dport);
 
-	printf("\tmediaSet:%d; "EXT_NEW_LINE, cfg->fpgaAuto);
+	printf("\tmediaSet:%s; "EXT_NEW_LINE, FPGA_CFG_STR_NAME(cfg->fpgaAuto));
+	//(cfg->fpgaAuto==FPGA_CFG_AUTO)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO:(cfg->fpgaAuto==FPGA_CFG_MANUAL)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL:EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP);
 	
 	printf("\tVideo:Width:%d; height:%d; fps:%d; colorspce:%d; depth=%d, interlaced:%d"EXT_NEW_LINE, 
 		cfg->runtime.vWidth, cfg->runtime.vHeight, cfg->runtime.vFrameRate, cfg->runtime.vColorSpace, cfg->runtime.vDepth, cfg->runtime.vIsInterlaced);
@@ -607,6 +669,7 @@ void extSysCfgDebugData(EXT_RUNTIME_CFG *cfg)
 
 	printf("\tVideo SDP IP:%s; Port:%d; URI:%s"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->sdpUriVideo.ip), cfg->sdpUriVideo.port, cfg->sdpUriVideo.uri);
 	printf("\tAudio SDP IP:%s; Port:%d; URI:%s"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->sdpUriAudio.ip), cfg->sdpUriAudio.port, cfg->sdpUriAudio.uri);
+	printf("\tANC SDP IP:%s; Port:%d; URI:%s"EXT_NEW_LINE,EXT_LWIP_IPADD_TO_STR(&cfg->sdpUriAnc.ip), cfg->sdpUriAnc.port, cfg->sdpUriAnc.uri);
 
 	printf("\tRTP Payload Video:%d; Audio:%d; Anc:%d"EXT_NEW_LINE, cfg->runtime.rtpTypeVideo, cfg->runtime.rtpTypeAudio, cfg->runtime.rtpTypeAnc);
 

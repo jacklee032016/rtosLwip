@@ -12,19 +12,23 @@
 static unsigned char _hcEventNewReq(void *arg)
 {
 	HttpClient *hc = (HttpClient *)arg;
+	HttpClientStatus *hcs = NULL;
+	
 	err_t err;
 	ip4_addr_t destIp;
 
 	HcEvent *he = hc->evt;
 	HttpClientReq *req = he->data;/* this pointer to RunCfg */
-	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
+	
+	EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
+	hcs = (HttpClientStatus *)req;
+	EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
 
 	destIp.addr = req->ip;
-	hc->reqs++;
-	
+	hcs->total++;
 
 	struct tcp_pcb *pcb;
-	static u16_t localport= EXT_HTTP_CLIENT_PORT;
+	static u16_t localport= EXT_HTTP_CLIENT_PORT; //65530; 
 
 	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
 	EXT_ASSERT(( "failed"), pcb != NULL);
@@ -38,7 +42,7 @@ static unsigned char _hcEventNewReq(void *arg)
 	
 	if(EXT_DEBUG_HC_IS_ENABLE())
 	{
-		printf("\tsent #%d new TCP request to %s:%d from local port %d"EXT_NEW_LINE, hc->reqs, ip4addr_ntoa(&destIp), req->port, localport);
+		printf("\tsent #%"U32_F" new TCP request to %s:%d/%s from local port %d"EXT_NEW_LINE, hc->reqs, ip4addr_ntoa(&destIp), req->port, req->uri, localport);
 	}
 	localport++;
 	
@@ -50,6 +54,9 @@ static unsigned char _hcEventNewReq(void *arg)
 	if(err != ERR_OK)
 	{
 		EXT_ERRORF(("send TCP req failed: '%s': %d", lwip_strerr(err), hc->pcb->state));
+		hcs->httpFails++;
+		snprintf(hcs->msg, sizeof(hcs->msg), "Connect to %s:%d failed", ip4addr_ntoa(&destIp), req->port );
+
 		extHttpClientClearCurrentRequest(hc);
 		return EXT_STATE_CONTINUE;
 	}
@@ -69,10 +76,14 @@ static unsigned char _hcEventNewReqInOtherStates(void *arg)
 	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
 
 //	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"New REQ when current req is working")) ;
-	EXT_INFOF( ("New REQ when current req is working")) ;
+//	EXT_INFOF( ("New REQ when current req is in %s: current: %s; new: %s", CMN_FIND_HC_STATE(hc->state), (hc->reqList)?hc->reqList->uri:"NULL", req->uri)) ;
 
-	extHttpClientNewRequest(req);
-	return EXT_STATE_CONTINUE;
+//	extHttpClientNewRequest(req);
+	extHttpClientBeginRequest(req);
+//	if(hc->state != HC_STATE_WAIT)
+//	return EXT_STATE_CONTINUE;
+
+	return HC_STATE_WAIT;
 }
 
 
@@ -80,11 +91,14 @@ static unsigned char _hcEventNewReqInOtherStates(void *arg)
 static unsigned char _hcEventTimeout(void *arg)
 {
 	HttpClient *hc = (HttpClient *)arg;
+	HttpClientStatus *hcs;
 
-	if(hc->state == HC_STATE_INIT)
-	{
-		hc->fails++;
-	}
+	HttpClientReq *req = hc->reqList;/* this pointer to RunCfg */
+	
+	EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
+	hcs = (HttpClientStatus *)req;
+	EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
+
 	extHttpClientClosePcb(hc, NULL);
 
 #if 0
@@ -94,7 +108,21 @@ static unsigned char _hcEventTimeout(void *arg)
 	}
 #endif
 
-	snprintf(hc->msg, sizeof(hc->msg), "Timeout in state of %s", CMN_FIND_HC_STATE(hc->state) );
+//	snprintf(hc->msg, sizeof(hc->msg), "Timeout in state of %s", CMN_FIND_HC_STATE(hc->state) );
+//	EXT_DEBUGF(EXT_DBG_OFF, ( "Timeout in state of %s for request '%s'", CMN_FIND_HC_STATE(hc->state), hcs->req.uri));
+	if(req)
+	{
+		if(hc->state == HC_STATE_INIT)
+		{
+			hc->fails++;
+			hcs->httpFails++;
+			snprintf(hcs->msg, sizeof(hcs->msg), "Timeout when try to connect");//, ip4addr_ntoa(&destIp), req->port );
+			if(EXT_DEBUG_HC_IS_ENABLE())
+			{
+				EXT_ERRORF(("#%"U32_F": Timeout when try to connect %s", hc->reqs, hcs->req.uri) );
+			}
+		}
+	}
 
 	return HC_STATE_WAIT;
 }
@@ -109,8 +137,35 @@ static unsigned char _hcEventPoll(void *arg)
 	}
 	
 	hc->retryCount ++;
-	if (hc->retryCount == HTTPC_MAX_RETRIES)
+	if (hc->retryCount >= HTTPC_MAX_RETRIES)
 	{
+		HttpClientStatus *hcs;
+		HttpClientReq *req = hc->reqList;/* this pointer to RunCfg */
+		
+		EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
+		hcs = (HttpClientStatus *)req;
+		EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
+
+//		EXT_DEBUGF(EXT_DBG_OFF, ( "TCP Timer Timeout in state of %s for request '%s'", CMN_FIND_HC_STATE(hc->state), hcs->req.uri));
+
+#if 0
+		if(hc->state != HC_STATE_DATA  && hc->state != HC_STATE_WAIT)
+#else		
+		/* in INIT state, use timer; TCP timer only be used in state of CONN. JL. 02,18, 2019*/
+//		if(hc->state == HC_STATE_INIT  || hc->state == HC_STATE_CONN)
+		if( hc->state == HC_STATE_CONN)
+#endif			
+		{
+			hcs->httpFails++;
+			snprintf(hcs->msg, sizeof(hcs->msg), "Connection timeout by TCP timer");
+			if(EXT_DEBUG_HC_IS_ENABLE())
+			{
+				EXT_ERRORF(("#%"U32_F": Timeout when request %s by TCP timer", hc->reqs, hcs->req.uri) );
+			}
+			/* when happens in state of DATA, pbuf has been freed. when TCP timeout in CONN state, pcb and its pbuf must be freed here. JL. 02.18, 2019 */
+			extHttpClientClosePcb(hc, NULL);
+		}
+		
 		return HC_STATE_WAIT;
 	}
 	
@@ -122,6 +177,8 @@ static unsigned char _hcEventError(void *arg)
 {
 	HttpClient *hc = (HttpClient *)arg;
 
+	EXT_DEBUGF(EXT_DBG_ON, ( "ERROR in state of %s for request '%s'", CMN_FIND_HC_STATE(hc->state), (hc->reqList)?hc->reqList->uri:"NULl"));
+
 	extHttpClientClearCurrentRequest(hc);
 
 	return HC_STATE_ERROR;
@@ -131,11 +188,11 @@ static char _findResponseType(char *response, uint32_t size)
 {
 	if(lwip_strnstr(response, HTTP_HDR_SDP, size) != NULL )
 	{
-		return HC_REQ_SDP;
+		return HC_REQ_SDP_VIDEO;
 	}
 	else if(lwip_strnstr(response, HTTP_HDR_SDP_EXT, size) != NULL )
 	{
-		return HC_REQ_SDP;
+		return HC_REQ_SDP_VIDEO;
 	}
 	else if(lwip_strnstr(response, HTTP_HDR_JSON, size) != NULL )
 	{
@@ -155,6 +212,12 @@ static unsigned char _hcEventRecv(void *arg)
 	u16_t copied;
 	uint32_t ret;
 
+		HttpClientStatus *hcs;
+		HttpClientReq *req = hc->reqList;/* this pointer to RunCfg */
+		
+		EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
+		hcs = (HttpClientStatus *)req;
+		EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
 
 	EXT_ASSERT(("Event or pbuf is not found "), hc->evt!= NULL && hc->evt->data != NULL );
 	p = (struct pbuf *)hc->evt->data;
@@ -205,7 +268,11 @@ static unsigned char _hcEventRecv(void *arg)
 		ret = cmnHttpParseHeaderContentLength(hc->buf, (uint32_t)hc->length);
 		if(ret <= ERR_OK )
 		{
-			EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf) );
+///			EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf) );
+			
+			hcs->dataErrors++;
+			snprintf(hcs->msg, sizeof(hcs->msg), "Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf);
+			EXT_ERRORF(("Data error for %s: parsing number in Content-Length: '%.*s'", hcs->req.uri, hc->length, hc->buf) );
 		}
 		else
 		{
@@ -229,7 +296,13 @@ static unsigned char _hcEventRecv(void *arg)
 				}
 				else
 				{
-					EXT_ERRORF(("Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
+//					EXT_ERRORF(("Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
+					
+			hcs->dataErrors++;
+			snprintf(hcs->msg, sizeof(hcs->msg), "Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen);
+			
+			EXT_ERRORF(("Data error for %s: Content Length %"FOR_U32" is not same as data length:%"FOR_U32, hcs->req.uri, ret, _dataLen) );
+			
 					return HC_STATE_ERROR;
 				}
 			}
@@ -243,14 +316,24 @@ static unsigned char _hcEventRecv(void *arg)
 		}
 		else
 		{
-			EXT_ERRORF(("Recv second packet, length %d is not same as Content Length %d", hc->length, hc->contentLength) );
+//			EXT_ERRORF(("Recv second packet, length %d is not same as Content Length %d", hc->length, hc->contentLength) );
+			
+			hcs->dataErrors++;
+			snprintf(hcs->msg, sizeof(hcs->msg), "Recv second packet, length %d is not same as Content Length %d", hc->length, hc->contentLength);
+			
+			EXT_ERRORF(("Data error for %s: Recv second packet, length %d is not same as Content Length %d", hcs->req.uri, hc->length, hc->contentLength) );
 			return HC_STATE_ERROR;
 		}
 	}
 
 	if(hc->reqType == HC_REQ_UNKNOWN)
 	{
-		EXT_ERRORF(("Response is not supported type of JSON or SDP"));
+//		EXT_ERRORF(("Response is not supported type of JSON or SDP"));
+		
+			hcs->dataErrors++;
+			snprintf(hcs->msg, sizeof(hcs->msg), "Response is not supported type of JSON or SDP");
+			EXT_ERRORF(("Data error for %s: Response is not supported type of JSON or SDP", hcs->req.uri) );
+			
 		return HC_STATE_ERROR;
 	}
 
@@ -261,11 +344,11 @@ static unsigned char _hcEventRecv(void *arg)
 		err_t _ret = ERR_OK;
 
 		extSysClearConfig(rxCfg);
-		if(hc->req->type == HC_REQ_SDP)
+		if(req->type == HC_REQ_SDP_VIDEO)
 		{
 			_ret = extHttpSdpParse(hc, rxCfg, hc->data, hc->contentLength);
 		}
-		else if(hc->req->type == HC_REQ_JSON )
+		else if(req->type == HC_REQ_JSON )
 		{
 			_ret = cmnHttpParseRestJson(rxCfg, hc->data, hc->contentLength);
 		}
@@ -276,13 +359,18 @@ static unsigned char _hcEventRecv(void *arg)
 		
 		if(_ret != ERR_OK)
 		{
-			EXT_ERRORF(("Response is not supported type of JSON or SDP"));
+//			EXT_ERRORF(("Response is not supported type of JSON or SDP"));
+			
+			hcs->dataErrors++;
+			snprintf(hcs->msg, sizeof(hcs->msg), "Error when parsing data");
+			EXT_ERRORF(("Data error for %s: Error when parsing data", hcs->req.uri) );
 		}
 		else
 		{
-			rxCfg->fpgaAuto = EXT_FALSE;	/* SDP parameter write to flash, and configure into registers, so it is manual mode for FPGA. Jan.2nd, 2019 JL */
+			rxCfg->fpgaAuto = FPGA_CFG_SDP;	/* SDP parameter write to flash, and configure into registers, so it is manual mode for FPGA. Jan.2nd, 2019 JL */
 			extSysCompareParams(hc->runCfg, rxCfg);
 			extSysConfigCtrl(hc->runCfg, rxCfg);
+			snprintf(hcs->msg, sizeof(hcs->msg), "OK");
 		}
 
 	}
@@ -372,10 +460,6 @@ const transition_t	_hcStateWait[] =
 /* RX data for POST request */
 const transition_t	_hcStateInit[] =
 {
-	{
-		HC_EVENT_NEW,
-		_hcEventNewReqInOtherStates,
-	},
 	{
 		HC_EVENT_NEW,
 		_hcEventNewReqInOtherStates,

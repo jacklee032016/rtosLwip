@@ -16,8 +16,11 @@
 #include "eos.h"
 
 #define	EXT_PERIOD_JOB_NAME		"extTimer"
-#define	EXT_PERIOD_JOB_TIME		2000 	/* ms*/
-
+#if 1
+#define	EXT_PERIOD_JOB_TIME		(3000*10) 	/* ms*/
+#else
+#define	EXT_PERIOD_JOB_TIME		(1000*10) 	/* ms, for tests only */
+#endif
 
 static TimerHandle_t _timerHdlDelay;
 static TimerHandle_t _timerHdlPeriod;
@@ -125,6 +128,11 @@ void extJobPeriod(EXT_RUNTIME_CFG *runCfg)
 {
 #if configUSE_TIMERS
 
+	if(runCfg->fpgaAuto == FPGA_CFG_SDP)
+	{
+		extHttpClientStart(runCfg);
+	}
+		
 	_timerHdlPeriod = xTimerCreate(EXT_PERIOD_JOB_NAME, pdMS_TO_TICKS(EXT_PERIOD_JOB_TIME), pdTRUE/* auto reload */,  (void*)0 /* timer ID */,_periodJobCallback);
 	if (_timerHdlPeriod==NULL)
 	{

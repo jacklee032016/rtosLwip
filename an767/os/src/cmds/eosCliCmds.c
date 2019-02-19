@@ -361,8 +361,13 @@ _CODE EXT_CLI_CMD_T extCmds[] =
 
 	{
 		name	: EXT_CMD_HTTP_CLIENT,
+#if 0			
 		helpString: EXT_NEW_LINE EXT_CMD_HTTP_CLIENT" IP Port URI :"EXT_NEW_LINE" Request SDP or JSON data"EXT_NEW_LINE,
 		callback: cmnCmdHttpClient,
+#else		
+		helpString: EXT_NEW_LINE EXT_CMD_HTTP_CLIENT" SDP status information"EXT_NEW_LINE,
+		callback: cmnCmdSdpInfo,
+#endif		
 	},
 	
 	{

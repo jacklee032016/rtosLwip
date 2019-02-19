@@ -229,6 +229,7 @@ char	cmnCmdNetInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 char	cmnCmdPtpInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
 char	cmnCmdHttpClient(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
+char	cmnCmdSdpInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);
 
 
 char	cmnCmdMacInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen);

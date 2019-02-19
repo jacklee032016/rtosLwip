@@ -415,7 +415,6 @@ typedef	enum
 
 }JSON_STATUS_T;
 
-#define	HEX_DATA_MAX_LENGTH		128
 
 typedef	struct
 {

@@ -147,6 +147,7 @@ char extIpCmdSendout(EXT_JSON_PARSER  *parser, uint32_t *ip, unsigned short port
 
 char extIpCmdIsLocal(EXT_JSON_PARSER  *parser);
 
+
 #endif
 
 

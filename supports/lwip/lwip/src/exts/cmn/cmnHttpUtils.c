@@ -178,10 +178,19 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 		{
 			unescape_uri(rxCfg->sdpUriAudio.uri);
 		}
+
+		if(extJsonParseString(parser, EXT_WEB_CFG_FIELD_SDP_ANC_URI, rxCfg->sdpUriAnc.uri, sizeof(rxCfg->sdpUriAnc.uri) ) == EXIT_SUCCESS)
+		{
+			unescape_uri(rxCfg->sdpUriAnc.uri);
+		}
+
 	}
 
 	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_IP, &rxCfg->sdpUriAudio.ip);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT, &rxCfg->sdpUriAudio.port );
+
+	extJsonParseIpAddress(parser, EXT_WEB_CFG_FIELD_SDP_ANC_IP, &rxCfg->sdpUriAnc.ip);
+	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_SDP_ANC_PORT, &rxCfg->sdpUriAnc.port );
 
 
 	/* dest address of RTP */
@@ -200,9 +209,11 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_PORT_STREM, &rxCfg->dest.sport);
 #endif
 
-
-	extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_FPGA_AUTO, &rxCfg->fpgaAuto);
-
+	if(!EXT_IS_TX(parser->runCfg) )
+	{/* only RX */
+		extJsonParseUnsignedChar(parser, EXT_WEB_CFG_FIELD_FPGA_AUTO, &rxCfg->fpgaAuto);
+	}
+	
 	/* params of video stream */
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_WIDTH, &rxCfg->runtime.vWidth);
 	extJsonParseUnsignedShort(parser, EXT_WEB_CFG_FIELD_VIDEO_HEIGHT, &rxCfg->runtime.vHeight);
@@ -304,6 +315,7 @@ err_t cmnHttpParseRestJson(EXT_RUNTIME_CFG *rxCfg, char *jsonData, uint16_t size
 		}
 	}
 
+	extJsonParseString(parser, EXT_WEB_CFG_FIELD_RS232_DATA, rxCfg->hexData, sizeof(rxCfg->hexData));
 
 
 	return ERR_OK;

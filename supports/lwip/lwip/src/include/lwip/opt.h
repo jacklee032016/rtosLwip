@@ -2907,7 +2907,7 @@
 #endif
 
 #if !defined MEMP_NUM_HC_EVENT || defined __DOXYGEN__
-#define	MEMP_NUM_HC_EVENT						8*2
+#define	MEMP_NUM_HC_EVENT						8*8
 #endif
 
 #if !defined MEMP_NUM_HC_REQ || defined __DOXYGEN__

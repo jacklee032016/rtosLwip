@@ -101,6 +101,7 @@ EXES=$(EXE_TX).bin $(EXE_RX).bin
 include $(RULE_DIR)/Makefile.post
 
 
+CAT:=cat
 
 #LIBS= -Wl,-Lthirdparty/CMSIS/Lib/GCC -larm_cortexM7lfsp_math_softfp -lm  
 LIBS= -Wl,-L$(BIN_DIR) -lBsp -lAsf $(SUPPORT_LIBS)
@@ -131,6 +132,7 @@ $(EXE_TX).bin:$(OBJS) $(OBJ_DIR)/eosMainTx.o
 		$(MOVE) $(EXE_TX).elf $(BIN_DIR)
 		$(COPY) $@ $(BIN_DIR)/$(EXE_TX).$(BUILDTIME).bin
 		$(MOVE) $@ $(BIN_DIR)
+		$(CAT) $(ROOT_DIR)/txHeader $(BIN_DIR)/$(EXE_TX).$(BUILDTIME).bin >> $(BIN_DIR)/$(EXE_TX).$(BUILDTIME).bin.upload 
 		$(MOVE) $(EXE_TX).map $(BIN_DIR)
 
 $(EXE_RX).bin:$(OBJS) $(OBJ_DIR)/eosMainRx.o
@@ -140,6 +142,7 @@ $(EXE_RX).bin:$(OBJS) $(OBJ_DIR)/eosMainRx.o
 		$(MOVE) $(EXE_RX).elf $(BIN_DIR)
 		$(COPY) $@ $(BIN_DIR)/$(EXE_RX).$(BUILDTIME).bin
 		$(MOVE) $@ $(BIN_DIR)
+		$(CAT) $(ROOT_DIR)/rxHeader $(BIN_DIR)/$(EXE_RX).$(BUILDTIME).bin >> $(BIN_DIR)/$(EXE_RX).$(BUILDTIME).bin.upload 
 		$(MOVE) $(EXE_RX).map $(BIN_DIR)
 
 

@@ -1,5 +1,12 @@
 
+02.11, 2019
 
+rsData
+  curl -H "Content-Type: application/json" -d '{"rsData":"1234567890a0b1"}' http://192.168.168.101/service -i
+
+  curl -H "Content-Type: application/json" -d '{"rsData":"1234567890agbp"}' http://192.168.168.101/service -i
+
+  
 SDP UDI:
 
   curl -H "Content-Type: application/json" -d '{"sdpVideoUri":"12234435.api", "sdpAudioUri":"as12audio.api"}' http://192.168.168.110/service -i

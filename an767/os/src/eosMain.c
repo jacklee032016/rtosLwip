@@ -70,6 +70,7 @@ volatile size_t xFreeHeapSpace;
 	( void ) xFreeHeapSpace;
 }
 
+
 void vApplicationTickHook( void )
 {
 }

@@ -6,7 +6,7 @@
 #define __HTTP_CLIENT_H__
 
 #define		EXT_HTTP_CLIENT_MBOX_SIZE					2
-#define		EXT_HTTP_CLIENT_PORT							50000
+#define		EXT_HTTP_CLIENT_PORT							1000
 
 #define		EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN			2000	/* for new TCP connection */
 #define		EXT_HTTP_CLIENT_TIMEOUT_2_WAIT				2000	/* from state of DATA/ERROR to state of WAIT*/
@@ -46,6 +46,17 @@ typedef enum
 }HC_STATE_T;
 
 
+typedef	struct _HttpClientStatus
+{
+	HttpClientReq			req;
+	
+	uint32_t				total;
+	uint32_t				httpFails;
+	uint32_t				dataErrors;
+
+	char					msg[64];
+}HttpClientStatus;
+
 
 typedef	struct _HttpClient
 {
@@ -63,7 +74,9 @@ typedef	struct _HttpClient
 //	uint32_t				destIp;
 //	uint16_t				destPort;
 	
-	HttpClientReq			*req;
+	HttpClientReq			*reqList;
+
+	HttpClientStatus		requests[3];
 
 	struct tcp_pcb 		*pcb;
 	uint8_t				retryCount;		/* poll count */
@@ -72,8 +85,8 @@ typedef	struct _HttpClient
 	char					statusCode;
 	char					msg[256];	/* current detailed status message*/
 	
-	uint16_t				reqs;
-	uint16_t				fails;
+	uint32_t				reqs;
+	uint32_t				fails;
 	
 	EXT_RUNTIME_CFG		*runCfg;
 }HttpClient;
@@ -140,7 +153,7 @@ void	httpClientFsmHandle(HcEvent *hce);
 
 /* check whether request is waiting */
 #define	HTTP_CLIENT_IS_NOT_REQ(hc)		\
-	((hc)->req == NULL ) 
+	((hc)->reqList == NULL ) 
 
 //	((hc)->req.ip == IPADDR_NONE ) 
 	//&& (hc)->req.port == -1 )

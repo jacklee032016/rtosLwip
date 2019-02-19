@@ -501,12 +501,15 @@ typedef struct
 
 #define	EXT_WEB_CFG_FIELD_SDP_VEDIO_IP			"sdpVideoIp"
 #define	EXT_WEB_CFG_FIELD_SDP_AUDIO_IP			"sdpAudioIp"
+#define	EXT_WEB_CFG_FIELD_SDP_ANC_IP			"sdpAncIp"
 
 #define	EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT		"sdpVideoPort"
 #define	EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT		"sdpAudioPort"
+#define	EXT_WEB_CFG_FIELD_SDP_ANC_PORT			"sdpAncPort"
 
 #define	EXT_WEB_CFG_FIELD_SDP_VEDIO_URI			"sdpVideoUri"
 #define	EXT_WEB_CFG_FIELD_SDP_AUDIO_URI			"sdpAudioUri"
+#define	EXT_WEB_CFG_FIELD_SDP_ANC_URI			"sdpAncUri"
 
 #define	EXT_WEB_CFG_FIELD_IP_VEDIO				"ipVideo"
 #define	EXT_WEB_CFG_FIELD_IP_AUDIO				"ipAudio"
@@ -522,6 +525,7 @@ typedef struct
 
 #define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO		"Auto"
 #define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL		"Manual"
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP			"SDP"
 
 
 #define	EXT_WEB_CFG_FIELD_VIDEO_PARAMS			"videoParams"		/* replace width/height/framerate/interlaced(segmented). 01.15, 2019 */
@@ -545,6 +549,9 @@ typedef struct
 #define	EXT_WEB_CFG_FIELD_RS232_DATABITS		"rs232DataBit"
 #define	EXT_WEB_CFG_FIELD_RS232_PARITY			"rs232Parity"
 #define	EXT_WEB_CFG_FIELD_RS232_STOPBITS		"rs232StopBit"
+
+
+#define	EXT_WEB_CFG_FIELD_RS232_DATA			"rsData"
 
 
 #define	EXT_HTTP_VERSION_11						"HTTP/1.1 "
@@ -684,6 +691,7 @@ char extHttpPostEvent(ExtHttpConn *mhc, H_EVENT_T eventType, struct pbuf *p, str
 uint16_t extHttpSimpleRestApi(ExtHttpConn  *mhc, void *data);
 uint16_t extHttpSdpAudio(ExtHttpConn  *mhc, void *data);
 uint16_t extHttpSdpVideo(ExtHttpConn  *mhc, void *data);
+uint16_t extHttpSdpAnc(ExtHttpConn  *ehc, void *pageHandle);
 
 
 uint16_t extHttpWebUpdateAvParams(ExtHttpConn *ehc, void *pageHandle);

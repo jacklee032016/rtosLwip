@@ -407,7 +407,6 @@ typedef char (*EXT_BIST_HANDLER)(char *outBuffer, size_t bufferSize );
 
 uint16_t crc16_ccitt(uint16_t crc_start, unsigned char *buf, int len);
 
-uint32_t sys_get_ms(void);
 
 #include "declarations.h"
 

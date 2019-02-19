@@ -28,6 +28,15 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 			return EXIT_FAILURE;
 		}
 	}
+
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_ANC_IP, strlen(key)))
+	{
+		if(cmnUtilsParseIp(value, &tmpCfg->sdpUriAnc.ip) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate IP address for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
 	
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_VEDIO_PORT, strlen(key)))
 	{
@@ -40,6 +49,14 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_AUDIO_PORT, strlen(key)))
 	{
 		if(cmnUtilsParseInt16(value, &tmpCfg->sdpUriAudio.port) == EXIT_FAILURE)
+		{
+			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
+			return EXIT_FAILURE;
+		}
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_ANC_PORT, strlen(key)))
+	{
+		if(cmnUtilsParseInt16(value, &tmpCfg->sdpUriAnc.port) == EXIT_FAILURE)
 		{
 			snprintf(ehc->boundary, sizeof(ehc->boundary), "'%s' is not validate port for '%s'", value, key);
 			return EXIT_FAILURE;
@@ -58,6 +75,13 @@ char extHttpParseSdpClientData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *
 		snprintf(tmpCfg->sdpUriAudio.uri, sizeof(tmpCfg->sdpUriAudio.uri), "%s", value);
 //		EXT_DEBUGF(EXT_DBG_ON, ("Before unescape '%s'", tmpCfg->sdpUriAudio.uri));
 		unescape_uri(tmpCfg->sdpUriAudio.uri);
+//		EXT_DEBUGF(EXT_DBG_ON, ("After unescape '%s'", tmpCfg->sdpUriAudio.uri));
+	}
+	else if( lwip_strnstr(key, EXT_WEB_CFG_FIELD_SDP_ANC_URI, strlen(key)))
+	{
+		snprintf(tmpCfg->sdpUriAnc.uri, sizeof(tmpCfg->sdpUriAnc.uri), "%s", value);
+//		EXT_DEBUGF(EXT_DBG_ON, ("Before unescape '%s'", tmpCfg->sdpUriAudio.uri));
+		unescape_uri(tmpCfg->sdpUriAnc.uri);
 //		EXT_DEBUGF(EXT_DBG_ON, ("After unescape '%s'", tmpCfg->sdpUriAudio.uri));
 	}
 
@@ -147,11 +171,11 @@ char extHttpParseData(ExtHttpConn *ehc, EXT_RUNTIME_CFG *tmpCfg, char *key, char
 	{
 		if(IS_STRING_EQUAL(value, EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO) )
 		{
-			tmpCfg->fpgaAuto = EXT_TRUE;
+			tmpCfg->fpgaAuto = FPGA_CFG_AUTO;
 		}
 		else
 		{
-			tmpCfg->fpgaAuto = EXT_FALSE;
+			tmpCfg->fpgaAuto = FPGA_CFG_MANUAL;
 		}
 		
 	}

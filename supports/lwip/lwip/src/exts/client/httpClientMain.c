@@ -27,6 +27,7 @@ static char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
 	if (hce == NULL)
 	{
 		EXT_ERRORF(("No memory available for HTTP Client Event now"));
+		HC_UNLOCK();
 		return EXIT_FAILURE;
 	}
 
@@ -55,11 +56,19 @@ static char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
 
 static void _connError(void *arg, err_t err)
 {
+	HttpClient *hc = (HttpClient *)arg;
 	// pcb already deallocated
 //	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"HTTP Client CONN Error : '%s'", lwip_strerr(err)));
-	EXT_ERRORF(("HTTP Client CONN Error : '%s'", lwip_strerr(err)));
+//	EXT_ERRORF(("HTTP Client CONN %s in state of %s, Error : '%s'", (hc->reqList)?hc->reqList->uri:"NULL", CMN_FIND_HC_STATE(hc->state), lwip_strerr(err)));
+
+	/* pcb has been deallocated, so the last request has been ended. This event need not to send to new request. 02.15, 2019 */
+/*
+	
+	if(hc->state == HC_STATE_WAIT)
+		return;
 	
 	_httpClientPostEvent(HC_EVENT_ERROR, NULL);
+*/	
 }
 
 static err_t _connPoll(void *arg, struct tcp_pcb *pcb)
@@ -105,9 +114,10 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 	{
 		if(EXT_DEBUG_HC_IS_ENABLE())
 		{
-			printf("\t#%d CONN closed by server", hc->reqs);
+			printf("\t#%"U32_F" CONN closed by server"EXT_NEW_LINE, hc->reqs);
 		}
 
+//		EXT_ERRORF(("HttpClient: Connect is closed by server") );
 		extHttpClientClosePcb(hc, pcb);
 		_httpClientPostEvent(HC_EVENT_CLOSE, NULL);
 	}
@@ -118,7 +128,7 @@ static err_t _connRecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 			pbuf_free(p);
 		}
 		
-		EXT_ERRORF(("#%d Event RECV error: '%s'", hc->reqs, lwip_strerr(err)));
+		EXT_ERRORF(("#%"U32_F" Event RECV error: '%s'", hc->reqs, lwip_strerr(err)));
 		_httpClientPostEvent(HC_EVENT_ERROR, NULL);
 	}
 	
@@ -154,11 +164,14 @@ unsigned char httpClientEventConnected(void *arg)
 	int index = 0;
 	int size = sizeof(hc->buf);
 
+	HttpClientReq *req = hc->reqList;/* this pointer to RunCfg */
+	EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
+
 	sys_timer_stop(&_hcTimer);
 
 	EXT_ASSERT((": Client PCB is null"), hc->pcb != NULL);
 
-	CMN_SN_PRINTF(hc->buf, size, index, "GET /%s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, hc->req->uri);
+	CMN_SN_PRINTF(hc->buf, size, index, "GET /%s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, req->uri);
 
 //	usprintf(headers, "POST /%s HTTP/1.0\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: %d\r\n\r\n%s\r\n\r\n", state->Page, strlen(state->PostVars), state->PostVars);
 
@@ -175,7 +188,7 @@ unsigned char httpClientEventConnected(void *arg)
 //	EXT_DEBUGF(HTTP_CLIENT_DEBUG, ("#%d send HTTP reqeust "EXT_NEW_LINE"'%.*s'", hc->reqs, index, hc->buf ));
 	if(EXT_DEBUG_HC_IS_ENABLE())
 	{
-		printf("#%d send HTTP reqeust "EXT_NEW_LINE"'%.*s'"EXT_NEW_LINE, hc->reqs, index, hc->buf);
+		printf("#%"U32_F" send HTTP reqeust "EXT_NEW_LINE"'%.*s'"EXT_NEW_LINE, hc->reqs, index, hc->buf);
 	}
 
 
@@ -226,6 +239,19 @@ static void _extHttpClientTask(void *arg)
 	
 }
 
+#if HTTP_CLIENT_DEBUG
+static void extHttpClientReqDebug(HttpClient *hc)
+{
+	HttpClientReq *req = hc->reqList;
+	int index = 0;
+
+	while(req)
+	{
+		EXT_DEBUGF(EXT_DBG_ON, ("#%d request %p: url: '%s'", ++index, req, req->uri) );
+		req = req->next;
+	}
+}
+#endif
 
 void extHttpClientMain(void *data)
 {
@@ -234,7 +260,11 @@ void extHttpClientMain(void *data)
 	EXT_RUNTIME_CFG *runCfg = (EXT_RUNTIME_CFG *)data;
 	
 	memset(hc, 0, sizeof(HttpClient));
-	hc->req = NULL;
+	hc->reqList = NULL;
+	hc->requests[0].req.type = HC_REQ_SDP_VIDEO;
+	hc->requests[1].req.type = HC_REQ_SDP_AUDIO;
+	hc->requests[2].req.type = HC_REQ_SDP_ANC;
+
 //	hc->req.port = -1;
 	hc->state = HC_STATE_WAIT;
 	hc->runCfg = runCfg;
@@ -254,63 +284,71 @@ void extHttpClientMain(void *data)
 		EXT_ASSERT(("failed to create "EXT_TASK_HTTP_CLIENT" mbox"), 0);
 	}
 
-	sys_thread_new(EXT_TASK_HTTP_CLIENT, _extHttpClientTask, hc, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY -1);
+	sys_thread_new(EXT_TASK_HTTP_CLIENT, _extHttpClientTask, hc, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY + 4);
 	
 }
 
 /* called by HTTP Client task, TCP/IP task, HTTP Svr task, Cmd Task */
 void extHttpClientClearCurrentRequest(HttpClient *hc)
 {
-	HttpClientReq *req = hc->req;
+	HttpClientReq *req = hc->reqList;
 	
-	EXT_ASSERT(("No Client request is need to clean"), (req != NULL) );
-
 	HC_LOCK();
 
 	memset(hc->buf, 0, sizeof(hc->buf));
 	hc->length = 0;
 
-	hc->req = req->next;
-	req->next = NULL;
+	EXT_ASSERT(("No Client request is need to clean"), (req != NULL) );
+	if(req)
+	{
+		hc->reqList = req->next;
+		req->next = NULL;
+	}
 
 	HC_UNLOCK();
 	
-	if(hc->req )
+	if(hc->reqList )
 	{
-		_httpClientPostEvent(HC_EVENT_NEW, hc->req);
+		extHttpClientBeginRequest(hc->reqList);
 	}
 
 }
 
 /* called by other tasks, such as sched (from http server) and console(cmd) */
-err_t extHttpClientNewRequest(HttpClientReq *req)
+static err_t extHttpClientNewRequest(HttpClient *hc, HttpClientReq *req)
 {
-	HttpClient *hc = &_httpClient;
+	HttpClientReq *_newReq = NULL;
 
-	if(req->ip == IPADDR_NONE || req->port == -1 || IS_STRING_NULL(req->uri) )
+	if(req->ip == IPADDR_NONE || req->port == INVALIDATE_VALUE_U16 || IS_STRING_NULL(req->uri) )
 	{
-		EXT_ERRORF(("#%d requesting parameter is error %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa(&req->ip), req->port, (IS_STRING_NULL(req->uri))?"None":req->uri ));
+		EXT_ERRORF(("#%"U32_F" requesting parameter is error %s:%d/%s", hc->reqs, extCmnIp4addr_ntoa(&req->ip), req->port, (IS_STRING_NULL(req->uri))?"None":req->uri ));
 		return ERR_VAL;
 	}
 
+	HC_LOCK();	
+	
+	if(req->type == HC_REQ_SDP_VIDEO)
+	{
+		_newReq =  (HttpClientReq *) &hc->requests[0];
+	}
+	else if(req->type == HC_REQ_SDP_AUDIO)
+	{
+		_newReq =  (HttpClientReq *) &hc->requests[1];
+	}
+	else
+	{
+		_newReq = (HttpClientReq *) &hc->requests[2];
+	}
+
+	memcpy(_newReq, req, sizeof(HttpClientReq));
+	_newReq->next = NULL; //??//
+
 	/* protect */
-#if 1
-	if(! HTTP_CLIENT_IS_NOT_REQ(hc))
-	{
-		EXT_DEBUGF(EXT_DBG_OFF, ("#%d is busy on requesting %s:%d/%s, new req on %s will wait", hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri, req->uri ));
-		APPEND_ELEMENT(hc->req, req, HttpClientReq);
-		return ERR_ALREADY;
-	}
-#endif
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Queuing request #%d %p: '%s:%d/%s'", hc->reqs, _newReq, extCmnIp4addr_ntoa(&_newReq->ip), _newReq->port, _newReq->uri));
 
-	APPEND_ELEMENT(hc->req, req, HttpClientReq);
+	APPEND_ELEMENT(hc->reqList, _newReq, HttpClientReq);
 
-	_httpClientPostEvent(HC_EVENT_NEW, req);
-	if(EXT_DEBUG_HC_IS_ENABLE())
-	{
-		printf("\t#%d requesting %s:%d/%s"EXT_NEW_LINE, hc->reqs, extCmnIp4addr_ntoa(&hc->req->ip), hc->req->port, hc->req->uri);
-	}
-
+	HC_UNLOCK();
 
 	return ERR_OK;
 }
@@ -318,14 +356,20 @@ err_t extHttpClientNewRequest(HttpClientReq *req)
 /* called by TCPIP task and http client task */
 err_t extHttpClientClosePcb(HttpClient *hc, struct tcp_pcb *_pcb)
 {
-	struct tcp_pcb *pcb = pcb;
+	struct tcp_pcb *pcb = _pcb;
 
 	if(hc!= NULL)
 	{
 		pcb = hc->pcb;
 	}
 
-	EXT_ASSERT((" PCB is null"), pcb!= NULL);
+//	EXT_ASSERT((" PCB is null"), pcb!= NULL);
+
+	if(pcb == NULL)
+	{
+//		EXT_ERRORF(("PCB is null now"));
+		return ERR_RST;
+	}
 		
 	err_t err = tcp_close(pcb);
 	if (err != ERR_OK)
@@ -352,4 +396,84 @@ err_t extHttpClientClosePcb(HttpClient *hc, struct tcp_pcb *_pcb)
 
 	return err;
 }
+
+
+void extHttpClientBeginRequest(HttpClientReq *req)
+{
+	HttpClient *hc = &_httpClient;
+	
+	hc->reqs++;
+	_httpClientPostEvent(HC_EVENT_NEW, req);
+	if(EXT_DEBUG_HC_IS_ENABLE())
+	{
+		printf("\t#%"U32_F" starting request to %s:%d/%s"EXT_NEW_LINE, hc->reqs, extCmnIp4addr_ntoa(&req->ip), req->port, req->uri);
+	}
+}
+
+err_t extHttpClientStart(EXT_RUNTIME_CFG *runCfg)
+{
+	err_t  ret;
+	HttpClient *hc = &_httpClient;
+
+	if(!HTTP_CLIENT_IS_NOT_REQ(hc) )
+	{
+		EXT_ERRORF(("HttpClient is busy now"));
+		return ERR_ALREADY;
+	}
+	
+	runCfg->sdpUriVideo.next = NULL;
+	ret = extHttpClientNewRequest(hc, &runCfg->sdpUriVideo);
+	
+	runCfg->sdpUriAudio.next = NULL;
+	ret = extHttpClientNewRequest(hc, &runCfg->sdpUriAudio);
+
+	runCfg->sdpUriAnc.next = NULL;
+	ret = extHttpClientNewRequest(hc, &runCfg->sdpUriAnc);
+
+	ret = ret;
+#if HTTP_CLIENT_DEBUG
+	extHttpClientReqDebug(hc);
+#endif
+
+	if(hc->reqList )
+	{
+		extHttpClientBeginRequest(hc->reqList);
+	}
+
+	return ERR_OK;
+}
+
+uint16_t extHttpClientStatus(char *buf, uint16_t size)
+{
+	HttpClient *hc = &_httpClient;
+	uint16_t index = 0;
+
+	CMN_SN_PRINTF(buf, size, index, "\t<DIV class=\"field\"><LABEL >Video Status:</LABEL>"EXT_NEW_LINE"\t\tTotal:%"U32_F"; ConnErrors:%"U32_F"; DataErrors:%"U32_F"; Msg: '%s'</DIV>" EXT_NEW_LINE, 
+			hc->requests[0].total, hc->requests[0].httpFails, hc->requests[0].dataErrors, hc->requests[0].msg);
+	CMN_SN_PRINTF(buf, size, index, "\t<DIV class=\"field\"><LABEL >Audio Status:</LABEL>"EXT_NEW_LINE"\t\tTotal:%"U32_F"; ConnErrors:%"U32_F"; DataErrors:%"U32_F"; Msg: '%s'</DIV>" EXT_NEW_LINE, 
+			hc->requests[1].total, hc->requests[1].httpFails, hc->requests[1].dataErrors, hc->requests[0].msg);
+	CMN_SN_PRINTF(buf, size, index, "\t<DIV class=\"field\"><LABEL >ANC Status:</LABEL>"EXT_NEW_LINE"\t\tTotal:%"U32_F"; ConnErrors:%"U32_F"; DataErrors:%"U32_F"; Msg: '%s'</DIV>" EXT_NEW_LINE, 
+			hc->requests[2].total, hc->requests[2].httpFails, hc->requests[2].dataErrors, hc->requests[0].msg);
+
+	return index;
+}
+
+char	cmnCmdSdpInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
+{
+	HttpClient *hc = &_httpClient;
+	int index = 0;
+	int i = 0;
+	ip4_addr_t destIp;
+
+	index += snprintf(outBuffer+index, bufferLen-index, "MediaSet: %s; Total SDP requests: %"U32_F"; Timestamp:%s"EXT_NEW_LINE, FPGA_CFG_STR_NAME(hc->runCfg->fpgaAuto), hc->reqs, sysTimestamp() );
+	for(i=0; i<3; i++)
+	{
+		destIp.addr = hc->requests[i].req.ip;
+		index += snprintf(outBuffer+index, bufferLen-index, "\t#%d: http://%s:%d/%s:\tTotal:%"U32_F"; ConnErrors:%"U32_F"; DataErrors:%"U32_F"; Msg: '%s'"EXT_NEW_LINE, i+1,
+			ip4addr_ntoa(&destIp), hc->requests[i].req.port, hc->requests[i].req.uri, hc->requests[i].total, hc->requests[i].httpFails, hc->requests[i].dataErrors, hc->requests[i].msg);
+	}
+
+	return EXT_FALSE;
+}
+
 

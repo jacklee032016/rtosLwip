@@ -1,5 +1,8 @@
 #!/bin/awk -f
 
+# for ubuntun
+#!/usr/bin/awk -f
+
 # for debugging the layout of binary and show memory usage; 
 # Feb.7th, 2018 J.L.
 
