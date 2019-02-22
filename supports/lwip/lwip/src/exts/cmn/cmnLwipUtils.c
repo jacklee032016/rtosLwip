@@ -738,6 +738,11 @@ char cmnCmdTx(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen
 	/* Start with an empty string. */
 	outBuffer[ 0 ] = 0x00;
 
+#if 1
+	sprintf( outBuffer, "Test: re-init switch chip"EXT_NEW_LINE);
+	extBspRtl8305Config();
+#else
+
 	if(argc < 2)
 	{
 		index += snprintf( outBuffer+index, (bufferLen-index), "'%s' configuration is '%s'"EXT_NEW_LINE, cmd->name, EXT_IS_TX(&extRun)?"TX":"RX");//, extRun.isTx);
@@ -756,7 +761,7 @@ char cmnCmdTx(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen
 	{
 		sprintf( outBuffer, "'%s' configuration is not changed"EXT_NEW_LINE, cmd->name );
 	}
-
+#endif
 
 	
 	return EXT_FALSE;

@@ -38,7 +38,8 @@ class IpCommand(DeviceCtrl):
         else:
             self.sendCmds['data'] = []
 
-        localIpAddr = localIp.get_lan_ip_address("enp0s3")
+        #localIpAddr = localIp.get_lan_ip_address("enp0s3")
+        localIpAddr = localIp.get_lan_ip_address("eth0")
         self.sendCmds['targ'] = kwargs.get("target", "FF:FF:FF:FF:FF:FF")
         self.sendCmds['811Ip'] = kwargs.get("811Ip", localIpAddr)
         self.sendCmds['811Port'] = kwargs.get("811Port", 3840 )

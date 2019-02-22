@@ -48,8 +48,12 @@ static unsigned char _hcEventNewReq(void *arg)
 	
 	tcp_arg(pcb, hc);
 
+#if 1
 	HTTP_CLIENT_SET_PCB(hc, pcb);
-	
+#else
+	hc->pcb = pcb;
+#endif
+
 	err = tcp_connect(hc->pcb, &destIp, req->port,  httpClientConnected);
 	if(err != ERR_OK)
 	{

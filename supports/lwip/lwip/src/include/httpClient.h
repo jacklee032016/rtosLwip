@@ -8,7 +8,7 @@
 #define		EXT_HTTP_CLIENT_MBOX_SIZE					2
 #define		EXT_HTTP_CLIENT_PORT							1000
 
-#define		EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN			2000	/* for new TCP connection */
+#define		EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN			4000	/* for new TCP connection */
 #define		EXT_HTTP_CLIENT_TIMEOUT_2_WAIT				2000	/* from state of DATA/ERROR to state of WAIT*/
 
 #define		HTTPC_MAX_RETRIES								4
@@ -158,10 +158,13 @@ void	httpClientFsmHandle(HcEvent *hce);
 //	((hc)->req.ip == IPADDR_NONE ) 
 	//&& (hc)->req.port == -1 )
 
-
+#if 1
 #define	HTTP_CLIENT_SET_PCB(hc, _pcb) 	\
 	do{HC_LOCK(); (hc)->pcb = (_pcb); HC_UNLOCK();}while(0)
-
+#else
+#define	HTTP_CLIENT_SET_PCB(hc, _pcb) 	\
+	do{ (hc)->pcb = (_pcb); }while(0)
+#endif
 
 extern	sys_timer_t		_hcTimer;		/* timer new TCP connection */
 

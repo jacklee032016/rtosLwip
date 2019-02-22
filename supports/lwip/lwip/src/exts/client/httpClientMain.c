@@ -56,7 +56,7 @@ static char _httpClientPostEvent(HC_EVENT_T eventType, void *_data)
 
 static void _connError(void *arg, err_t err)
 {
-	HttpClient *hc = (HttpClient *)arg;
+//	HttpClient *hc = (HttpClient *)arg;
 	// pcb already deallocated
 //	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"HTTP Client CONN Error : '%s'", lwip_strerr(err)));
 //	EXT_ERRORF(("HTTP Client CONN %s in state of %s, Error : '%s'", (hc->reqList)?hc->reqList->uri:"NULL", CMN_FIND_HC_STATE(hc->state), lwip_strerr(err)));
@@ -229,9 +229,10 @@ static void _extHttpClientTask(void *arg)
 //TRACE();
 
 		httpClientFsmHandle(hce);
+
+		HC_LOCK();	/* protect hc->reqList  itself, not just Client Event. 02.21, 2019 */
 		
 //TRACE();
-		HC_LOCK();	
 		HC_EVENT_FREE(hce);
 		HC_UNLOCK();	
 //TRACE();
@@ -344,7 +345,7 @@ static err_t extHttpClientNewRequest(HttpClient *hc, HttpClientReq *req)
 	_newReq->next = NULL; //??//
 
 	/* protect */
-//	EXT_DEBUGF(EXT_DBG_OFF, ("Queuing request #%d %p: '%s:%d/%s'", hc->reqs, _newReq, extCmnIp4addr_ntoa(&_newReq->ip), _newReq->port, _newReq->uri));
+//	EXT_DEBUGF(EXT_DBG_OFF, ("Queuing request #%"U32_F" %p: '%s:%d/%s'", hc->reqs, _newReq, extCmnIp4addr_ntoa(&_newReq->ip), _newReq->port, _newReq->uri));
 
 	APPEND_ELEMENT(hc->reqList, _newReq, HttpClientReq);
 
@@ -415,11 +416,16 @@ err_t extHttpClientStart(EXT_RUNTIME_CFG *runCfg)
 	err_t  ret;
 	HttpClient *hc = &_httpClient;
 
+//	HC_LOCK();	/* protect hc->reqList  itself, not just Client Event. 02.21, 2019 */
 	if(!HTTP_CLIENT_IS_NOT_REQ(hc) )
 	{
-		EXT_ERRORF(("HttpClient is busy now"));
+		EXT_ERRORF(("HttpClient is busy now, %s is in request in state of %s", 
+			hc->reqList->uri, CMN_FIND_HC_STATE(hc->state) ));
+//		HC_UNLOCK();
 		return ERR_ALREADY;
 	}
+
+//	hc->reqList = NULL; /* mandidate to clear it after get the lock */
 	
 	runCfg->sdpUriVideo.next = NULL;
 	ret = extHttpClientNewRequest(hc, &runCfg->sdpUriVideo);
@@ -429,6 +435,8 @@ err_t extHttpClientStart(EXT_RUNTIME_CFG *runCfg)
 
 	runCfg->sdpUriAnc.next = NULL;
 	ret = extHttpClientNewRequest(hc, &runCfg->sdpUriAnc);
+
+//	HC_UNLOCK();
 
 	ret = ret;
 #if HTTP_CLIENT_DEBUG
@@ -458,6 +466,31 @@ uint16_t extHttpClientStatus(char *buf, uint16_t size)
 	return index;
 }
 
+
+void	cmnSdpTxStatistics(char type)
+{
+	HttpClient *hc = &_httpClient;
+	HttpClientStatus *hcs = NULL;
+
+	if(type == HC_REQ_SDP_VIDEO)
+	{
+		hcs = &hc->requests[0];
+	}
+	else if(type == HC_REQ_SDP_AUDIO)
+	{
+		hcs = &hc->requests[1];
+	}
+	else
+	{
+		hcs = &hc->requests[2];
+	}
+
+	hcs->total++;
+	hc->reqs++;
+}
+
+
+
 char	cmnCmdSdpInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen)
 {
 	HttpClient *hc = &_httpClient;
@@ -466,14 +499,24 @@ char	cmnCmdSdpInfo(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t buff
 	ip4_addr_t destIp;
 
 	index += snprintf(outBuffer+index, bufferLen-index, "MediaSet: %s; Total SDP requests: %"U32_F"; Timestamp:%s"EXT_NEW_LINE, FPGA_CFG_STR_NAME(hc->runCfg->fpgaAuto), hc->reqs, sysTimestamp() );
-	for(i=0; i<3; i++)
+	if(EXT_IS_TX( hc->runCfg) )
 	{
-		destIp.addr = hc->requests[i].req.ip;
-		index += snprintf(outBuffer+index, bufferLen-index, "\t#%d: http://%s:%d/%s:\tTotal:%"U32_F"; ConnErrors:%"U32_F"; DataErrors:%"U32_F"; Msg: '%s'"EXT_NEW_LINE, i+1,
-			ip4addr_ntoa(&destIp), hc->requests[i].req.port, hc->requests[i].req.uri, hc->requests[i].total, hc->requests[i].httpFails, hc->requests[i].dataErrors, hc->requests[i].msg);
+		index += snprintf(outBuffer+index, bufferLen-index, "\tVideo Reqs:%"U32_F"; \tAudio Reqs:%"U32_F"; ANC Reqs:%"U32_F""EXT_NEW_LINE, 
+			hc->requests[0].total, hc->requests[1].total, hc->requests[2].total );
+	}
+	else
+	{
+		index += snprintf(outBuffer+index, bufferLen-index, "HC Status: %s, %s"EXT_NEW_LINE, CMN_FIND_HC_STATE(hc->state), (hc->reqList)?hc->reqList->uri:"None");
+		for(i=0; i<3; i++)
+		{
+			destIp.addr = hc->requests[i].req.ip;
+			index += snprintf(outBuffer+index, bufferLen-index, "\t#%d: http://%s:%d/%s:\tTotal:%"U32_F"; ConnErrors:%"U32_F"; DataErrors:%"U32_F"; Msg: '%s'"EXT_NEW_LINE, i+1,
+				ip4addr_ntoa(&destIp), hc->requests[i].req.port, hc->requests[i].req.uri, hc->requests[i].total, hc->requests[i].httpFails, hc->requests[i].dataErrors, hc->requests[i].msg);
+		}
 	}
 
 	return EXT_FALSE;
 }
+
 
 

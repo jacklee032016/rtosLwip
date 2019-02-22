@@ -29,7 +29,9 @@ static char _extJsonIsResponse(EXT_JSON_PARSER  *parser)
 
 	parser->outIndex = 0;
 
+#if EXT_POLL_TASK
 	extMediaPostEvent(EXT_MEDIA_EVENT_ACK, NULL);
+#endif
 	EXT_DEBUGF(EXT_DBG_ON, ("this is a response of IP command"));
 	
 	return EXIT_SUCCESS;

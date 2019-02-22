@@ -9,6 +9,8 @@
 #include "extUdpCmd.h"
 #include "extFsm.h"
 
+#if EXT_POLL_TASK
+
 typedef	struct
 {
 	unsigned char		type;
@@ -292,7 +294,10 @@ void extMediaInit( void *arg)
 #endif
 	sys_timer_new(&_mediaMsgTimer, _msgTimerCallback, os_timer_type_once, (void *) &_mediaFsm);
 
+#if EXT_POLL_TASK
 	sys_thread_new(EXT_TASK_NAME, _extMediaControlThread, arg, EXT_NET_IF_TASK_STACK_SIZE, EXT_NET_IF_TASK_PRIORITY-2 );
+#endif
+
 }
 
 
@@ -385,11 +390,16 @@ static char _extMediaCompareParams(MuxRunTimeParam *dest, MuxRunTimeParam *newPa
 	return isDiff;
 }
 
+#endif // EXT_POLL_TASK
+
 
 void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg)
 {
 	if(EXT_IS_TX(runCfg))
 	{
+#if EXT_POLL_TASK
+
+
 #ifdef ARM
 		extFpgaTimerJob(&_mediaParams);
 #else
@@ -416,6 +426,7 @@ void extMediaPollDevice(EXT_RUNTIME_CFG *runCfg)
 			}
 		}
 
+#endif
 	}
 	else
 	{/* SDP client */

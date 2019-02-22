@@ -16,7 +16,7 @@
 #include "eos.h"
 
 #define	EXT_PERIOD_JOB_NAME		"extTimer"
-#if 1
+#if  0
 #define	EXT_PERIOD_JOB_TIME		(3000*10) 	/* ms*/
 #else
 #define	EXT_PERIOD_JOB_TIME		(1000*10) 	/* ms, for tests only */

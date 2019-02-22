@@ -682,6 +682,7 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 
 	if ((err != ERR_OK) || (pcb == NULL))
 	{
+		EXT_ERRORF(("http accept error: %s, PCB is %p" EXT_NEW_LINE, lwip_strerr(err), (pcb)?pcb:NULL));
 		return ERR_VAL;
 	}
 
@@ -695,9 +696,13 @@ static err_t _extHttpAccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	ehc = extHttpConnAlloc(runCfg);
 	if (ehc == NULL)
 	{
-		EXT_ERRORF(("http_accept: Out of memory, RST"));
+		EXT_ERRORF(("http accept: Out of memory, RST"));
 		tcp_abort(pcb);
-		return ERR_MEM;
+
+//		EXT_ERRORF(("After abort"));
+		/* commented and replaced with ERR_ABRT. 02.21,2019 */
+		// return ERR_MEM;
+		return ERR_ABRT;
 	}
 
 //	EXT_DEBUGF(EXT_DBG_OFF,("Accept new connection %s(on PCB %p) from %s:%d", ehc->name, pcb, extCmnIp4addr_ntoa((uint32_t *)&pcb->remote_ip), pcb->remote_port ) );

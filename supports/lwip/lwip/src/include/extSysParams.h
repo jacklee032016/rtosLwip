@@ -33,6 +33,8 @@
 
 #define		LWIP_EXT_NMOS					0
 
+#define		EXT_POLL_TASK					0
+
 /* ---------- MDNS options ---------- */
 #define		LWIP_MDNS_RESPONDER        			0
 #define		LWIP_NUM_NETIF_CLIENT_DATA		(LWIP_MDNS_RESPONDER)

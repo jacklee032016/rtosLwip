@@ -106,6 +106,12 @@ uint16_t extHttpSdpVideo(ExtHttpConn  *ehc, void *pageHandle)
 	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
 	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
+	if(! EXT_IS_TX(runCfg) )
+	{
+		return httpWebPageResult(ehc, "Error", (char *) "SDP is not support in RX", NULL);
+	}
+
+	cmnSdpTxStatistics(HC_REQ_SDP_VIDEO);
 #ifdef	ARM
 	extFpgaReadParams(runCfg);
 #endif
@@ -177,6 +183,12 @@ uint16_t extHttpSdpAudio(ExtHttpConn  *ehc, void *pageHandle)
 	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
 	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
+	if(! EXT_IS_TX(runCfg) )
+	{
+		return httpWebPageResult(ehc, "Error", (char *) "SDP is not support in RX", NULL);
+	}
+	
+	cmnSdpTxStatistics(HC_REQ_SDP_AUDIO);
 #ifdef	ARM
 	extFpgaReadParams(runCfg);
 #endif
@@ -236,6 +248,12 @@ uint16_t extHttpSdpAnc(ExtHttpConn  *ehc, void *pageHandle)
 	char *dataBuf = (char *)ehc->data+ehc->responseHeaderLength;
 	uint16_t size = sizeof(ehc->data) - ehc->responseHeaderLength;
 
+	if(! EXT_IS_TX(runCfg) )
+	{
+		return httpWebPageResult(ehc, "Error", (char *) "SDP is not support in RX", NULL);
+	}
+	
+	cmnSdpTxStatistics(HC_REQ_SDP_ANC);
 #ifdef	ARM
 	extFpgaReadParams(runCfg);
 #endif
@@ -363,7 +381,7 @@ uint16_t  extHttpSimpleRestApi(ExtHttpConn  *ehc, void *pageHandle)
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_FPGA_AUTO"\":\"%s\","EXT_NEW_LINE, 
 		FPGA_CFG_STR_NAME(runCfg->fpgaAuto) );
 
-	printf("mediaSet:%d"EXT_NEW_LINE, runCfg->fpgaAuto);
+//	printf("mediaSet:%d"EXT_NEW_LINE, runCfg->fpgaAuto);
 
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_HEIGHT"\":%d,"EXT_NEW_LINE, runCfg->runtime.vHeight);
 	CMN_SN_PRINTF(dataBuf, size, index, "\t\""EXT_WEB_CFG_FIELD_VIDEO_WIDTH"\":%d,"EXT_NEW_LINE, runCfg->runtime.vWidth);
