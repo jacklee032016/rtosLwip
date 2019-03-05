@@ -220,7 +220,7 @@ static char cmdFpgaRegisterWrite(const struct _EXT_CLI_CMD *cmd, char *outBuffer
 		FPGA_I2C_WRITE((address), &val, 1);
 		
 		FPGA_I2C_READ((address), &readout, 1);
-		index += snprintf(outBuffer+index, bufferLen-index, "0x%2x: 0x%2x. Write %s"EXT_NEW_LINE, address, readout, (readout==val)?"OK":"Failed");
+		index += snprintf(outBuffer+index, bufferLen-index, "0x%2x: 0x%2x 0x%2x. Write %s"EXT_NEW_LINE, address, val, readout, (readout==val)?"OK":"Failed");
 	}
 	else
 	{

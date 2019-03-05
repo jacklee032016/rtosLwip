@@ -209,6 +209,16 @@ static const char *_extI2cDeviceName(char	address)
 }
 #endif
 
+void extI2cReset(void)
+{
+	Twihs *p_twihs = TWIHS0;
+
+	/* test clear all after read */
+	p_twihs->TWIHS_CR = TWIHS_CR_CLEAR;
+
+	bspHwI2cInit();
+}
+
 char extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize, unsigned char *regVal, unsigned char regSize)
 {
 	int twiStatus;

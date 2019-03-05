@@ -740,7 +740,9 @@ char cmnCmdTx(const struct _EXT_CLI_CMD *cmd,  char *outBuffer, size_t bufferLen
 
 #if 1
 	sprintf( outBuffer, "Test: re-init switch chip"EXT_NEW_LINE);
-	extBspRtl8305Config();
+//	extBspRtl8305Config();
+	extI2cReset();
+
 #else
 
 	if(argc < 2)

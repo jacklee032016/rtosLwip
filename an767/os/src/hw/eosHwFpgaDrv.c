@@ -808,6 +808,8 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 	return;
 }
 
+void extI2cReset(void);
+
 char extFpgaReadParams( EXT_RUNTIME_CFG *runCfg)
 {
 	unsigned char _chValue;
@@ -818,7 +820,14 @@ char extFpgaReadParams( EXT_RUNTIME_CFG *runCfg)
 	}
 
 	_extFpgaReadShort(EXT_FPGA_REG_SDI_STATUS, (unsigned char *)&_chValue);
-//	EXT_DEBUGF(EXT_DBG_OFF, ("Lock %02x from register 0x%x", _chValue, EXT_FPGA_REG_SDI_STATUS));
+	if(_chValue == 0x0f)
+	{
+		EXT_ERRORF(("Lock %02x from register 0x%x, shifted. Reset I2C", _chValue, EXT_FPGA_REG_SDI_STATUS));
+		extI2cReset();
+		_extFpgaReadShort(EXT_FPGA_REG_SDI_STATUS, (unsigned char *)&_chValue);
+	}
+	
+	EXT_DEBUGF(EXT_DBG_ON, ("Lock %02x from register 0x%x", _chValue, EXT_FPGA_REG_SDI_STATUS));
 	if(!_chValue)
 	{
 		FIELD_INVALIDATE_U16(runCfg->runtime.vWidth);
