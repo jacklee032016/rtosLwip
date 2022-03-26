@@ -210,6 +210,11 @@ void bspHwConsoleConfig(void)
 	ioport_set_pin_peripheral_mode(USART1_RXD_GPIO, USART1_RXD_FLAGS);
 	MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4;
 	ioport_set_pin_peripheral_mode(USART1_TXD_GPIO, USART1_TXD_FLAGS);
+
+	/* Configure UART pins */
+	ioport_set_pin_peripheral_mode(USART1_RXD_GPIO, USART1_RXD_FLAGS);
+	MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4;
+	ioport_set_pin_peripheral_mode(USART1_TXD_GPIO, USART1_TXD_FLAGS);
 	
 	sysclk_enable_peripheral_clock(ID_USART1);		/* 14 */
 	stdio_serial_init(USART1, &_options); /* eg. 0x40028000U */
@@ -257,6 +262,10 @@ void bspHwInit(boot_mode bMode)
 	
 	/* UART must follow PINs configuration, so put it here */
 	bspHwConsoleConfig();
+
+	ioport_set_pin_level(LED0_GPIO, 0);
+
+	puts("Console\n");
 
 	
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)

@@ -142,6 +142,7 @@ static char _extConfigRtkOnePort(uint8_t port)
 	}
 	
 //	EXT_DEBUGF("\tread status again");
+#if EXTLAB_BOARD
 	ret = rtk_port_linkAbility_get(port, &linkAbility );
 	if(ret != RT_ERR_OK)
 	{
@@ -156,6 +157,7 @@ static char _extConfigRtkOnePort(uint8_t port)
 #if RTK_DEBUG_IF
 	printf("Port#%d\t", port);
    	_printPortAbility(&linkAbility);
+#endif
 #endif
 	return EXIT_SUCCESS;
 }

@@ -65,7 +65,7 @@ static void _consoleHandler(uint8_t key)
 	}
 }
 
-#if 0
+#if 1
 static void _ledTestTask(void *param)
 {
 	param = param;
@@ -206,6 +206,7 @@ int main( void )
 
 	bspHwInit(BOOT_MODE_BOOTLOADER);
 
+	ioport_set_pin_level(LED0_GPIO, 0);
 	_bootUpdate(&extRun);
 	
 #if (RESET_BTN_MODE == _RESET_BTN_STAY_IN_BOOTLOADER)
@@ -268,6 +269,7 @@ int main( void )
 
 //	printf(promptMessage);
 	BOOT_PROMPT();
+	ioport_set_pin_level(LED0_GPIO, 0);
 
 	while (1)
 	{

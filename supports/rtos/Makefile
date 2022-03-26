@@ -34,8 +34,8 @@ CFLAGS += \
 ###################################################################
 
 RTOS_SRC += \
-	portable/gcc/ARM_CM7/r0p1/port.c \
-	portable/memmang/heap_4.c \
+	portable/GCC/ARM_CM7/r0p1/port.c \
+	portable/MemMang/heap_4.c \
 	list.c \
 	queue.c \
 	tasks.c \

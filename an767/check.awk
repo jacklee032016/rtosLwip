@@ -16,6 +16,7 @@ function getPosition(tag)
 
 		NM_CMD="arm-none-eabi-nm -a "
 		ELF_FILE="BIN/images.AN767/rtosLwipAN767.bin.elf"
+		ELF_FILE="BIN/images.E7oXpld/rtosLwipE7oXpld.bin.elf"
     command = NM_CMD ELF_FILE" | grep '" tag "'"
     
 #    print command

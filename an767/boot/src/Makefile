@@ -77,7 +77,7 @@ CMN_LIB:=-Wl,-L$(SUPPORT_HOME)/BIN/images.$(BOARD_NAME) -lLwip
 
 $(LOCAL_ALL):$(OBJS)
 #		$(CC) -nostartfiles -nostdlib -mthumb -Wl,-Map=$(EXE).map,--cref,--gc-sections -mthumb -mcpu=cortex-m7 -T flash.lds $(OBJS) -lgcc -Wl,-L$(BIN_DIR) -lbsp $(CMN_LIB) -o $(EXE).elf 
-		$(CC) --specs=nano.specs -specs=nosys.specs -mthumb -Wl,-Map=$(EXE).map,--cref,--gc-sections -mthumb -mcpu=cortex-m7 -T flash.lds $(OBJS) -Wl,-L$(BIN_DIR) -lbsp $(CMN_LIB) -o $(EXE).elf 
+		$(CC) --specs=nano.specs -specs=nosys.specs -mthumb -Wl,-Map=$(EXE).map,--cref,--gc-sections -mthumb -mcpu=cortex-m7 -T flash.lds $(OBJS) -Wl,-L$(BIN_DIR) -lBsp $(CMN_LIB) -o $(EXE).elf 
 		$(OBJCOPY) -O binary $(EXE).elf $@
 		$(COPY) $(EXE).elf $(BIN_DIR)/$(EXE).$(BUILDTIME).elf
 		$(MOVE) $(EXE).elf $(BIN_DIR)

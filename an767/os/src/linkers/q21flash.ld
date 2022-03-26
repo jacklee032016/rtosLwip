@@ -50,7 +50,8 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  rom (rx)  : ORIGIN = 0x00400000, LENGTH = 0x00200000
+/*  rom (rx)  : ORIGIN = 0x00420000, LENGTH = 0x000EB000*/
+  rom (rx)  : ORIGIN = 0x00400000, LENGTH = 0x00200000 
   ram (rwx) : ORIGIN = 0x20400000, LENGTH = 0x00060000
 }
 

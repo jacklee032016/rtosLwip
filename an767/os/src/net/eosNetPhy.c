@@ -122,7 +122,6 @@ uint8_t ethernet_phy_init(Gmac *p_gmac, uint8_t uc_phy_addr, uint32_t mck)
 
 	pio_set_peripheral(PIN_GMAC_PIO, PIN_GMAC_PERIPH, PIN_GMAC_MASK);
 
-
 #if EXTLAB_BOARD
 	if(extBspRtl8305Config() != EXIT_SUCCESS)
 		uc_rc = GMAC_TIMEOUT;

@@ -106,14 +106,19 @@ char bspHwI2cInit(void);
 char extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize, unsigned char *regVal, unsigned char regSize);
 char extI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize,  unsigned char *regVal, unsigned char regSize);
 
+#if EXTLAB_BOARD
 /* 8 bits address, and 8 bit data */
 #define	FPGA_I2C_WRITE(address, val, size)		\
 	extI2CWrite(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
 #define	FPGA_I2C_READ(address, val, size)		\
 	extI2CRead(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+#else
+#define	FPGA_I2C_WRITE(address, val, size)		do{}while(0)
 
+#define	FPGA_I2C_READ(address, val, size)		(EXIT_SUCCESS)
 
+#endif
 
 void extEepromWrite(unsigned char startAddress, unsigned char *value, unsigned int size);
 void extEepromRead(unsigned char startAddress, unsigned char *value, unsigned int size);

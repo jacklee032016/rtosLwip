@@ -49,7 +49,7 @@ include $(RULE_DIR)/Makefile.post
 
 
 #LIBS= -Wl,-Lthirdparty/CMSIS/Lib/GCC -larm_cortexM7lfsp_math_softfp -lm  
-LIBS= -Wl,-L$(BIN_DIR) -lUcosBsp -lrtos 
+LIBS= -Wl,-L$(BIN_DIR) -lUcosBsp -lRtos 
 
 # -Wl,-L../thirdparty/CMSIS/Lib/GCC -larm_cortexM7lfsp_math_softfp: float is not used now --specs nosys.specs 
 # -Wl,--cref: create references -Wl,-Map=$(EXE).map,--cref,--gc-sections 

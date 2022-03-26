@@ -324,9 +324,6 @@ void board_init(void)
 	/* Configure Push Button pins */
 	ioport_set_pin_input_mode(GPIO_PUSH_BUTTON_1, GPIO_PUSH_BUTTON_1_FLAGS, GPIO_PUSH_BUTTON_1_SENSE);
 
-
-
-
 #ifdef CONF_BOARD_CAN0
 	/* Configure the CAN0 TX and RX pins. */
 	ioport_set_pin_peripheral_mode(PIN_CAN0_RX_IDX, PIN_CAN0_RX_FLAGS);

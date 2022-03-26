@@ -65,6 +65,18 @@ void vApplicationTickHook( void )
 
 #if EXTLAB_BOARD
 #else
+static void _ledTestTask(void *param)
+{
+	param = param;
+	while(1)
+	{
+		printf("FreeRTOS 10.0.0: Now Iteration number"EXT_NEW_LINE);
+//		ioport_toggle_pin_level(LED0_GPIO);
+        ioport_set_pin_level(LED0_GPIO, 0);
+        vTaskDelay( EXT_OS_MILL_SECOND(250));
+	}
+}
+
 static void _consoleTestTask(void *param)
 {
 	uint16_t i =0;
@@ -155,8 +167,11 @@ int main( void )
 
 	unsigned int debugOption;
 	
+#if EXTLAB_BOARD
 	bspHwInit(BOOT_MODE_RTOS);
-
+#else
+	bspHwInit(BOOT_MODE_BOOTLOADER);//avoid miss console initialization
+#endif
 
 #if (RESET_BTN_MODE == _RESET_BTN_RESTORE_FACTORY)
 	restoringFactory = gpio_pin_is_low(PIO_PA30_IDX);
@@ -191,17 +206,17 @@ int main( void )
 #endif
 	EXT_DEBUG_SET_ENABLE(debugOption);
 
-//	printf(ANSI_COLOR_RED "Task initializing..."EXT_NEW_LINE);
-#if EXTLAB_BOARD
-#else
-	printf(ANSI_COLOR_RED"LED Task initializing..."EXT_NEW_LINE);
-	xTaskCreate(_ledTestTask, "ledTask", EXT_TASK_LED_STACK_SIZE, NULL, EXT_TASK_LED_PRIORITY, NULL);
-#endif
-
 	/* Initialize timer before button configuration */
 	printf("Initializing timer..."EXT_NEW_LINE);
 	sys_init_timing();
 
+    //  printf(ANSI_COLOR_RED "Task initializing..."EXT_NEW_LINE);
+#if EXTLAB_BOARD
+#else
+    printf(ANSI_COLOR_RED"LED Task initializing..."EXT_NEW_LINE);
+    xTaskCreate(_ledTestTask, "ledTask", EXT_TASK_LED_STACK_SIZE, NULL, EXT_TASK_LED_PRIORITY, NULL);
+#endif
+    
 #if WITH_MUX_WAIT
 	err_t err;
 	/* Incoming packet notification semaphore. */
@@ -220,6 +235,7 @@ int main( void )
 	/* console task must start finally to make the command line prompt */
 	vMuxUartCmdConsoleStart(EXT_TASK_CONSOLE_STACK_SIZE, EXT_TASK_CONSOLE_PRIORITY);
 
+	printf("Initialization finished now"EXT_NEW_LINE EXT_NEW_LINE);
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
 	for( ;; );

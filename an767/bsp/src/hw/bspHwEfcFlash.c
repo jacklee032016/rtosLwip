@@ -152,6 +152,11 @@ void efcFlashUpdateGpnvm(void)
 		return;
 	}
 
+#if 0
+    // configure GPNVMBITS.TCM_CONFIGURATION: Tightly Coupled Memory
+    // change the GPNVMBITS value to 0x02 which will give you maximum SRAM (384KB)
+    // Atmel’s default linker script declares 384KB of SRAM
+    // refer to https://borkedlabs.com/blog/2017/09-21-cortex-m7s-atmel-studio-debugging-tcm/
 	if(nvmValue != 0x02)
 	{
 		EXT_ERRORF(("GPNVM is 0x%x, it should be changed and reboot", nvmValue));
@@ -166,7 +171,7 @@ void efcFlashUpdateGpnvm(void)
 		EXT_DELAY_S(2);
 		EXT_REBOOT();
 	}
-
+#endif
 	return;
 }
 
