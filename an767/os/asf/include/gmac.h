@@ -166,7 +166,7 @@ typedef enum  {
 }gmac_quelist_t;
 
 /** Receive buffer descriptor struct */
-COMPILER_PACK_SET(8)
+//COMPILER_PACK_SET(8)
 typedef struct gmac_rx_descriptor {
 	union gmac_rx_addr {
 		uint32_t val;
@@ -200,7 +200,7 @@ typedef struct gmac_rx_descriptor {
 } gmac_rx_descriptor_t;
 
 /** Transmit buffer descriptor struct */
-COMPILER_PACK_SET(8)
+//COMPILER_PACK_SET(8)
 typedef struct gmac_tx_descriptor {
 	uint32_t addr;
 	union gmac_tx_status {

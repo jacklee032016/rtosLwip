@@ -87,38 +87,38 @@ void itoa_alt(s32_t value, char* result, u8_t base)
 	u8_t counter = 11;
 	u32_t value_cpy;
 
-if (  (base < 2) | (base > 16)) { *result = '\0'; return; }
+    if (  (base < 2) | (base > 16)) { *result = '\0'; return; }
 
+    // If value is zero
+    if (value == 0)
+    {
+    	strcpy(result, "0\0");
+    	return;
+    }
 
-// If value is zero
-if (value == 0)
-{
-	strcpy(result, "0\0");
-	return;
-}
+    // Check and store sign
+    if (value >= 0)
+    {
+    	sign = 1;
+    }
+    else
+    {
+    	sign = 0;
+    	value = -value;
+    }
 
-// Check and store sign
-if (value >= 0)
-{
-	sign = 1;
-}
-else
-{
-	sign = 0;
-	value = -value;
-}
+    // Terminate string
+    output_string[11] = '\0';
 
-// Terminate string
-output_string[11] = '\0';
-
-do
-{
-	counter--;
-if (counter > 11) { *result = '\0'; return; }
-value_cpy = value;
-value = value / base;
-if (value_cpy!=0)
-output_string[counter] = HEX_DIGITS[value_cpy - (value*base)];
+    do
+    {
+    	counter--;
+        if (counter > 11) { *result = '\0'; return; }
+        
+        value_cpy = value;
+        value = value / base;
+        if (value_cpy!=0)
+            output_string[counter] = HEX_DIGITS[value_cpy - (value*base)];
 
 	}while( (value_cpy!=0) );
 
@@ -147,69 +147,69 @@ char* converIntToString(s32_t value, u8_t base)
 	u8_t counter = 11;
 	u32_t value_cpy;
 
-if (  (base < 2) | (base > 16)) 
-{ 
-	result=malloc(1);
-	*result = '\0'; 
-	return result; 
-}
+    if (  (base < 2) | (base > 16)) 
+    { 
+    	result=malloc(1);
+    	*result = '\0'; 
+    	return result; 
+    }
 
 
-// If value is zero
-if (value == 0)
-{
-	result=malloc(2);
-	strcpy(result, "0\0");
-	return result;
-}
+    // If value is zero
+    if (value == 0)
+    {
+    	result=malloc(2);
+    	strcpy(result, "0\0");
+    	return result;
+    }
 
-// Check and store sign
-if (value >= 0)
-{
-	sign = 1;
-}
-else
-{
-	sign = 0;
-	value = -value;
-}
+    // Check and store sign
+    if (value >= 0)
+    {
+    	sign = 1;
+    }
+    else
+    {
+    	sign = 0;
+    	value = -value;
+    }
 
-// Terminate string
-output_string[11] = '\0';
+    // Terminate string
+    output_string[11] = '\0';
 
-do
-{
-	counter--;
-	if (counter > 11) 
-	{ 
-		result=malloc(1);
-		*result = '\0'; 
-		return result;
-	}
-	
-	value_cpy = value;
+    do
+    {
+    	counter--;
+    	if (counter > 11) 
+    	{ 
+    		result=malloc(1);
+    		*result = '\0'; 
+    		return result;
+    	}
+    	
+    	value_cpy = value;
 
-	value = value / base;
-	
-	if (value_cpy!=0)
-		output_string[counter] = HEX_DIGITS[value_cpy - (value*base)];
+    	value = value / base;
+    	
+    	if (value_cpy!=0)
+    		output_string[counter] = HEX_DIGITS[value_cpy - (value*base)];
 
-}while( (value_cpy!=0) );
+    }while( (value_cpy!=0) );
 
-// add sign
-if (sign == 0)
-{	// is negative; put sign.
-	output_string[counter] = '-';
-}
-else
-{
-	counter++;
-}
+    // add sign
+    if (sign == 0)
+    {	// is negative; put sign.
+    	output_string[counter] = '-';
+    }
+    else
+    {
+    	counter++;
+    }
 
-// copy string
-result=malloc(strlen(output_string)+1);
-strcpy(result, output_string+counter);
-return result;
+    // copy string
+    result=malloc(strlen(output_string)+1);
+    strcpy(result, output_string+counter);
+    return result;
 }
 
 u32_t valueFromHex(char* string, uint8_t length)
@@ -483,7 +483,7 @@ void capitalizeStringInPlace(char *string)
 	for (i=0; i<strlen(string); i++)
 	{
 		if ((string[i]>='a') & (string[i]<='z'))
-		string[i]-='a'-'A';
+    		string[i]-='a'-'A';
 	}
 }
 

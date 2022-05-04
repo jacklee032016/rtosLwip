@@ -379,13 +379,11 @@ plug_holes(struct mem *mem)
 /**
  * Zero the heap and initialize start, end and lowest-free
  */
-void
-mem_init(void)
+void mem_init(void)
 {
   struct mem *mem;
 
-  LWIP_ASSERT(("Sanity check alignment"),
-    (SIZEOF_STRUCT_MEM & (MEM_ALIGNMENT-1)) == 0);
+  LWIP_ASSERT(("Sanity check alignment"),  (SIZEOF_STRUCT_MEM & (MEM_ALIGNMENT-1)) == 0);
 
   /* align the heap */
   ram = (u8_t *)LWIP_MEM_ALIGN(LWIP_RAM_HEAP_POINTER);
